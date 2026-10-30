@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="28" fill="#FF8EA8"/>
+  <!-- Pig Ears -->
+  <polygon points="26,42 42,16 54,40" fill="#E66585"/>
+  <polygon points="102,42 86,16 74,40" fill="#E66585"/>
+  <!-- Pig Head -->
+  <circle cx="64" cy="68" r="44" fill="#FFB4C6"/>
+  <!-- Eyes -->
+  <ellipse cx="48" cy="58" rx="5" ry="7" fill="#2C2428"/>
+  <ellipse cx="80" cy="58" rx="5" ry="7" fill="#2C2428"/>
+  <circle cx="46" cy="56" r="2" fill="#FFFFFF"/>
+  <circle cx="78" cy="56" r="2" fill="#FFFFFF"/>
+  <!-- Snout -->
+  <ellipse cx="64" cy="78" rx="20" ry="14" fill="#FF6D92"/>
+  <ellipse cx="57" cy="78" rx="4" ry="6" fill="#8C1C3E"/>
+  <ellipse cx="71" cy="78" rx="4" ry="6" fill="#8C1C3E"/>
+  <!-- Rebellious Sunglasses / Tie detail -->
+  <path d="M 50 94 L 78 94 L 64 116 Z" fill="#3D5A80"/>
+</svg>
+

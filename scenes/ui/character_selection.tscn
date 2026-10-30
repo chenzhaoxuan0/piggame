@@ -1,0 +1,251 @@
+[gd_scene load_steps=2 format=3 uid="uid://cselec001root"]
+
+[ext_resource type="Script" path="res://scripts/ui/character_selection.gd" id="1_script"]
+
+[node name="CharacterSelection" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.12, 0.14, 0.18, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 60.0
+offset_top = 40.0
+offset_right = -60.0
+offset_bottom = -80.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 24
+
+[node name="Header" type="VBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="VBoxContainer/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "🏢 特立独行的猪：逃离牛马大厦 🐷"
+horizontal_alignment = 1
+
+[node name="SubTitle" type="Label" parent="VBoxContainer/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 0.8)
+theme_override_font_sizes/font_size = 18
+text = "—— 群核科技 AHOLO 空间赋能 × GPT6 Astra 职场反讽叙事 ——"
+horizontal_alignment = 1
+
+[node name="CharactersRow" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="CardPig" type="PanelContainer" parent="VBoxContainer/CharactersRow"]
+custom_minimum_size = Vector2(250, 320)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/CharactersRow/CardPig"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Avatar" type="Label" parent="VBoxContainer/CharactersRow/CardPig/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 72
+text = "🐷"
+horizontal_alignment = 1
+
+[node name="Name" type="Label" parent="VBoxContainer/CharactersRow/CardPig/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.65, 0.78, 1)
+theme_override_font_sizes/font_size = 22
+text = "特立独行的猪"
+horizontal_alignment = 1
+
+[node name="Role" type="Label" parent="VBoxContainer/CharactersRow/CardPig/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_font_sizes/font_size = 14
+text = "【觉醒反抗者】\n目标：逃出大楼！拒绝KPI饲料！"
+horizontal_alignment = 1
+
+[node name="BtnSelect" type="Button" parent="VBoxContainer/CharactersRow/CardPig/VBox"]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "选择此角色 (开始逃亡)"
+
+[node name="CardOx" type="PanelContainer" parent="VBoxContainer/CharactersRow"]
+modulate = Color(0.65, 0.65, 0.65, 0.8)
+custom_minimum_size = Vector2(250, 320)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/CharactersRow/CardOx"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Avatar" type="Label" parent="VBoxContainer/CharactersRow/CardOx/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 72
+text = "🐂"
+horizontal_alignment = 1
+
+[node name="Name" type="Label" parent="VBoxContainer/CharactersRow/CardOx/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "老黄牛"
+horizontal_alignment = 1
+
+[node name="Role" type="Label" parent="VBoxContainer/CharactersRow/CardOx/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "【卷王标兵】\n目标：必须回工位修Bug交周报"
+horizontal_alignment = 1
+
+[node name="BtnSelect" type="Button" parent="VBoxContainer/CharactersRow/CardOx/VBox"]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+disabled = true
+text = "🔒 锁定中 (后续开放)"
+
+[node name="CardHorse" type="PanelContainer" parent="VBoxContainer/CharactersRow"]
+modulate = Color(0.65, 0.65, 0.65, 0.8)
+custom_minimum_size = Vector2(250, 320)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/CharactersRow/CardHorse"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Avatar" type="Label" parent="VBoxContainer/CharactersRow/CardHorse/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 72
+text = "🐎"
+horizontal_alignment = 1
+
+[node name="Name" type="Label" parent="VBoxContainer/CharactersRow/CardHorse/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "神秘马"
+horizontal_alignment = 1
+
+[node name="Role" type="Label" parent="VBoxContainer/CharactersRow/CardHorse/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "【跑路先锋 / 猎头新星】\n目标：未知探索，35岁前奔向远方"
+horizontal_alignment = 1
+
+[node name="BtnSelect" type="Button" parent="VBoxContainer/CharactersRow/CardHorse/VBox"]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+disabled = true
+text = "🔒 企划中"
+
+[node name="CardSheep" type="PanelContainer" parent="VBoxContainer/CharactersRow"]
+modulate = Color(0.65, 0.65, 0.65, 0.8)
+custom_minimum_size = Vector2(250, 320)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VBox" type="VBoxContainer" parent="VBoxContainer/CharactersRow/CardSheep"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Avatar" type="Label" parent="VBoxContainer/CharactersRow/CardSheep/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 72
+text = "🐑"
+horizontal_alignment = 1
+
+[node name="Name" type="Label" parent="VBoxContainer/CharactersRow/CardSheep/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "领头羊"
+horizontal_alignment = 1
+
+[node name="Role" type="Label" parent="VBoxContainer/CharactersRow/CardSheep/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "【汇报大师】\n目标：直奔顶层董事会做PPT汇报"
+horizontal_alignment = 1
+
+[node name="BtnSelect" type="Button" parent="VBoxContainer/CharactersRow/CardSheep/VBox"]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+disabled = true
+text = "🔒 锁定中 (后续开放)"
+
+[node name="InfoBanner" type="PanelContainer" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+
+[node name="LabelInfo" type="Label" parent="VBoxContainer/InfoBanner"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.7, 1)
+theme_override_font_sizes/font_size = 15
+text = "请点击角色开始游戏..."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BottomBar" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -60.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="BottomBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="LabelLang" type="Label" parent="BottomBar/HBoxContainer"]
+layout_mode = 2
+text = "语言切换 / Language:"
+
+[node name="BtnLangZH" type="Button" parent="BottomBar/HBoxContainer"]
+custom_minimum_size = Vector2(100, 36)
+layout_mode = 2
+text = "中文 (简体)"
+
+[node name="BtnLangEN" type="Button" parent="BottomBar/HBoxContainer"]
+modulate = Color(0.6, 0.6, 0.6, 0.6)
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+text = "English (未开放)"
+

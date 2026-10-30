@@ -1,0 +1,23 @@
+# Godot 4 specific ignores
+.godot/
+*.translation
+
+# Godot-specific exports
+*.pck
+*.apk
+*.aab
+*.exe
+*.wasm
+*.html
+*.js
+
+# OS specific ignores
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors & IDEs
+.idea/
+.vscode/
+*.swp
+*.bak
