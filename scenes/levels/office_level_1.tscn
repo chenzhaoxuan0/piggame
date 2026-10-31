@@ -1,84 +1,117 @@
-[gd_scene load_steps=19 format=3 uid="uid://officelevel001"]
+[gd_scene load_steps=26 format=3 uid="uid://officelevel001"]
 
 [ext_resource type="Script" path="res://scripts/levels/office_level_1.gd" id="1_level_script"]
 [ext_resource type="PackedScene" uid="uid://pigchar001" path="res://scenes/characters/pig.tscn" id="2_pig_scene"]
 [ext_resource type="Script" path="res://scripts/core/isometric_camera.gd" id="3_camera_script"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
-sky_top_color = Color(0.85, 0.9, 0.96, 1)
-sky_horizon_color = Color(0.94, 0.94, 0.96, 1)
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sunset"]
+sky_top_color = Color(0.42, 0.45, 0.65, 1)
+sky_horizon_color = Color(0.95, 0.65, 0.45, 1)
+ground_bottom_color = Color(0.2, 0.22, 0.28, 1)
+ground_horizon_color = Color(0.95, 0.65, 0.45, 1)
 
 [sub_resource type="Sky" id="Sky_env"]
-sky_material = SubResource("ProceduralSkyMaterial_sky")
+sky_material = SubResource("ProceduralSkyMaterial_sunset")
 
-[sub_resource type="Environment" id="Environment_office"]
+[sub_resource type="Environment" id="Environment_sunset"]
 background_mode = 2
 sky = SubResource("Sky_env")
 ambient_light_source = 2
-ambient_light_color = Color(0.8, 0.82, 0.85, 1)
+ambient_light_color = Color(0.92, 0.82, 0.72, 1)
+ambient_light_energy = 0.85
 tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.4
 
-[sub_resource type="StandardMaterial3D" id="Mat_Carpet"]
-albedo_color = Color(0.82, 0.84, 0.86, 1)
-roughness = 0.8
+[sub_resource type="StandardMaterial3D" id="Mat_TerrazzoFloor"]
+albedo_color = Color(0.85, 0.83, 0.8, 1)
+roughness = 0.4
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
-material = SubResource("Mat_Carpet")
-size = Vector3(32, 0.4, 24)
+material = SubResource("Mat_TerrazzoFloor")
+size = Vector3(36, 0.4, 26)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
-size = Vector3(32, 0.4, 24)
+size = Vector3(36, 0.4, 26)
 
-[sub_resource type="StandardMaterial3D" id="Mat_Wall"]
-albedo_color = Color(0.92, 0.93, 0.95, 1)
+[sub_resource type="StandardMaterial3D" id="Mat_WarmWall"]
+albedo_color = Color(0.92, 0.9, 0.88, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_wall"]
-material = SubResource("Mat_Wall")
-size = Vector3(32, 4, 0.6)
+material = SubResource("Mat_WarmWall")
+size = Vector3(36, 4.5, 0.6)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_wall"]
-size = Vector3(32, 4, 0.6)
+size = Vector3(36, 4.5, 0.6)
 
-[sub_resource type="StandardMaterial3D" id="Mat_Desk"]
-albedo_color = Color(0.88, 0.75, 0.62, 1)
+[sub_resource type="StandardMaterial3D" id="Mat_WoodDesk"]
+albedo_color = Color(0.78, 0.65, 0.52, 1)
+roughness = 0.6
 
 [sub_resource type="BoxMesh" id="BoxMesh_desk"]
-material = SubResource("Mat_Desk")
+material = SubResource("Mat_WoodDesk")
 size = Vector3(2.4, 0.8, 1.2)
 
-[sub_resource type="StandardMaterial3D" id="Mat_GoldBadge"]
-albedo_color = Color(1, 0.85, 0.2, 1)
-metallic = 0.8
-roughness = 0.2
+[sub_resource type="StandardMaterial3D" id="Mat_WhiteCeramicCup"]
+albedo_color = Color(0.95, 0.95, 0.95, 1)
 
-[sub_resource type="BoxMesh" id="BoxMesh_badge"]
-material = SubResource("Mat_GoldBadge")
-size = Vector3(0.35, 0.08, 0.5)
+[sub_resource type="CylinderMesh" id="CylinderMesh_cup"]
+material = SubResource("Mat_WhiteCeramicCup")
+top_radius = 0.08
+bottom_radius = 0.06
+height = 0.16
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_cup"]
+height = 0.16
+radius = 0.08
+
+[sub_resource type="StandardMaterial3D" id="Mat_OxNPC"]
+albedo_color = Color(0.55, 0.38, 0.28, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_npc"]
+radius = 0.38
+height = 1.4
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_npc"]
+radius = 0.5
+height = 1.5
+
+[sub_resource type="StandardMaterial3D" id="Mat_SheepNPC"]
+albedo_color = Color(0.92, 0.92, 0.94, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_DirectorNPC"]
+albedo_color = Color(0.28, 0.35, 0.45, 1)
 
 [sub_resource type="StandardMaterial3D" id="Mat_ElevatorDoor"]
-albedo_color = Color(0.4, 0.45, 0.52, 1)
-metallic = 0.5
+albedo_color = Color(0.85, 0.75, 0.6, 1)
+metallic = 0.6
+roughness = 0.3
 
 [sub_resource type="BoxMesh" id="BoxMesh_elevator_door"]
 material = SubResource("Mat_ElevatorDoor")
-size = Vector3(2.2, 3.2, 0.2)
+size = Vector3(2.4, 3.4, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_button"]
+size = Vector3(0.5, 0.8, 0.3)
 
 [node name="OfficeLevel1" type="Node3D"]
 script = ExtResource("1_level_script")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_office")
+environment = SubResource("Environment_sunset")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 8, 12, 8)
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 12, 10, 12)
+light_color = Color(1, 0.85, 0.68, 1)
+light_energy = 1.4
 shadow_enabled = true
 
 [node name="IsometricCamera" type="Camera3D" parent="."]
-transform = Transform3D(0.707107, -0.40558, 0.579228, 0, 0.819152, 0.573576, -0.707107, -0.40558, 0.579228, 10, 12, 10)
+transform = Transform3D(0.707107, -0.40558, 0.579228, 0, 0.819152, 0.573576, -0.707107, -0.40558, 0.579228, 12, 14, 12)
 script = ExtResource("3_camera_script")
 
 [node name="Pig" parent="." instance=ExtResource("2_pig_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.2, 4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0.2, 5)
 
 [node name="OfficeEnvironment" type="Node3D" parent="."]
 
@@ -92,7 +125,7 @@ mesh = SubResource("BoxMesh_floor")
 shape = SubResource("BoxShape3D_floor")
 
 [node name="NorthWall" type="StaticBody3D" parent="OfficeEnvironment"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -12)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, -13)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/NorthWall"]
 mesh = SubResource("BoxMesh_wall")
@@ -101,7 +134,7 @@ mesh = SubResource("BoxMesh_wall")
 shape = SubResource("BoxShape3D_wall")
 
 [node name="SouthWall" type="StaticBody3D" parent="OfficeEnvironment"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 12)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 13)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/SouthWall"]
 mesh = SubResource("BoxMesh_wall")
@@ -109,48 +142,79 @@ mesh = SubResource("BoxMesh_wall")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/SouthWall"]
 shape = SubResource("BoxShape3D_wall")
 
-[node name="WorkstationArea" type="Node3D" parent="OfficeEnvironment"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, 0)
+[node name="StartDeskArea" type="Node3D" parent="OfficeEnvironment"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 5)
 
-[node name="Desk1" type="StaticBody3D" parent="OfficeEnvironment/WorkstationArea"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0.4, 2)
+[node name="Desk" type="StaticBody3D" parent="OfficeEnvironment/StartDeskArea"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, -1)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/WorkstationArea/Desk1"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/StartDeskArea/Desk"]
 mesh = SubResource("BoxMesh_desk")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/WorkstationArea/Desk1"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/StartDeskArea/Desk"]
 shape = SubResource("BoxShape3D_wall")
 
-[node name="Desk2" type="StaticBody3D" parent="OfficeEnvironment/WorkstationArea"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0.4, -2)
+[node name="CoffeeCup" type="RigidBody3D" parent="OfficeEnvironment/StartDeskArea" groups=["coffee_cup", "interactable"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 0.9, -0.8)
+mass = 0.2
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/WorkstationArea/Desk2"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/StartDeskArea/CoffeeCup"]
+mesh = SubResource("CylinderMesh_cup")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/StartDeskArea/CoffeeCup"]
+shape = SubResource("CylinderShape3D_cup")
+
+[node name="NPC_LaoLi" type="StaticBody3D" parent="OfficeEnvironment" groups=["interactable", "npc", "npc_laoli"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.7, 1)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/NPC_LaoLi"]
+material_override = SubResource("Mat_OxNPC")
+mesh = SubResource("CapsuleMesh_npc")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/NPC_LaoLi"]
+shape = SubResource("CapsuleShape3D_npc")
+
+[node name="Desk" type="StaticBody3D" parent="OfficeEnvironment/NPC_LaoLi"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, -1)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/NPC_LaoLi/Desk"]
 mesh = SubResource("BoxMesh_desk")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/WorkstationArea/Desk2"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/NPC_LaoLi/Desk"]
 shape = SubResource("BoxShape3D_wall")
 
-[node name="BadgeItem" type="StaticBody3D" parent="OfficeEnvironment/WorkstationArea" groups=["badge"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0.85, 2)
+[node name="NPC_XiaoYang" type="StaticBody3D" parent="OfficeEnvironment" groups=["interactable", "npc", "npc_xiaoyang"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0.7, -4)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/WorkstationArea/BadgeItem"]
-mesh = SubResource("BoxMesh_badge")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/NPC_XiaoYang"]
+material_override = SubResource("Mat_SheepNPC")
+mesh = SubResource("CapsuleMesh_npc")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/WorkstationArea/BadgeItem"]
-shape = SubResource("BoxShape3D_badge")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/NPC_XiaoYang"]
+shape = SubResource("CapsuleShape3D_npc")
+
+[node name="NPC_Director" type="StaticBody3D" parent="OfficeEnvironment" groups=["interactable", "npc", "npc_director"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0.7, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/NPC_Director"]
+material_override = SubResource("Mat_DirectorNPC")
+mesh = SubResource("CapsuleMesh_npc")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/NPC_Director"]
+shape = SubResource("CapsuleShape3D_npc")
 
 [node name="ElevatorArea" type="Node3D" parent="OfficeEnvironment"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, 0)
 
 [node name="ElevatorDoor" type="MeshInstance3D" parent="OfficeEnvironment/ElevatorArea"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
 mesh = SubResource("BoxMesh_elevator_door")
 
-[node name="ElevatorButton" type="StaticBody3D" parent="OfficeEnvironment/ElevatorArea" groups=["elevator_button"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 1.2, 0.2)
+[node name="ElevatorButton" type="StaticBody3D" parent="OfficeEnvironment/ElevatorArea" groups=["elevator_button", "interactable"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 1.2, 0.3)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/ElevatorArea/ElevatorButton"]
-shape = SubResource("BoxShape3D_badge")
+shape = SubResource("BoxShape3D_button")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
@@ -158,140 +222,133 @@ shape = SubResource("BoxShape3D_badge")
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -320.0
-offset_top = 20.0
-offset_right = 320.0
-offset_bottom = 65.0
+offset_left = -340.0
+offset_top = 18.0
+offset_right = 340.0
+offset_bottom = 60.0
 grow_horizontal = 2
 
 [node name="LabelObjective" type="Label" parent="HUD/ObjectivePanel"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.95, 0.6, 1)
-theme_override_font_sizes/font_size = 16
-text = "🎯 当前逃亡目标: 寻找掉落在工位附近的【高层工牌】"
+theme_override_colors/font_color = Color(1, 0.92, 0.75, 1)
+theme_override_font_sizes/font_size = 15
+text = "🎯 周五傍晚 19:15 · 整理行装，走向电梯下班。"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HelpKeyPanel" type="PanelContainer" parent="HUD"]
+[node name="ControlHint" type="Label" parent="HUD"]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -260.0
-offset_top = 20.0
+offset_top = 18.0
 offset_right = -20.0
-offset_bottom = 145.0
+offset_bottom = 70.0
 grow_horizontal = 0
-
-[node name="VBox" type="VBoxContainer" parent="HUD/HelpKeyPanel"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="Title" type="Label" parent="HUD/HelpKeyPanel/VBox"]
-layout_mode = 2
-text = "🎮 猪猪操作指南"
-horizontal_alignment = 1
-
-[node name="Key1" type="Label" parent="HUD/HelpKeyPanel/VBox"]
-layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.75)
 theme_override_font_sizes/font_size = 13
-text = "• WASD / 方向键：敏捷跑动"
-
-[node name="Key2" type="Label" parent="HUD/HelpKeyPanel/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "• 空格 Space：反叛猪叫 (Oink)"
-
-[node name="Key3" type="Label" parent="HUD/HelpKeyPanel/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "• Shift / J 键：冲撞 / 顶飞"
-
-[node name="Key4" type="Label" parent="HUD/HelpKeyPanel/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "• E / K 键：拱翻 / 捡工牌 / 交互"
-
-[node name="Key5" type="Label" parent="HUD/HelpKeyPanel/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.8, 0.4, 1)
-theme_override_font_sizes/font_size = 13
-text = "• Tab 键：切换查看搞事备忘录"
-
-[node name="TodoListPanel" type="PanelContainer" parent="HUD"]
-visible = false
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -280.0
-offset_top = -200.0
-offset_right = 280.0
-offset_bottom = 180.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="VBox" type="VBoxContainer" parent="HUD/TodoListPanel"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Title" type="Label" parent="HUD/TodoListPanel/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
-theme_override_font_sizes/font_size = 20
-text = "📋 特立独行的猪·搞事备忘录 (按 Tab 关闭)"
-horizontal_alignment = 1
-
-[node name="HSeparator" type="HSeparator" parent="HUD/TodoListPanel/VBox"]
-layout_mode = 2
-
-[node name="LabelItems" type="Label" parent="HUD/TodoListPanel/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "加载搞事清单中..."
+text = "💡 鼠标点击 / 触屏轻触地面移动
+💡 点击人物或物品自动走近交互"
 
 [node name="DialogueBox" type="PanelContainer" parent="HUD"]
+visible = false
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -440.0
-offset_top = -180.0
-offset_right = 440.0
-offset_bottom = -30.0
+offset_left = -460.0
+offset_top = -250.0
+offset_right = 460.0
+offset_bottom = -25.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="VBox" type="VBoxContainer" parent="HUD/DialogueBox"]
+[node name="Margin" type="MarginContainer" parent="HUD/DialogueBox"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
 
-[node name="LabelSpeaker" type="Label" parent="HUD/DialogueBox/VBox"]
+[node name="VBox" type="VBoxContainer" parent="HUD/DialogueBox/Margin"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.8, 0.4, 1)
-theme_override_font_sizes/font_size = 16
-text = "📢 全楼广播 (HR播音腔)"
+theme_override_constants/separation = 10
 
-[node name="LabelSurface" type="Label" parent="HUD/DialogueBox/VBox"]
+[node name="Header" type="HBoxContainer" parent="HUD/DialogueBox/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Avatar" type="Label" parent="HUD/DialogueBox/Margin/VBox/Header"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "🐷"
+
+[node name="NameVBox" type="VBoxContainer" parent="HUD/DialogueBox/Margin/VBox/Header"]
+layout_mode = 2
+
+[node name="LabelSpeaker" type="Label" parent="HUD/DialogueBox/Margin/VBox/Header/NameVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.45, 1)
+theme_override_font_sizes/font_size = 17
+text = "老朱"
+
+[node name="LabelTitle" type="Label" parent="HUD/DialogueBox/Margin/VBox/Header/NameVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.8, 0.85, 0.75)
+theme_override_font_sizes/font_size = 12
+text = "资深业务架构师"
+
+[node name="LabelContent" type="Label" parent="HUD/DialogueBox/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_font_sizes/font_size = 15
+text = "对话内容正文..."
+autowrap_mode = 2
+
+[node name="HSeparator" type="HSeparator" parent="HUD/DialogueBox/Margin/VBox"]
+layout_mode = 2
+
+[node name="OptionsContainer" type="VBoxContainer" parent="HUD/DialogueBox/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="EndScreenPanel" type="PanelContainer" parent="HUD"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="HUD/EndScreenPanel"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Title" type="Label" parent="HUD/EndScreenPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.5, 1)
+theme_override_font_sizes/font_size = 34
+text = "🌅 《特立独行的猪》第一幕 · 归途"
+horizontal_alignment = 1
+
+[node name="Quote" type="Label" parent="HUD/EndScreenPanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "“世间只有一种特立独行，那就是认清生活的规训后，依然选择从容而体面地活出自己。”
+“不随波逐流，亦不愤世嫉俗；守住内心的火，照亮身边的路。”
+
+周五愉快，致每一位了不起的你。"
+horizontal_alignment = 1
+
+[node name="Author" type="Label" parent="HUD/EndScreenPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.8, 0.8)
 theme_override_font_sizes/font_size = 14
-text = "【明面】 亲爱的小伙伴们，为了深化组织敏捷协同，今天我们将在3层举办共创大会！"
-autowrap_mode = 2
-
-[node name="LabelSubtext" type="Label" parent="HUD/DialogueBox/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.45, 0.55, 1)
-theme_override_font_sizes/font_size = 13
-text = "【扎心暗线】：今天全员强制无偿加班，谁敢先走就准备进优化名单。"
-autowrap_mode = 2
-
-[node name="BtnCloseDialogue" type="Button" parent="HUD/DialogueBox/VBox"]
-custom_minimum_size = Vector2(100, 28)
-layout_mode = 2
-size_flags_horizontal = 8
-text = "好的，我知道了 (关闭)"
-
-[connection signal="pressed" from="HUD/DialogueBox/VBox/BtnCloseDialogue" to="." method="_on_dialogue_close_pressed"]
-
+text = "—— 感谢体验 5min 哲学治愈 Demo ——"
+horizontal_alignment = 1
