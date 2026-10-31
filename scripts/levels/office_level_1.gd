@@ -1,10 +1,10 @@
 extends Node3D
 
-# 第一关控制器：周五 19:15 的办公室 (Level 1: Friday Dusk Office)
+# 第一关控制器：新星模范生态农庄 (Level 1: The Modern Farm Allegory)
 # 玩法特征：
-# 1. 类似《极乐迪斯科》与《红猪》的深度对话与处事哲学
+# 1. 类似《极乐迪斯科》与《红猪》的寓言深度对话与从容处事智慧
 # 2. 2.5D 点击移动 (Point & Click / Tap to Move)
-# 3. 类似《Untitled Goose Game》的环境物理碰撞互动 (碰倒杯子、推移椅子)
+# 3. 类似《Untitled Goose Game》的田园环境物理碰撞互动 (碰翻牛奶桶、推歪木栅栏)
 
 @onready var player: PigController = $Pig
 @onready var camera = $IsometricCamera
@@ -19,30 +19,29 @@ extends Node3D
 @onready var options_container = $HUD/DialogueBox/Margin/VBox/OptionsContainer
 
 @onready var objective_label = $HUD/ObjectivePanel/LabelObjective
-@onready var elevator_door = $OfficeEnvironment/ElevatorArea/ElevatorDoor
+@onready var cablecar_cabin = $FarmEnvironment/CableCarArea/CableCarCabin
 @onready var click_indicator = $Pig/ClickIndicator
 
 # 关卡进程状态
-var met_laoli: bool = false
-var met_xiaoyang: bool = false
-var met_director: bool = false
+var met_aniu: bool = false
+var met_mianmian: bool = false
+var met_laozhang: bool = false
 var is_game_finished: bool = false
 
 func _ready() -> void:
-	print("[Level1] 5分钟哲学治愈体验：《特立独行的猪》启动！")
+	print("[Level1] 5分钟农庄寓言治愈体验：《特立独行的猪》启动！")
 	
 	# 连接玩家点击移动信号
 	if player:
 		player.moved_to_target.connect(_on_player_moved_to_target)
 		player.reached_interactable.connect(_on_player_reached_interactable)
 	
-	# 开局延迟半秒弹出老朱内心沉思
+	# 开局延迟片刻弹出老朱黄昏沉思
 	get_tree().create_timer(0.4).timeout.connect(func():
 		open_dialogue("intro_reflection")
 	)
 
 func _on_player_moved_to_target(pos: Vector3) -> void:
-	# 在目标位置播放轻柔的点击光圈指示动画
 	if click_indicator:
 		click_indicator.global_position = Vector3(pos.x, 0.05, pos.z)
 		click_indicator.visible = true
@@ -53,44 +52,43 @@ func _on_player_moved_to_target(pos: Vector3) -> void:
 		tween.tween_callback(func(): click_indicator.visible = false)
 
 func _on_player_reached_interactable(target: Node3D) -> void:
-	print("[Level1] 到达交互目标: ", target.name)
+	print("[Level1] 到达田园交互目标: ", target.name)
 	
-	if target.is_in_group("npc_laoli"):
-		open_dialogue("laoli_interaction")
-		met_laoli = true
+	if target.is_in_group("npc_aniu"):
+		open_dialogue("aniu_interaction")
+		met_aniu = true
 		check_progress()
-	elif target.is_in_group("npc_xiaoyang"):
-		open_dialogue("xiaoyang_interaction")
-		met_xiaoyang = true
+	elif target.is_in_group("npc_mianmian"):
+		open_dialogue("mianmian_interaction")
+		met_mianmian = true
 		check_progress()
-	elif target.is_in_group("npc_director"):
-		open_dialogue("director_interaction")
-		met_director = true
+	elif target.is_in_group("npc_laozhang"):
+		open_dialogue("laozhang_interaction")
+		met_laozhang = true
 		check_progress()
-	elif target.is_in_group("elevator_button"):
-		handle_elevator_interact()
-	elif target.is_in_group("coffee_cup"):
-		# 趣味物理互动：碰倒杯子
+	elif target.is_in_group("cablecar_button"):
+		handle_cablecar_interact()
+	elif target.is_in_group("milk_jug"):
 		if target is RigidBody3D:
-			target.apply_impulse(Vector3(0.8, 1.2, 0.5) * 2.0)
-			print("[Level1] 顺手碰倒了咖啡杯，拿铁慢慢浸润了草稿纸")
+			target.apply_impulse(Vector3(0.8, 1.4, 0.6) * 2.2)
+			print("[Level1] 碰翻了木制牛奶桶，纯白牛奶浸润了青草地")
 
 func check_progress() -> void:
-	if met_laoli and met_xiaoyang and met_director:
-		objective_label.text = "🎯 所有伙伴的心结已解开。向夕阳下的电梯厅漫步，从容回家生活。"
+	if met_aniu and met_mianmian and met_laozhang:
+		objective_label.text = "🎯 农庄同伴的心结已解开。向夕阳下的后山索道漫步，乘缆车归家。"
 	else:
-		objective_label.text = "🎯 穿行在黄昏的办公室，与焦虑的伙伴们聊两句，走向电梯。"
+		objective_label.text = "🎯 漫步于黄昏的阳光农庄，与焦虑的同伴聊两句，前往后山索道。"
 
-func handle_elevator_interact() -> void:
+func handle_cablecar_interact() -> void:
 	if is_game_finished:
 		return
 	is_game_finished = true
-	open_dialogue("elevator_final")
+	open_dialogue("cablecar_final")
 	
-	# 电梯门徐徐展开
-	if elevator_door:
+	# 缆车吊厢平滑滑出站台，下行进入群山远景
+	if cablecar_cabin:
 		var tween = create_tween()
-		tween.tween_property(elevator_door, "position:x", elevator_door.position.x + 2.0, 1.6)
+		tween.tween_property(cablecar_cabin, "position", cablecar_cabin.position + Vector3(12.0, -4.0, 8.0), 3.0)
 
 func open_dialogue(node_key: String) -> void:
 	var node_data = DialogueManager.get_dialogue_node(node_key)

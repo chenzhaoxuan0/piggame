@@ -40,14 +40,14 @@ alignment = 1
 [node name="Title" type="Label" parent="VBoxContainer/Header"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 40
-text = "🏢 特立独行的猪：黄昏与归途 🐷"
+text = "🌾 特立独行的猪：田园寓言与自由归途 🐷"
 horizontal_alignment = 1
 
 [node name="SubTitle" type="Label" parent="VBoxContainer/Header"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 0.85)
+theme_override_colors/font_color = Color(0.9, 0.92, 0.85, 0.85)
 theme_override_font_sizes/font_size = 18
-text = "—— 5min 极乐迪斯科式职场哲学叙事 · 在规训中坚守本真，在从容中重拾力量 ——"
+text = "—— 5min 现代生态农庄寓言 · 在规训中坚守本真，在从容中重拾力量 ——"
 horizontal_alignment = 1
 
 [node name="CharactersRow" type="HBoxContainer" parent="VBoxContainer"]
@@ -74,7 +74,7 @@ horizontal_alignment = 1
 
 [node name="Name" type="Label" parent="VBoxContainer/CharactersRow/CardPig/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.75, 0.82, 1)
+theme_override_colors/font_color = Color(1, 0.78, 0.82, 1)
 theme_override_font_sizes/font_size = 22
 text = "老朱 (Mr. Pig)"
 horizontal_alignment = 1
@@ -83,7 +83,7 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
 theme_override_font_sizes/font_size = 14
-text = "【资深业务架构师】\n从容自洽，看清规训却依旧温热"
+text = "【特立独行的农庄哲人】\n从容自洽，看清规训却依旧温热"
 horizontal_alignment = 1
 
 [node name="BtnSelect" type="Button" parent="VBoxContainer/CharactersRow/CardPig/VBox"]
@@ -92,7 +92,7 @@ layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 16
-text = "开始黄昏之旅 (5min)"
+text = "开始田园寓言之旅 (5min)"
 
 [node name="CardOx" type="PanelContainer" parent="VBoxContainer/CharactersRow"]
 modulate = Color(0.65, 0.65, 0.65, 0.8)
@@ -114,13 +114,13 @@ horizontal_alignment = 1
 [node name="Name" type="Label" parent="VBoxContainer/CharactersRow/CardOx/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "老李 (老黄牛)"
+text = "阿牛 (老耕牛)"
 horizontal_alignment = 1
 
 [node name="Role" type="Label" parent="VBoxContainer/CharactersRow/CardOx/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "【核心系统开发骨干】\n放过自己，找回生活的节奏"
+text = "【力竭耕耘的耕作骨干】\n卸下重枷，大地亦懂休养生息"
 horizontal_alignment = 1
 
 [node name="BtnSelect" type="Button" parent="VBoxContainer/CharactersRow/CardOx/VBox"]
@@ -150,13 +150,13 @@ horizontal_alignment = 1
 [node name="Name" type="Label" parent="VBoxContainer/CharactersRow/CardHorse/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "神秘马"
+text = "烈马 (奔腾马)"
 horizontal_alignment = 1
 
 [node name="Role" type="Label" parent="VBoxContainer/CharactersRow/CardHorse/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "【远行探索者】\n探寻属于自我更广阔的边界"
+text = "【远方探索者】\n探寻农庄篱笆之外的辽阔草原"
 horizontal_alignment = 1
 
 [node name="BtnSelect" type="Button" parent="VBoxContainer/CharactersRow/CardHorse/VBox"]
@@ -186,13 +186,13 @@ horizontal_alignment = 1
 [node name="Name" type="Label" parent="VBoxContainer/CharactersRow/CardSheep/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "小杨 (领头羊)"
+text = "绵绵 (小绵羊)"
 horizontal_alignment = 1
 
 [node name="Role" type="Label" parent="VBoxContainer/CharactersRow/CardSheep/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "【新锐产品策划】\n保留未被磨平的真诚与棱角"
+text = "【刚被剪毛的小羊】\n云朵本就该是柔软的真诚天性"
 horizontal_alignment = 1
 
 [node name="BtnSelect" type="Button" parent="VBoxContainer/CharactersRow/CardSheep/VBox"]

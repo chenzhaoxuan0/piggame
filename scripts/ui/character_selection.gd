@@ -1,7 +1,7 @@
 extends Control
 
-# Character Selection Screen (角色选择界面)
-# 核心主旨：从容自洽、体面生活、守住内心的火
+# Character Selection Screen (角色选择界面 - 现代农庄寓言版)
+# 核心主旨：从容自洽、体面生活、守住内心的火、自由原野
 
 @onready var btn_pig = $VBoxContainer/CharactersRow/CardPig/VBox/BtnSelect
 @onready var btn_ox = $VBoxContainer/CharactersRow/CardOx/VBox/BtnSelect
@@ -15,26 +15,26 @@ extends Control
 var characters_desc = {
 	"pig": {
 		"title": "老朱 (特立独行的猪 - MVP主角)",
-		"subtitle": "【资深业务架构师 · 从容自洽】",
-		"desc": "“不能飞的猪，就只是一只普通的猪。”\n认清生活的规训后，依然选择从容而体面地活出自己，在黄昏的办公室照亮身边的同伴。",
+		"subtitle": "【特立独行的农庄哲人 · 从容自洽】",
+		"desc": "“不能飞的猪，就只是一只普通的猪。”\n看透生态农庄的精细化规训，依然在夕阳下体面从容地漫步，乘后山缆车奔向广阔自由的生活。",
 		"unlocked": true
 	},
 	"ox": {
-		"title": "老李 (老黄牛)",
-		"subtitle": "【核心系统开发骨干】",
-		"desc": "埋头苦干的资深工程师，正在老朱的点拨下学会放下无谓的焦虑与自责，找回生活的节奏。(后续篇章)",
+		"title": "阿牛 (老耕牛)",
+		"subtitle": "【力竭耕耘的耕作骨干】",
+		"desc": "埋头死磕硬地的老黄牛，在老朱的点拨下卸下沉重的铁犁，明白连大地都需要休养生息。(后续篇章)",
 		"unlocked": false
 	},
 	"sheep": {
-		"title": "小杨 (领头羊)",
-		"subtitle": "【新锐产品策划实习生】",
-		"desc": "刚刚步入职场的年轻人，逐渐明白真诚与敏感并不是弱点，而是未被磨平的宝贵棱角。(后续篇章)",
+		"title": "绵绵 (小绵羊)",
+		"subtitle": "【刚被剪毛的小绵羊】",
+		"desc": "因毛质过于柔软被评为次品而哭泣的小羊，逐渐懂得云朵本就该是柔软的，真诚是最宝贵的棱角。(后续篇章)",
 		"unlocked": false
 	},
 	"horse": {
-		"title": "神秘马",
-		"subtitle": "【远行探索者】",
-		"desc": "在更宽广的世界探寻属于自我的边界，敬请期待！(后续篇章)",
+		"title": "烈马 (奔腾马)",
+		"subtitle": "【远方探索者】",
+		"desc": "在农庄篱笆之外的无垠原野探寻自我边界，敬请期待！(后续篇章)",
 		"unlocked": false
 	}
 }
@@ -64,7 +64,7 @@ func update_info_display(char_key: String) -> void:
 		info_label.text = "%s - %s\n%s" % [info["title"], info["subtitle"], info["desc"]]
 
 func _on_pig_selected() -> void:
-	print("[CharacterSelect] 选择【老朱】！开启周五傍晚 19:15 的 5 分钟哲学治愈之旅...")
+	print("[CharacterSelect] 选择【老朱】！开启黄昏阳光农庄的 5 分钟田园寓言之旅...")
 	GameManager.select_character(GameManager.CharacterType.PIG)
 	get_tree().change_scene_to_file("res://scenes/levels/office_level_1.tscn")
 
@@ -78,4 +78,4 @@ func _on_lang_zh_selected() -> void:
 
 func _on_lang_en_selected() -> void:
 	if info_label:
-		info_label.text = "【系统提示】English language is coming soon! 当前阶段优先打磨原生中文职场哲学叙事！"
+		info_label.text = "【系统提示】English language is coming soon! 当前阶段优先打磨原生田园现代寓言叙事！"

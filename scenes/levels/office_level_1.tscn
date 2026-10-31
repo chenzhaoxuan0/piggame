@@ -5,216 +5,209 @@
 [ext_resource type="Script" path="res://scripts/core/isometric_camera.gd" id="3_camera_script"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sunset"]
-sky_top_color = Color(0.42, 0.45, 0.65, 1)
-sky_horizon_color = Color(0.95, 0.65, 0.45, 1)
-ground_bottom_color = Color(0.2, 0.22, 0.28, 1)
-ground_horizon_color = Color(0.95, 0.65, 0.45, 1)
+sky_top_color = Color(0.38, 0.45, 0.68, 1)
+sky_horizon_color = Color(0.98, 0.68, 0.42, 1)
+ground_bottom_color = Color(0.28, 0.26, 0.2, 1)
+ground_horizon_color = Color(0.95, 0.72, 0.48, 1)
 
 [sub_resource type="Sky" id="Sky_env"]
 sky_material = SubResource("ProceduralSkyMaterial_sunset")
 
-[sub_resource type="Environment" id="Environment_sunset"]
+[sub_resource type="Environment" id="Environment_farm_sunset"]
 background_mode = 2
 sky = SubResource("Sky_env")
 ambient_light_source = 2
-ambient_light_color = Color(0.92, 0.82, 0.72, 1)
-ambient_light_energy = 0.85
+ambient_light_color = Color(0.95, 0.85, 0.7, 1)
+ambient_light_energy = 0.9
 tonemap_mode = 2
 glow_enabled = true
-glow_intensity = 0.4
+glow_intensity = 0.35
 
-[sub_resource type="StandardMaterial3D" id="Mat_TerrazzoFloor"]
-albedo_color = Color(0.85, 0.83, 0.8, 1)
-roughness = 0.4
+[sub_resource type="StandardMaterial3D" id="Mat_FarmGrass"]
+albedo_color = Color(0.65, 0.68, 0.45, 1)
+roughness = 0.9
 
-[sub_resource type="BoxMesh" id="BoxMesh_floor"]
-material = SubResource("Mat_TerrazzoFloor")
-size = Vector3(36, 0.4, 26)
+[sub_resource type="BoxMesh" id="BoxMesh_ground"]
+material = SubResource("Mat_FarmGrass")
+size = Vector3(38, 0.4, 28)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
-size = Vector3(36, 0.4, 26)
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(38, 0.4, 28)
 
-[sub_resource type="StandardMaterial3D" id="Mat_WarmWall"]
-albedo_color = Color(0.92, 0.9, 0.88, 1)
+[sub_resource type="StandardMaterial3D" id="Mat_RedBarnWood"]
+albedo_color = Color(0.68, 0.25, 0.22, 1)
+roughness = 0.7
 
-[sub_resource type="BoxMesh" id="BoxMesh_wall"]
-material = SubResource("Mat_WarmWall")
-size = Vector3(36, 4.5, 0.6)
+[sub_resource type="BoxMesh" id="BoxMesh_barn_wall"]
+material = SubResource("Mat_RedBarnWood")
+size = Vector3(38, 5, 0.8)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_wall"]
-size = Vector3(36, 4.5, 0.6)
+size = Vector3(38, 5, 0.8)
 
-[sub_resource type="StandardMaterial3D" id="Mat_WoodDesk"]
-albedo_color = Color(0.78, 0.65, 0.52, 1)
-roughness = 0.6
+[sub_resource type="StandardMaterial3D" id="Mat_WoodFence"]
+albedo_color = Color(0.6, 0.48, 0.35, 1)
+roughness = 0.8
 
-[sub_resource type="BoxMesh" id="BoxMesh_desk"]
-material = SubResource("Mat_WoodDesk")
-size = Vector3(2.4, 0.8, 1.2)
+[sub_resource type="BoxMesh" id="BoxMesh_fence"]
+material = SubResource("Mat_WoodFence")
+size = Vector3(6, 1.2, 0.3)
 
-[sub_resource type="StandardMaterial3D" id="Mat_WhiteCeramicCup"]
-albedo_color = Color(0.95, 0.95, 0.95, 1)
+[sub_resource type="StandardMaterial3D" id="Mat_SilverMilkJug"]
+albedo_color = Color(0.85, 0.88, 0.92, 1)
+metallic = 0.8
+roughness = 0.2
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_cup"]
-material = SubResource("Mat_WhiteCeramicCup")
-top_radius = 0.08
-bottom_radius = 0.06
-height = 0.16
+[sub_resource type="CylinderMesh" id="CylinderMesh_milkJug"]
+material = SubResource("Mat_SilverMilkJug")
+top_radius = 0.12
+bottom_radius = 0.16
+height = 0.35
 
-[sub_resource type="CylinderShape3D" id="CylinderShape3D_cup"]
-height = 0.16
-radius = 0.08
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_milkJug"]
+height = 0.35
+radius = 0.16
 
 [sub_resource type="StandardMaterial3D" id="Mat_OxNPC"]
-albedo_color = Color(0.55, 0.38, 0.28, 1)
+albedo_color = Color(0.52, 0.35, 0.25, 1)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_npc"]
-radius = 0.38
-height = 1.4
+radius = 0.4
+height = 1.45
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_npc"]
-radius = 0.5
-height = 1.5
+radius = 0.55
+height = 1.6
 
 [sub_resource type="StandardMaterial3D" id="Mat_SheepNPC"]
-albedo_color = Color(0.92, 0.92, 0.94, 1)
+albedo_color = Color(0.95, 0.95, 0.96, 1)
 
-[sub_resource type="StandardMaterial3D" id="Mat_DirectorNPC"]
-albedo_color = Color(0.28, 0.35, 0.45, 1)
+[sub_resource type="StandardMaterial3D" id="Mat_DogNPC"]
+albedo_color = Color(0.35, 0.28, 0.22, 1)
 
-[sub_resource type="StandardMaterial3D" id="Mat_ElevatorDoor"]
-albedo_color = Color(0.85, 0.75, 0.6, 1)
-metallic = 0.6
-roughness = 0.3
+[sub_resource type="StandardMaterial3D" id="Mat_CableCarWood"]
+albedo_color = Color(0.75, 0.58, 0.42, 1)
+roughness = 0.6
 
-[sub_resource type="BoxMesh" id="BoxMesh_elevator_door"]
-material = SubResource("Mat_ElevatorDoor")
-size = Vector3(2.4, 3.4, 0.2)
+[sub_resource type="BoxMesh" id="BoxMesh_cablecar_cabin"]
+material = SubResource("Mat_CableCarWood")
+size = Vector3(2.6, 2.8, 2.2)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_button"]
-size = Vector3(0.5, 0.8, 0.3)
+[sub_resource type="BoxShape3D" id="BoxShape3D_lever"]
+size = Vector3(0.6, 1.0, 0.4)
 
 [node name="OfficeLevel1" type="Node3D"]
 script = ExtResource("1_level_script")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_sunset")
+environment = SubResource("Environment_farm_sunset")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 12, 10, 12)
-light_color = Color(1, 0.85, 0.68, 1)
-light_energy = 1.4
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 14, 12, 14)
+light_color = Color(1, 0.82, 0.62, 1)
+light_energy = 1.5
 shadow_enabled = true
 
 [node name="IsometricCamera" type="Camera3D" parent="."]
-transform = Transform3D(0.707107, -0.40558, 0.579228, 0, 0.819152, 0.573576, -0.707107, -0.40558, 0.579228, 12, 14, 12)
+transform = Transform3D(0.707107, -0.40558, 0.579228, 0, 0.819152, 0.573576, -0.707107, -0.40558, 0.579228, 12, 15, 12)
 script = ExtResource("3_camera_script")
 
 [node name="Pig" parent="." instance=ExtResource("2_pig_scene")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0.2, 5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0.2, 6)
 
-[node name="OfficeEnvironment" type="Node3D" parent="."]
+[node name="FarmEnvironment" type="Node3D" parent="."]
 
-[node name="Floor" type="StaticBody3D" parent="OfficeEnvironment"]
+[node name="Ground" type="StaticBody3D" parent="FarmEnvironment"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/Floor"]
-mesh = SubResource("BoxMesh_floor")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="FarmEnvironment/Ground"]
+mesh = SubResource("BoxMesh_ground")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/Floor"]
-shape = SubResource("BoxShape3D_floor")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FarmEnvironment/Ground"]
+shape = SubResource("BoxShape3D_ground")
 
-[node name="NorthWall" type="StaticBody3D" parent="OfficeEnvironment"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, -13)
+[node name="NorthBarnWall" type="StaticBody3D" parent="FarmEnvironment"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -14)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/NorthWall"]
-mesh = SubResource("BoxMesh_wall")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="FarmEnvironment/NorthBarnWall"]
+mesh = SubResource("BoxMesh_barn_wall")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/NorthWall"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FarmEnvironment/NorthBarnWall"]
 shape = SubResource("BoxShape3D_wall")
 
-[node name="SouthWall" type="StaticBody3D" parent="OfficeEnvironment"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 13)
+[node name="SouthFence" type="StaticBody3D" parent="FarmEnvironment"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 14)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/SouthWall"]
-mesh = SubResource("BoxMesh_wall")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="FarmEnvironment/SouthFence"]
+mesh = SubResource("BoxMesh_fence")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/SouthWall"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FarmEnvironment/SouthFence"]
 shape = SubResource("BoxShape3D_wall")
 
-[node name="StartDeskArea" type="Node3D" parent="OfficeEnvironment"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 5)
+[node name="StartBarnArea" type="Node3D" parent="FarmEnvironment"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, 6)
 
-[node name="Desk" type="StaticBody3D" parent="OfficeEnvironment/StartDeskArea"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, -1)
+[node name="MilkJug" type="RigidBody3D" parent="FarmEnvironment/StartBarnArea" groups=["interactable", "milk_jug"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0.5, -0.8)
+mass = 0.3
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/StartDeskArea/Desk"]
-mesh = SubResource("BoxMesh_desk")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="FarmEnvironment/StartBarnArea/MilkJug"]
+mesh = SubResource("CylinderMesh_milkJug")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/StartDeskArea/Desk"]
-shape = SubResource("BoxShape3D_wall")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FarmEnvironment/StartBarnArea/MilkJug"]
+shape = SubResource("CylinderShape3D_milkJug")
 
-[node name="CoffeeCup" type="RigidBody3D" parent="OfficeEnvironment/StartDeskArea" groups=["coffee_cup", "interactable"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 0.9, -0.8)
-mass = 0.2
+[node name="NPC_Aniu" type="StaticBody3D" parent="FarmEnvironment" groups=["interactable", "npc", "npc_aniu"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.7, 2)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/StartDeskArea/CoffeeCup"]
-mesh = SubResource("CylinderMesh_cup")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/StartDeskArea/CoffeeCup"]
-shape = SubResource("CylinderShape3D_cup")
-
-[node name="NPC_LaoLi" type="StaticBody3D" parent="OfficeEnvironment" groups=["interactable", "npc", "npc_laoli"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.7, 1)
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/NPC_LaoLi"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="FarmEnvironment/NPC_Aniu"]
 material_override = SubResource("Mat_OxNPC")
 mesh = SubResource("CapsuleMesh_npc")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/NPC_LaoLi"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FarmEnvironment/NPC_Aniu"]
 shape = SubResource("CapsuleShape3D_npc")
 
-[node name="Desk" type="StaticBody3D" parent="OfficeEnvironment/NPC_LaoLi"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, -1)
+[node name="PlowFence" type="StaticBody3D" parent="FarmEnvironment/NPC_Aniu"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, -1.2)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/NPC_LaoLi/Desk"]
-mesh = SubResource("BoxMesh_desk")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="FarmEnvironment/NPC_Aniu/PlowFence"]
+mesh = SubResource("BoxMesh_fence")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/NPC_LaoLi/Desk"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FarmEnvironment/NPC_Aniu/PlowFence"]
 shape = SubResource("BoxShape3D_wall")
 
-[node name="NPC_XiaoYang" type="StaticBody3D" parent="OfficeEnvironment" groups=["interactable", "npc", "npc_xiaoyang"]]
+[node name="NPC_Mianmian" type="StaticBody3D" parent="FarmEnvironment" groups=["interactable", "npc", "npc_mianmian"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0.7, -4)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/NPC_XiaoYang"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="FarmEnvironment/NPC_Mianmian"]
 material_override = SubResource("Mat_SheepNPC")
 mesh = SubResource("CapsuleMesh_npc")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/NPC_XiaoYang"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FarmEnvironment/NPC_Mianmian"]
 shape = SubResource("CapsuleShape3D_npc")
 
-[node name="NPC_Director" type="StaticBody3D" parent="OfficeEnvironment" groups=["interactable", "npc", "npc_director"]]
+[node name="NPC_Laozhang" type="StaticBody3D" parent="FarmEnvironment" groups=["interactable", "npc", "npc_laozhang"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0.7, 0)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="OfficeEnvironment/NPC_Director"]
-material_override = SubResource("Mat_DirectorNPC")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="FarmEnvironment/NPC_Laozhang"]
+material_override = SubResource("Mat_DogNPC")
 mesh = SubResource("CapsuleMesh_npc")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/NPC_Director"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FarmEnvironment/NPC_Laozhang"]
 shape = SubResource("CapsuleShape3D_npc")
 
-[node name="ElevatorArea" type="Node3D" parent="OfficeEnvironment"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, 0)
+[node name="CableCarArea" type="Node3D" parent="FarmEnvironment"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 0)
 
-[node name="ElevatorDoor" type="MeshInstance3D" parent="OfficeEnvironment/ElevatorArea"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
-mesh = SubResource("BoxMesh_elevator_door")
+[node name="CableCarCabin" type="MeshInstance3D" parent="FarmEnvironment/CableCarArea"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0)
+mesh = SubResource("BoxMesh_cablecar_cabin")
 
-[node name="ElevatorButton" type="StaticBody3D" parent="OfficeEnvironment/ElevatorArea" groups=["elevator_button", "interactable"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 1.2, 0.3)
+[node name="CableCarLever" type="StaticBody3D" parent="FarmEnvironment/CableCarArea" groups=["cablecar_button", "interactable"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.0, 0.8, 0.3)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="OfficeEnvironment/ElevatorArea/ElevatorButton"]
-shape = SubResource("BoxShape3D_button")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FarmEnvironment/CableCarArea/CableCarLever"]
+shape = SubResource("BoxShape3D_lever")
 
 [node name="HUD" type="CanvasLayer" parent="."]
 
@@ -232,7 +225,7 @@ grow_horizontal = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.92, 0.75, 1)
 theme_override_font_sizes/font_size = 15
-text = "🎯 周五傍晚 19:15 · 整理行装，走向电梯下班。"
+text = "🎯 黄昏 17:30 · 漫步穿过阳光农庄，前往后山索道缆车站台。"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -248,7 +241,7 @@ grow_horizontal = 0
 theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 0.75)
 theme_override_font_sizes/font_size = 13
 text = "💡 鼠标点击 / 触屏轻触地面移动
-💡 点击人物或物品自动走近交互"
+💡 点击动物或物品自动走近交互"
 
 [node name="DialogueBox" type="PanelContainer" parent="HUD"]
 visible = false
@@ -297,7 +290,7 @@ text = "老朱"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.8, 0.85, 0.75)
 theme_override_font_sizes/font_size = 12
-text = "资深业务架构师"
+text = "特立独行的农庄哲人"
 
 [node name="LabelContent" type="Label" parent="HUD/DialogueBox/Margin/VBox"]
 layout_mode = 2
@@ -333,22 +326,22 @@ alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.88, 0.5, 1)
 theme_override_font_sizes/font_size = 34
-text = "🌅 《特立独行的猪》第一幕 · 归途"
+text = "🌾 《特立独行的猪》第一幕 · 田园寓言归途"
 horizontal_alignment = 1
 
 [node name="Quote" type="Label" parent="HUD/EndScreenPanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 16
-text = "“世间只有一种特立独行，那就是认清生活的规训后，依然选择从容而体面地活出自己。”
-“不随波逐流，亦不愤世嫉俗；守住内心的火，照亮身边的路。”
+text = "“世间只有一种真正的特立独行，那就是认清生活的规训后，依然选择从容而体面地活出自己。”
+“不随波逐流，亦不愤世嫉俗；守住内心的火，走属于自己的路。”
 
-周五愉快，致每一位了不起的你。"
+愿每一颗不肯被驯服的灵魂，都能在阳光下的广阔田野里自由漫步。"
 horizontal_alignment = 1
 
 [node name="Author" type="Label" parent="HUD/EndScreenPanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.8, 0.8)
 theme_override_font_sizes/font_size = 14
-text = "—— 感谢体验 5min 哲学治愈 Demo ——"
+text = "—— 感谢体验 5min 现代田园哲学寓言 Demo ——"
 horizontal_alignment = 1
