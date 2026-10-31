@@ -1,7 +1,7 @@
 extends Control
 
-# Character Selection Screen (角色选择界面 - 纯正动物寓言版)
-# 核心主旨：真正特立独行的猪，自由图腾，拒绝被规训
+# Character Selection Screen (《一口猪在金牌农场》围城多视角选择)
+# 核心机制：同一个悬崖箱庭，不同动物视角，相互羡慕，相互救赎
 
 @onready var btn_pig = $VBoxContainer/CharactersRow/CardPig/VBox/BtnSelect
 @onready var btn_ox = $VBoxContainer/CharactersRow/CardOx/VBox/BtnSelect
@@ -14,27 +14,27 @@ extends Control
 
 var characters_desc = {
 	"pig": {
-		"title": "特立独行的猪 (MVP核心唯一主角)",
-		"subtitle": "【王小波式的自由图腾 · 拒绝被规训】",
-		"desc": "一头活生生的、敏捷健康的猪。嘴叼干麦穗，长着山羊般轻健的蹄子，喜欢在红谷仓屋顶乘凉。\n看透农庄的精细化规训，以猪拱嘴顶飞顽石、以从容温厚抚慰同伴，乘后山缆车奔向辽阔荒野。",
+		"title": "一口猪 (MVP核心视角)",
+		"subtitle": "【悬崖边的清醒者 · 用智慧给同伴松绑】",
+		"desc": "在猪的视角里，你看不到自己的危险，只看到阿牛在死磕石头、绵绵因自卑抽泣、追风在泥圈打转。\n你用大智慧与硬拱嘴给它们解开枷锁，乘悬崖木吊厢滑向旷野。\n【围城提示】：想看猪自己的隐秘故事，需在后续篇章选择其他动物！",
 		"unlocked": true
 	},
 	"ox": {
-		"title": "阿牛 (老耕牛)",
-		"subtitle": "【力竭耕耘的耕作骨干】",
-		"desc": "被沉重铁犁死死勒住的老黄牛，在猪的顶石点化下卸下枷锁，明白大地亦懂冬眠休养。(后续篇章)",
+		"title": "阿牛 (老耕牛视角)",
+		"subtitle": "【力拔千钧 · 撞碎屠宰门】",
+		"desc": "在牛的视角里，牛心疼那口整天吃了睡的猪：它不知道下个月就要被宰了！牛用一身蛮力撞破屠宰场大门去救猪。(后续篇章)",
 		"unlocked": false
 	},
 	"sheep": {
-		"title": "绵绵 (小绵羊)",
-		"subtitle": "【刚被剪毛的小绵羊】",
-		"desc": "因毛质太软被评为三等次品而暗自抽泣的小羊，懂得云朵天生就是柔软的，守护原生真诚。(后续篇章)",
+		"title": "绵绵 (小绵羊视角)",
+		"subtitle": "【以柔克刚 · 守护奔腾】",
+		"desc": "在羊的视角里，羊羡慕马能跑，却心疼马每天在泥圈里跑得蹄子裂开，羊用自己最柔软的细毛给马编织护蹄套。(后续篇章)",
 		"unlocked": false
 	},
 	"horse": {
-		"title": "烈马 (奔腾马)",
-		"subtitle": "【远方探索者】",
-		"desc": "在农庄篱笆之外的无垠原野探寻自由边界，敬请期待！(后续篇章)",
+		"title": "追风 (烈马视角)",
+		"subtitle": "【疾风破障 · 绝地奔腾】",
+		"desc": "在马的视角里，马看到弱小的羊总被猎犬威吓，马放开四蹄以狂风般的速度带着羊群跃出牢笼。(后续篇章)",
 		"unlocked": false
 	}
 }
@@ -64,7 +64,7 @@ func update_info_display(char_key: String) -> void:
 		info_label.text = "%s - %s\n%s" % [info["title"], info["subtitle"], info["desc"]]
 
 func _on_pig_selected() -> void:
-	print("[CharacterSelect] 选择【特立独行的猪】！开启黄昏阳光农庄的 5 分钟动物寓言之旅...")
+	print("[CharacterSelect] 选择【一口猪】视角！开启悬崖边的金牌农场旷野突围之旅...")
 	GameManager.select_character(GameManager.CharacterType.PIG)
 	get_tree().change_scene_to_file("res://scenes/levels/office_level_1.tscn")
 
@@ -78,4 +78,4 @@ func _on_lang_zh_selected() -> void:
 
 func _on_lang_en_selected() -> void:
 	if info_label:
-		info_label.text = "【系统提示】English language is coming soon! 当前阶段优先打磨原生田园现代动物寓言！"
+		info_label.text = "【系统提示】English language is coming soon! 当前阶段优先打磨原生金牌农场围城寓言！"

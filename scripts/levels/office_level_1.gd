@@ -1,10 +1,12 @@
 extends Node3D
 
-# 关卡控制器：新星模范生态农庄 · 英雄之旅史诗全本
+# 关卡控制器：《一口猪在金牌农场》第一篇章
+# 场景：悬崖边的金牌农场 (The Cliffside Golden Farm)
 # 核心机制：
-# 1. 探索大院，分别点化并唤醒三位盟友：阿牛 (牛)、绵绵 (羊)、追风 (马)
-# 2. 前往中央钟楼直面老张 (犬)，撞断总电闸引出漫天繁星
-# 3. 奔赴后山索道崖口，交付引水图度化老张，踏上辽阔自由原野
+# 1. 悬崖残墙处与老岩羊对话，拿到旧索道插销
+# 2. 深入大院，以简短有力的智慧点醒阿牛 (牛)、绵绵 (羊)、追风 (马)
+# 3. 面对管家犬老张，质问“金牌能嚼得动吗”，跨越石道
+# 4. 前往悬崖边木质吊厢，将插销撞入卡槽，缆车滑入原野
 
 @onready var player: PigController = $Pig
 @onready var camera = $IsometricCamera
@@ -22,24 +24,25 @@ extends Node3D
 @onready var cablecar_cabin = $FarmEnvironment/CableCarArea/CableCarCabin
 @onready var click_indicator = $Pig/ClickIndicator
 
-# 英雄之旅盟友与进程状态
-var met_mentor: bool = false
+# 进程状态
+var met_goat: bool = false
 var met_aniu: bool = false
 var met_mianmian: bool = false
 var met_zhuifeng: bool = false
-var power_cut: bool = false
+var met_laozhang: bool = false
 var is_game_finished: bool = false
 
 func _ready() -> void:
-	print("[Level1] 英雄之旅史诗级现代农庄寓言启动！")
+	print("[Level1] 《一口猪在金牌农场》启动！")
 	
 	if player:
 		player.moved_to_target.connect(_on_player_moved_to_target)
 		player.reached_interactable.connect(_on_player_reached_interactable)
 	
-	# 开局弹出阶段4：遇见导师（老岩羊白须的赠言）
+	# 开局自动弹出悬崖边老岩羊对话
 	get_tree().create_timer(0.4).timeout.connect(func():
-		open_dialogue("mentor_reflection")
+		open_dialogue("cliff_goat_intro")
+		met_goat = true
 	)
 
 func _on_player_moved_to_target(pos: Vector3) -> void:
@@ -53,49 +56,50 @@ func _on_player_moved_to_target(pos: Vector3) -> void:
 		tween.tween_callback(func(): click_indicator.visible = false)
 
 func _on_player_reached_interactable(target: Node3D) -> void:
-	print("[Level1] 到达史诗交互目标: ", target.name)
+	print("[Level1] 到达目标: ", target.name)
 	
-	if target.is_in_group("npc_aniu"):
+	if target.is_in_group("npc_cliff_goat"):
+		open_dialogue("cliff_goat_intro")
+	elif target.is_in_group("npc_aniu"):
 		open_dialogue("aniu_interaction")
 		met_aniu = true
-		check_hero_progress()
+		check_progress()
 	elif target.is_in_group("npc_mianmian"):
 		open_dialogue("mianmian_interaction")
 		met_mianmian = true
-		check_hero_progress()
+		check_progress()
 	elif target.is_in_group("npc_zhuifeng"):
 		open_dialogue("zhuifeng_interaction")
 		met_zhuifeng = true
-		check_hero_progress()
+		check_progress()
 	elif target.is_in_group("npc_laozhang"):
-		# 触发钟楼生死对决
-		open_dialogue("ordeal_encounter")
-		power_cut = true
-		check_hero_progress()
+		open_dialogue("laozhang_interaction")
+		met_laozhang = true
+		check_progress()
 	elif target.is_in_group("cablecar_button"):
 		handle_cablecar_interact()
 	elif target.is_in_group("milk_jug"):
 		if target is RigidBody3D:
 			target.apply_impulse(Vector3(0.8, 1.4, 0.6) * 2.2)
 
-func check_hero_progress() -> void:
-	if met_aniu and met_mianmian and met_zhuifeng and not power_cut:
-		objective_label.text = "🎯 三位同伴已觉醒！前往中央钟楼直面老张，打破规训总闸！"
-	elif power_cut:
-		objective_label.text = "🌟 总电闸已断，银河星空现世！趁乱奔赴后山索道崖口，迈向自由！"
+func check_progress() -> void:
+	if met_aniu and met_mianmian and met_zhuifeng and met_laozhang:
+		objective_label.text = "🎯 农庄的枷锁已全部松开。前往悬崖木吊厢，推下插销奔向广阔人间！"
+	elif met_aniu and met_mianmian and met_zhuifeng:
+		objective_label.text = "🎯 三位同伴已觉醒！穿过中央石板路，面对摇晃铜铃的管家犬老张。"
 	else:
-		objective_label.text = "🎯 穿行于阳光大院，寻访牛、羊、马三位同伴，解开被规训的心灵枷锁。"
+		objective_label.text = "🎯 漫步于悬崖边的金牌农庄，顺路给大院里的牛、羊、马松松绑。"
 
 func handle_cablecar_interact() -> void:
 	if is_game_finished:
 		return
 	is_game_finished = true
-	open_dialogue("cablecar_climax")
+	open_dialogue("cablecar_final")
 	
-	# 缆车在晨光与繁星下徐徐滑向原野
+	# 缆车吊厢在落日熔金的万丈绝壁上滑出
 	if cablecar_cabin:
 		var tween = create_tween()
-		tween.tween_property(cablecar_cabin, "position", cablecar_cabin.position + Vector3(14.0, -5.0, 10.0), 3.5)
+		tween.tween_property(cablecar_cabin, "position", cablecar_cabin.position + Vector3(15.0, -6.0, 10.0), 3.8)
 
 func open_dialogue(node_key: String) -> void:
 	var node_data = DialogueManager.get_dialogue_node(node_key)
@@ -106,7 +110,7 @@ func open_dialogue(node_key: String) -> void:
 	if dialogue_box:
 		dialogue_box.visible = true
 		avatar_label.text = node_data.get("avatar", "🐷")
-		speaker_label.text = node_data.get("speaker", "神秘人")
+		speaker_label.text = node_data.get("speaker", "神秘生灵")
 		title_label.text = node_data.get("title", "")
 		content_label.text = node_data.get("content", "")
 

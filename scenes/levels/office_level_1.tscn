@@ -82,6 +82,9 @@ height = 1.6
 [sub_resource type="StandardMaterial3D" id="Mat_SheepNPC"]
 albedo_color = Color(0.95, 0.95, 0.96, 1)
 
+[sub_resource type="StandardMaterial3D" id="Mat_CliffGoatNPC"]
+albedo_color = Color(0.88, 0.85, 0.78, 1)
+
 [sub_resource type="StandardMaterial3D" id="Mat_HorseNPC"]
 albedo_color = Color(0.2, 0.2, 0.22, 1)
 
@@ -149,6 +152,16 @@ shape = SubResource("BoxShape3D_wall")
 
 [node name="StartBarnArea" type="Node3D" parent="FarmEnvironment"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, 6)
+
+[node name="NPC_CliffGoat" type="StaticBody3D" parent="FarmEnvironment/StartBarnArea" groups=["interactable", "npc", "npc_cliff_goat"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 1.2, -1)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="FarmEnvironment/StartBarnArea/NPC_CliffGoat"]
+material_override = SubResource("Mat_CliffGoatNPC")
+mesh = SubResource("CapsuleMesh_npc")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FarmEnvironment/StartBarnArea/NPC_CliffGoat"]
+shape = SubResource("CapsuleShape3D_npc")
 
 [node name="MilkJug" type="RigidBody3D" parent="FarmEnvironment/StartBarnArea" groups=["interactable", "milk_jug"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0.5, -0.8)
@@ -339,22 +352,22 @@ alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.88, 0.5, 1)
 theme_override_font_sizes/font_size = 34
-text = "🌾 《特立独行的猪》第一幕 · 田园寓言归途"
+text = "🌾 《一口猪在金牌农场》第一篇章 · 旷野归途"
 horizontal_alignment = 1
 
 [node name="Quote" type="Label" parent="HUD/EndScreenPanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 16
-text = "“世间只有一种真正的特立独行，那就是认清生活的规训后，依然选择从容而体面地活出自己。”
-“不随波逐流，亦不愤世嫉俗；守住内心的火，走属于自己的路。”
+text = "“金牌是农场的，但命是你自己的。”
+“世上只有一种特立独行：看清了槽里的把戏，依然坦坦荡荡奔向旷野。”
 
-愿每一颗不肯被驯服的灵魂，都能在阳光下的广阔田野里自由漫步。"
+一口猪走出了围城；天地很大，下山见。"
 horizontal_alignment = 1
 
 [node name="Author" type="Label" parent="HUD/EndScreenPanel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.8, 0.8)
 theme_override_font_sizes/font_size = 14
-text = "—— 感谢体验 5min 现代田园哲学寓言 Demo ——"
+text = "—— 感谢体验《一口猪在金牌农场》MVP 试玩版 ——"
 horizontal_alignment = 1

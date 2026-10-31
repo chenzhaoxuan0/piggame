@@ -6,12 +6,12 @@ config_version=5
 
 [application]
 
-config/name="特立独行的猪：逃离牛马大厦"
+config/name="一口猪在金牌农场"
 config/name_localized={
-"en": "A Maverick Pig: Escape the Animal Office",
-"zh_CN": "特立独行的猪：逃离牛马大厦"
+"en": "A Pig in the Golden Farm",
+"zh_CN": "一口猪在金牌农场"
 }
-config/description="2.5D 职场反讽逃脱游戏，群核科技AHOLO+GPT6Astra支持，扮演一只特立独行的猪逃出大厂写字楼！"
+config/description="2.5D 现代田园围城寓言：悬崖边的金牌农场，一口猪的旷野突围！"
 config/version="0.1.0-mvp"
 run/main_scene="res://scenes/ui/character_selection.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
