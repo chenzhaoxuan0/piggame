@@ -284,13 +284,13 @@ layout_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.45, 1)
 theme_override_font_sizes/font_size = 17
-text = "老朱"
+text = "特立独行的猪"
 
 [node name="LabelTitle" type="Label" parent="HUD/DialogueBox/Margin/VBox/Header/NameVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.8, 0.85, 0.75)
 theme_override_font_sizes/font_size = 12
-text = "特立独行的农庄哲人"
+text = "拒绝被规训的自由生灵"
 
 [node name="LabelContent" type="Label" parent="HUD/DialogueBox/Margin/VBox"]
 layout_mode = 2

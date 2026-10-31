@@ -76,14 +76,14 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.78, 0.82, 1)
 theme_override_font_sizes/font_size = 22
-text = "老朱 (Mr. Pig)"
+text = "特立独行的猪"
 horizontal_alignment = 1
 
 [node name="Role" type="Label" parent="VBoxContainer/CharactersRow/CardPig/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
 theme_override_font_sizes/font_size = 14
-text = "【特立独行的农庄哲人】\n从容自洽，看清规训却依旧温热"
+text = "【王小波式自由图腾】\n一头拒绝被规训、清醒自洽的猪"
 horizontal_alignment = 1
 
 [node name="BtnSelect" type="Button" parent="VBoxContainer/CharactersRow/CardPig/VBox"]
@@ -92,7 +92,7 @@ layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 16
-text = "开始田园寓言之旅 (5min)"
+text = "做特立独行的猪 (开始)"
 
 [node name="CardOx" type="PanelContainer" parent="VBoxContainer/CharactersRow"]
 modulate = Color(0.65, 0.65, 0.65, 0.8)
