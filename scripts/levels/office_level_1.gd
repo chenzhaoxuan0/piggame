@@ -1,12 +1,11 @@
 extends Node3D
 
-# 关卡控制器：《一口猪在金牌农场》第一篇章
-# 场景：悬崖边的金牌农场 (The Cliffside Golden Farm)
+# 关卡控制器：《一口猪在金牌农场》第一篇章 (英雄之旅 · 意志凝聚版)
 # 核心机制：
-# 1. 悬崖残墙处与老岩羊对话，拿到旧索道插销
-# 2. 深入大院，以简短有力的智慧点醒阿牛 (牛)、绵绵 (羊)、追风 (马)
-# 3. 面对管家犬老张，质问“金牌能嚼得动吗”，跨越石道
-# 4. 前往悬崖边木质吊厢，将插销撞入卡槽，缆车滑入原野
+# 1. 悬崖在下方，老岩羊从崖底跃上残墙，给生锈铜插销
+# 2. 向上挺进，陌生相遇并点化牛、羊、马，分别汲取【坚忍】、【温柔】与【决绝】三股意志
+# 3. 意志齐聚直面中央钟楼老张，铁头撞断高压电闸引出星空
+# 4. 索道崖口交付引水图，度化老张，木缆车滑入原野
 
 @onready var player: PigController = $Pig
 @onready var camera = $IsometricCamera
@@ -24,12 +23,11 @@ extends Node3D
 @onready var cablecar_cabin = $FarmEnvironment/CableCarArea/CableCarCabin
 @onready var click_indicator = $Pig/ClickIndicator
 
-# 进程状态
-var met_goat: bool = false
-var met_aniu: bool = false
-var met_mianmian: bool = false
-var met_zhuifeng: bool = false
-var met_laozhang: bool = false
+# 英雄意志掌握状态 (从同伴身上学到的意志)
+var will_ox: bool = false      # 从老黄牛处学到的【坚忍之骨】
+var will_sheep: bool = false   # 从小绵羊处学到的【温柔之心】
+var will_horse: bool = false   # 从烈马处学到的【决绝之勇】
+var power_cut: bool = false
 var is_game_finished: bool = false
 
 func _ready() -> void:
@@ -42,7 +40,6 @@ func _ready() -> void:
 	# 开局自动弹出悬崖边老岩羊对话
 	get_tree().create_timer(0.4).timeout.connect(func():
 		open_dialogue("cliff_goat_intro")
-		met_goat = true
 	)
 
 func _on_player_moved_to_target(pos: Vector3) -> void:
@@ -62,41 +59,46 @@ func _on_player_reached_interactable(target: Node3D) -> void:
 		open_dialogue("cliff_goat_intro")
 	elif target.is_in_group("npc_aniu"):
 		open_dialogue("aniu_interaction")
-		met_aniu = true
-		check_progress()
+		will_ox = true
+		check_hero_progress()
 	elif target.is_in_group("npc_mianmian"):
 		open_dialogue("mianmian_interaction")
-		met_mianmian = true
-		check_progress()
+		will_sheep = true
+		check_hero_progress()
 	elif target.is_in_group("npc_zhuifeng"):
 		open_dialogue("zhuifeng_interaction")
-		met_zhuifeng = true
-		check_progress()
+		will_horse = true
+		check_hero_progress()
 	elif target.is_in_group("npc_laozhang"):
-		open_dialogue("laozhang_interaction")
-		met_laozhang = true
-		check_progress()
+		open_dialogue("ordeal_encounter")
+		power_cut = true
+		check_hero_progress()
 	elif target.is_in_group("cablecar_button"):
 		handle_cablecar_interact()
 	elif target.is_in_group("milk_jug"):
 		if target is RigidBody3D:
 			target.apply_impulse(Vector3(0.8, 1.4, 0.6) * 2.2)
 
-func check_progress() -> void:
-	if met_aniu and met_mianmian and met_zhuifeng and met_laozhang:
-		objective_label.text = "🎯 农庄的枷锁已全部松开。前往悬崖木吊厢，推下插销奔向广阔人间！"
-	elif met_aniu and met_mianmian and met_zhuifeng:
-		objective_label.text = "🎯 三位同伴已觉醒！穿过中央石板路，面对摇晃铜铃的管家犬老张。"
+func check_hero_progress() -> void:
+	var wills = []
+	if will_ox: wills.append("坚忍之骨")
+	if will_sheep: wills.append("温柔之心")
+	if will_horse: wills.append("决绝之勇")
+	
+	if will_ox and will_sheep and will_horse and not power_cut:
+		objective_label.text = "🎯 三大意志已凝聚【坚忍·温柔·决绝】！向中央红砖钟楼冲锋，撞碎电闸！"
+	elif power_cut:
+		objective_label.text = "🌟 高压电闸已碎，星空现世！在全员掩护下，奔赴最上方悬崖索道！"
 	else:
-		objective_label.text = "🎯 漫步于悬崖边的金牌农庄，顺路给大院里的牛、羊、马松松绑。"
+		var status = "、".join(wills) if wills.size() > 0 else "无"
+		objective_label.text = "🎯 向上探索农庄 · 已领悟意志: [%s] · 继续寻访陌生同伴" % status
 
 func handle_cablecar_interact() -> void:
 	if is_game_finished:
 		return
 	is_game_finished = true
-	open_dialogue("cablecar_final")
+	open_dialogue("cablecar_climax")
 	
-	# 缆车吊厢在落日熔金的万丈绝壁上滑出
 	if cablecar_cabin:
 		var tween = create_tween()
 		tween.tween_property(cablecar_cabin, "position", cablecar_cabin.position + Vector3(15.0, -6.0, 10.0), 3.8)
