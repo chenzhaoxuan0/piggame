@@ -1,10 +1,10 @@
 extends Node3D
 
-# 第一关控制器：新星模范生态农庄 (Level 1: The Modern Farm Allegory)
-# 玩法特征：
-# 1. 类似《极乐迪斯科》与《红猪》的寓言深度对话与从容处事智慧
-# 2. 2.5D 点击移动 (Point & Click / Tap to Move)
-# 3. 类似《Untitled Goose Game》的田园环境物理碰撞互动 (碰翻牛奶桶、推歪木栅栏)
+# 关卡控制器：新星模范生态农庄 · 英雄之旅史诗全本
+# 核心机制：
+# 1. 探索大院，分别点化并唤醒三位盟友：阿牛 (牛)、绵绵 (羊)、追风 (马)
+# 2. 前往中央钟楼直面老张 (犬)，撞断总电闸引出漫天繁星
+# 3. 奔赴后山索道崖口，交付引水图度化老张，踏上辽阔自由原野
 
 @onready var player: PigController = $Pig
 @onready var camera = $IsometricCamera
@@ -22,23 +22,24 @@ extends Node3D
 @onready var cablecar_cabin = $FarmEnvironment/CableCarArea/CableCarCabin
 @onready var click_indicator = $Pig/ClickIndicator
 
-# 关卡进程状态
+# 英雄之旅盟友与进程状态
+var met_mentor: bool = false
 var met_aniu: bool = false
 var met_mianmian: bool = false
-var met_laozhang: bool = false
+var met_zhuifeng: bool = false
+var power_cut: bool = false
 var is_game_finished: bool = false
 
 func _ready() -> void:
-	print("[Level1] 5分钟农庄寓言治愈体验：《特立独行的猪》启动！")
+	print("[Level1] 英雄之旅史诗级现代农庄寓言启动！")
 	
-	# 连接玩家点击移动信号
 	if player:
 		player.moved_to_target.connect(_on_player_moved_to_target)
 		player.reached_interactable.connect(_on_player_reached_interactable)
 	
-	# 开局延迟片刻弹出老朱黄昏沉思
+	# 开局弹出阶段4：遇见导师（老岩羊白须的赠言）
 	get_tree().create_timer(0.4).timeout.connect(func():
-		open_dialogue("intro_reflection")
+		open_dialogue("mentor_reflection")
 	)
 
 func _on_player_moved_to_target(pos: Vector3) -> void:
@@ -52,43 +53,49 @@ func _on_player_moved_to_target(pos: Vector3) -> void:
 		tween.tween_callback(func(): click_indicator.visible = false)
 
 func _on_player_reached_interactable(target: Node3D) -> void:
-	print("[Level1] 到达田园交互目标: ", target.name)
+	print("[Level1] 到达史诗交互目标: ", target.name)
 	
 	if target.is_in_group("npc_aniu"):
 		open_dialogue("aniu_interaction")
 		met_aniu = true
-		check_progress()
+		check_hero_progress()
 	elif target.is_in_group("npc_mianmian"):
 		open_dialogue("mianmian_interaction")
 		met_mianmian = true
-		check_progress()
+		check_hero_progress()
+	elif target.is_in_group("npc_zhuifeng"):
+		open_dialogue("zhuifeng_interaction")
+		met_zhuifeng = true
+		check_hero_progress()
 	elif target.is_in_group("npc_laozhang"):
-		open_dialogue("laozhang_interaction")
-		met_laozhang = true
-		check_progress()
+		# 触发钟楼生死对决
+		open_dialogue("ordeal_encounter")
+		power_cut = true
+		check_hero_progress()
 	elif target.is_in_group("cablecar_button"):
 		handle_cablecar_interact()
 	elif target.is_in_group("milk_jug"):
 		if target is RigidBody3D:
 			target.apply_impulse(Vector3(0.8, 1.4, 0.6) * 2.2)
-			print("[Level1] 碰翻了木制牛奶桶，纯白牛奶浸润了青草地")
 
-func check_progress() -> void:
-	if met_aniu and met_mianmian and met_laozhang:
-		objective_label.text = "🎯 农庄同伴的心结已解开。向夕阳下的后山索道漫步，乘缆车归家。"
+func check_hero_progress() -> void:
+	if met_aniu and met_mianmian and met_zhuifeng and not power_cut:
+		objective_label.text = "🎯 三位同伴已觉醒！前往中央钟楼直面老张，打破规训总闸！"
+	elif power_cut:
+		objective_label.text = "🌟 总电闸已断，银河星空现世！趁乱奔赴后山索道崖口，迈向自由！"
 	else:
-		objective_label.text = "🎯 漫步于黄昏的阳光农庄，与焦虑的同伴聊两句，前往后山索道。"
+		objective_label.text = "🎯 穿行于阳光大院，寻访牛、羊、马三位同伴，解开被规训的心灵枷锁。"
 
 func handle_cablecar_interact() -> void:
 	if is_game_finished:
 		return
 	is_game_finished = true
-	open_dialogue("cablecar_final")
+	open_dialogue("cablecar_climax")
 	
-	# 缆车吊厢平滑滑出站台，下行进入群山远景
+	# 缆车在晨光与繁星下徐徐滑向原野
 	if cablecar_cabin:
 		var tween = create_tween()
-		tween.tween_property(cablecar_cabin, "position", cablecar_cabin.position + Vector3(12.0, -4.0, 8.0), 3.0)
+		tween.tween_property(cablecar_cabin, "position", cablecar_cabin.position + Vector3(14.0, -5.0, 10.0), 3.5)
 
 func open_dialogue(node_key: String) -> void:
 	var node_data = DialogueManager.get_dialogue_node(node_key)
@@ -103,11 +110,9 @@ func open_dialogue(node_key: String) -> void:
 		title_label.text = node_data.get("title", "")
 		content_label.text = node_data.get("content", "")
 
-		# 清理旧选项
 		for child in options_container.get_children():
 			child.queue_free()
 
-		# 生成选项按钮 (极乐迪斯科风格选择枝)
 		var options = node_data.get("options", [])
 		for opt in options:
 			var btn = Button.new()

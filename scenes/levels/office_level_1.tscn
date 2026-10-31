@@ -82,6 +82,9 @@ height = 1.6
 [sub_resource type="StandardMaterial3D" id="Mat_SheepNPC"]
 albedo_color = Color(0.95, 0.95, 0.96, 1)
 
+[sub_resource type="StandardMaterial3D" id="Mat_HorseNPC"]
+albedo_color = Color(0.2, 0.2, 0.22, 1)
+
 [sub_resource type="StandardMaterial3D" id="Mat_DogNPC"]
 albedo_color = Color(0.35, 0.28, 0.22, 1)
 
@@ -184,6 +187,16 @@ material_override = SubResource("Mat_SheepNPC")
 mesh = SubResource("CapsuleMesh_npc")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="FarmEnvironment/NPC_Mianmian"]
+shape = SubResource("CapsuleShape3D_npc")
+
+[node name="NPC_Zhuifeng" type="StaticBody3D" parent="FarmEnvironment" groups=["interactable", "npc", "npc_zhuifeng"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.8, 5)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="FarmEnvironment/NPC_Zhuifeng"]
+material_override = SubResource("Mat_HorseNPC")
+mesh = SubResource("CapsuleMesh_npc")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="FarmEnvironment/NPC_Zhuifeng"]
 shape = SubResource("CapsuleShape3D_npc")
 
 [node name="NPC_Laozhang" type="StaticBody3D" parent="FarmEnvironment" groups=["interactable", "npc", "npc_laozhang"]]
