@@ -52,9 +52,81 @@ piggame-art/
 
 ## 4. 3D 资产生成：MCP + Skill
 
-- **MCP Server**：`aholo-sdk-mcp`（官方包 `@manycore/aholo-sdk-mcp`，stdio 传输，共 26 个工具）。项目级配置已就位：`.mcp.json`（Claude Code）、`.cursor/mcp.json`（Cursor）、`.vscode/mcp.json`（VS Code）。三份配置都指向 `scripts/mcp/aholo-mcp.mjs` —— 这个启动器负责读项目根 `.env`（密钥不入库）、注入代理端口，并把 stdio 原样转交给官方包。
-- **Skill**：`.agent/skill/aholo-lux3d/SKILL.md`，配套 `references/lux3d-tools.md`。任何 Agent 接手 3D 资产任务前先读它：里面写了抠主体规则、参数取值、产物落盘路径与排错方式。
-- 自检命令：`node scripts/mcp/aholo-mcp.mjs --doctor`（完成 MCP 握手并打印可用工具清单）。
+### 4.1 组成
+
+- **MCP Server**：`aholo-sdk-mcp`（官方包 `@manycore/aholo-sdk-mcp@1.9.0`，stdio 传输，共 26 个工具）。
+  由 `scripts/mcp/aholo-mcp.mjs` 拉起：它读项目根 `.env` 拿 `AHOLO_API_KEY` / `AHOLO_REGION`，
+  按 `AHOLO_PROXY_URL` 注入代理，再把 stdio 原样转交给官方包。
+- **Skill**：`.agent/skill/aholo-lux3d/SKILL.md`（工作流与项目约束），
+  配套 `references/lux3d-tools.md`（26 个工具速查）。
+  **任何 Agent 接手 3D 资产任务前先读它**：里面写了抠主体规则、参数取值、产物落盘路径与排错方式。
+
+### 4.2 密钥与代理从哪来
+
+- 真实密钥只存在项目根 `.env`，已被 `.gitignore` 排除；**进版本库的配置里一律不含密钥**。
+- 代理端口只配一处：`.env` 的 `AHOLO_PROXY_URL`（当前 `http://127.0.0.1:7897`）。换端口只改这一行。
+- 启动器从**脚本自身所在路径**反推仓库根去找 `.env`，所以无论从哪个工作目录拉起它都能读到密钥。
+- 需要共享配置时改 `.env.example`，不要把真实值写进任何被跟踪的文件。
+
+### 4.3 各客户端怎么接上
+
+**读项目配置文件的客户端，打开本仓库即自动生效**，无需任何额外操作：
+
+| 配置文件 | 客户端 | 路径写法 |
+| :--- | :--- | :--- |
+| `.mcp.json` | Claude Code（项目作用域）、Claude Desktop | `${CLAUDE_PROJECT_DIR:-.}/scripts/mcp/aholo-mcp.mjs` |
+| `.cursor/mcp.json` | Cursor（项目级） | `scripts/mcp/aholo-mcp.mjs`（相对项目根） |
+| `.vscode/mcp.json` | VS Code / Copilot | `${workspaceFolder}/scripts/mcp/aholo-mcp.mjs` |
+
+**MCode 桌面端这类只读全局档案、不读项目配置的客户端，需要手动加一条记录。**
+档案位置 `C:\Users\chenziyu\.minimax\mcp.json`，结构与 `.mcp.json` 相同（顶层 `mcpServers`），加下面这段：
+
+```json
+{
+  "mcpServers": {
+    "aholo-sdk-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["C:/Users/chenziyu/project/piggame-art/scripts/mcp/aholo-mcp.mjs"],
+      "env": {}
+    }
+  }
+}
+```
+
+> `args` 里的路径要换成**本仓库的实际绝对路径**；仓库换了位置才需要改。
+> 加完重启客户端，让它重新握手。
+> 这条记录虽然是全局的，但密钥仍然只存在项目 `.env` 里 —— 换项目不用动档案。
+
+### 4.4 Skill 怎么被各 Agent 发现
+
+- 仓库内的唯一事实源是 `.agent/skill/aholo-lux3d/`，改动只改这里。
+- 只扫描自己 skills 目录的客户端（Claude Code 默认扫 `~/.claude/skills/`，MCode 扫 `~/.minimax/skills/`），
+  在本机这两者最终都指向全局 hub `C:\Users\chenziyu\.agents\skills\`。
+  把项目里的 skill 链过去，就能所有 Agent 共用同一份、且改了立即生效：
+
+```powershell
+New-Item -ItemType SymbolicLink -Path "$env:USERPROFILE\.agents\skills\aholo-lux3d" -Target "<本仓库绝对路径>\.agent\skill\aholo-lux3d"
+```
+
+- Windows 建符号链接需要管理员权限或开发者模式；没有权限就直接复制一份：
+  `Copy-Item -Recurse "<本仓库绝对路径>\.agent\skill\aholo-lux3d" "$env:USERPROFILE\.agents\skills\aholo-lux3d"`
+- 不想装到全局也行：**开工前读一遍 `.agent/skill/aholo-lux3d/SKILL.md`** 即可，规则一样生效。
+
+### 4.5 自检
+
+```powershell
+node scripts/mcp/aholo-mcp.mjs --doctor
+```
+
+完成 MCP 握手并打印工具总数与清单，正常输出长这样：
+
+```text
+[aholo-mcp] 握手成功，region=cn，proxy=http://127.0.0.1:7897
+[aholo-mcp] 工具总数: 26
+```
+
+拿不到 `AHOLO_API_KEY` 时会直接退出并提示 `.env` 的位置 —— 这是最常见的一类故障。
 
 ## 5. 风格底线
 
