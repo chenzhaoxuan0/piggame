@@ -25,8 +25,8 @@ extends Node3D
 
 # 英雄意志掌握状态 (从同伴身上学到的意志)
 var will_ox: bool = false      # 从老黄牛处学到的【坚忍之骨】
-var will_sheep: bool = false   # 从小绵羊处学到的【温柔之心】
-var will_horse: bool = false   # 从烈马处学到的【决绝之勇】
+var will_sheep: bool = false   # 从小绵羊处学到的【洞察之眸】
+var will_horse: bool = false   # 从烈马处学到的【疾风之步】
 var power_cut: bool = false
 var is_game_finished: bool = false
 
@@ -82,13 +82,13 @@ func _on_player_reached_interactable(target: Node3D) -> void:
 func check_hero_progress() -> void:
 	var wills = []
 	if will_ox: wills.append("坚忍之骨")
-	if will_sheep: wills.append("温柔之心")
-	if will_horse: wills.append("决绝之勇")
+	if will_sheep: wills.append("洞察之眸")
+	if will_horse: wills.append("疾风之步")
 	
 	if will_ox and will_sheep and will_horse and not power_cut:
-		objective_label.text = "🎯 三大意志已凝聚【坚忍·温柔·决绝】！向中央红砖钟楼冲锋，撞碎电闸！"
+		objective_label.text = "🎯 三大意志已凝聚【坚忍之骨·洞察之眸·疾风之步】！向中央红砖钟楼冲锋，撞碎高压总闸！"
 	elif power_cut:
-		objective_label.text = "🌟 高压电闸已碎，星空现世！在全员掩护下，奔赴最上方悬崖索道！"
+		objective_label.text = "🌟 高压电闸已碎，星空现世！在觉醒群星注视下，奔赴最上方悬崖索道！"
 	else:
 		var status = "、".join(wills) if wills.size() > 0 else "无"
 		objective_label.text = "🎯 向上探索农庄 · 已领悟意志: [%s] · 继续寻访陌生同伴" % status
@@ -136,7 +136,10 @@ func _on_option_selected(next_key: String) -> void:
 		close_dialogue()
 	elif next_key == "game_win":
 		close_dialogue()
-		show_end_screen()
+		show_end_screen("escape")
+	elif next_key == "game_ending_sty":
+		close_dialogue()
+		show_end_screen("stay")
 	else:
 		open_dialogue(next_key)
 
@@ -144,7 +147,25 @@ func close_dialogue() -> void:
 	if dialogue_box:
 		dialogue_box.visible = false
 
-func show_end_screen() -> void:
+func show_end_screen(ending_type: String = "escape") -> void:
 	var end_panel = $HUD/EndScreenPanel
 	if end_panel:
 		end_panel.visible = true
+		var title_label_end = end_panel.get_node_or_null("VBox/Title")
+		var quote_label_end = end_panel.get_node_or_null("VBox/Quote")
+		var author_label_end = end_panel.get_node_or_null("VBox/Author")
+		
+		if ending_type == "stay":
+			if title_label_end:
+				title_label_end.text = "🥣 【结局一：安稳的肉馅】"
+			if quote_label_end:
+				quote_label_end.text = "🏆 成就解锁：【温热的泥浆】\n\n“温热的泥浆漫过肚皮，糖蜜发酵料甜得发腻。\n山脚下的柴油运猪车很远，此刻槽里的温饱很近……\n做一头合格的肉猪，安享一宿安稳，这又何尝不是一种归宿。”\n\n猪把头深埋在泥浆中，静静等待着天明。"
+			if author_label_end:
+				author_label_end.text = "—— 体验到此结束 · 亦可重新探索红色出逃之路 ——"
+		else:
+			if title_label_end:
+				title_label_end.text = "🌾 【结局二：旷野归途】"
+			if quote_label_end:
+				quote_label_end.text = "🏆 成就解锁：【特立独行的先驱】\n\n“金牌是农场的，但命是你自己的。”\n“世上只有一种特立独行：看清了槽里的把戏，依然坦坦荡荡奔向旷野。”\n\n一口猪走出了围城；天地很大，下山见。"
+			if author_label_end:
+				author_label_end.text = "—— 感谢体验《一口猪在金牌农场》MVP 试玩版 ——"
