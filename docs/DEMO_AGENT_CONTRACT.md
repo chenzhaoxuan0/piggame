@@ -1,5 +1,12 @@
 # 白模展示版：首轮集成契约
 
+> 2026-11 更新：主场景已切换为美术一版 `scenes/levels/farm/farm_grounds.tscn`（scripts/levels/farm_grounds.gd）。
+> 它保留本契约全部 API（get_spawn_position / set_gate_open / set_pigpen_open / set_npc_completed /
+> get_cablecar / reset_world / chase_entered），新增常量 CHASE_EXIT_Z、RETRY_POSITION、CABLECAR_TRAVEL
+> 供主控使用；旅程布局 x=-46..46、z=+102..-108：猪圈→路线→耕作区→路线→剪毛棚→路线→泥圈赛道→路线→
+> 开阔地（追逐）→铁门→索道旷野，区域由带缺口分界栅栏分隔，路线为两侧围合走廊。
+> 白模场景 farm_greybox 仅保留给 headless 测试使用。
+
 本轮只做程序与几何白模，不创建正式美术或调用 Lux3D。主控管理根场景、项目配置、UI 与集成；worker 独占各自文件，不覆盖他人修改。所有路径为 res:// 相对路径。
 
 ## 地图与场景

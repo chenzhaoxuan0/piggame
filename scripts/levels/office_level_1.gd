@@ -3,7 +3,7 @@ extends Node3D
 const CHASE_SCRIPT = preload("res://scripts/chase/simple_chase.gd")
 @onready var player: PigController = $Pig
 @onready var camera: IsometricCamera = $IsometricCamera
-@onready var greybox: Node3D = $Greybox
+@onready var farm: Node3D = $Farm
 var chase: SimpleChase
 var hud: Control
 var objective: Label
@@ -12,6 +12,7 @@ var prompt: Label
 var dialogue_panel: PanelContainer
 var speaker_label: Label
 var content_label: Label
+var line_hint: Label
 var options: VBoxContainer
 var overlay: ColorRect
 var overlay_title: Label
@@ -23,6 +24,8 @@ var paused := false
 var busy := false
 var current_dialogue := ""
 var current_options: Array = []
+var dialogue_lines: Array = []
+var line_index := 0
 var pressure := 999.0
 var pin_visual: MeshInstance3D
 
@@ -33,11 +36,11 @@ func _ready() -> void:
 	chase.finished.connect(_on_chase_finished)
 	chase.pressure_changed.connect(func(value: float): pressure = value)
 	player.reached_interactable.connect(_on_interact)
-	greybox.chase_entered.connect(_start_chase)
+	farm.chase_entered.connect(_start_chase)
 	GameManager.state_changed.connect(_refresh_hud)
 	_build_hud()
 	_build_pin()
-	player.reset_at(greybox.get_spawn_position())
+	player.reset_at(farm.get_spawn_position())
 	camera.snap_to_target()
 	_refresh_hud()
 	player.set_control_mode("dialogue")
@@ -56,12 +59,12 @@ func _build_pin() -> void:
 	pin_visual.position = Vector3(0, 0.55, -0.9)
 	pin_visual.visible = false
 
-func _style(bg: Color, border: Color = Color("52626a")) -> StyleBoxFlat:
+func _style(bg: Color, border: Color = Color(0.40, 0.38, 0.30)) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = bg
 	style.border_color = border
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(10)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(12)
 	style.content_margin_left = 22
 	style.content_margin_right = 22
 	style.content_margin_top = 15
@@ -96,11 +99,11 @@ func _build_hud() -> void:
 	font.font_names = PackedStringArray(["Microsoft YaHei", "Noto Sans CJK SC", "Arial"])
 	theme.default_font = font
 	theme.default_font_size = 17
-	theme.set_color("font_color", "Label", Color("eef1e8"))
-	theme.set_stylebox("normal", "Button", _style(Color("2d3e43")))
-	theme.set_stylebox("hover", "Button", _style(Color("455b5b"), Color("d6b576")))
-	theme.set_stylebox("pressed", "Button", _style(Color("657768")))
-	theme.set_stylebox("focus", "Button", _style(Color(0, 0, 0, 0), Color("e3bd70")))
+	theme.set_color("font_color", "Label", Color(0.24, 0.27, 0.20))
+	theme.set_stylebox("normal", "Button", _style(Color(0.92, 0.88, 0.76), Color(0.36, 0.34, 0.26)))
+	theme.set_stylebox("hover", "Button", _style(Color(0.99, 0.95, 0.78), Color(0.78, 0.52, 0.18)))
+	theme.set_stylebox("pressed", "Button", _style(Color(0.80, 0.76, 0.62), Color(0.36, 0.34, 0.26)))
+	theme.set_stylebox("focus", "Button", _style(Color(0, 0, 0, 0), Color(0.85, 0.60, 0.20)))
 	hud.theme = theme
 	var top := PanelContainer.new()
 	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
@@ -108,7 +111,7 @@ func _build_hud() -> void:
 	top.offset_right = -24
 	top.offset_top = 20
 	top.offset_bottom = 110
-	top.add_theme_stylebox_override("panel", _style(Color(0.09, 0.14, 0.16, 0.94)))
+	top.add_theme_stylebox_override("panel", _style(Color(0.96, 0.94, 0.86, 0.94)))
 	hud.add_child(top)
 	var top_row := HBoxContainer.new()
 	top_row.add_theme_constant_override("separation", 30)
@@ -116,15 +119,21 @@ func _build_hud() -> void:
 	var title_column := VBoxContainer.new()
 	title_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top_row.add_child(title_column)
-	title_column.add_child(_label("一口猪在金牌农场", 25))
+	var title := _label("一口猪在金牌农场", 25)
+	title.add_theme_color_override("font_color", Color(0.45, 0.28, 0.14))
+	title_column.add_child(title)
 	objective = _label("", 16)
 	title_column.add_child(objective)
 	var right := VBoxContainer.new()
+	right.alignment = BoxContainer.ALIGNMENT_END
 	top_row.add_child(right)
-	right.add_child(_label("WHITEBOX / 玩法展示  01", 15))
+	right.add_child(_label("农场美术一版 / FARM ART  01", 15))
 	status = _label("", 15)
 	right.add_child(status)
 	prompt = _label("", 19)
+	prompt.add_theme_color_override("font_shadow_color", Color(1, 1, 1, 0.75))
+	prompt.add_theme_constant_override("shadow_offset_x", 1)
+	prompt.add_theme_constant_override("shadow_offset_y", 1)
 	prompt.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	prompt.offset_left = -420
 	prompt.offset_right = 420
@@ -132,7 +141,10 @@ func _build_hud() -> void:
 	prompt.offset_bottom = -65
 	prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hud.add_child(prompt)
-	var controls := _label("WASD / 方向键 移动    ·    E 交互    ·    鼠标点击前往    ·    Esc 暂停", 15)
+	var controls := _label("WASD / 方向键 移动    ·    E 交互    ·    鼠标点击前往    ·    Shift 冲刺    ·    Esc 暂停", 15)
+	controls.add_theme_color_override("font_shadow_color", Color(1, 1, 1, 0.75))
+	controls.add_theme_constant_override("shadow_offset_x", 1)
+	controls.add_theme_constant_override("shadow_offset_y", 1)
 	controls.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	controls.offset_top = -46
 	controls.offset_bottom = -15
@@ -144,24 +156,28 @@ func _build_hud() -> void:
 	dialogue_panel.offset_right = -100
 	dialogue_panel.offset_top = -325
 	dialogue_panel.offset_bottom = -65
-	dialogue_panel.add_theme_stylebox_override("panel", _style(Color(0.08, 0.13, 0.15, 0.98), Color("a6aa86")))
+	dialogue_panel.add_theme_stylebox_override("panel", _style(Color(0.97, 0.95, 0.88, 0.98), Color(0.47, 0.42, 0.30)))
 	hud.add_child(dialogue_panel)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 12)
 	dialogue_panel.add_child(column)
 	speaker_label = _label("", 21)
-	speaker_label.add_theme_color_override("font_color", Color("e5c27e"))
+	speaker_label.add_theme_color_override("font_color", Color(0.62, 0.36, 0.16))
 	column.add_child(speaker_label)
 	content_label = _label("", 20)
 	content_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(content_label)
+	line_hint = _label("▼ 点击继续", 15)
+	line_hint.add_theme_color_override("font_color", Color(0.45, 0.48, 0.38))
+	line_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	column.add_child(line_hint)
 	options = VBoxContainer.new()
 	options.add_theme_constant_override("separation", 7)
 	column.add_child(options)
 	dialogue_panel.visible = false
 	overlay = ColorRect.new()
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	overlay.color = Color(0.05, 0.09, 0.11, 0.94)
+	overlay.color = Color(0.95, 0.93, 0.86, 0.97)
 	hud.add_child(overlay)
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -195,9 +211,17 @@ func _process(_delta: float) -> void:
 			var names := {"goat": "老岩羊", "ox": "老牛", "sheep": "小羊", "horse": "追风", "farmer": "农场主", "record_board": "纪录牌", "cablecar": "索道"}
 			prompt.text = "[ E ]  " + str(names.get(id, "调查"))
 		else:
-			prompt.text = "沿着地面标记向前探索"
+			prompt.text = "沿着土路向前探索"
 
 func _unhandled_input(event: InputEvent) -> void:
+	if dialogue_open and not busy and not cinematic:
+		var advance: bool = event.is_action_pressed("ui_accept") or event.is_action_pressed("action_interact") \
+			or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed) \
+			or (event is InputEventScreenTouch and event.pressed)
+		if advance:
+			_advance_dialogue()
+			get_viewport().set_input_as_handled()
+			return
 	if event.is_action_pressed("ui_cancel") and not cinematic and GameManager.stage != "ending":
 		if overlay.visible and not paused: return
 		paused = not paused
@@ -241,13 +265,42 @@ func open_dialogue(key: String) -> void:
 	player.set_control_mode("dialogue")
 	dialogue_panel.visible = true
 	speaker_label.text = str(data.get("speaker", "")) + "  /  " + str(data.get("title", ""))
-	content_label.text = str(data.get("content", ""))
-	_clear_children(options)
+	dialogue_lines = _split_lines(str(data.get("content", "")))
+	line_index = 0
 	current_options = data.get("options", [])
-	for index in range(current_options.size()):
-		var option: Dictionary = current_options[index]
-		options.add_child(_button(str(option.get("text", "继续")), _select_option.bind(index)))
-	if options.get_child_count() > 0: options.get_child(0).grab_focus()
+	_clear_children(options)
+	_show_current_line()
+
+# One displayed block per sentence: blank separators are dropped, each line is one click.
+func _split_lines(content: String) -> Array:
+	var lines := []
+	for line in content.split("\n"):
+		var text := str(line).strip_edges()
+		if not text.is_empty():
+			lines.append(text)
+	if lines.is_empty():
+		lines.append("")
+	return lines
+
+func _show_current_line() -> void:
+	content_label.text = str(dialogue_lines[line_index])
+	var on_last_line := line_index >= dialogue_lines.size() - 1
+	line_hint.visible = not on_last_line
+	if on_last_line and options.get_child_count() == 0:
+		for index in range(current_options.size()):
+			var option: Dictionary = current_options[index]
+			options.add_child(_button(str(option.get("text", "继续")), _select_option.bind(index)))
+		if options.get_child_count() > 0:
+			options.get_child(0).grab_focus()
+
+func _advance_dialogue() -> void:
+	if not dialogue_open or busy:
+		return
+	if line_index < dialogue_lines.size() - 1:
+		line_index += 1
+		_show_current_line()
+	elif current_options.is_empty():
+		close_dialogue()
 
 func _select_option(index: int) -> void:
 	if busy or index < 0 or index >= current_options.size(): return
@@ -259,7 +312,7 @@ func _select_option(index: int) -> void:
 	match event_id:
 		"choose_red":
 			ok = GameManager.choose_red()
-			if ok: greybox.set_pigpen_open(true)
+			if ok: farm.set_pigpen_open(true)
 		"choose_blue":
 			ok = GameManager.choose_blue()
 			if ok:
@@ -268,14 +321,14 @@ func _select_option(index: int) -> void:
 		"complete_ox", "complete_sheep", "complete_horse":
 			var id := event_id.trim_prefix("complete_")
 			if GameManager.stage == "exploring" and not GameManager.npc_completed.get(id, false):
-				greybox.set_npc_completed(id)
+				farm.set_npc_completed(id)
 				await get_tree().create_timer(0.85).timeout
 				ok = GameManager.complete_npc(id)
 			else: ok = false
 		"read_record": GameManager.read_record()
 		"complete_showdown":
 			ok = GameManager.complete_showdown()
-			if ok: greybox.set_gate_open(true)
+			if ok: farm.set_gate_open(true)
 		"launch_cablecar":
 			ok = GameManager.can_launch_cablecar()
 			if ok:
@@ -311,8 +364,12 @@ func _start_chase() -> void:
 	if dialogue_open or cinematic or overlay.visible: return
 	if not GameManager.start_chase(): return
 	player.set_control_mode("chase")
-	var spawns: Array[Vector3] = [Vector3(-4, 0.2, -2), Vector3(4, 0.2, -1)]
-	chase.start_chase(player, spawns, -23.0)
+	# Dogs always spawn just behind the pig, wherever it crosses into the run.
+	var spawns: Array[Vector3] = [
+		player.global_position + Vector3(-4.0, 0.15, 3.0),
+		player.global_position + Vector3(4.0, 0.15, 2.0),
+	]
+	chase.start_chase(player, spawns, farm.CHASE_EXIT_Z)
 
 func _on_chase_finished(success: bool) -> void:
 	if success:
@@ -321,12 +378,12 @@ func _on_chase_finished(success: bool) -> void:
 		player.set_control_mode("explore")
 	else:
 		player.set_control_mode("ending")
-		_show_overlay("被犬队拦住了", "再试一次。已完成的伙伴交互会保留。\n沿中央路向前，扑咬出现时向侧面让开。", [{"text": "回到大院入口重试", "call": _retry}, {"text": "从头开始", "call": _restart}])
+		_show_overlay("被犬队拦住了", "再试一次。已完成的伙伴交互会保留。\n沿土路向前，扑咬出现时向侧面让开。", [{"text": "回到追逐线重试", "call": _retry}, {"text": "从头开始", "call": _restart}])
 
 func _retry() -> void:
 	if not GameManager.retry_chase(): return
 	chase.stop_chase()
-	player.reset_at(Vector3(0, 0.1, -3.0))
+	player.reset_at(farm.RETRY_POSITION)
 	camera.snap_to_target()
 	overlay.visible = false
 	_restore_control()
@@ -334,11 +391,11 @@ func _retry() -> void:
 func _launch_cablecar() -> void:
 	cinematic = true
 	player.set_control_mode("cinematic")
-	var cabin: Node3D = greybox.get_cablecar()
+	var cabin: Node3D = farm.get_cablecar()
 	player.global_position = cabin.global_position + Vector3(0, 0.5, 0)
 	player.set_physics_process(false)
 	var tween := create_tween().set_parallel(true)
-	var direction := Vector3(0, 1.5, -18)
+	var direction: Vector3 = farm.CABLECAR_TRAVEL
 	tween.tween_property(cabin, "position", cabin.position + direction, 4.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_property(player, "global_position", player.global_position + direction, 4.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	await tween.finished
@@ -351,7 +408,7 @@ func _show_ending() -> void:
 	if GameManager.ending == "stay":
 		_show_overlay("安稳的肉馅", "甜料很暖，明早的车还很远。\n\n你选择留在猪圈。也可以再走一次另一条路。", [{"text": "重新选择", "call": _restart}])
 	else:
-		_show_overlay("旷野归途", "金牌是农场的，但命是你自己的。\n\n白模展示结束。场景、美术与模型仍为玩法占位。", [{"text": "重新出发", "call": _restart}])
+		_show_overlay("旷野归途", "金牌是农场的，但命是你自己的。\n\n美术风格一版完成：扁平色块低模农场。模型与动画仍为占位。", [{"text": "重新出发", "call": _restart}])
 
 func _show_overlay(title: String, body: String, buttons: Array) -> void:
 	overlay_title.text = title
