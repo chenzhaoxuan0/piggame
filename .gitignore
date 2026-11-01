@@ -18,7 +18,12 @@ desktop.ini
 
 # Editors & IDEs
 .idea/
-.vscode/
+.vscode/*
+!.vscode/mcp.json
 *.swp
 *.bak
 
+# Local secrets (Aholo API key) - never commit
+.env
+.env.*
+!.env.example
