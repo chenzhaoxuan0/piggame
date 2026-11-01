@@ -12,7 +12,8 @@ description: "用 Aholo Lux3D 把 2D 概念图或文本变成 3D 模型（GLB/gl
 
 1. MCP Server 已连上，工具名以 `lux3d_` 开头。若连接失败，先跑 `node scripts/mcp/aholo-mcp.mjs --doctor` 自检。
 2. 项目根 `.env` 已配好 `AHOLO_API_KEY` 与 `AHOLO_REGION=cn`（`.env` 不进版本库，密钥只存在本地）。
-3. Node.js ≥ 18（`npx` 要能拉到 `@manycore/aholo-sdk-mcp`）；本机走 `AHOLO_PROXY_URL` 指定的代理。
+3. Node.js ≥ 18（`npx` 要能拉到 `@manycore/aholo-sdk-mcp`）。API 走国内网关 `api.aholo3d.cn`，
+   直连即可、无需代理；仅当本机到该域名网络不通时，才在 `.env` 配 `AHOLO_PROXY_URL` 兜底。
 
 ## 第 0 步：先抠主体，再转 3D（不要跳过）
 
@@ -81,7 +82,8 @@ Lux3D 出来的模型必须回到《无题大鹅模拟》的质感，否则合�
 
 - **连不上 / 立刻退出**：多半是 `AHOLO_API_KEY` 没读到。跑 `node scripts/mcp/aholo-mcp.mjs --doctor`，
   它会打印握手结果与工具清单。
-- **拉包超时**：确认 `AHOLO_PROXY_URL` 指向的代理在跑（默认 `http://127.0.0.1:7897`）。
+- **拉包/请求超时**：cn 区域 API（`api.aholo3d.cn`）通常可直连；若确认本机到该域名不通，
+  再在 `.env` 里配 `AHOLO_PROXY_URL` 走代理重试。
 - **任务一直是 pending**：Lux3D 是异步长任务，用 `lux3d_wait_for_task` 阻塞等，别重复提交。
 - **结果 URL 404**：任务结果 URL 约 2 小时过期，拿到就下载。
 - **模型里带进了地板/雾**：回到第 0 步，主体没抠干净就转 3D 了。

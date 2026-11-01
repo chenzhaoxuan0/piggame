@@ -55,8 +55,9 @@ piggame-art/
 ### 4.1 组成
 
 - **MCP Server**：`aholo-sdk-mcp`（官方包 `@manycore/aholo-sdk-mcp@1.9.0`，stdio 传输，共 26 个工具）。
-  由 `scripts/mcp/aholo-mcp.mjs` 拉起：它读项目根 `.env` 拿 `AHOLO_API_KEY` / `AHOLO_REGION`，
-  按 `AHOLO_PROXY_URL` 注入代理，再把 stdio 原样转交给官方包。
+  由 `scripts/mcp/aholo-mcp.mjs` 拉起：它读项目根 `.env` 拿 `AHOLO_API_KEY` / `AHOLO_REGION`
+  （cn，直连国内网关 `api.aholo3d.cn`，默认不走代理；仅当 `.env` 配了 `AHOLO_PROXY_URL` 时才注入代理），
+  再把 stdio 原样转交给官方包。
 - **Skill**：`.agent/skill/aholo-lux3d/SKILL.md`（工作流与项目约束），
   配套 `references/lux3d-tools.md`（26 个工具速查）。
   **任何 Agent 接手 3D 资产任务前先读它**：里面写了抠主体规则、参数取值、产物落盘路径与排错方式。
@@ -64,7 +65,8 @@ piggame-art/
 ### 4.2 密钥与代理从哪来
 
 - 真实密钥只存在项目根 `.env`，已被 `.gitignore` 排除；**进版本库的配置里一律不含密钥**。
-- 代理端口只配一处：`.env` 的 `AHOLO_PROXY_URL`（当前 `http://127.0.0.1:7897`）。换端口只改这一行。
+- 默认不走代理：cn 区域 API 直连 `api.aholo3d.cn`。仅当本机到该域名网络不通时，
+  才在 `.env` 配 `AHOLO_PROXY_URL` 兜底（代理地址只配这一处，换端口只改这一行）。
 - 启动器从**脚本自身所在路径**反推仓库根去找 `.env`，所以无论从哪个工作目录拉起它都能读到密钥。
 - 需要共享配置时改 `.env.example`，不要把真实值写进任何被跟踪的文件。
 
@@ -122,7 +124,7 @@ node scripts/mcp/aholo-mcp.mjs --doctor
 完成 MCP 握手并打印工具总数与清单，正常输出长这样：
 
 ```text
-[aholo-mcp] 握手成功，region=cn，proxy=http://127.0.0.1:7897
+[aholo-mcp] 握手成功，region=cn，proxy=未启用（直连 api.aholo3d.cn）
 [aholo-mcp] 工具总数: 26
 ```
 
