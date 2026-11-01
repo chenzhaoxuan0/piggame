@@ -1,44 +1,34 @@
-# 《一口猪在金牌农场》全角色美术设定与提示词库 (Character Prompts)
+# 《一口猪在金牌农场》全角色美术设定与提示词库 (Untitled Goose Game 风格版)
 
-> **文档定位**：为游戏内的 7 位关键角色与实体提供完整的视觉设定参数、2D 原画概念图提示词、对话立绘提示词、以及面向 **Aholo Lux3D** 的单体 3D 建模提示词。
-
----
-
-## 目录
-1. [【主角】特立独行的猪“包子” (#047)](#1-特立独行的猪包子-the-maverick-pig)
-2. [【先导NPC】老岩羊 (The Cliff Bighorn)](#2-老岩羊-the-cliff-bighorn)
-3. [【关键NPC】老黄牛 (The Relentless Ox)](#3-老黄牛-the-relentless-ox)
-4. [【关键NPC】小绵羊 (The Soft Cloud Sheep)](#4-小绵羊-the-soft-cloud-sheep)
-5. [【关键NPC】中年烈马“追风” (The Stallion 'Chasing Wind')](#5-中年烈马追风-the-stallion-chasing-wind)
-6. [【敌对势力】农场护院犬 (The Guard Dogs)](#6-农场护院犬-the-guard-dogs)
-7. [【终局Boss】农场主 (The Pragmatic Farm Owner)](#7-农场主-the-pragmatic-farm-owner)
+> **视觉风格基准**：**《无题大鹅模拟》(Untitled Goose Game)**  
+> **核心特征**：极简平涂低多边形 (Flat-Shaded Low-Poly)、纯色块无噪点贴图 (Solid Color Blocks)、极简黑圆点双眼 (Bead-like Dot Eyes)、生动传神的肢体语言。
 
 ---
 
-## 1. 特立独行的猪“包子” (The Maverick Pig)
+## 1. 特立独行的猪“包子” (The Maverick Pig / #047)
 
 ### 1.1 视觉人设规范 (Visual Bible)
-- **原型与体态**：标准三元杂交白猪体态，白净微粉，四蹄粗壮有力，身躯匀称结实而非过度肥胖瘫软。走动时小卷尾自然微翘，眼神冷静、敏锐、反叛。
-- **标志性饰物**：
-  1. **左耳【047】黄色塑料耳标**：工业化养殖的规训符号，鲜黄色，印有黑色编号。
-  2. **后臀鲜红检疫出栏印**：圆形或条形淡红印章，象征“明晨六点送往肉联厂”的催命符。
-  3. **口衔生锈红铜插销**：从序幕贯穿至终局的信物，重质感氧化铜，带有翠绿斑痕。
-- **神态基调**：冷峻、专注、绝不滑稽愚蠢，带有王小波笔下自由生灵的从容与反叛。
+- **体态与几何**：极为干净利落的平涂低多边形肉猪造型。身体由圆润平滑的浅粉色几何块面构成，四蹄敦厚粗壮，小卷尾俏皮翘起。
+- **面部五官**：彻底去除写实褶皱与写实毛孔，采用类似《大鹅》的**极简黑色圆点眼睛 (Simple black bead dot eyes)**，粉色扁平猪鼻上有两个清晰深粉小圆点，传达出沉着、冷静而机智的表情。
+- **核心色彩与道具**：
+  1. **纯粉色块体**：`#F7C5C8`，纯净哑光；
+  2. **左耳【047】柠檬黄塑料耳标**：`#FCD34D`，纯黄色扁平几何薄片，黑色数字；
+  3. **后臀出栏红章**：淡红简约圆形平涂印戳；
+  4. **口衔生锈红铜插销**：粗线条低多边形铜绿色圆柱插销（`#52B788`），横衔于口中。
 
-### 1.2 2D 概念原画提示词 (2D Concept Prompt)
+### 1.2 2D 概念图提示词 (Midjourney / Flux)
 ```text
-A cinematic concept art of a determined, sturdy pale-pink young farm pig standing on a dramatic mountain cliff edge. The pig has a clean, smooth form, realistic pig anatomy in a stylized aesthetic, four solid hooves firmly on the rocky terrain. On its left ear is clipped a bright industrial yellow plastic livestock ear tag stamped with black numbers '047'. On its rear flank is a faint circular red meat inspection ink stamp. The pig firmly grips a heavy, weathered oxidized bronze latch pin in its mouth. The background features early morning mountain mist, cold grey stone walls of a dilapidated barn, and a steep abyss overlooking golden distant valleys. Soft dramatic rim lighting catching the contours of its back. Stylized claymation and miniature diorama style, tactile clay and weathered wood textures, Pixar and Studio Ghibli inspired warm realism, isometric 2.5D game concept art, 8k resolution, octane render --ar 16:9 --v 6.0
+A charming minimalist game character concept art of a pale-pink farm pig, in the distinct art style of Untitled Goose Game. Simple smooth low-poly 3D geometry, flat-shaded pastel pink body with no texture noise or skin pores, cute expressive black dot eyes. A bright flat-yellow plastic livestock tag with black text '047' clipped to its left ear, and a subtle flat red circle stamp on its flank. The pig stands resolutely on four sturdy hooves, firmly biting a chunky low-poly oxidized green-bronze bolt in its snout. Standing on a vibrant low-poly green grass hill beside a simple wooden fence on a cliff edge. House House indie game aesthetic, clean vector-like silhouette, soft diffuse daylight, simple flat contact shadows, pastel pastoral colors, 8k resolution --ar 16:9 --v 6.0
 ```
 
-### 1.3 对话立绘与表情提示词 (Dialogue Avatar Prompts)
+### 1.3 对话立绘与头像提示词 (Avatar Prompt)
 ```text
-Close-up character portrait of a clever and stoic pale-pink farm pig, yellow livestock ear tag with '047' on ear, weathered bronze pin held in mouth, calm and perceptive eyes, sharp intelligent gaze, looking slightly towards the camera. Warm morning rim light on cheek and ears, soft blurred rustic wooden background, stylized 3D claymation bust portrait, game dialogue avatar UI icon, round framing, clean edges --ar 1:1 --v 6.0
+Clean circular game dialogue avatar icon of a stylized pale-pink pig, in the art style of Untitled Goose Game. Flat-shaded 3D model, cute black bead dot eyes, smooth pastel pink snout, bright yellow flat tag '047' on ear, biting a stylized green-patina bronze pin. Solid soft cream-colored background, clean outline, flat shading, House House game UI avatar icon --ar 1:1 --v 6.0
 ```
 
-### 1.4 Aholo Lux3D 3D 模型生成专用提示词 (Text-to-3D Prompt)
-> **适用**：Aholo Lux3D 文本生 3D / 图生 3D（生成游戏主角可替换 VisualMesh）
+### 1.4 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
 ```text
-Single isolated 3D model of a stylized sturdy pale-pink farm pig, neutral four-legged standing pose, healthy well-proportioned body, curled tail, natural snout. Detailed with a small bright yellow plastic livestock ear tag on its left ear stamped with '047', holding a thick cylindrical weathered bronze pin horizontally in its mouth. Stylized 3D game asset, clean smooth watertight topology, gentle beveled edges, matte painted clay and soft wax skin shader, low-to-mid poly mesh ready for rigging. Pure solid white background, no floor, no cast shadows, studio lighting, isometric 45 degree angle.
+Single isolated low-poly 3D model of a stylized pig, in the art style of Untitled Goose Game. Smooth flat-shaded pastel pink body, clean geometric silhouettes, four sturdy legs in neutral standing pose, curly tail, cute simple black dot eyes, bright flat yellow plastic tag stamped '047' on left ear, holding a chunky cylindrical green-bronze bolt in mouth. Minimalist indie game asset, watertight clean low-poly mesh, zero texture noise, completely flat untextured solid color materials. Pure solid white background, no floor, no cast shadows, studio lighting, isometric 45 degree angle.
 ```
 
 ---
@@ -46,20 +36,20 @@ Single isolated 3D model of a stylized sturdy pale-pink farm pig, neutral four-l
 ## 2. 老岩羊 (The Cliff Bighorn)
 
 ### 2.1 视觉人设规范 (Visual Bible)
-- **原型与体态**：常年盘踞在万丈绝壁上的老岩羊。灰白夹杂粗粝羊毛，骨骼突兀清瘦，四蹄如铁铸，体态轻盈而苍老。
+- **体态与几何**：苍老孤傲的高山老岩羊。体表由阶梯状的低多边形灰白羊毛块面堆叠而成，四蹄稳健踏在悬崖石块上。
 - **标志性特征**：
-  1. **巨型盘曲沧桑大角**：深灰褐色，带有密集的生长年轮刻痕与风化裂纹。
-  2. **下巴一小撮稀疏山羊胡**：随崖顶狂风飘动。
-  3. **深邃嘲讽的横瞳双眼**：仿佛看透了农场的一切宿命，兼具智者与江湖浪人的气质。
+  1. **巨型盘曲低多边形大角**：粗壮深灰多边形螺旋羊角，色块纯净利落；
+  2. **极简山羊胡**：下巴处一个下垂的小多边形白块；
+  3. **神态**：微眯的黑色一字型横瞳，透出戏谑与洞察。
 
-### 2.2 2D 概念原画提示词 (2D Concept Prompt)
+### 2.2 2D 概念图提示词 (Midjourney / Flux)
 ```text
-A mystical, weathered old bighorn mountain goat perched atop a crumbling dry-stone cliff wall above a foggy abyss. The goat has thick, coarse, slate-grey and white shaggy wool, powerful hooves gripping the narrow stone edge, and magnificent, heavy curved spiral horns weathered with deep annular growth rings. A wise, cynical expression with rectangular pupils. It kicks a small, heavy rusty copper latch pin towards the viewer on the stone ledge. Cold mountain air, wisps of morning clouds rising from the chasm behind, dramatic high-contrast side lighting, cinematic composition. Handcrafted claymation and stylized low-poly aesthetic, tactile textures of chiseled stone and coarse fleece, warm narrative lighting --ar 16:9 --v 6.0
+A wise old bighorn mountain goat perched on a simple low-poly drystone wall above a misty chasm, in the art style of Untitled Goose Game. Stylized low-poly faceted shaggy grey and cream wool, massive chunky spiral horns in solid dark slate-grey, minimalist eyes with a sly cynical gaze. The goat casually taps a chunky oxidized bronze pin forward on the stone ledge with its hoof. Flat-shaded 3D indie game aesthetic, House House art style, clean bold shapes, soft pastel morning fog background, warm diffuse sunlight, clean minimalist composition --ar 16:9 --v 6.0
 ```
 
-### 2.3 Aholo Lux3D 3D 模型生成专用提示词 (Text-to-3D Prompt)
+### 2.3 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
 ```text
-Single isolated 3D model of a stylized old bighorn mountain goat, neutral standing posture on all four hooves, lean muscular body structure, shaggy coarse grey-beige fleece, prominent large curved spiral horns with rough ridges, subtle beard. Stylized 3D game NPC asset, clean watertight polygonal mesh, beveled geometry, matte painted textures, game-ready low-to-mid poly. Pure solid white background, zero floor shadow, neutral even studio lighting, orthographic side-isometric view.
+Single isolated low-poly 3D model of an old bighorn goat, in the art style of Untitled Goose Game. Shaggy faceted low-poly body in light grey, large curved spiral horns in solid dark grey, neutral four-legged stance. Flat-shaded solid color materials, zero texture noise, clean beveled low-poly mesh, watertight topology. Pure solid white background, no floor, zero shadow, isometric view.
 ```
 
 ---
@@ -67,20 +57,20 @@ Single isolated 3D model of a stylized old bighorn mountain goat, neutral standi
 ## 3. 老黄牛 (The Relentless Ox)
 
 ### 3.1 视觉人设规范 (Visual Bible)
-- **原型与体态**：常年在深黑土垄中耕作的大型劳役耕牛。体型厚重沉稳，脊背微驼，肩峰隆起，肌肉饱经劳作。深棕红毛色，腹部与蹄部沾满深色湿黑泥土。
+- **体态与几何**：厚重沉稳的大型耕牛。由简洁敦厚的深棕色几何体构成，宽阔的牛背与隆起的肩峰，神态踏实而疲惫。
 - **标志性道具**：
-  1. **粗制厚实老木轭 (Wooden Yoke)**：架在脖颈肩背上，风化开裂、带有麻绳与磨损铁环。
-  2. **卷刃崩口的生铁深犁**：深陷在泥中，犁尖卡在一块巨大的灰白花岗岩顽石侧面。
-  3. **水渠旁的释怀**：脱下木轭后，在青石水渠边畅饮井水，肌肉从僵硬走向松弛。
+  1. **平涂原木牛轭**：浅驼色无纹理实木块面，搭在脖颈上；
+  2. **生铁崩口深犁**：深灰色多边形金属犁铧，卡在一块多面体灰白花岗岩石块上；
+  3. **青石水渠**：极简清澈的蓝绿色小水流，水珠为半透明扁平水滴。
 
-### 3.2 2D 概念原画提示词 (2D Concept Prompt)
+### 3.2 2D 概念图提示词 (Midjourney / Flux)
 ```text
-A massive, stoic brown draft ox standing in a plowed field of deep black moist loam. A heavy, worn wooden plow harness yoke sits across its muscular shoulders, hitched to a rusty iron plow whose blade is visibly chipped and jammed against a huge embedded granite boulder. Mud splashes on its legs and belly. The ox pauses in exhaustion, breath fogging in the cool dawn air, looking down thoughtfully at the immovable boulder pointed out by a small pink pig. Morning sunlight raking across the dark plowed soil furrows, distant stone water canal. Stylized claymation aesthetic, tactile textures of wet rich earth, chipped forged iron, and splintered aged cedar wood, heartfelt cinematic atmosphere, isometric game concept art --ar 16:9 --v 6.0
+A massive, gentle brown draft ox standing in a plowed field of deep brown soil blocks, in the art style of Untitled Goose Game. Blocky low-poly anatomy, solid warm chocolate-brown coat, blunt cream-colored horns, tired drooping dot eyes. An unhooked simple flat-wood harness yoke rests beside it near a clear turquoise water trough where it drinks peacefully. Nearby, a stylized chipped dark-grey iron plow sits wedged against a geometric grey granite rock. House House indie game aesthetic, flat-shaded 3D shapes, clean color blocking, soft morning sunlight, charming rural atmosphere --ar 16:9 --v 6.0
 ```
 
-### 3.3 Aholo Lux3D 3D 模型生成专用提示词 (Text-to-3D Prompt)
+### 3.3 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
 ```text
-Single isolated 3D model of a stylized heavy brown draft ox, sturdy four-legged neutral standing pose, massive broad head with blunt grey horns, prominent shoulder hump, wearing an authentic aged wooden harness yoke over its neck. Stylized 3D game character prop, clean low-to-mid poly geometry, beveled edges, matte painted clay and rich wood textures, watertight mesh. Pure solid white background, no ground, no shadow, neutral soft studio lighting, 3/4 isometric perspective.
+Single isolated low-poly 3D model of a sturdy brown draft ox, in the art style of Untitled Goose Game. Chunky blocky body in solid dark brown, blunt pale horns, neutral standing pose, wearing a simple pale wooden neck yoke. Flat-shaded low-poly indie game asset, clean watertight polygon mesh, pure flat colors, zero texture noise. Solid pure white background, no shadows, isometric view.
 ```
 
 ---
@@ -88,19 +78,19 @@ Single isolated 3D model of a stylized heavy brown draft ox, sturdy four-legged 
 ## 4. 小绵羊 (The Soft Cloud Sheep)
 
 ### 4.1 视觉人设规范 (Visual Bible)
-- **原型与体态**：体态小巧玲珑的幼龄绵羊。体表覆盖着罕见细腻、蓬松如同清晨棉花糖与云朵般的纯白软毛，触感极度柔滑。
-- **荒诞错判标志**：
-  1. **颈部粗麻绳挂着的“三等残次”木牌**：歪歪扭扭的黑色油漆汉字，因羊毛过于柔软无法制作粗硬工业毛毡而被农场淘汰。
-  2. **神态蜕变**：从最初蜷缩在暗处的委屈自卑，到被小猪点醒后，安然趴卧在破棚漏下的金色阳光中惬意晒毛。
+- **体态与几何**：如同一朵洁白云团揉成的小羊。身躯由若干饱满圆润的白色多边形球体熔接而成，四条纤细的黑色细腿，可爱治愈。
+- **标志性道具**：
+  1. **细绳挂着的长方形木牌**：纯平浅黄色木片，上有简洁手绘字迹“三等残次”；
+  2. **沐浴光斑**：卧在方形木棚透出的柔和黄色光块中，神情满足惬意。
 
-### 4.2 2D 概念原画提示词 (2D Concept Prompt)
+### 4.2 2D 概念图提示词 (Midjourney / Flux)
 ```text
-An adorable, small stylized sheep with extraordinarily soft, fluffy, cloud-like silky white fleece, curled up peacefully in a warm beam of morning sunshine inside a rustic shearing shed. Around its neck hangs a small wooden tag on a coarse string with rough hand-painted Chinese text '三等残次' (Grade 3 Defective). Golden dust motes dancing in the sunbeam shining through the wooden roof planks, contrasting against the dark rustic shed background. A look of quiet contentment and newfound self-worth on its gentle face. Stylized stop-motion claymation, tactile felt and clay texture, cozy warm color palette, heartwarming Studio Ghibli atmosphere, isometric game art --ar 16:9 --v 6.0
+An adorable tiny sheep with puffy cloud-shaped pure white fleece, in the art style of Untitled Goose Game. Cute round puffy low-poly body, flat pale-pink face, black dot eyes, tiny black peg legs. A small flat rectangular wooden tag hangs around its neck on a string reading '三等残次'. The sheep is curled up happily inside a warm square patch of golden sunlight on a simple wooden barn floor. Minimalist flat-shaded 3D aesthetic, House House art style, cozy, heartwarming, zero texture noise, soft pastel colors --ar 16:9 --v 6.0
 ```
 
-### 4.3 Aholo Lux3D 3D 模型生成专用提示词 (Text-to-3D Prompt)
+### 4.3 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
 ```text
-Single isolated 3D model of an ultra-cute stylized little fluffy sheep, resting or standing pose, cloud-shaped puffy white fleece with rounded soft volume, gentle pink ears and face, small black hooves, wearing a tiny rectangular wooden tag on a rustic cord. Stylized 3D game asset, clean manifold mesh, smooth beveled topology, matte clay and soft felt material finish, low-poly optimized. Pure white solid background, zero shadows, even studio illumination, isometric view.
+Single isolated low-poly 3D model of a cute little fluffy sheep, in the art style of Untitled Goose Game. Cloud-like rounded puffy white body, tiny black legs, flat pink face with dot eyes, wearing a tiny flat rectangular wooden tag. Clean low-poly manifold mesh, flat-shaded solid colors, smooth untextured matte material. Pure solid white background, no floor, no shadows, isometric view.
 ```
 
 ---
@@ -108,20 +98,20 @@ Single isolated 3D model of an ultra-cute stylized little fluffy sheep, resting 
 ## 5. 中年烈马“追风” (The Stallion 'Chasing Wind')
 
 ### 5.1 视觉人设规范 (Visual Bible)
-- **原型与体态**：已过巅峰期的中年纯血赛马。深栗色油亮皮毛中略显杂毛，身形高挑瘦削，肋骨轮廓若隐若现，前额有一小抹白色星斑。
+- **体态与几何**：线条矫健修长的纯血赛马。深栗色块面躯干，黑色简约多边形鬃毛与马尾，前额有一小抹极简白色菱形斑块。
 - **标志性道具与神态**：
-  1. **胸口褪色的“41秒冠军”旧缎带铜牌**：边缘磨损抽丝，写着过往荣耀。
-  2. **路边崭新的“35秒”纯白纪录板**：路旁新马创下的不可逾越的鸿沟。
-  3. **释怀动作**：从狂躁的踏蹄喘息，变为把修长的马脖子探出朽烂的围栏，安静地嚼食栅栏外丛生的枯黄野草，神情依旧带着中年困惑，但肌肉逐渐松弛。
+  1. **胸前褪色红色小奖牌**：圆形红色小片写着“41s”；
+  2. **路边白色小立牌**：写着“35s”；
+  3. **嚼草神态**：马头从一段断开的矮木栅栏中伸出，嘴里嚼着一根黄色蒲公英花茎，眼神从焦虑变为平静舒缓。
 
-### 5.2 2D 概念原画提示词 (2D Concept Prompt)
+### 5.2 2D 概念图提示词 (Midjourney / Flux)
 ```text
-A handsome yet tired middle-aged dark chestnut racehorse standing beside a dilapidated wooden track fence. The horse has a lean athletic frame, a white blaze on its forehead, and wears a weathered, frayed red and gold champion medal ribbon on its chest reading '41s'. It stretches its long neck over the weathered rotting fence, calmly munching on fresh green wild dandelion weeds in the rough earth. In the background across the dusty dirt track stands a crisp, modern white farm record billboard displaying 'Spring Record: 35s'. Warm afternoon backlight, dust in the air, poignant storytelling moment. Stylized claymation and hand-painted 3D art style, rich natural lighting, isometric view --ar 16:9 --v 6.0
+An athletic dark chestnut racehorse leaning over a broken white post-and-rail wooden fence, in the art style of Untitled Goose Game. Sleek low-poly body in rich solid reddish-brown, minimalist black mane and tail, black dot eyes, peacefully chewing on a simple flat-shaded yellow dandelion flower. A faded flat-red ribbon badge pinned to its chest reads '41s'. Next to the track stands a clean white wooden signboard showing '35s'. Flat-shaded 3D indie game art style, House House aesthetic, bold silhouettes, soft warm daylight, zero texture noise, charming pastoral scene --ar 16:9 --v 6.0
 ```
 
-### 5.3 Aholo Lux3D 3D 模型生成专用提示词 (Text-to-3D Prompt)
+### 5.3 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
 ```text
-Single isolated 3D model of a stylized athletic dark bay horse, neutral four-legged standing pose, noble profile, slender legs, flowing black mane and tail, wearing a faded circular prize medal on a short red chest strap. Stylized 3D game character asset, clean manifold polygon mesh, smooth silhouette curves, matte painted coat texture, game-ready topology for animation. Pure solid white background, no floor, no cast shadows, studio lighting, side profile 3/4 isometric angle.
+Single isolated low-poly 3D model of a slender dark chestnut racehorse, in the art style of Untitled Goose Game. Sleek faceted brown body, black mane, neutral standing pose on four slender legs, wearing a small flat red circular medal on its chest. Flat-shaded low-poly 3D asset, clean manifold mesh, pure solid color materials, zero texture noise. Solid pure white background, no floor, zero shadow, isometric view.
 ```
 
 ---
@@ -129,37 +119,37 @@ Single isolated 3D model of a stylized athletic dark bay horse, neutral four-leg
 ## 6. 农场护院犬 (The Guard Dogs)
 
 ### 6.1 视觉人设规范 (Visual Bible)
-- **原型与体态**：粗粝凶悍的农场中华田园犬与德国牧羊犬杂交种。精瘦、善跑、肌肉紧绷，黑色带锈黄毛色，立耳，短毛。
-- **装备**：带金属铆钉的旧牛皮项圈，带有农场巡防铭牌。
-- **动态特征**：低头嗅探、龇牙狂吠、四足飞跃奔跑追逐。
+- **体态与几何**：身手敏捷的农场看门犬。黑黄拼色低多边形块面，尖尖的立耳，翘起的短尾，颈部戴着纯深棕色扁平皮项圈。
+- **动态表现**：奔跑时四肢如小木棍般灵活腾跃，带有诙谐而紧迫的滑稽追逐动势。
 
-### 6.2 2D 概念原画提示词 (2D Concept Prompt)
+### 6.2 2D 概念图提示词 (Midjourney / Flux)
 ```text
-Dynamic action concept art of a fierce yet stylized farm guard dog sprinting across a wide open dirt farmyard, kicking up clouds of golden dust. Lean muscular canine body, black and tan rough coat, pointed alert ears, bared white teeth, wearing a heavy brown leather collar with metal studs. Aggressive forward-charging pose, chasing the runaway pig. Haystacks and farm tractors blurred in the background, dramatic low-angle shot, dynamic motion lines. Stylized 3D claymation and action adventure game style, high energy, warm dramatic lighting --ar 16:9 --v 6.0
+An alert, lean farm guard dog running across a vibrant green farmyard, in the art style of Untitled Goose Game. Blocky low-poly geometry, flat-shaded black and tan coat, pointed triangular ears, simple dot eyes, wearing a simple dark brown leather collar. Playful yet determined chase posture. House House game aesthetic, flat-shaded 3D art, crisp vector-like silhouettes, bright pastoral day, soft diffuse light, zero texture noise --ar 16:9 --v 6.0
 ```
 
-### 6.3 Aholo Lux3D 3D 模型生成专用提示词 (Text-to-3D Prompt)
+### 6.3 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
 ```text
-Single isolated 3D model of a stylized farm guard dog, alert four-legged standing pose, athletic agile body, pointed upright ears, dark tan and black coat, wearing a thick brown leather collar with brass rivets. Stylized 3D game enemy model, clean watertight low-poly mesh, smooth beveled forms, hand-painted matte clay texture, optimized for Godot engine. Solid pure white background, no ground, no shadow, studio lighting, isometric 45 degree angle.
+Single isolated low-poly 3D model of a farm guard dog, in the art style of Untitled Goose Game. Athletic low-poly body in flat-shaded tan and black patches, pointed ears, neutral standing stance, wearing a plain brown collar. Clean watertight low-poly mesh, solid color materials, zero texture noise. Pure solid white background, no floor, isometric view.
 ```
 
 ---
 
 ## 7. 农场主 (The Pragmatic Farm Owner)
 
-### 7.1 视觉人设规范 (Visual Bible)
-- **原型与神态**：普通的农场经营者，四十多岁，不凶神恶煞，也不夸张戏剧化，就是一个疲惫、精明、唯利是图的现实主义普通人。
-- **穿着装备**：
-  1. **褪色牛仔背带工装裤与泥泞橡胶高筒靴**。
-  2. **手持高压防暴电击棍**：黑黄色工业防滑手柄，顶部带有幽幽闪烁的冷蓝色电弧光。
-- **终局落幕体态**：在被小猪撞碎大铁锁破门后，跌坐在泥地上，拍打裤腿灰尘，啐了一口唾沫，看着远去的猪自言自语（“跑了一头亏一千块，圈里还有几百头呢”）。
+### 7.1 视觉人设规范 (Visual Bible - 经典大鹅式人类)
+- **造型借鉴**：《无题大鹅》中的**花农/园丁 (The Groundskeeper)**：
+  - 头戴纯深绿或深灰色平顶鸭舌帽；
+  - 穿宽松纯色粗布牛仔背带裤（`#4A6B82`），内衬姜黄色长袖；
+  - 脚踩一双标志性的深绿色威灵顿雨靴（Wellington rubber boots）；
+  - **面部五官极度简约**：没有复杂的人类眼鼻嘴细节，仅有简练的粗眉毛或小黑点，留白却充满幽默感。
+- **终局神态**：被小猪破门后，整个人滑稽地瘫坐在平涂泥地上，双手撑地，旁边扔着一根黑色手柄带黄色条纹的极简电击棍，头上冒出几根代表困惑的简笔漫画线条。
 
-### 7.2 2D 概念原画提示词 (2D Concept Prompt)
+### 7.2 2D 概念图提示词 (Midjourney / Flux)
 ```text
-A pragmatic, middle-aged human farm owner sitting slumped on the ground in front of a shattered massive iron farm gate, brushing dust off his worn canvas overalls. He wears muddy black rubber boots, a stained plaid flannel shirt, and a battered work cap. Beside him on the dirt lies a black-and-yellow industrial electric stun baton with faint blue sparks dying out. A realistic, weary, indifferent expression, squinting into the distance with a shrug. Behind him, the heavy iron gate padlock is broken in pieces, opening onto a vast mountain trail. Stylized 3D claymation character, mature satirical game narrative art, warm cinematic sunset lighting --ar 16:9 --v 6.0
+A funny, pragmatic human farmer character slumped on the ground in front of a wide-open rustic iron gate, in the distinct art style of Untitled Goose Game. Stylized low-poly human proportions with simple features, wearing a flat tweed cap, a mustard-yellow sweater under faded blue denim dungarees, and dark-green glossy Wellington rubber boots. Beside him on the dirt path lies a chunky black-and-yellow electric baton. He shrugs with comical resignation. House House indie game aesthetic, flat-shaded 3D model, clean solid color blocks, soft warm evening light, no texture noise, humorous storytelling --ar 16:9 --v 6.0
 ```
 
-### 7.3 Aholo Lux3D 3D 模型生成专用提示词 (Text-to-3D Prompt)
+### 7.3 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
 ```text
-Single isolated 3D model of a stylized middle-aged male farm worker, neutral A-pose standing, wearing faded blue denim overalls over a plaid shirt, thick muddy rubber work boots, and a simple cap. Right hand holding a compact black and yellow industrial baton. Stylized human character model for 3D game NPC, clean manifold topology, smooth stylized facial features, matte painted PBR textures, low-to-mid poly mesh. Pure solid white background, no floor plane, no shadows, even studio illumination, front 3/4 isometric view.
+Single isolated low-poly 3D model of a stylized human farmer, in the art style of Untitled Goose Game. Character in neutral A-pose, wearing a flat cap, dungarees over a sweater, and rubber boots, holding a chunky black and yellow baton. House House game character asset, clean faceted low-poly mesh, flat-shaded solid colors, zero texture noise, untextured matte materials. Pure solid white background, no floor, zero shadow, isometric view.
 ```

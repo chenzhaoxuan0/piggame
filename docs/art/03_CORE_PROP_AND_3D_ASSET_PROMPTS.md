@@ -1,6 +1,7 @@
-# 《一口猪在金牌农场》核心道具与 3D 资产提示词库 (Core Prop & Lux3D Prompts)
+# 《一口猪在金牌农场》核心道具与 3D 资产提示词库 (Untitled Goose Game 风格版)
 
-> **核心定位**：专为 **Aholo Lux3D** 3D 资产生成管线设计。本清单包含比赛必评的 P0 核心资产与场景叙事道具，每一件均提供详尽的物理尺寸包围盒规范、2D 概念图提示词、以及 **Aholo Lux3D 专用 Text-to-3D / Image-to-3D 提示词**。
+> **视觉风格基准**：**《无题大鹅模拟》(Untitled Goose Game)**  
+> **核心特征**：极简多边形 (Clean Low-Poly)、纯色平涂 (Flat-Shaded Colors)、无杂质纹理 (Zero Texture Noise)、大形生动可读 (Bold Readable Silhouettes)。针对 **Aholo Lux3D** 几何生成具有天然极高的一致性与成功率。
 
 ---
 
@@ -14,46 +15,42 @@
 | **PROP_04** | **花岗岩顽石与卷刃深铁犁** | P1 (交互资产) | `W: 1.6m, L: 2.0m, H: 1.1m` | 老黄牛耕作区，阻碍老牛的执念顽石 |
 | **PROP_05** | **“三等残次”木质评定吊牌** | P1 (交互资产) | `W: 0.25m, L: 0.05m, H: 0.35m` | 小绵羊身上悬挂的荒诞工业粗规训木牌 |
 | **PROP_06** | **35秒春季新纪录看板** | P1 (调查资产) | `W: 1.8m, L: 0.4m, H: 2.2m` | 烈马跑道旁的新纪录板，打破41秒金牌执念 |
-| **PROP_07** | **农场主高压防暴电击棍** | P1 (对决资产) | `W: 0.12m, L: 0.75m, H: 0.12m` | 农场主的规训武器，带冷蓝电弧火花 |
+| **PROP_07** | **农场主高压防暴电击棍** | P1 (对决资产) | `W: 0.12m, L: 0.75m, H: 0.12m` | 农场主的规训武器，带简约黄色小电弧 |
 
 ---
 
 ## 1. PROP_01：后山悬崖木质索道站与吊厢 (Cliff Cable Car Station & Gondola)
 
 ### 1.1 资产规格与设计规范
-- **功能**：玩家叼着铜插销走到索道前，插入插槽，木吊厢滑轮释放，冲向万顷麦浪（终章通关标志）。
-- **几何构成**：
-  - **吊厢本体**：坚固松木板铆接的半开放木箱，带有木质安全扶手栏杆、底板有微小防滑木条。
-  - **顶部滑轮机构**：重型铸铁双滑轮组、铁质弯钩悬臂吊架、粗钢缆穿行槽，包含一个明显的铜插销锁止插槽。
-- **材质特点**：高山风化开裂的深色防腐松木、生锈铸铁机械件、铜绿滑道。
+- **风格特征**：大鹅风格的质朴木质缆车。由厚实的低多边形原木木板拼合而成，四角有圆润小倒角；顶部是实心的深灰铸铁滑轮支架与双滑轮；设有一个专供红铜插销插入的极简插槽。
+- **色彩色块**：风化木浅暖褐（`#8D7B68`）、铸铁深灰（`#374151`）、插槽纯黄铜色（`#D97706`）。
 
-### 1.2 2D 概念图提示词 (Midjourney / Flux - 用于 Image-to-3D 参考)
+### 1.2 2D 概念图提示词 (Midjourney / Flux)
 ```text
-Detailed 3D game asset concept art of a rustic alpine wooden cable car gondola hanging from a heavy overhead iron pulley system. Constructed from weathered dark pine planks, sturdy iron rivets, an open-top wooden carriage with safety railings, sized for a pig or small animal. Above the carriage is a heavy forged-iron suspension arm with two large grooved cast-iron pulley wheels gripped onto a thick steel braided cable. Features an ancient bronze mechanical slot on the release brake. Stylized low-to-mid poly aesthetic, warm tactile clay and timber textures, Nintendo and Ghibli art style, clean isometric 3/4 view on pure white background, no scenery, studio lighting --ar 1:1 --v 6.0
+A charming rustic wooden cable car gondola game asset, in the distinct art style of Untitled Goose Game. Built from clean, chunky low-poly pine wood planks with beveled edges, an open-topped box carriage with simple safety railings. Mounted on top is a solid dark-grey cast-iron arm with two clean circular pulley wheels gripped onto a thick overhead cable. Features a simple stylized brass slot on the mechanical brake. Flat-shaded low-poly 3D aesthetic, House House game style, solid color blocking, zero texture noise, soft warm diffuse lighting, pure solid white background, isometric 3/4 view --ar 1:1 --v 6.0
 ```
 
 ### 1.3 Aholo Lux3D 专用生成提示词 (Text-to-3D)
 ```text
-Single isolated 3D model of a rustic wooden mountain cable car gondola, sturdy box carriage built of thick weathered timber planks with iron bolt reinforcements, open-air wooden safety railings. On top is a solid forged iron hanging arm with a pair of heavy grooved cast-iron pulleys and a mechanical bronze latch slot. Stylized 3D game prop, clean watertight geometry, beveled polygon edges, matte clay and weathered cedar wood PBR textures, game-ready low-to-mid poly mesh. Solid pure white background, zero floor contact, no cast shadows, neutral even studio lighting, 3/4 isometric perspective.
+Single isolated low-poly 3D model of a rustic wooden cable car gondola, in the art style of Untitled Goose Game. Simple box carriage made of chunky flat-shaded wooden planks, open top with clean wooden railings, topped with a solid dark grey iron pulley suspension arm. Minimalist indie game prop, clean watertight low-poly mesh, beveled polygon edges, pure flat-shaded solid color materials, zero texture noise. Solid pure white background, no floor, no shadows, isometric view.
 ```
 
 ---
 
-## 2. PROP_02：后山重型大铁闸门与碎锁 (Heavy Iron Gate & Rusted Padlock)
+## 2. PROP_02：后山重型大铁闸门与碎锁 (Heavy Iron Gate & Broken Padlock)
 
 ### 2.1 资产规格与设计规范
-- **功能**：横跨后山主通路的重型铁门，两扇可向外撞开，中间带有铁链与被撞碎断裂的巨型铜挂锁。
-- **几何构成**：粗壮的方铁框架、竖直铁栅栏（间距不可通过猪身）、顶部带有生锈防攀铁尖、双侧厚重铰链固定在风化石柱上。
-- **材质特点**：斑驳暗红生铁锈蚀、底漆剥落、重金属碰撞划痕。
+- **风格特征**：简洁有力的低多边形生铁大农场门。由平涂深灰方铁杆构成立体栅栏；双侧为几何多面体干垒石柱；中间附带断开成三块的黄色平涂破损挂锁与粗铁链。
+- **色彩色块**：深黑铸铁（`#1F2937`）、石柱冷灰（`#9CA3AF`）、断锁明黄铜（`#F59E0B`）。
 
 ### 2.2 2D 概念图提示词 (Midjourney / Flux)
 ```text
-Game asset concept art of a massive, heavy industrial farm iron security gate on a solid white background. Two swinging gate doors made of thick vertical rusted wrought iron bars and a heavy horizontal crossbeam, secured by a thick rusty steel chain and a shattered heavy brass padlock broken into three jagged pieces. Flanked by two weathered chiseled fieldstone gate pillars. Weathered rust patina, peeling dark grey industrial paint, tactile metallic surface. Stylized 3D game prop, clean silhouette, isometric view, warm neutral studio lighting --ar 1:1 --v 6.0
+A heavy double-door farm iron gate game asset, in the art style of Untitled Goose Game. Constructed from clean vertical square iron bars in solid dark charcoal-grey, flanked by two chunky faceted drystone pillars. In the center hangs a broken chunky yellow-brass padlock shattered into clean pieces with a short iron chain. Minimalist flat-shaded low-poly 3D style, House House aesthetic, bold clear silhouettes, solid color fills, zero texture noise, soft studio light on pure white background, isometric view --ar 1:1 --v 6.0
 ```
 
 ### 2.3 Aholo Lux3D 专用生成提示词 (Text-to-3D)
 ```text
-Single isolated 3D model of a heavy double-door farm iron gate, thick vertical square iron bars, horizontal structural crossbars, rusted dark wrought iron with orange rust flecks, flanked by two sturdy weathered dry-stone square pillar posts. Includes a heavy broken metal padlock dangling from a wrapped iron chain. Stylized 3D game prop, clean manifold mesh, beveled iron edges, game-ready topology, PBR matte metal and stone textures. Pure solid white background, no ground plane, no cast shadows, studio lighting, front 3/4 isometric angle.
+Single isolated low-poly 3D model of a farm iron security gate, in the art style of Untitled Goose Game. Double gate doors with simple square vertical iron bars in flat dark grey, flanked by two faceted stone pillars, with a shattered chunky yellow brass padlock. Clean watertight low-poly polygon mesh, flat-shaded materials, zero texture noise. Pure solid white background, no ground, no shadows, isometric view.
 ```
 
 ---
@@ -61,18 +58,17 @@ Single isolated 3D model of a heavy double-door farm iron gate, thick vertical s
 ## 3. PROP_03：生锈红铜插销 (The Rusty Bronze Latch Pin - 红丸信物)
 
 ### 3.1 资产规格与设计规范
-- **功能**：黑客帝国红丸的实体化象征。老岩羊在序幕踢出，小猪全程衔在嘴中，最终插入后山索道启动突围。
-- **几何构成**：粗壮圆柱形古旧红铜螺栓插销，一端带有粗圆手柄环，另一端带有防滑定位凹槽。
-- **材质特点**：本体为沉重暗红纯铜，表面有青绿色氧化铜锈斑（Verdigris）、多道历经撞击与风化的钝感划痕。
+- **风格特征**：极简厚重的低多边形圆柱插销。一端带有一个粗圆手柄环，表面由大块面的红铜底色与几片清爽的绿青色斑块构成，如同一件可爱的玩具拼图积木，辨识度极高。
+- **色彩色块**：红铜底色（`#B85D3D`）+ 氧化铜绿块（`#52B788`）。
 
 ### 3.2 2D 概念图提示词 (Midjourney / Flux)
 ```text
-Macro 3D game prop concept art of an ancient, heavy forged bronze mechanical latch pin bolt. Cylindrical solid copper body with a rounded ring pull handle on one end and a notched locking groove on the other. Beautiful rich red-bronze metallic surface covered in authentic teal-green verdigris patina and weathered scratch marks, tactile physical presence. Stylized claymation and stop-motion game prop, soft cinematic studio spotlight highlighting the metallic glint and verdigris, pure clean white background, isometric 3D view --ar 1:1 --v 6.0
+A chunky antique bronze latch pin bolt prop, in the art style of Untitled Goose Game. Solid cylindrical low-poly metal body with a smooth ring handle on one end and a locking notch. Flat-shaded color blocking combining rich red-copper with clean patches of mint-green patina verdigris. Charming minimalist indie game inventory prop, House House aesthetic, smooth beveled edges, zero texture noise, soft studio lighting, pure solid white background, isometric 3D view --ar 1:1 --v 6.0
 ```
 
 ### 3.3 Aholo Lux3D 专用生成提示词 (Text-to-3D)
 ```text
-Single isolated 3D model of an antique heavy bronze latch pin bolt, solid cylindrical copper bar with a thick circular loop handle on one end and a latch slot at the tip. Rich red-copper metal surface with realistic green patina verdigris flecks and subtle weathered scratches. Stylized 3D game inventory prop, clean watertight polygon topology, smooth beveled silhouette, PBR semi-matte metallic shader. Pure solid white background, zero ground shadow, even 360 studio lighting, isometric 45 degree angle.
+Single isolated low-poly 3D model of a chunky bronze mechanical latch pin bolt, in the art style of Untitled Goose Game. Cylindrical copper bar with a loop handle, flat-shaded red-copper and teal-green color blocks. Clean watertight low-poly mesh, smooth beveled forms, untextured flat matte material. Pure solid white background, zero shadow, isometric view.
 ```
 
 ---
@@ -80,12 +76,12 @@ Single isolated 3D model of an antique heavy bronze latch pin bolt, solid cylind
 ## 4. PROP_04：花岗岩顽石与卷刃深铁犁 (Granite Boulder & Chipped Plow)
 
 ### 4.1 资产规格与设计规范
-- **功能**：老黄牛耕作区域的核心障碍物，深埋在黑土中导致耕犁损坏卷刃，揭露“不是牛力不够，是地里有不可撼动的顽石”。
-- **几何构成**：一块带有天然棱角的灰白色巨大花岗岩原石（上部露出，下部带有深土痕迹），旁边斜插着一具崩口卷刃的厚重古法铁犁铧头。
+- **风格特征**：由若干平滑多边形面构成的灰白色花岗岩大石块；旁边插着一把简单的深灰色生铁犁头，切角处有平整的缺口表示卷刃。
+- **色彩色块**：岩石浅冷灰（`#E5E7EB`）、犁头铁灰（`#4B5563`）。
 
 ### 4.2 Aholo Lux3D 专用生成提示词 (Text-to-3D)
 ```text
-Single isolated 3D model of an ancient chipped iron farm plow blade stuck wedged against a huge rough granite boulder. The rock is a weathered natural grey granite stone with angular facets. The plow blade is heavy forged cast iron, with a jagged blunt broken corner on the cutting edge. Stylized 3D environmental game prop, clean watertight low-poly topology, beveled stone planes, matte stone and rusted iron PBR textures. Pure solid white background, no terrain, no cast shadow, soft studio lighting, isometric view.
+Single isolated low-poly 3D model of a faceted granite rock and a chipped iron plow blade, in the art style of Untitled Goose Game. Simple polygonal grey boulder with clean beveled facets, wedged against a chunky dark-grey iron plow with a blunt chipped edge. Flat-shaded solid colors, zero texture noise, clean watertight low-poly mesh. Pure solid white background, no terrain, no shadow, isometric view.
 ```
 
 ---
@@ -93,12 +89,11 @@ Single isolated 3D model of an ancient chipped iron farm plow blade stuck wedged
 ## 5. PROP_05：“三等残次”木质评定吊牌 ("Grade 3 Defective" Wooden Sign)
 
 ### 5.1 资产规格与设计规范
-- **功能**：挂在小绵羊颈部、或插在剪毛矮棚栏杆上的规训标牌。
-- **几何构成**：一块粗糙的破旧胶合板木牌，边缘有锯齿磨损，顶部有粗黄麻绳悬挂孔，牌面上用粗黑油漆写着手写汉字“三等残次”。
+- **风格特征**：一块极简长方形小木板，纯浅原木色，上方串着一根简约白绳，板上有简洁的三个黑色文字“三等残次”。
 
 ### 5.2 Aholo Lux3D 专用生成提示词 (Text-to-3D)
 ```text
-Single isolated 3D model of a small rustic rectangular wooden penalty tag sign, made of coarse splintered plywood with beveled worn edges, tied with a loop of rough hemp rope at the top. On the face of the wooden board is weathered dark paint markings reading Chinese text '三等残次'. Stylized 3D narrative prop, clean polygon mesh, tactile wood grain and fiber texture, game-ready asset. Pure solid white background, no floor, no shadows, studio lighting, isometric view.
+Single isolated low-poly 3D model of a small wooden tag sign, in the art style of Untitled Goose Game. Flat rectangular pale wood board with a simple cord loop, painted with clean black markings reading '三等残次'. Clean low-poly geometry, flat-shaded solid colors, zero texture noise. Pure solid white background, isometric view.
 ```
 
 ---
@@ -106,12 +101,11 @@ Single isolated 3D model of a small rustic rectangular wooden penalty tag sign, 
 ## 6. PROP_06：35秒春季新纪录看板 (35s Farm Record Billboard)
 
 ### 6.1 资产规格与设计规范
-- **功能**：烈马赛道入口处的现代化公告木牌，标明“春季纯血马速记: 35秒”，打破烈马的41秒神话。
-- **几何构成**：双木立柱支撑的一块白底绿边长方形告示板，干净规范，与农场其他破烂设施形成荒诞反差。
+- **风格特征**：双木立柱支撑的一块纯白长方形木板，四周有墨绿色纯色包边，正中工整印着黑色“35s”。
 
 ### 6.2 Aholo Lux3D 专用生成提示词 (Text-to-3D)
 ```text
-Single isolated 3D model of a rustic farm race record billboard sign, mounted on two sturdy square wooden post legs. A clean painted cream-white rectangular sign board with a dark green border, displaying crisp bold numbers '35s' and clean farm lettering. Stylized 3D game prop, clean watertight low-poly mesh, beveled wooden edges, matte paint texture. Pure solid white background, no ground, no shadow, studio lighting, front isometric view.
+Single isolated low-poly 3D model of a wooden farm record sign, in the art style of Untitled Goose Game. White rectangular wooden board with a dark-green border supported by two plain wooden posts, cleanly painted with bold black numbers '35s'. Flat-shaded indie game asset, clean low-poly mesh, zero texture noise. Pure solid white background, isometric view.
 ```
 
 ---
@@ -119,10 +113,9 @@ Single isolated 3D model of a rustic farm race record billboard sign, mounted on
 ## 7. PROP_07：农场主高压防暴电击棍 (Electric Stun Baton)
 
 ### 7.1 资产规格与设计规范
-- **功能**：终局人猪对战中农场主手持的武器，象征现代技术规训。第三回合被小猪全力撞飞跌落。
-- **几何构成**：圆柱形工业聚合物手柄，带黑黄相间警示条纹与防滑橡胶槽，前端为金属电击电极齿，伴有电火花效果槽。
+- **风格特征**：黑色纯色手柄、亮黄色斜纹警示段、灰色平头顶端，顶端带有极简多边形亮黄色小电火花星标。
 
 ### 7.2 Aholo Lux3D 专用生成提示词 (Text-to-3D)
 ```text
-Single isolated 3D model of an industrial electric stun baton, black ribbed rubber grip handle with hazard yellow diagonal safety stripes, a safety switch button, and a durable grey metal front rod tipped with two dull electrical contact prongs. Stylized 3D weapon prop, clean low-poly watertight topology, beveled edges, matte polymer and brushed metal PBR textures. Pure solid white background, no ground, no shadow, neutral studio lighting, angled isometric view.
+Single isolated low-poly 3D model of an industrial electric stun baton, in the art style of Untitled Goose Game. Black cylindrical handle with bright hazard-yellow safety stripes, grey front tip, and a cute tiny stylized yellow spark polygon. Clean watertight low-poly mesh, flat-shaded solid colors, zero texture noise. Pure solid white background, isometric view.
 ```
