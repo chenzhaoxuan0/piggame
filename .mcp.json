@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "aholo-sdk-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${CLAUDE_PROJECT_DIR:-.}/scripts/mcp/aholo-mcp.mjs"
+      ],
+      "env": {}
+    }
+  }
+}
