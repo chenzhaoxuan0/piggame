@@ -77,9 +77,14 @@ Single isolated low-poly 3D model of a chunky bronze mechanical latch pin bolt, 
 
 ### 4.1 资产规格与设计规范
 - **风格特征**：由若干平滑多边形面构成的灰白色花岗岩大石块；旁边插着一把简单的深灰色生铁犁头，切角处有平整的缺口表示卷刃。
-- **色彩色块**：岩石浅冷灰（`#E5E7EB`）、犁头铁灰（`#4B5563`）。
+- **色彩色块**：岩石浅冷灰（`#E5E7EB`）、犁头铁灰（`#4B5563`）、湿泥附着深褐（`#3E2723`）。
 
-### 4.2 Aholo Lux3D 专用生成提示词 (Text-to-3D)
+### 4.2 2D 概念图提示词 (Midjourney / Flux)
+```text
+A charming farm prop concept art of a chipped iron plow blade jammed against an immovable granite rock, in the distinct art style of Untitled Goose Game. A chunky, faceted low-poly boulder in light stone-grey with smooth beveled polygon faces, wedged tightly against a simple dark-grey cast-iron plow blade with a blunt jagged notch on its cutting edge. A few clean patches of flat dark-brown farm soil cling to the base. Minimalist flat-shaded low-poly 3D game asset, House House indie aesthetic, bold readable shapes, pure solid white background, soft studio lighting, isometric 3/4 perspective --ar 1:1 --v 6.0
+```
+
+### 4.3 Aholo Lux3D 专用生成提示词 (Text-to-3D)
 ```text
 Single isolated low-poly 3D model of a faceted granite rock and a chipped iron plow blade, in the art style of Untitled Goose Game. Simple polygonal grey boulder with clean beveled facets, wedged against a chunky dark-grey iron plow with a blunt chipped edge. Flat-shaded solid colors, zero texture noise, clean watertight low-poly mesh. Pure solid white background, no terrain, no shadow, isometric view.
 ```
@@ -90,8 +95,14 @@ Single isolated low-poly 3D model of a faceted granite rock and a chipped iron p
 
 ### 5.1 资产规格与设计规范
 - **风格特征**：一块极简长方形小木板，纯浅原木色，上方串着一根简约白绳，板上有简洁的三个黑色文字“三等残次”。
+- **色彩色块**：浅原木色（`#E0C097`）、粗麻绳米灰（`#D7CCC8`）、油漆黑字（`#212121`）。
 
-### 5.2 Aholo Lux3D 专用生成提示词 (Text-to-3D)
+### 5.2 2D 概念图提示词 (Midjourney / Flux)
+```text
+A humorous narrative game prop concept art of a small rustic wooden tag sign, in the distinct art style of Untitled Goose Game. A flat rectangular wooden board with soft rounded corners in pale untextured beige wood, tied with a simple white string loop at the top. Cleanly hand-painted with three bold black Chinese characters '三等残次' (Grade 3 Defective). Minimalist flat-shaded low-poly 3D asset, House House game aesthetic, clean vector-like edges, zero texture noise, pure solid white background, soft even studio lighting, isometric view --ar 1:1 --v 6.0
+```
+
+### 5.3 Aholo Lux3D 专用生成提示词 (Text-to-3D)
 ```text
 Single isolated low-poly 3D model of a small wooden tag sign, in the art style of Untitled Goose Game. Flat rectangular pale wood board with a simple cord loop, painted with clean black markings reading '三等残次'. Clean low-poly geometry, flat-shaded solid colors, zero texture noise. Pure solid white background, isometric view.
 ```
@@ -102,8 +113,14 @@ Single isolated low-poly 3D model of a small wooden tag sign, in the art style o
 
 ### 6.1 资产规格与设计规范
 - **风格特征**：双木立柱支撑的一块纯白长方形木板，四周有墨绿色纯色包边，正中工整印着黑色“35s”。
+- **色彩色块**：板面纯白（`#FFFFFF`）、边框田园深绿（`#2D5A27`）、木桩浅褐（`#A1887F`）、字体黑（`#1E1E1E`）。
 
-### 6.2 Aholo Lux3D 专用生成提示词 (Text-to-3D)
+### 6.2 2D 概念图提示词 (Midjourney / Flux)
+```text
+A rural farm signboard game asset concept art, in the distinct art style of Untitled Goose Game. A crisp rectangular wooden board in pure flat white with a neat forest-green painted border, mounted onto two plain light-brown wooden post legs. The sign clearly displays bold, clean black typography '35s' with small minimalist lettering 'Farm Spring Record'. Flat-shaded low-poly 3D game prop, House House aesthetic, bold geometric silhouette, zero texture noise, clean solid color blocks, pure solid white background, soft studio lighting, front 3/4 isometric view --ar 1:1 --v 6.0
+```
+
+### 6.3 Aholo Lux3D 专用生成提示词 (Text-to-3D)
 ```text
 Single isolated low-poly 3D model of a wooden farm record sign, in the art style of Untitled Goose Game. White rectangular wooden board with a dark-green border supported by two plain wooden posts, cleanly painted with bold black numbers '35s'. Flat-shaded indie game asset, clean low-poly mesh, zero texture noise. Pure solid white background, isometric view.
 ```
@@ -114,8 +131,14 @@ Single isolated low-poly 3D model of a wooden farm record sign, in the art style
 
 ### 7.1 资产规格与设计规范
 - **风格特征**：黑色纯色手柄、亮黄色斜纹警示段、灰色平头顶端，顶端带有极简多边形亮黄色小电火花星标。
+- **色彩色块**：橡胶黑（`#212121`）、警示明黄（`#FFD600`）、金属灰（`#78909C`）、电弧纯黄（`#FFF176`）。
 
-### 7.2 Aholo Lux3D 专用生成提示词 (Text-to-3D)
+### 7.2 2D 概念图提示词 (Midjourney / Flux)
+```text
+A satirical handheld weapon prop concept art of an industrial electric stun baton, in the distinct art style of Untitled Goose Game. A chunky cylindrical black handle with bright hazard-yellow diagonal stripes, a simple grey metal front tip, and a cute tiny stylized low-poly four-point yellow spark polygon floating at the contact prongs. Minimalist flat-shaded low-poly 3D game asset, House House aesthetic, clean solid color blocking, zero texture noise, smooth beveled edges, pure solid white background, soft studio lighting, diagonal isometric 3D view --ar 1:1 --v 6.0
+```
+
+### 7.3 Aholo Lux3D 专用生成提示词 (Text-to-3D)
 ```text
 Single isolated low-poly 3D model of an industrial electric stun baton, in the art style of Untitled Goose Game. Black cylindrical handle with bright hazard-yellow safety stripes, grey front tip, and a cute tiny stylized yellow spark polygon. Clean watertight low-poly mesh, flat-shaded solid colors, zero texture noise. Pure solid white background, isometric view.
 ```

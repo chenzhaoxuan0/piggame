@@ -21,9 +21,21 @@
 A charming minimalist game character concept art of a pale-pink farm pig, in the distinct art style of Untitled Goose Game. Simple smooth low-poly 3D geometry, flat-shaded pastel pink body with no texture noise or skin pores, cute expressive black dot eyes. A bright flat-yellow plastic livestock tag with black text '047' clipped to its left ear, and a subtle flat red circle stamp on its flank. The pig stands resolutely on four sturdy hooves, firmly biting a chunky low-poly oxidized green-bronze bolt in its snout. Standing on a vibrant low-poly green grass hill beside a simple wooden fence on a cliff edge. House House indie game aesthetic, clean vector-like silhouette, soft diffuse daylight, simple flat contact shadows, pastel pastoral colors, 8k resolution --ar 16:9 --v 6.0
 ```
 
-### 1.3 对话立绘与头像提示词 (Avatar Prompt)
+### 1.3 对话立绘与头像提示词 (Avatar Prompts)
+
+- **状态一：机敏中立态 (Default / Alert - 序幕与日常探索)**
 ```text
-Clean circular game dialogue avatar icon of a stylized pale-pink pig, in the art style of Untitled Goose Game. Flat-shaded 3D model, cute black bead dot eyes, smooth pastel pink snout, bright yellow flat tag '047' on ear, biting a stylized green-patina bronze pin. Solid soft cream-colored background, clean outline, flat shading, House House game UI avatar icon --ar 1:1 --v 6.0
+Clean circular game dialogue avatar icon of a pale-pink farm pig, in the distinct art style of Untitled Goose Game. Flat-shaded low-poly 3D bust, cute black bead dot eyes looking forward with quiet intelligence, smooth pastel pink snout with two dark-pink nostrils, bright flat-yellow tag '047' on its left ear. Solid soft cream-beige background, clean outline, flat shading, zero texture noise, House House game UI avatar icon --ar 1:1 --v 6.0
+```
+
+- **状态二：口衔红铜插销态 (Determined with Bronze Pin - 红色抉择出逃)**
+```text
+Clean circular game dialogue avatar icon of a resolute pale-pink pig, in the art style of Untitled Goose Game. Firmly clamping a chunky low-poly green-patina bronze latch pin horizontally in its mouth, defiant black bead eyes, bright yellow ear tag '047'. Flat-shaded 3D model, solid soft pastel-blue background, clean vector-like silhouette, House House indie game UI avatar --ar 1:1 --v 6.0
+```
+
+- **状态三：决死冲撞态 (Boar Charge / Defiant - 终局破门时刻)**
+```text
+Clean circular game dialogue avatar icon of a fierce and brave pale-pink pig lowering its head to charge, in the art style of Untitled Goose Game. Ears pinned back, determined squinting bead eyes, yellow ear tag fluttering, charging momentum. Flat-shaded low-poly 3D bust, solid vibrant sunset-orange background, bold action game dialogue icon --ar 1:1 --v 6.0
 ```
 
 ### 1.4 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
@@ -47,7 +59,19 @@ Single isolated low-poly 3D model of a stylized pig, in the art style of Untitle
 A wise old bighorn mountain goat perched on a simple low-poly drystone wall above a misty chasm, in the art style of Untitled Goose Game. Stylized low-poly faceted shaggy grey and cream wool, massive chunky spiral horns in solid dark slate-grey, minimalist eyes with a sly cynical gaze. The goat casually taps a chunky oxidized bronze pin forward on the stone ledge with its hoof. Flat-shaded 3D indie game aesthetic, House House art style, clean bold shapes, soft pastel morning fog background, warm diffuse sunlight, clean minimalist composition --ar 16:9 --v 6.0
 ```
 
-### 2.3 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
+### 2.3 对话立绘与头像提示词 (Avatar Prompts)
+
+- **状态一：深邃嘲弄态 (Cynical & Sly Gaze - 序幕初遇抛出命题)**
+```text
+Clean circular game dialogue avatar icon of an old bighorn mountain goat, in the distinct art style of Untitled Goose Game. Faceted low-poly light-grey wool bust, massive chunky spiral horns in solid dark slate-grey, subtle knowing smirk with cynical black bead eyes, tiny white goatee beard. Flat-shaded 3D character bust, solid soft sage-green background, clean outline, zero texture noise, House House game UI icon --ar 1:1 --v 6.0
+```
+
+- **状态二：破局警醒态 (Alert & Decisive - 踢出铜插销指引绝壁)**
+```text
+Clean circular game dialogue avatar icon of an old bighorn goat looking sharply downward with focused intense eyes, in the art style of Untitled Goose Game. Prominent curved dark horns, head angled down as if pointing to an escape path below. Flat-shaded low-poly 3D model, solid cool misty-grey background, clean vector-like framing, dramatic indie game dialogue avatar --ar 1:1 --v 6.0
+```
+
+### 2.4 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
 ```text
 Single isolated low-poly 3D model of an old bighorn goat, in the art style of Untitled Goose Game. Shaggy faceted low-poly body in light grey, large curved spiral horns in solid dark grey, neutral four-legged stance. Flat-shaded solid color materials, zero texture noise, clean beveled low-poly mesh, watertight topology. Pure solid white background, no floor, zero shadow, isometric view.
 ```
@@ -68,7 +92,19 @@ Single isolated low-poly 3D model of an old bighorn goat, in the art style of Un
 A massive, gentle brown draft ox standing in a plowed field of deep brown soil blocks, in the art style of Untitled Goose Game. Blocky low-poly anatomy, solid warm chocolate-brown coat, blunt cream-colored horns, tired drooping dot eyes. An unhooked simple flat-wood harness yoke rests beside it near a clear turquoise water trough where it drinks peacefully. Nearby, a stylized chipped dark-grey iron plow sits wedged against a geometric grey granite rock. House House indie game aesthetic, flat-shaded 3D shapes, clean color blocking, soft morning sunlight, charming rural atmosphere --ar 16:9 --v 6.0
 ```
 
-### 3.3 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
+### 3.3 对话立绘与头像提示词 (Avatar Prompts)
+
+- **状态一：疲惫负重态 (Tired & Strained Brow - 犁头卡死在顽石上)**
+```text
+Clean circular game dialogue avatar icon of a massive brown ox, in the distinct art style of Untitled Goose Game. Chunky blocky dark-brown head, heavy tired drooping eyes with furrowed brow, blunt cream-colored horns, a thick pale wooden harness collar around its neck. Flat-shaded low-poly 3D character bust, solid muted earthy beige background, clean outline, empathetic weary expression, House House game UI icon --ar 1:1 --v 6.0
+```
+
+- **状态二：痛饮释怀态 (Peaceful & Relaxed - 卸下牛轭畅饮渠水)**
+```text
+Clean circular game dialogue avatar icon of a gentle brown draft ox with a blissful peaceful expression, in the art style of Untitled Goose Game. Droplets of clear water splashing around its flat-shaded muzzle, tension gone from its brow, no wooden harness. Flat-shaded 3D model, solid warm morning-yellow background, heartwarming rural indie game UI avatar --ar 1:1 --v 6.0
+```
+
+### 3.4 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
 ```text
 Single isolated low-poly 3D model of a sturdy brown draft ox, in the art style of Untitled Goose Game. Chunky blocky body in solid dark brown, blunt pale horns, neutral standing pose, wearing a simple pale wooden neck yoke. Flat-shaded low-poly indie game asset, clean watertight polygon mesh, pure flat colors, zero texture noise. Solid pure white background, no shadows, isometric view.
 ```
@@ -88,7 +124,19 @@ Single isolated low-poly 3D model of a sturdy brown draft ox, in the art style o
 An adorable tiny sheep with puffy cloud-shaped pure white fleece, in the art style of Untitled Goose Game. Cute round puffy low-poly body, flat pale-pink face, black dot eyes, tiny black peg legs. A small flat rectangular wooden tag hangs around its neck on a string reading '三等残次'. The sheep is curled up happily inside a warm square patch of golden sunlight on a simple wooden barn floor. Minimalist flat-shaded 3D aesthetic, House House art style, cozy, heartwarming, zero texture noise, soft pastel colors --ar 16:9 --v 6.0
 ```
 
-### 4.3 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
+### 4.3 对话立绘与头像提示词 (Avatar Prompts)
+
+- **状态一：自卑委屈态 (Timid & Drooping Eyes - 戴着“三等残次”木牌)**
+```text
+Clean circular game dialogue avatar icon of an adorable tiny white sheep, in the distinct art style of Untitled Goose Game. Puffy cloud-like low-poly white fleece, flat pale-pink face with big sad drooping black dot eyes, a crooked small wooden tag hung on string reading '三等残次'. Flat-shaded 3D bust, solid soft pale-grey background, clean circular outline, emotional indie game UI avatar --ar 1:1 --v 6.0
+```
+
+- **状态二：沐光自洽态 (Blissful & Smiling in Sunshine - 闭目惬意晒毛)**
+```text
+Clean circular game dialogue avatar icon of a joyful tiny white lamb, in the art style of Untitled Goose Game. Eyes happily closed in peaceful contentment with a cute curved smile, cloud-like puffy white wool, bathed in a warm golden glow, no wooden tag. Flat-shaded low-poly 3D model, solid bright golden-yellow background, cozy and heartwarming UI icon --ar 1:1 --v 6.0
+```
+
+### 4.4 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
 ```text
 Single isolated low-poly 3D model of a cute little fluffy sheep, in the art style of Untitled Goose Game. Cloud-like rounded puffy white body, tiny black legs, flat pink face with dot eyes, wearing a tiny flat rectangular wooden tag. Clean low-poly manifold mesh, flat-shaded solid colors, smooth untextured matte material. Pure solid white background, no floor, no shadows, isometric view.
 ```
@@ -109,7 +157,19 @@ Single isolated low-poly 3D model of a cute little fluffy sheep, in the art styl
 An athletic dark chestnut racehorse leaning over a broken white post-and-rail wooden fence, in the art style of Untitled Goose Game. Sleek low-poly body in rich solid reddish-brown, minimalist black mane and tail, black dot eyes, peacefully chewing on a simple flat-shaded yellow dandelion flower. A faded flat-red ribbon badge pinned to its chest reads '41s'. Next to the track stands a clean white wooden signboard showing '35s'. Flat-shaded 3D indie game art style, House House aesthetic, bold silhouettes, soft warm daylight, zero texture noise, charming pastoral scene --ar 16:9 --v 6.0
 ```
 
-### 5.3 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
+### 5.3 对话立绘与头像提示词 (Avatar Prompts)
+
+- **状态一：焦虑狂躁态 (Nervous & Tense - 执念于过往41秒金牌)**
+```text
+Clean circular game dialogue avatar icon of a dark chestnut racehorse, in the distinct art style of Untitled Goose Game. Sleek low-poly reddish-brown head, flaring nostrils, wide alert anxious bead eyes, tense jaw, wearing a faded circular red prize ribbon reading '41s'. Flat-shaded 3D character bust, solid dusty terracotta-orange background, clean outline, intense nervous indie game UI icon --ar 1:1 --v 6.0
+```
+
+- **状态二：嚼草从容态 (Relieved & Chewing Grass - 探出朽栏嚼食蒲公英)**
+```text
+Clean circular game dialogue avatar icon of a handsome chestnut horse with a yellow dandelion flower stem in its mouth, in the art style of Untitled Goose Game. Relaxed softened black dot eyes, loosened jaw, subtle comic relief and tranquil awakening. Flat-shaded low-poly 3D bust, solid soft meadow-green background, charming and peaceful game UI avatar --ar 1:1 --v 6.0
+```
+
+### 5.4 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
 ```text
 Single isolated low-poly 3D model of a slender dark chestnut racehorse, in the art style of Untitled Goose Game. Sleek faceted brown body, black mane, neutral standing pose on four slender legs, wearing a small flat red circular medal on its chest. Flat-shaded low-poly 3D asset, clean manifold mesh, pure solid color materials, zero texture noise. Solid pure white background, no floor, zero shadow, isometric view.
 ```
@@ -127,7 +187,19 @@ Single isolated low-poly 3D model of a slender dark chestnut racehorse, in the a
 An alert, lean farm guard dog running across a vibrant green farmyard, in the art style of Untitled Goose Game. Blocky low-poly geometry, flat-shaded black and tan coat, pointed triangular ears, simple dot eyes, wearing a simple dark brown leather collar. Playful yet determined chase posture. House House game aesthetic, flat-shaded 3D art, crisp vector-like silhouettes, bright pastoral day, soft diffuse light, zero texture noise --ar 16:9 --v 6.0
 ```
 
-### 6.3 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
+### 6.3 对话立绘与头像提示词 (Avatar Prompts)
+
+- **状态一：警觉嗅探态 (Alert & Sniffing - 巡察大院与排查风吹草动)**
+```text
+Clean circular game dialogue avatar icon of a lean farm guard dog, in the distinct art style of Untitled Goose Game. Blocky low-poly head in tan and black, pointed upright triangular ears, alert black dot eyes, wearing a plain brown leather collar. Flat-shaded 3D character bust, solid pale khaki background, clean circular outline, watchful indie game UI icon --ar 1:1 --v 6.0
+```
+
+- **状态二：龇牙狂吠态 (Fierce Barking & Snarling - 追逐战拦截与犬阵围攻)**
+```text
+Clean circular game dialogue avatar icon of an aggressive farm guard dog barking, in the art style of Untitled Goose Game. Open mouth showing simple flat-shaded white triangular teeth, intense charging expression, pointed ears laid back slightly. Flat-shaded low-poly 3D model, solid hazard-yellow background, dynamic action game UI avatar icon --ar 1:1 --v 6.0
+```
+
+### 6.4 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
 ```text
 Single isolated low-poly 3D model of a farm guard dog, in the art style of Untitled Goose Game. Athletic low-poly body in flat-shaded tan and black patches, pointed ears, neutral standing stance, wearing a plain brown collar. Clean watertight low-poly mesh, solid color materials, zero texture noise. Pure solid white background, no floor, isometric view.
 ```
@@ -149,7 +221,19 @@ Single isolated low-poly 3D model of a farm guard dog, in the art style of Untit
 A funny, pragmatic human farmer character slumped on the ground in front of a wide-open rustic iron gate, in the distinct art style of Untitled Goose Game. Stylized low-poly human proportions with simple features, wearing a flat tweed cap, a mustard-yellow sweater under faded blue denim dungarees, and dark-green glossy Wellington rubber boots. Beside him on the dirt path lies a chunky black-and-yellow electric baton. He shrugs with comical resignation. House House indie game aesthetic, flat-shaded 3D model, clean solid color blocks, soft warm evening light, no texture noise, humorous storytelling --ar 16:9 --v 6.0
 ```
 
-### 7.3 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
+### 7.3 对话立绘与头像提示词 (Avatar Prompts)
+
+- **状态一：手持电棍威慑态 (Calculating & Stern - 终局大铁门前居高临下规训)**
+```text
+Clean circular game dialogue avatar icon of a stern human farmer, in the distinct art style of Untitled Goose Game. Stylized low-poly human face with bushy grey eyebrows and a flat tweed cap, holding a chunky black-and-yellow electric stun baton near his shoulder. Flat-shaded 3D character bust, solid dark industrial slate-grey background, clean vector outline, boss dialogue UI avatar --ar 1:1 --v 6.0
+```
+
+- **状态二：现实主义认栽态 (Realistic Resignation & Shrug - 坐在地上自言自语)**
+```text
+Clean circular game dialogue avatar icon of a bewildered, disheveled farmer in dungarees scratching the back of his neck with a wry comical shrug, in the art style of Untitled Goose Game. Hat slightly askew, simple dot eyes, realistic weary resignation. Flat-shaded low-poly 3D bust, solid soft sunset-amber background, humorous narrative game UI icon --ar 1:1 --v 6.0
+```
+
+### 7.4 Aholo Lux3D 3D 模型专用生成提示词 (Text-to-3D)
 ```text
 Single isolated low-poly 3D model of a stylized human farmer, in the art style of Untitled Goose Game. Character in neutral A-pose, wearing a flat cap, dungarees over a sweater, and rubber boots, holding a chunky black and yellow baton. House House game character asset, clean faceted low-poly mesh, flat-shaded solid colors, zero texture noise, untextured matte materials. Pure solid white background, no floor, zero shadow, isometric view.
 ```
