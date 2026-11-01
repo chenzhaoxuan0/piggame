@@ -86,12 +86,12 @@ func check_hero_progress() -> void:
 	if will_horse: wills.append("疾风之步")
 	
 	if will_ox and will_sheep and will_horse and not power_cut:
-		objective_label.text = "🎯 三大意志已凝聚【坚忍之骨·洞察之眸·疾风之步】！向后山铁闸门冲锋，击溃人类主管破门！"
+		objective_label.text = "🎯 三大意志已凝聚【坚忍之骨·洞察之眸·疾风之步】！向下穿行农场，击溃农场主破门！"
 	elif power_cut:
-		objective_label.text = "🌟 大铁锁已碎，大门洞开！在群星注视下，奔赴最上方悬崖索道！"
+		objective_label.text = "🌟 大铁锁已碎，大门洞开！奔赴后山索道，滑向自由旷野！"
 	else:
 		var status = "、".join(wills) if wills.size() > 0 else "无"
-		objective_label.text = "🎯 向上探索农庄 · 已领悟意志: [%s] · 继续寻访陌生同伴" % status
+		objective_label.text = "🎯 穿行农场下山 · 已领悟意志: [%s] · 继续寻访陌生同伴" % status
 
 func handle_cablecar_interact() -> void:
 	if is_game_finished:
