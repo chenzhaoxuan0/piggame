@@ -58,6 +58,7 @@ func _ready() -> void:
 	ring.material = warning_material
 	_warning.visible = false
 	add_child(_warning)
+	preload("res://scripts/art/asset_library.gd").replace_visuals(_visual, "CHAR_06")
 
 func _add_box(size: Vector3, offset: Vector3, material: Material) -> void:
 	var mesh_node: MeshInstance3D = MeshInstance3D.new()

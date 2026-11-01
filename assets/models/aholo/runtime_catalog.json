@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "assets": {
+    "PROP_01": {
+      "path": "res://assets/models/aholo/PROP_01/PROP_01_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 4156,
+      "mount": "Farm/CableCarCabin",
+      "validation": "Rendered full journey and cablecar travel passed; 2026-11-02"
+    }
+  }
+}

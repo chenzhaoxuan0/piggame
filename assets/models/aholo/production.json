@@ -1,0 +1,169 @@
+{
+  "schema": 1,
+  "style_source": "docs/art/01_ART_STYLE_GUIDE_AND_PROMPT_SYSTEM.md",
+  "assets": {
+    "CHAR_01": {
+      "source": "assets/2d/CHAR_01_猪包子_2D概念图_无插销变体.png",
+      "extraction_prompt": "必须严格遵守：输出是《无题大鹅模拟 Untitled Goose Game》风格的极简低多边形游戏模型立绘，不是照片！在原图基础上单独提取主体，保留原图的大块多边形纯色色块、极简黑圆点眼睛和轮廓比例。绝对禁止写实肌肉、毛发、皮毛细节、材质纹理、细碎噪点、摄影。移除所有场景、投影、地板、地面、无关物件。白底纯白无阴影，1:1正方形居中留白10%。具体唯一主体：the pale pink pig, yellow 047 ear tag, red flank stamp, curly tail; neutral standing on four complete legs, mouth empty, no pin. Flat polygonal 3D game render, completely untextured solid color materials, graphic silhouette, black bead eyes. Match the provided reference exactly.",
+      "isolation_task": 4566410,
+      "input_status": "pending",
+      "rejected_inputs": [
+        {
+          "task": 4566227,
+          "reason": "Photorealistic material drift; rejected before 3D"
+        }
+      ]
+    },
+    "CHAR_02": {
+      "source": "assets/2d/CHAR_02_老岩羊_2D概念图.png",
+      "extraction_prompt": "必须严格遵守：输出是《无题大鹅模拟 Untitled Goose Game》风格的极简低多边形游戏模型立绘，不是照片！在原图基础上单独提取主体，保留原图的大块多边形纯色色块、极简黑圆点眼睛和轮廓比例。绝对禁止写实肌肉、毛发、皮毛细节、材质纹理、细碎噪点、摄影。移除所有场景、投影、地板、地面、无关物件。白底纯白无阴影，1:1正方形居中留白10%。具体唯一主体：the old grey bighorn goat with curled dark horns; neutral standing on four complete legs; remove rocks, chains and ground. Flat polygonal 3D game render, completely untextured solid color materials, graphic silhouette, black bead eyes. Match the provided reference exactly.",
+      "isolation_task": 4566414,
+      "input_status": "pending",
+      "rejected_inputs": [
+        {
+          "task": 4566231,
+          "reason": "Photorealistic material drift; rejected before 3D"
+        }
+      ]
+    },
+    "CHAR_03": {
+      "source": "assets/2d/CHAR_03_老黄牛_2D概念图.png",
+      "extraction_prompt": "必须严格遵守：输出是《无题大鹅模拟 Untitled Goose Game》风格的极简低多边形游戏模型立绘，不是照片！在原图基础上单独提取主体，保留原图的大块多边形纯色色块、极简黑圆点眼睛和轮廓比例。绝对禁止写实肌肉、毛发、皮毛细节、材质纹理、细碎噪点、摄影。移除所有场景、投影、地板、地面、无关物件。白底纯白无阴影，1:1正方形居中留白10%。具体唯一主体：the brown ox with pale horns and a simple wooden neck yoke; neutral standing on four complete legs; remove trough, plow, rock and field. Flat polygonal 3D game render, completely untextured solid color materials, graphic silhouette, black bead eyes. Match the provided reference exactly.",
+      "isolation_task": 4566418,
+      "input_status": "pending",
+      "rejected_inputs": [
+        {
+          "task": 4566237,
+          "reason": "Photorealistic material drift; rejected before 3D"
+        }
+      ]
+    },
+    "CHAR_04": {
+      "source": "assets/2d/CHAR_04_小绵羊_2D概念图_沐光无牌变体.png",
+      "extraction_prompt": "必须严格遵守：输出是《无题大鹅模拟 Untitled Goose Game》风格的极简低多边形游戏模型立绘，不是照片！在原图基础上单独提取主体，保留原图的大块多边形纯色色块、极简黑圆点眼睛和轮廓比例。绝对禁止写实肌肉、毛发、皮毛细节、材质纹理、细碎噪点、摄影。移除所有场景、投影、地板、地面、无关物件。白底纯白无阴影，1:1正方形居中留白10%。具体唯一主体：the small white fluffy sheep with pink face and black dot eyes; neutral standing on four short dark legs, no tag, no glow. Flat polygonal 3D game render, completely untextured solid color materials, graphic silhouette, black bead eyes. Match the provided reference exactly.",
+      "isolation_task": 4566424,
+      "input_status": "pending",
+      "rejected_inputs": [
+        {
+          "task": 4566241,
+          "reason": "Photorealistic material drift; rejected before 3D"
+        }
+      ]
+    },
+    "CHAR_05": {
+      "source": "assets/2d/CHAR_05_中年烈马追风_2D概念图.png",
+      "extraction_prompt": "必须严格遵守：输出是《无题大鹅模拟 Untitled Goose Game》风格的极简低多边形游戏角色立绘，不是照片！在原图基础上抠出棕色马，保留原图的大块多边形纯色色块、极简黑圆点眼睛、深棕色鬃毛、红色41秒奖章。移除所有围栏、青草、天空、看板和投影，补全被围栏挡住的躯干与四条腿，四足自然站立。绝对禁止写实肌肉、毛发、皮毛细节、材质纹理、细碎噪点、摄影。背景纯白无阴影，只留完整单匹马，1:1正方形居中留白10%。Flat polygonal 3D game render, completely untextured solid color materials, graphic silhouette, black bead eyes. Match the provided reference exactly.",
+      "isolation_task": 4566359,
+      "input_status": "reviewed",
+      "isolation_status": 3,
+      "input": "assets/models/aholo/_input/CHAR_05/subject.png",
+      "rejected_inputs": [
+        {
+          "task": 4566247,
+          "reason": "Photorealistic style rejected"
+        }
+      ],
+      "input_sha256": "daf25272e3f5efa09dd1485eb3b4ac947d8f669d4085e272bd88336f7b1e8645"
+    },
+    "PROP_01": {
+      "source": "assets/2d/PROP_01_后山悬崖木质索道站与吊厢_2D概念图.png",
+      "extraction_prompt": "Extract ONLY the wooden cable car gondola from this exact reference. Keep the wooden open-top cabin, safety railings, central dark iron hanger, two pulley wheels, and brass brake slot. Remove the long overhead cable extending beyond the wheels. Preserve the exact low-poly flat color style, shape and colors. Entire single object centered with generous empty margin on a pure white background, square 1:1 image. No ground, no floor, no cast shadow, no scenery, no extra objects, no typography. This is a clean image-to-3D input, not a scene.",
+      "isolation_task": 4566221,
+      "isolation_status": 3,
+      "input": "assets/models/aholo/_input/PROP_01/subject.png",
+      "input_status": "reviewed",
+      "input_sha256": "74cff0cc96051440c1a1519f3623b74dc74910aadd46676aa5d57139da123b70",
+      "generation_task": 4566276,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 20000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-01T20:42:05.359439+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/PROP_01/PROP_01.glb",
+      "model_sha256": "c4b30068eb1800eb34f327d782be785db749553ae7beebe150ab86b9e32eef3b",
+      "runtime_model": "assets/models/aholo/PROP_01/PROP_01_game.glb",
+      "scene_mount": "Farm/CableCarCabin",
+      "validation": "Rendered journey completed both endings and cabin travel; first sample accepted 2026-11-02",
+      "runtime_sha256": "e9a480a59774a81c108bfb62e8ff1b3b419f271fe429b53527b36816e982f6ce"
+    },
+    "PROP_02": {
+      "source": "assets/2d/PROP_02_后山重型大铁闸门与碎锁_2D概念图.png",
+      "extraction_prompt": "Extract and reconstruct ONLY ONLY the closed pair of dark iron gate leaves with vertical bars and small brass padlock; remove both stone pillars, shadows, ground; straight-on three quarter view. Preserve the exact reference design and minimalist flat-shaded low-poly game style. Single complete object fully visible and centered with 8 percent margins on pure white background. Square 1:1. No floor, no ground, no cast shadow, no environment, no lighting gradients, no other objects. Solid matte colors, no texture noise, no realistic fur. This is a clean image-to-3D subject sheet.",
+      "isolation_task": 4566302,
+      "input_status": "rejected",
+      "isolation_status": 3,
+      "input": "assets/models/aholo/_input/PROP_02/subject.png",
+      "rejection_reason": "Texture noise / style drift or included pillars; do not use for 3D."
+    },
+    "PROP_03": {
+      "source": "assets/2d/PROP_03_生锈红铜插销_2D概念图.png",
+      "extraction_prompt": "Extract and reconstruct ONLY the single bronze latch pin with ring handle and red copper/teal patina color blocks; remove all shadows. Preserve the exact reference design and minimalist flat-shaded low-poly game style. Single complete object fully visible and centered with 8 percent margins on pure white background. Square 1:1. No floor, no ground, no cast shadow, no environment, no lighting gradients, no other objects. Solid matte colors, no texture noise, no realistic fur. This is a clean image-to-3D subject sheet.",
+      "isolation_task": 4566306,
+      "input_status": "rejected",
+      "isolation_status": 3,
+      "input": "assets/models/aholo/_input/PROP_03/subject.png",
+      "rejection_reason": "Texture noise / style drift or included pillars; do not use for 3D."
+    },
+    "PROP_04": {
+      "source": "assets/2d/PROP_04_花岗岩顽石与卷刃深铁犁_2D概念图.png",
+      "extraction_prompt": "Extract and reconstruct ONLY the grey granite boulder with the chipped dark iron plow blade wedged against it, as one assembled prop; remove loose dirt and pebbles. Preserve the exact reference design and minimalist flat-shaded low-poly game style. Single complete object fully visible and centered with 8 percent margins on pure white background. Square 1:1. No floor, no ground, no cast shadow, no environment, no lighting gradients, no other objects. Solid matte colors, no texture noise, no realistic fur. This is a clean image-to-3D subject sheet.",
+      "isolation_task": 4566312,
+      "input_status": "rejected",
+      "isolation_status": 3,
+      "input": "assets/models/aholo/_input/PROP_04/subject.png",
+      "rejection_reason": "Texture noise / style drift or included pillars; do not use for 3D."
+    },
+    "PROP_05": {
+      "source": "assets/2d/PROP_05_三等残次木质评定吊牌_2D概念图.png",
+      "extraction_prompt": "Extract and reconstruct ONLY the single pale wooden grade tag and white cord loop, keep black markings; remove all shadows. Preserve the exact reference design and minimalist flat-shaded low-poly game style. Single complete object fully visible and centered with 8 percent margins on pure white background. Square 1:1. No floor, no ground, no cast shadow, no environment, no lighting gradients, no other objects. Solid matte colors, no texture noise, no realistic fur. This is a clean image-to-3D subject sheet.",
+      "isolation_task": 4566318,
+      "input_status": "rejected",
+      "isolation_status": 3,
+      "input": "assets/models/aholo/_input/PROP_05/subject.png",
+      "rejection_reason": "Texture noise / style drift or included pillars; do not use for 3D."
+    },
+    "PROP_06": {
+      "source": "assets/2d/PROP_06_35秒春季新纪录看板_2D概念图.png",
+      "extraction_prompt": "Extract and reconstruct ONLY the single white 35s record sign with green border and both wooden posts; remove all shadows, same baseline for posts. Preserve the exact reference design and minimalist flat-shaded low-poly game style. Single complete object fully visible and centered with 8 percent margins on pure white background. Square 1:1. No floor, no ground, no cast shadow, no environment, no lighting gradients, no other objects. Solid matte colors, no texture noise, no realistic fur. This is a clean image-to-3D subject sheet.",
+      "isolation_task": 4566322,
+      "input_status": "rejected",
+      "isolation_status": 3,
+      "input": "assets/models/aholo/_input/PROP_06/subject.png",
+      "rejection_reason": "Texture noise / style drift or included pillars; do not use for 3D."
+    },
+    "CHAR_06": {
+      "source": "assets/2d/CHAR_06_农场护院犬_2D概念图.png",
+      "extraction_prompt": "必须严格遵守：输出是《无题大鹅模拟 Untitled Goose Game》风格的极简低多边形游戏模型立绘，不是照片！在原图基础上单独提取主体，保留原图的大块多边形纯色色块、极简黑圆点眼睛和轮廓比例。绝对禁止写实肌肉、毛发、皮毛细节、材质纹理、细碎噪点、摄影。移除所有场景、投影、地板、地面、无关物件。白底纯白无阴影，1:1正方形居中留白10%。具体唯一主体：the tan and black guard dog with pointed ears and plain collar; neutral standing on four complete legs rather than running. Flat polygonal 3D game render, completely untextured solid color materials, graphic silhouette, black bead eyes. Match the provided reference exactly.",
+      "isolation_task": 4566438,
+      "input_status": "pending"
+    },
+    "CHAR_07": {
+      "source": "assets/2d/CHAR_07_农场主_2D概念图.png",
+      "extraction_prompt": "必须严格遵守：输出是《无题大鹅模拟 Untitled Goose Game》风格的极简低多边形游戏模型立绘，不是照片！在原图基础上单独提取主体，保留原图的大块多边形纯色色块、极简黑圆点眼睛和轮廓比例。绝对禁止写实肌肉、毛发、皮毛细节、材质纹理、细碎噪点、摄影。移除所有场景、投影、地板、地面、无关物件。白底纯白无阴影，1:1正方形居中留白10%。具体唯一主体：the farmer wearing cap, mustard sweater, blue dungarees and green Wellington boots; reconstruct as standing neutral relaxed A-pose, both feet on same baseline, empty hands, no baton. Flat polygonal 3D game render, completely untextured solid color materials, graphic silhouette, black bead eyes. Match the provided reference exactly.",
+      "isolation_task": 4566442,
+      "input_status": "pending"
+    },
+    "PROP_07": {
+      "source": "assets/2d/PROP_07_农场主高压防暴电击棍_2D概念图.png",
+      "extraction_prompt": "必须严格遵守：输出是《无题大鹅模拟 Untitled Goose Game》风格的极简低多边形游戏模型立绘，不是照片！在原图基础上单独提取主体，保留原图的大块多边形纯色色块、极简黑圆点眼睛和轮廓比例。绝对禁止写实肌肉、毛发、皮毛细节、材质纹理、细碎噪点、摄影。移除所有场景、投影、地板、地面、无关物件。白底纯白无阴影，1:1正方形居中留白10%。具体唯一主体：the single black and yellow electric baton with grey front tip; remove floating spark and all shadows. Flat polygonal 3D game render, completely untextured solid color materials, graphic silhouette, black bead eyes. Match the provided reference exactly.",
+      "isolation_task": 4566449,
+      "input_status": "pending"
+    }
+  },
+  "blocker": {
+    "kind": "automatic_approval_service_failure",
+    "message": "Two review timeouts, then 502 Bad Gateway / Upstream access forbidden. Later cloud queries and revision submissions were not executed. Do not bypass approval.",
+    "pending_action": "Restore approval service, collect already-submitted tasks, review inputs, generate remaining assets."
+  },
+  "baseline_commit": "9e4b1d0",
+  "active_workspace": "piggame (master)"
+}

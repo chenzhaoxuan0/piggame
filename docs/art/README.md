@@ -1,5 +1,7 @@
 # 《一口猪在金牌农场》美术原画与资产生产工作区 (Art Concept Worktree)
 
+> **2026-11-02 实际集成进度**：见 [ASSET_MANIFEST.md](ASSET_MANIFEST.md)。PROP_01 吊厢已走通 Lux3D → Blender → Godot；其他核心模型尚未完成。下表为原始计划，不代表当前制作状态。
+
 > **分支说明**：`art-concept` (独立 Git Worktree: `piggame-art`)  
 > **核心职责**：负责游戏视觉风格定义、原画/概念图生成提示词工程、2D立绘/UI设计、以及面向 **Aholo Lux3D** 的核心 3D 资产提示词与生成监督。  
 > **协同关系**：本分支与代码主分支（`master`，负责 Godot 白模与玩法逻辑）完全解耦并行。美术产出在达到 **S0 风格门槛** 并在主分支完成 **G0 白模实机门槛** 后，直接向游戏管线交付正式资产。

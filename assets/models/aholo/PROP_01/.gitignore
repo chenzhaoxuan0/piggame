@@ -1,0 +1,5 @@
+# Godot extracts the original embedded textures locally. Runtime uses *_game.glb.
+PROP_01_0.png
+PROP_01_0.png.import
+PROP_01_1.png
+PROP_01_1.png.import

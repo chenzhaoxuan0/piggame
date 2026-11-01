@@ -9,6 +9,8 @@ extends Node3D
 
 signal chase_entered
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 const SPAWN := Vector3(0, 0.1, 93)
 const CHASE_EXIT_Z := -84.0
 const RETRY_POSITION := Vector3(0, 0.1, -52)
@@ -57,6 +59,10 @@ var _npc_origins: Dictionary = {}
 var _npc_tweens: Dictionary = {}
 var _gate_label: Label3D
 var _windmill_blades: Node3D
+var _gate_art: Node3D
+var _gate_tween: Tween
+var _sheep_tag: Node3D
+var _farmer_baton: Node3D
 
 func _ready() -> void:
 	_build_ground()
@@ -69,6 +75,44 @@ func _ready() -> void:
 	_build_open_field()
 	_build_gate_area()
 	_build_exit()
+	_install_art()
+
+func _install_art() -> void:
+	var cabin_art := ASSETS.replace_visuals(_cabin, "PROP_01")
+	if cabin_art:
+		# Pulley axis follows the sloping cable through the full cinematic travel.
+		get_node("CableLine").hide()
+		var direction := CABLECAR_TRAVEL.normalized()
+		var cable_start := _cabin.position + Vector3(0, 4.1, 0) - direction * 21.0
+		var cable_end := _cabin.position + Vector3(0, 4.1, 0) + direction * 36.0
+		var cable := _box(self, "ArtCable", Vector3(0.07, 0.07, cable_start.distance_to(cable_end)), (cable_start + cable_end) * 0.5, INK)
+		cable.look_at(cable_end, Vector3.UP)
+		for post_name in ["CablePostL", "CablePostR", "CableCross"]:
+			get_node(post_name).hide()
+		_box(self, "ArtCablePostL", Vector3(0.24, 3.37, 0.24), Vector3(-1.7, 1.685, -96), WOOD_DARK)
+		_box(self, "ArtCablePostR", Vector3(0.24, 3.37, 0.24), Vector3(1.7, 1.685, -96), WOOD_DARK)
+		_box(self, "ArtCableCross", Vector3(3.65, 0.18, 0.18), Vector3(0, 3.37, -96), WOOD_DARK)
+	var characters := {"goat": "CHAR_02", "ox": "CHAR_03", "sheep": "CHAR_04", "horse": "CHAR_05", "farmer": "CHAR_07"}
+	for id in characters:
+		ASSETS.replace_visuals(_npcs[id], characters[id])
+	_gate_art = ASSETS.replace_visuals(_gate, "PROP_02", Vector3(0, -0.9, 0))
+	ASSETS.replace_visuals(get_node("RecordBoard"), "PROP_06", Vector3(0, -1, 0), PI * 0.5)
+	var plow := ASSETS.make("PROP_04")
+	if plow:
+		get_node("PlowBeam/VisualMesh").hide()
+		get_node("PlowHandle").hide()
+		get_node("PlowBlade").hide()
+		add_child(plow)
+		plow.position = Vector3(-12, 0, 51.5)
+	_sheep_tag = ASSETS.make("PROP_05")
+	if _sheep_tag:
+		_npcs["sheep"].add_child(_sheep_tag)
+		_sheep_tag.position = Vector3(0, 0.5, -0.58)
+	_farmer_baton = ASSETS.make("PROP_07")
+	if _farmer_baton:
+		_npcs["farmer"].add_child(_farmer_baton)
+		_farmer_baton.position = Vector3(0.5, 0.7, -0.12)
+		_farmer_baton.rotation.x = -0.6
 
 func _process(delta: float) -> void:
 	if is_instance_valid(_windmill_blades):
@@ -79,6 +123,19 @@ func get_spawn_position() -> Vector3:
 
 func set_gate_open(open: bool) -> void:
 	_set_barrier(_gate, open)
+	if is_instance_valid(_gate_art):
+		if is_instance_valid(_gate_tween): _gate_tween.kill()
+		var left := _gate_art.find_child("GateLeft", true, false) as Node3D
+		var right := _gate_art.find_child("GateRight", true, false) as Node3D
+		# Unsplit imports use the proven disappear/open behavior until hinges are authored.
+		_gate.visible = not open or (left != null and right != null)
+		if left and right: _gate_tween = create_tween().set_parallel(true)
+		for leaf_name in ["GateLeft", "GateRight"]:
+			var leaf := _gate_art.find_child(leaf_name, true, false) as Node3D
+			if left and right and leaf:
+				var angle := (1.5 if leaf_name == "GateLeft" else -1.5) if open else 0.0
+				_gate_tween.tween_property(leaf, "rotation:y", angle, 0.65)
+	if is_instance_valid(_farmer_baton): _farmer_baton.visible = not open
 	if is_instance_valid(_gate_label):
 		_gate_label.text = "铁门已开 / OPEN" if open else "铁门 / LOCKED"
 
@@ -88,6 +145,7 @@ func set_pigpen_open(open: bool) -> void:
 func set_npc_completed(id: String) -> void:
 	if not _npcs.has(id):
 		return
+	if id == "sheep" and is_instance_valid(_sheep_tag): _sheep_tag.hide()
 	if _npc_tweens.has(id) and is_instance_valid(_npc_tweens[id]):
 		_npc_tweens[id].kill()
 	var targets := {"ox": Vector3(-24.5, 0, 40), "sheep": Vector3(8, 0, 4), "horse": Vector3(7.5, 0, -28)}
@@ -104,6 +162,8 @@ func get_cablecar() -> Node3D:
 	return _cabin
 
 func reset_world() -> void:
+	if is_instance_valid(_sheep_tag): _sheep_tag.show()
+	if is_instance_valid(_farmer_baton): _farmer_baton.show()
 	for tween in _npc_tweens.values():
 		if is_instance_valid(tween):
 			tween.kill()

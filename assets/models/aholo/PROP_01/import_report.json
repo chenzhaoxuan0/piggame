@@ -1,0 +1,16 @@
+{
+  "asset_id": "PROP_01",
+  "raw_triangles": 19708,
+  "triangles": 4156,
+  "vertices": 3252,
+  "size_blender_xyz": [
+    3.1999998092651367,
+    2.5999999046325684,
+    4.119999885559082
+  ],
+  "material_count": 7,
+  "file_bytes": 134380,
+  "postprocess": "UV albedo sampled to authored solid palette; decimated; angle-split normals; grounded; metre scale",
+  "runtime": "assets/models/aholo/PROP_01/PROP_01_game.glb",
+  "manual_repairs": "Cabin shell retained from Lux3D; flattened to 3.2 x 2.6 x 1.6 m; missing suspension and pulley wheels reconstructed in Blender; uniform authored wood palette."
+}

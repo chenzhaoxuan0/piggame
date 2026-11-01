@@ -1,6 +1,7 @@
 extends Node3D
 
 const CHASE_SCRIPT = preload("res://scripts/chase/simple_chase.gd")
+const ART_2D = preload("res://scripts/art/art_2d.gd")
 @onready var player: PigController = $Pig
 @onready var camera: IsometricCamera = $IsometricCamera
 @onready var farm: Node3D = $Farm
@@ -27,7 +28,9 @@ var current_options: Array = []
 var dialogue_lines: Array = []
 var line_index := 0
 var pressure := 999.0
-var pin_visual: MeshInstance3D
+var pin_visual: Node3D
+var portrait: TextureRect
+var ending_art: TextureRect
 
 func _ready() -> void:
 	GameManager.reset_run()
@@ -48,16 +51,21 @@ func _ready() -> void:
 	open_dialogue("cliff_goat_intro")
 
 func _build_pin() -> void:
-	pin_visual = MeshInstance3D.new()
-	var mesh := BoxMesh.new()
-	mesh.size = Vector3(0.55, 0.08, 0.08)
-	pin_visual.mesh = mesh
-	var material := StandardMaterial3D.new()
-	material.albedo_color = Color("c9984d")
-	pin_visual.material_override = material
+	pin_visual = preload("res://scripts/art/asset_library.gd").make("PROP_03")
+	if pin_visual == null:
+		pin_visual = MeshInstance3D.new()
+		_build_fallback_pin(pin_visual)
 	player.get_node("VisualMesh").add_child(pin_visual)
 	pin_visual.position = Vector3(0, 0.55, -0.9)
 	pin_visual.visible = false
+
+func _build_fallback_pin(mesh_node: MeshInstance3D) -> void:
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(0.55, 0.08, 0.08)
+	mesh_node.mesh = mesh
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color("c9984d")
+	mesh_node.material_override = material
 
 func _style(bg: Color, border: Color = Color(0.40, 0.38, 0.30)) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
@@ -85,6 +93,9 @@ func _button(text_value: String, callback: Callable) -> Button:
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	button.pressed.connect(callback)
+	button.add_theme_color_override("font_color", Color("343b30"))
+	button.add_theme_color_override("font_hover_color", Color("343b30"))
+	button.add_theme_color_override("font_focus_color", Color("343b30"))
 	return button
 
 func _build_hud() -> void:
@@ -127,7 +138,7 @@ func _build_hud() -> void:
 	var right := VBoxContainer.new()
 	right.alignment = BoxContainer.ALIGNMENT_END
 	top_row.add_child(right)
-	right.add_child(_label("农场美术一版 / FARM ART  01", 15))
+	right.add_child(_label("金牌农场 / GOLDEN FARM", 15))
 	status = _label("", 15)
 	right.add_child(status)
 	prompt = _label("", 19)
@@ -158,9 +169,20 @@ func _build_hud() -> void:
 	dialogue_panel.offset_bottom = -65
 	dialogue_panel.add_theme_stylebox_override("panel", _style(Color(0.97, 0.95, 0.88, 0.98), Color(0.47, 0.42, 0.30)))
 	hud.add_child(dialogue_panel)
+	var dialogue_row := HBoxContainer.new()
+	dialogue_row.add_theme_constant_override("separation", 20)
+	dialogue_panel.add_child(dialogue_row)
+	portrait = TextureRect.new()
+	portrait.custom_minimum_size = Vector2(160, 160)
+	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	portrait.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dialogue_row.add_child(portrait)
 	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.add_theme_constant_override("separation", 12)
-	dialogue_panel.add_child(column)
+	dialogue_row.add_child(column)
 	speaker_label = _label("", 21)
 	speaker_label.add_theme_color_override("font_color", Color(0.62, 0.36, 0.16))
 	column.add_child(speaker_label)
@@ -186,6 +208,13 @@ func _build_hud() -> void:
 	card.custom_minimum_size.x = 600
 	card.add_theme_constant_override("separation", 22)
 	center.add_child(card)
+	ending_art = TextureRect.new()
+	ending_art.custom_minimum_size = Vector2(600, 270)
+	ending_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	ending_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	ending_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ending_art.hide()
+	card.add_child(ending_art)
 	overlay_title = _label("", 38)
 	overlay_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	card.add_child(overlay_title)
@@ -265,6 +294,8 @@ func open_dialogue(key: String) -> void:
 	player.set_control_mode("dialogue")
 	dialogue_panel.visible = true
 	speaker_label.text = str(data.get("speaker", "")) + "  /  " + str(data.get("title", ""))
+	portrait.texture = ART_2D.PORTRAITS.get(str(data.get("speaker", "")))
+	portrait.visible = portrait.texture != null
 	dialogue_lines = _split_lines(str(data.get("content", "")))
 	line_index = 0
 	current_options = data.get("options", [])
@@ -408,9 +439,12 @@ func _show_ending() -> void:
 	if GameManager.ending == "stay":
 		_show_overlay("安稳的肉馅", "甜料很暖，明早的车还很远。\n\n你选择留在猪圈。也可以再走一次另一条路。", [{"text": "重新选择", "call": _restart}])
 	else:
-		_show_overlay("旷野归途", "金牌是农场的，但命是你自己的。\n\n美术风格一版完成：扁平色块低模农场。模型与动画仍为占位。", [{"text": "重新出发", "call": _restart}])
+		_show_overlay("旷野归途", "金牌是农场的，但命是你自己的。\n\n风从麦浪上吹来。前面没有围栏。", [{"text": "重新出发", "call": _restart}])
+	ending_art.texture = ART_2D.ENDINGS.get(GameManager.ending)
+	ending_art.visible = ending_art.texture != null
 
 func _show_overlay(title: String, body: String, buttons: Array) -> void:
+	ending_art.hide()
 	overlay_title.text = title
 	overlay_text.text = body
 	_clear_children(overlay_buttons)

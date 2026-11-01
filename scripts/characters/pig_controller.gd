@@ -31,6 +31,7 @@ var _pending_dash: bool = false
 @onready var visual_mesh: Node3D = $VisualMesh
 
 func _ready() -> void:
+	preload("res://scripts/art/asset_library.gd").replace_visuals(visual_mesh, "CHAR_01")
 	target_destination = global_position
 	camera = get_viewport().get_camera_3d()
 	floor_snap_length = 0.3
