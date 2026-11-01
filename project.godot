@@ -12,8 +12,8 @@ config/name_localized={
 "zh_CN": "一口猪在金牌农场"
 }
 config/description="2.5D 现代田园围城寓言：悬崖边的金牌农场，一口猪的旷野突围！"
-config/version="0.1.0-mvp"
-run/main_scene="res://scenes/ui/character_selection.tscn"
+config/version="0.2.0-whitebox"
+run/main_scene="res://scenes/levels/office_level_1.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 config/icon="res://icon.svg"
 

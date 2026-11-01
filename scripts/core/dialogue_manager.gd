@@ -1,336 +1,210 @@
 extends Node
 
-# Dialogue Manager (终极定本 · 旷野突围版)
-# 核心机制与细节修正：
-# 1. 猪来自“山顶悬崖边的破猪棚”，下山突围；
-# 2. 猪不向其他动物宣扬“你们没有生命危险”（隐藏设定，玩家自悟）；
-# 3. 猪点拨后，牛羊马均先言语回复，再进行身体行动；
-# 4. 羊毛为全员对标准的错判（软毛价值极高但农场只做粗活，人不会指引它）；
-# 5. 马为中年马，死守41秒金牌纪录，猪在路边看到了35秒新纪录牌；马言语回复后嚼草，心境仍混沌但心弦放松；
-# 6. 终点对决对手为“农场主”（无姓氏），对战后农场主务实接受跑了一头肉猪的损失；
-# 7. 彻底移除狗的第11幕洗白度化，猪直登索道乘风破浪完成突围！
-
-signal dialogue_started(node_data: Dictionary)
-signal dialogue_advanced(step: int)
-signal dialogue_ended()
-signal will_acquired(will_type: String)
-
-var dialogue_tree = {
-	# --- 序幕：山顶悬崖与老岩羊 (黑客帝国红蓝抉择) ---
+# Compact whitebox dialogue. Events run only when an option is confirmed.
+# Main routes the event, waits for the world action, and then follows `next`.
+var dialogue_tree: Dictionary = {
 	"cliff_goat_intro": {
-		"speaker": "老岩羊 (从深渊跃上残墙)",
-		"avatar": "🐐",
-		"title": "绝壁上的独行客",
-		"content": "（眯起金色横瞳打量着白净匀称的猪）喂，小胖子。满圈的猪都在槽里抢泔水，你天天把下巴搁在石墙上看天。怎么着，天上有热腾腾的肉馅大包子掉下来？",
-		"options": [
-			{
-				"text": "【吐掉干麦穗，望向云海】“天里没包子。但天上面没有栏杆，也没有水泥槽。”",
-				"next": "cliff_goat_choice"
-			}
-		]
+		"speaker": "老岩羊", "title": "山顶猪圈", "avatar": "",
+		"content": "别人都在抢甜料，你倒在这里看天。天上有什么？",
+		"options": [{"text": "天上没有栏杆，也没有食槽。", "next": "cliff_goat_choice"}]
 	},
 	"cliff_goat_choice": {
-		"speaker": "老岩羊 (踢出一枚生锈的古索道铜插销)",
-		"avatar": "🐐",
-		"title": "黑客帝国的引路人",
-		"content": "饲养员叫你‘包子’，皮薄肉多。山脚下第三肉联厂的运牲卡车已经在烧柴油冒黑烟了，明早六点头道大门一拉，第一个挂吊钩的就是你。\n现在，你蹄子前面有两条路：\n\n【蓝色之路】：转过身回泥窝，把头扎进食槽抢吃甜料。挨过今晚，明早在温饱里挨上一刀，当一屉合格的肉馅大包子。\n【红色之路】：叼起这枚生锈铜插销，撞烂身后的门栓一路往山下闯。山很高，猎犬很凶，你可能会摔死在乱石堆里，也可能会死在狗牙下。\n\n选吧。回你的槽边去，还是下山奔你的生路？",
+		"speaker": "老岩羊", "title": "两条路", "avatar": "",
+		"content": "明早六点，运牲车来装猪。你可以回槽边吃个饱，也可以叼起这枚铜插销，闯过农场，去后山索道。\n山路很冷，猎犬很凶。选吧。",
 		"options": [
-			{
-				"text": "【蓝色抉择：掉头钻回泥窝】“悬崖太冷了，我只想安安稳稳吃口饱饭……”",
-				"next": "ending_stay_in_sty"
-			},
-			{
-				"text": "【红色抉择：叼起生锈铜插销】“掉下悬崖摔死，也比被挂在挂钩上放血强！”",
-				"next": "cliff_goat_escape_start"
-			}
-		]
-	},
-	"ending_stay_in_sty": {
-		"speaker": "特立独行的猪 (选择放弃)",
-		"avatar": "🐷",
-		"title": "【结局一：安稳的肉馅】",
-		"content": "🏆 【成就解锁：温热的泥浆】\n\n猪没有碰那枚冰冷的铜插销。它慢慢转过身，钻回了温热发臭的泥坑里，把长嘴深深埋进发酵糖蜜饲料中大口吞咽。\n远方山谷传来了第三肉联厂运牲卡车的轰鸣声。\n温热的泥浆漫过肚皮，做一头合格的肉猪，未尝不是一种现世安稳……",
-		"options": [
-			{
-				"text": "【结局演播】沉沦于最后的温饱，静待天明……",
-				"next": "game_ending_sty"
-			}
+			{"text": "【红色之路】叼起插销，撞开木栓。", "event": "choose_red", "next": "cliff_goat_escape_start"},
+			{"text": "【蓝色之路】回到泥窝。", "next": "ending_stay_in_sty"}
 		]
 	},
 	"cliff_goat_escape_start": {
-		"speaker": "特立独行的猪 (踏入未知)",
-		"avatar": "🐷",
-		"title": "决然出逃的勇者",
-		"content": "🏆 【成就解锁：红色的生锈插销】\n\n猪四蹄颤抖，咬紧牙关叼起冰冷的铜插销！浑身血液发烫！\n低下坚硬如铁的生铁猪拱嘴，拼尽全力猛撞木门栓——咔嚓！厚重门栓折断！\n猪迈出猪圈，怀着未知的恐惧与战栗，正式向山下农场腹地挺进！",
+		"speaker": "一口猪", "title": "出圈", "avatar": "",
+		"content": "咔嚓——木栓断了。猪咬紧铜插销，迈进农场。\n\n沿路可以与牛、羊、马交谈，也可以直接穿过大院。",
+		"options": [{"text": "出发。", "next": ""}]
+	},
+	"ending_stay_in_sty": {
+		"speaker": "旁白", "title": "安稳的肉馅", "avatar": "",
+		"content": "猪没有碰那枚插销。它回到温热的泥窝，把嘴埋进甜料。\n远处传来柴油车的低鸣。",
+		"options": [{"text": "在温饱里，等到天明。", "event": "choose_blue", "next": ""}]
+	},
+	"goat_after_choice": {
+		"speaker": "老岩羊", "title": "路已经选了", "avatar": "",
+		"content": "插销拿稳。往农场深处走，铁门后面就是索道。你不必等所有人都想明白。",
+		"options": [{"text": "点头，继续走。", "next": ""}]
+	},
+	"aniu_interaction": {
+		"speaker": "阿牛", "title": "黑土垄", "avatar": "",
+		"content": "滚开，别挡我的犁沟！……你是哪来的猪？今天还有两亩地，咬紧牙总能拉过去！",
 		"options": [
-			{"text": "迈向大院，寻访沿途的生灵！", "next": ""}
+			{"text": "我从山顶破圈来的。大叔，看看你的犁尖。", "next": "aniu_solved"},
+			{"text": "你先忙，我不打扰了。", "next": "aniu_leave"}
 		]
 	},
-
-	# --- 试炼1：老黄牛 ➔ 回复而后卸轭喝水 ➔ 汲取【坚忍之骨】 ---
-	"aniu_interaction": {
-		"speaker": "阿牛 (深陷黑泥的老耕牛)",
-		"avatar": "🐂",
-		"title": "死命拉犁的苦役者",
-		"content": "（通红着眼呼哧喘着粗沫）滚开！别挡道！……你是一头白猪？！从哪冒出来的？快让开，别挡我的犁沟！今天还有两亩地，只要我咬紧牙再拼一把力气，这道坎就能犁过去！",
+	"aniu_leave": {
+		"speaker": "阿牛", "title": "还在使劲", "avatar": "",
+		"content": "别踩坏地。……嘿！再使一把劲！",
+		"options": [{"text": "离开。", "next": ""}]
+	},
+	"aniu_revisit": {
+		"speaker": "阿牛", "title": "仍未拉动的犁", "avatar": "",
+		"content": "你怎么又回来了？这块硬泥，今天非翻过去不可。",
 		"options": [
-			{
-				"text": "【走上前打招呼并拱开泥浆】“我从山顶悬崖边的破猪棚跑出来的。大叔，你犁头不对劲，下面卡着东西了！”",
-				"next": "aniu_solved"
-			}
+			{"text": "不是硬泥，看看下面。", "next": "aniu_solved"},
+			{"text": "先离开。", "next": ""}
 		]
 	},
 	"aniu_solved": {
-		"speaker": "一口猪 (指着露出的顽石)",
-		"avatar": "🐷",
-		"title": "一口猪",
-		"content": "大叔，你别死拼了！下面埋着一块磨盘大的花岗岩大石块！你以为是一时的硬泥，其实犁尖卡在石头上早就拉卷刃了。再硬拉下去，石头碎不了，断的是你自己的颈椎大筋！",
-		"options": [
-			{
-				"text": "老牛怔怔看着露出的灰白大石块与卷曲犁尖，猛喘了一口粗气……",
-				"next": "aniu_reply"
-			}
-		]
+		"speaker": "一口猪", "title": "泥下的顽石", "avatar": "",
+		"content": "猪拱开一层泥。犁尖卡在花岗岩下面，刃已经卷了。\n\n大叔，你拉的是石头。再使劲，先断的会是你的脖子。",
+		"options": [{"text": "看看阿牛的反应。", "next": "aniu_reply"}]
 	},
 	"aniu_reply": {
-		"speaker": "阿牛 (震惊喃喃自语)",
-		"avatar": "🐂",
-		"title": "恍然的老耕牛",
-		"content": "……花岗岩大石块？我拉的是石头？！……呼……呼……难怪怎么使劲都纹丝不动……原来是一块死石头卡在犁头底下……",
-		"options": [
-			{
-				"text": "看着老牛默默用牛角顶开磨破皮肉的沉重木轭……",
-				"next": "aniu_drink_water"
-			}
-		]
+		"speaker": "阿牛", "title": "停下来", "avatar": "",
+		"content": "……花岗岩？我拉的是石头？\n难怪怎么使劲都没用。……我先喝口水。",
+		"options": [{"text": "看他卸下轭，走向水渠。", "event": "complete_ox", "next": "aniu_drink_water"}]
 	},
 	"aniu_drink_water": {
-		"speaker": "阿牛 (卸轭喝水)",
-		"avatar": "🐂",
-		"title": "停步的老耕牛",
-		"content": "（老牛踩着黏稠泥水走到旁边的石水渠边，低下头长长地痛饮了一大口清凉甘甜的泉水）\n（水珠顺着胡须滴落，它看着远山喷出一口白汽。它七年来第一次在劳作中停下来喝水）",
-		"options": [
-			{
-				"text": "【猪心中触动】从盲目死拼到从容止步……这就是扛得起千钧的坚忍之骨！",
-				"next": "learn_ox_will"
-			}
-		]
+		"speaker": "旁白", "title": "水渠边", "avatar": "",
+		"content": "阿牛低头喝水，长长喘了一口气。\n猪望了望已经卷刃的犁，继续往前走。",
+		"options": [{"text": "继续下山。", "next": ""}]
 	},
-	"learn_ox_will": {
-		"speaker": "特立独行的猪 (领悟)",
-		"avatar": "🐷",
-		"title": "【意志觉醒：坚忍之骨】",
-		"content": "老牛那如铁塔般驻足喝水的沉稳身影印入猪的心底：\n冲破前方的围捕正需要这般沉稳力量——猪获得了【坚忍之骨】！（空地追逐战中可用于挣脱恶犬扑咬）",
-		"options": [
-			{"text": "带着坚忍之骨，继续向下挺进！", "next": ""}
-		]
+	"aniu_post_idle": {
+		"speaker": "阿牛", "title": "歇一口气", "avatar": "",
+		"content": "犁头卷了，让铁匠来修。前面犬队可不好惹，跑的时候留神。",
+		"options": [{"text": "多谢，大叔。", "next": ""}]
 	},
-
-	# --- 试炼2：小绵羊 ➔ 回复而后阳光晒毛 ➔ 汲取【洞察之眸】 ---
 	"mianmian_interaction": {
-		"speaker": "绵绵 (缩在阴暗草垛角落的小羊)",
-		"avatar": "🐑",
-		"title": "被指标击碎自尊的小羊",
-		"content": "（木栏贴着‘三等残次：纤维过细过软，缺乏刚性，无法压制工业耐磨硬毡垫’，眼角挂泪，戒备退缩）\n你……你是谁？我从没在羊棚见过你……你是一头猪？你怎么跑到这里来了……",
+		"speaker": "绵绵", "title": "木棚阴影里", "avatar": "",
+		"content": "你是谁……？我的毛太细太软，压不成机床下面的硬毡垫。大家都说我是废羊。",
 		"options": [
-			{
-				"text": "【温和介绍并走向前】“我从山顶悬崖边的猪棚跑出来的，饲养员叫我‘包子’。你呢，为什么躲在暗处哭？”",
-				"next": "mianmian_intro_reply"
-			}
+			{"text": "我从山顶来的。软毛做不了硬垫，就一定没用吗？", "next": "mianmian_advice"},
+			{"text": "我先不打扰你。", "next": ""}
 		]
 	},
-	"mianmian_intro_reply": {
-		"speaker": "绵绵 (抽泣)",
-		"avatar": "🐑",
-		"title": "二号棚细毛绵羊",
-		"content": "我是二号棚的细毛绵羊……他们说我的毛太细太软了，压不成机床底下的工业防震硬毡垫，连工业边角料都算不上……农场的所有羊都说粗毛才是好毛，我是不是全农场最差的一只羊……",
+	"mianmian_revisit": {
+		"speaker": "绵绵", "title": "还在阴影里", "avatar": "",
+		"content": "你又回来了……别看我的毛了。",
 		"options": [
-			{
-				"text": "【一脚踢飞残次破木牌】“机修厂的工业毡垫是铺在机床底下的！”",
-				"next": "mianmian_advice"
-			}
+			{"text": "想跟你说两句。", "next": "mianmian_advice"},
+			{"text": "先离开。", "next": ""}
 		]
 	},
 	"mianmian_advice": {
-		"speaker": "一口猪 (同舟共济的同伴)",
-		"avatar": "🐷",
-		"title": "一口猪",
-		"content": "机修厂的工业毡垫是要垫在机床底下的，当然要粗硬得像铁丝才压不烂。我也说不上来你这身软毛到底能拿去干什么，但肯定不是拿来垫机床的。农场的动物只见过粗毛，全都跟着瞎判定。这儿的粗尺子量不出你的用处，你犯不着躲在暗处觉得自己是个错。",
-		"options": [
-			{
-				"text": "小羊吸了吸鼻子，眼里露出一丝微光……",
-				"next": "mianmian_reply"
-			}
-		]
+		"speaker": "一口猪", "title": "一把不合适的尺", "avatar": "",
+		"content": "我也说不上来这身软毛能做什么，但肯定不只垫机床这一种用处。\n这里的粗尺子量不出你的用处，你不用把自己当成一个错。",
+		"options": [{"text": "等绵绵回话。", "next": "mianmian_reply"}]
 	},
 	"mianmian_reply": {
-		"speaker": "绵绵 (喃喃自语)",
-		"avatar": "🐑",
-		"title": "若有所悟的绵羊",
+		"speaker": "绵绵", "title": "一点阳光", "avatar": "",
 		"content": "……原来，只是不适合拿来垫机床啊……",
-		"options": [
-			{
-				"text": "小羊站起身抖了抖身上的草屑灰尘，慢慢迈步走出阴影……",
-				"next": "mianmian_sunbathe"
-			}
-		]
+		"options": [{"text": "让她走出阴影，晒晒毛。", "event": "complete_sheep", "next": "mianmian_post_idle"}]
 	},
-	"mianmian_sunbathe": {
-		"speaker": "绵绵 (漫步至阳光下)",
-		"avatar": "🐑",
-		"title": "晒毛的小绵羊",
-		"content": "（小羊一身蓬松雪白的卷毛舒展开来如云朵般纯白）\n（它迈着轻细的小蹄子走出潮湿角落，在破屋顶漏下的一缕金黄阳光中舒服地趴下晒毛，把下巴搭在干木板上，惬意地闭上了眼睛）",
-		"options": [
-			{
-				"text": "【猪心中明澈】跳出虚妄刻板的单一标尺，洞悉本质……这就是洞察之眸！",
-				"next": "learn_sheep_will"
-			}
-		]
+	"mianmian_post_idle": {
+		"speaker": "绵绵", "title": "阳光下", "avatar": "",
+		"content": "这儿真暖和。小白猪，不管你去哪，都祝你找到自己的地方。",
+		"options": [{"text": "晒你的毛吧，我先走了。", "next": ""}]
 	},
-	"learn_sheep_will": {
-		"speaker": "特立独行的猪 (领悟)",
-		"avatar": "🐷",
-		"title": "【意志觉醒：洞察之眸】",
-		"content": "小羊在阳光下安然舒展的模样，驱散了虚妄标准的阴霾。\n猪领悟了【洞察之眸】！（空地追逐战中可看穿犬群分身疑兵）",
-		"options": [
-			{"text": "眼神清澈明亮，继续向下挺进！", "next": ""}
-		]
+	"inspect_record_board": {
+		"speaker": "纪录榜", "title": "新旧纪录", "avatar": "",
+		"content": "旧字：追风，41 秒，三年前冠军。\n新牌：闪电，35 秒，去年春天。\n\n旁边的小字：老马追风已退出竞赛梯队。",
+		"options": [{"text": "记下 35 秒的新纪录。", "event": "read_record", "next": ""}]
 	},
-
-	# --- 试炼3：烈马 ➔ 回复而后嚼外草 ➔ 汲取【疾风之步】 ---
 	"zhuifeng_interaction": {
-		"speaker": "追风 (双眼圆睁的中年黑色骏马)",
-		"avatar": "🐎",
-		"title": "泥圈中盲奔的自欺者",
-		"content": "（在50米椭圆泥圈疯狂狂奔，大汗淋漓，大声暴喘）闪开！别挡道！……你打哪来的？！一只肥猪怎么敢闯进赛道？！",
+		"speaker": "追风", "title": "泥地跑道", "avatar": "",
+		"content": "闪开！别挡道！我还要保持 41 秒的配速。只要跑下去，金牌就是我的！",
 		"options": [
-			{
-				"text": "【站在木栏外喊道】“我从山顶悬崖边的破圈跑出来的。大叔，你跑这么急是要赶去哪？”",
-				"next": "zhuifeng_horse_intro"
-			}
+			{"text": "我从山顶来的。大叔，你在追哪一块金牌？", "next": "zhuifeng_record_check"},
+			{"text": "先退开。", "next": ""}
 		]
 	},
-	"zhuifeng_horse_intro": {
-		"speaker": "追风 (狂傲暴喘)",
-		"avatar": "🐎",
-		"title": "曾获金牌的中年追风",
-		"content": "我是这里的速度良驹‘追风’！我在跑配速！这一圈我跑了41秒！只要我今天跑满三万步，维持住41秒的成绩，终点看台上的冠军金牌就还是我的！",
+	"zhuifeng_revisit": {
+		"speaker": "追风", "title": "又绕了一圈", "avatar": "",
+		"content": "又是你！别让我分心，我还在跑配速！",
 		"options": [
-			{
-				"text": "【指出路边看到的纪录牌】“大叔，我刚才路过入口，上面的纪录早就换了！”",
-				"next": "zhuifeng_awaken"
-			}
+			{"text": "看一眼入口的纪录牌。", "next": "zhuifeng_record_check"},
+			{"text": "先离开。", "next": ""}
 		]
+	},
+	"zhuifeng_observe_record": {
+		"speaker": "一口猪", "title": "先看清木牌", "avatar": "",
+		"content": "猪转头望向路口。旧的 41 秒被划去，新木牌写着：闪电，35 秒。",
+		"options": [{"text": "把看到的新纪录告诉追风。", "event": "read_record", "next": "zhuifeng_awaken"}]
 	},
 	"zhuifeng_awaken": {
-		"speaker": "一口猪",
-		"avatar": "🐷",
-		"title": "一口猪",
-		"content": "大叔！我刚才一路走过来，入口那面金牌纪录榜上写得清清楚楚！牌子上的纪录去年春天就换了，现在的头名是三号棚新来的年轻小马，35秒！人家比你当年快了整整6秒！农场早就一年没给你排过比赛了。你何必死咬着三年前过去的自己不放，非得自欺欺人？",
-		"options": [
-			{
-				"text": "烈马四蹄在泥中划出深深的刹痕，伴随粗重喘息，猛然刹住步子……",
-				"next": "zhuifeng_reply"
-			}
-		]
+		"speaker": "一口猪", "title": "35 秒", "avatar": "",
+		"content": "牌子上的纪录去年就换了，现在是 35 秒。\n农场已经不排你的比赛。你不用向往什么旷野，但何必非得追着三年前的自己？",
+		"options": [{"text": "等追风停下。", "next": "zhuifeng_reply"}]
 	},
 	"zhuifeng_reply": {
-		"speaker": "追风 (剧烈喘息，眼神空洞挣扎)",
-		"avatar": "🐎",
-		"title": "震颤的中年良驹",
-		"content": "（死死盯着入口处的纪录牌，胸膛剧烈起伏）……35秒？！去年就换了？！……我跑了一整年……难道全是在追一个早就没了的影子……我……",
-		"options": [
-			{
-				"text": "烈马缓步走到半人高的朽烂木栏边，把马头伸出了围栏外……",
-				"next": "zhuifeng_graze"
-			}
-		]
-	},
-	"zhuifeng_graze": {
-		"speaker": "追风 (探头啃食栏外野草)",
-		"avatar": "🐎",
-		"title": "咀嚼野味的中年骏马",
-		"content": "（烈马一口一口咀嚼起荒坡上生长的一丛苦野草。它依然处于混沌与茫然之中，一口野草无法立刻消除它多年的躁郁，但沙沙的嚼草声中，它心里死死绷紧的弦悄然松开了）",
-		"options": [
-			{
-				"text": "【猪热血沸腾】从被动跑圈到掌握自己的奔跑节律……这就是破阵的疾风之步！",
-				"next": "learn_horse_will"
-			}
-		]
+		"speaker": "追风", "title": "停步", "avatar": "",
+		"content": "……35 秒？去年就换了？\n我跑了一整年，追的是一个早就没了的影子……",
+		"options": [{"text": "看他探出栏杆，嚼一口野草。", "event": "complete_horse", "next": "learn_horse_will"}]
 	},
 	"learn_horse_will": {
-		"speaker": "特立独行的猪 (领悟)",
-		"avatar": "🐷",
-		"title": "【意志觉醒：疾风之步】",
-		"content": "烈马从容咀嚼野草的神态，让猪真正理解了速度的真谛——速度不是为了在磨道里取悦看客，而是为了奔向广袤天地！\n猪获得了【疾风之步】！（空地追逐战中可大幅提高冲刺变向移速）",
-		"options": [
-			{"text": "昂首阔步，向下山大铁闸门发起冲刺！", "next": ""}
-		]
+		"speaker": "一口猪", "title": "疾风之步", "avatar": "",
+		"content": "速度也可以为自己而用。\n已获得疾风之步：按 Shift 短时加速，之后需要恢复。即使不用它，也能靠走位穿过犬队。",
+		"options": [{"text": "试着向前跑。", "next": ""}]
 	},
-
-	# --- 终极对决：后山大铁闸门前 (农场主与猪的宝可梦式回合制对决) ---
+	"zhuifeng_post_idle": {
+		"speaker": "追风", "title": "栏外的草", "avatar": "",
+		"content": "这草真苦。……前面有犬队。跑的时候记着变向。",
+		"options": [{"text": "受教了。", "next": ""}]
+	},
 	"ordeal_encounter": {
-		"speaker": "农场主 (手持高压电击棍)",
-		"avatar": "🧑‍🌾",
-		"title": "农场主",
-		"content": "【终极意志对决开始！】\n野生的一口猪（Lv.99 特立独行形态） VS 农场主 (手持高压电击棍)\n\n农场主使用了技能【加料糖蜜桶 & 称重耳标】！\n农场主：“047号！皮薄肉多的包子！你竟然敢从圈里跑出来？！明早六点肉联厂的车就要来装货了，老老实实滚回秤上去，今晚给你加满甜麦麸！”",
-		"options": [
-			{
-				"text": "【反击：真理诘问】“甜料再甜也是买命的饵！你们养我不是为了善待，是为了按斤称肉！”",
-				"next": "ordeal_turn_2"
-			}
-		]
+		"speaker": "农场主", "title": "第一回合 · 甜料", "avatar": "",
+		"content": "047 号！明早车就来了。老实回圈，今晚给你加满甜麦麸！",
+		"options": [{"text": "甜料再甜也是饵。你养我，是为了按斤称肉。", "next": "ordeal_turn_2"}]
 	},
 	"ordeal_turn_2": {
-		"speaker": "农场主 (挥舞电击棍)",
-		"avatar": "🧑‍🌾",
-		"title": "农场主",
-		"content": "农场主使用了技能【高压电击棍 & 肉猪天职】！\n农场主：“混账！肉猪的天职就是长肉挨刀！走出这道门，你什么都不是！”\n农场主信念值大跌！周身电弧闪烁扑面而来！",
-		"options": [
-			{
-				"text": "【反击：破除规训】“谁说长着四蹄的生灵生来就必须是肉馅？！你们订的标准，绑不住想看天的心！”",
-				"next": "ordeal_turn_3"
-			}
-		]
+		"speaker": "农场主", "title": "第二回合 · 电棍", "avatar": "",
+		"content": "肉猪的天职就是长肉！走出这道门，你什么都不是！\n他举起电击棍，逼近一步。",
+		"options": [{"text": "你订的标准，绑不住我想去的地方。", "next": "ordeal_turn_3"}]
 	},
 	"ordeal_turn_3": {
-		"speaker": "农场主 (防御彻底崩溃)",
-		"avatar": "🧑‍🌾",
-		"title": "农场主",
-		"content": "农场主信念归零，陷入混乱！孤注一掷挥舞电击棍扑面猛砸！\n猪凝聚全身力量！释放终极技能【真理冲撞·铁嘴破门】！",
-		"options": [
-			{
-				"text": "【终极一跃】坚硬如铁的生铁猪鼻梁狠狠撞飞电击棍，猛烈撞碎大铁门锁！",
-				"next": "ordeal_break_switch"
-			}
-		]
+		"speaker": "一口猪", "title": "第三回合 · 冲撞", "avatar": "",
+		"content": "猪低下头。铁门就在农场主身后。\n趁电棍挥空，它向门锁冲去。",
+		"options": [{"text": "撞开铁门！", "event": "complete_showdown", "next": "ordeal_aftermath"}]
 	},
-	"ordeal_break_switch": {
-		"speaker": "特立独行的猪 (破门而入)",
-		"avatar": "🐷",
-		"title": "冲破牢笼的英雄",
-		"content": "轰————！厚重的大铁锁应声崩断！高耸的大铁门向两侧轰然洞开！\n农场主摔在泥地上揉着手腕，拍了拍裤子上的土，没好气地啐了一口：“啧，算你骨头硬。跑了一头肉猪，亏了千把块钱……算了，圈里还有几百头呢。”\n大门之外，通向后山悬崖索道的石径在山风中豁然开朗！",
-		"options": [
-			{"text": "迈向后山绝壁索道，奔赴旷野！", "next": "cablecar_climax"}
-		]
+	"ordeal_aftermath": {
+		"speaker": "农场主", "title": "门开了", "avatar": "",
+		"content": "农场主跌坐在地，拍了拍裤腿。\n“跑了一头，亏了千把块……算了，圈里还有几百头。”\n\n索道在门后。猪还得自己走到那里。",
+		"options": [{"text": "走向索道。", "next": ""}]
 	},
-
-	# --- 终章：乘索道滑入旷野 (结局二：旷野归途) ---
+	"farmer_wait": {
+		"speaker": "农场主", "title": "铁门前", "avatar": "",
+		"content": "想从这里出去？先过了大院里的犬队再说。",
+		"options": [{"text": "离开。", "next": ""}]
+	},
+	"cablecar_locked": {
+		"speaker": "索道", "title": "尚未就绪", "avatar": "",
+		"content": "去往索道的路还没有打通。你需要带着铜插销，穿过犬队并打开铁门。",
+		"options": [{"text": "回去看看。", "next": ""}]
+	},
 	"cablecar_climax": {
-		"speaker": "特立独行的猪 (跃上索道吊厢)",
-		"avatar": "🐷",
-		"title": "特立独行的先驱",
-		"content": "猪跃入悬挂在绝壁云海间的木质索道吊厢，将老岩羊给它的生锈铜插销狠狠撞入绞盘卡槽！\n咔嗒！齿轮咬合飞旋！\n木吊厢滑离绝壁，向着下方无边无际的金色麦浪与自由旷野飞驰而下！\n它成了一只真正特立独行的生命图腾！",
-		"options": [
-			{
-				"text": "【滑入浩瀚旷野】完成英雄之旅！",
-				"next": "game_win"
-			}
-		]
+		"speaker": "一口猪", "title": "最后一步", "avatar": "",
+		"content": "木吊厢悬在山风里。猪把一路叼着的铜插销对准卡槽。\n\n咔嗒。前面没有食槽，只有旷野。",
+		"options": [{"text": "插入铜插销，出发。", "event": "launch_cablecar", "next": ""}]
 	}
 }
 
 func get_dialogue_node(key: String) -> Dictionary:
-	if dialogue_tree.has(key):
-		return dialogue_tree[key]
-	return {}
+	if key == "zhuifeng_record_check":
+		key = "zhuifeng_awaken" if GameManager.has_read_record else "zhuifeng_observe_record"
+	return dialogue_tree.get(key, {}).duplicate(true)
+
+func get_entry_for(interaction_id: String) -> String:
+	match interaction_id:
+		"goat":
+			return "cliff_goat_intro" if GameManager.stage == "prologue" else "goat_after_choice"
+		"record_board": return "inspect_record_board"
+		"farmer":
+			if GameManager.stage == "showdown": return "ordeal_encounter"
+			if GameManager.stage == "cablecar_ready": return "ordeal_aftermath"
+			return "farmer_wait"
+		"cablecar":
+			return "cablecar_climax" if GameManager.can_launch_cablecar() else "cablecar_locked"
+		"ox", "sheep", "horse":
+			var prefix: String = {"ox": "aniu", "sheep": "mianmian", "horse": "zhuifeng"}[interaction_id]
+			if GameManager.npc_completed.get(interaction_id, false): return prefix + "_post_idle"
+			if GameManager.npc_met.get(interaction_id, false): return prefix + "_revisit"
+			return prefix + "_interaction"
+	return ""

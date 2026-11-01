@@ -1,134 +1,259 @@
 extends CharacterBody3D
-
 class_name PigController
-
-# 主人公“老朱 (Mr. Pig)” - 2.5D 点击移动控制器 (Point & Click / Tap to Move)
-# 风格特色：
-# 1. 鼠标点击 / 手机触屏点击地面移动 (极乐迪斯科式操控)
-# 2. 点击 NPC 或可交互道具，自动走近并触发深度交互
-# 3. 沉稳优雅的踱步走姿与自然的物体物理碰撞推移 (碰翻歪斜杯子、推移椅子)
-
-@export var move_speed: float = 4.5
-@export var acceleration: float = 14.0
-@export var rotation_speed: float = 10.0
-@export var stopping_distance: float = 0.25
-
-# 移动与目标状态
-var target_destination: Vector3 = Vector3.ZERO
-var is_moving: bool = false
-var interact_target: Node3D = null
-var interact_distance: float = 1.3
-
-# 节点引用
-@onready var visual_mesh: Node3D = $VisualMesh
-var camera: Camera3D = null
 
 signal moved_to_target(pos: Vector3)
 signal reached_interactable(target: Node3D)
+signal dash_state_changed(remaining: float, cooldown: float)
+
+@export var move_speed: float = 4.5
+@export var acceleration: float = 20.0
+@export var rotation_speed: float = 12.0
+@export var stopping_distance: float = 0.25
+@export var interact_distance: float = 2.1
+@export var dash_multiplier: float = 1.65
+@export var dash_duration: float = 2.0
+@export var dash_cooldown: float = 5.0
+
+var target_destination: Vector3 = Vector3.ZERO
+var is_moving: bool = false
+var interact_target: Node3D = null
+var camera: Camera3D = null
+var control_mode: String = "explore"
+var dash_enabled: bool = false
+var dash_remaining: float = 0.0
+var cooldown_remaining: float = 0.0
+var _stuck_time: float = 0.0
+var _pending_click: Vector2 = Vector2.ZERO
+var _has_pending_click: bool = false
+var _pending_interact: bool = false
+var _pending_dash: bool = false
+
+@onready var visual_mesh: Node3D = $VisualMesh
 
 func _ready() -> void:
 	target_destination = global_position
-	# 寻找场景中的 2.5D 相机
 	camera = get_viewport().get_camera_3d()
+	floor_snap_length = 0.3
+
+func set_control_mode(mode: String) -> void:
+	control_mode = mode
+	_cancel_destination()
+	_has_pending_click = false
+	_pending_interact = false
+	_pending_dash = false
+	velocity = Vector3.ZERO
+	if not _can_move():
+		dash_remaining = 0.0
+
+func reset_at(pos: Vector3) -> void:
+	global_position = pos
+	velocity = Vector3.ZERO
+	_cancel_destination()
+	target_destination = pos
+	_has_pending_click = false
+	_pending_interact = false
+	_pending_dash = false
+	dash_remaining = 0.0
+	cooldown_remaining = 0.0
+	if is_instance_valid(visual_mesh):
+		visual_mesh.position.y = 0.0
+		visual_mesh.rotation.z = 0.0
+	dash_state_changed.emit(dash_remaining, cooldown_remaining)
+
+func set_dash_enabled(enabled: bool) -> void:
+	dash_enabled = enabled
+	if not enabled:
+		dash_remaining = 0.0
+		cooldown_remaining = 0.0
+	dash_state_changed.emit(dash_remaining, cooldown_remaining)
+
+func _can_move() -> bool:
+	return control_mode == "explore" or control_mode == "chase"
 
 func _unhandled_input(event: InputEvent) -> void:
-	# 支持鼠标左键点击与手机/平板屏幕触摸 (Point & Click / Tap)
-	var screen_pos = Vector2.ZERO
-	var is_click = false
-
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		screen_pos = event.position
-		is_click = true
+	if not _can_move():
+		return
+	if event.is_action_pressed("action_interact") and not event.is_echo():
+		_pending_interact = true
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("action_dash") and not event.is_echo():
+		_pending_dash = true
+		get_viewport().set_input_as_handled()
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		_pending_click = event.position
+		_has_pending_click = true
 	elif event is InputEventScreenTouch and event.pressed:
-		screen_pos = event.position
-		is_click = true
+		_pending_click = event.position
+		_has_pending_click = true
 
-	if is_click and camera:
-		handle_click_or_tap(screen_pos)
-
+# Perform ray queries in the physics step, not in an input callback.
 func handle_click_or_tap(screen_pos: Vector2) -> void:
-	var from = camera.project_ray_origin(screen_pos)
-	var dir = camera.project_ray_normal(screen_pos)
-	var to = from + dir * 100.0
-
-	var space_state = get_world_3d().direct_space_state
-	var query = PhysicsRayQueryParameters3D.create(from, to)
-	# 排除自身
+	if not _can_move():
+		return
+	if not is_instance_valid(camera):
+		camera = get_viewport().get_camera_3d()
+	if camera == null:
+		return
+	var ray_from: Vector3 = camera.project_ray_origin(screen_pos)
+	var ray_to: Vector3 = ray_from + camera.project_ray_normal(screen_pos) * 200.0
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(ray_from, ray_to, 1)
 	query.exclude = [get_rid()]
-	var result = space_state.intersect_ray(query)
+	var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return
+	var collider: Node3D = hit.get("collider") as Node3D
+	if collider == null:
+		return
+	if collider.is_in_group("interactable") and control_mode == "explore":
+		interact_target = collider
+		var offset: Vector3 = global_position - collider.global_position
+		offset.y = 0.0
+		if offset.length_squared() < 0.01:
+			offset = Vector3.BACK
+		target_destination = collider.global_position + offset.normalized() * (interact_distance * 0.75)
+		target_destination.y = global_position.y
+	else:
+		var normal: Vector3 = hit.get("normal", Vector3.UP)
+		# Side faces are not walkable destinations. A blocked top-face target
+		# still expires below instead of pushing into the obstacle forever.
+		if normal.y < 0.6:
+			return
+		interact_target = null
+		var position_hit: Vector3 = hit.get("position", global_position)
+		target_destination = Vector3(position_hit.x, global_position.y, position_hit.z)
+	is_moving = true
+	_stuck_time = 0.0
+	moved_to_target.emit(target_destination)
 
-	if result:
-		var collider = result.collider
-		var hit_pos = result.position
+func get_nearest_interactable() -> Node3D:
+	if control_mode != "explore" or not is_inside_tree():
+		return null
+	var nearest: Node3D = null
+	var best_distance: float = interact_distance
+	for node: Node in get_tree().get_nodes_in_group("interactable"):
+		var candidate: Node3D = node as Node3D
+		if candidate == null or not candidate.is_visible_in_tree():
+			continue
+		if bool(candidate.get_meta("interaction_disabled", false)):
+			continue
+		var offset: Vector3 = candidate.global_position - global_position
+		if absf(offset.y) > 2.0:
+			continue
+		offset.y = 0.0
+		if offset.length() <= best_distance and _has_line_of_sight(candidate):
+			nearest = candidate
+			best_distance = offset.length()
+	return nearest
 
-		# 如果点击的是可交互对象 (NPC 或 道具)
-		if collider.is_in_group("interactable") or collider.is_in_group("npc") or collider.is_in_group("elevator_button"):
-			interact_target = collider
-			# 移动到该物体稍前一点的位置
-			var to_object = (global_position - collider.global_position).normalized()
-			target_destination = collider.global_position + to_object * interact_distance
-			target_destination.y = global_position.y
-			is_moving = true
-		else:
-			# 点击的是普通地面，自由移动
-			interact_target = null
-			target_destination = Vector3(hit_pos.x, global_position.y, hit_pos.z)
-			is_moving = true
+func _has_line_of_sight(target: Node3D) -> bool:
+	var ray_from: Vector3 = global_position + Vector3.UP * 0.6
+	var ray_to: Vector3 = target.global_position + Vector3.UP * 0.3
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(ray_from, ray_to, 1)
+	query.exclude = [get_rid()]
+	var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return true
+	var collider: Node = hit.get("collider") as Node
+	return collider == target or (collider != null and target.is_ancestor_of(collider))
 
-		moved_to_target.emit(target_destination)
+func _try_interact(target: Node3D) -> bool:
+	if not is_instance_valid(target) or control_mode != "explore":
+		return false
+	var offset: Vector3 = target.global_position - global_position
+	if absf(offset.y) > 2.0:
+		return false
+	offset.y = 0.0
+	if offset.length() > interact_distance or not _has_line_of_sight(target):
+		return false
+	_cancel_destination()
+	velocity.x = 0.0
+	velocity.z = 0.0
+	reached_interactable.emit(target)
+	return true
+
+func _cancel_destination() -> void:
+	is_moving = false
+	interact_target = null
+	_stuck_time = 0.0
+	var marker: Node3D = get_node_or_null("ClickIndicator") as Node3D
+	if marker != null:
+		marker.visible = false
+
+func _keyboard_direction() -> Vector3:
+	var axis: Vector2 = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	if axis.length_squared() < 0.001:
+		return Vector3.ZERO
+	if not is_instance_valid(camera):
+		camera = get_viewport().get_camera_3d()
+	if camera == null:
+		return Vector3(axis.x, 0.0, axis.y)
+	var right: Vector3 = camera.global_basis.x
+	var backward: Vector3 = camera.global_basis.z
+	right.y = 0.0
+	backward.y = 0.0
+	return (right.normalized() * axis.x + backward.normalized() * axis.y).limit_length(1.0)
 
 func _physics_process(delta: float) -> void:
-	if is_moving:
-		var flat_current = Vector3(global_position.x, 0, global_position.z)
-		var flat_target = Vector3(target_destination.x, 0, target_destination.z)
-		var distance = flat_current.distance_to(flat_target)
-
-		if distance <= stopping_distance:
-			# 已到达目的地
-			is_moving = false
-			velocity.x = 0
-			velocity.z = 0
-			
-			# 如果目标是可交互对象，触发交互
-			if interact_target:
-				reached_interactable.emit(interact_target)
-				interact_target = null
+	if not _can_move():
+		velocity = Vector3.ZERO
+		_update_pose(Vector3.ZERO, delta)
+		return
+	if _has_pending_click:
+		_has_pending_click = false
+		handle_click_or_tap(_pending_click)
+	if _pending_interact:
+		_pending_interact = false
+		_try_interact(get_nearest_interactable())
+		if not _can_move():
+			return
+	if _pending_dash:
+		_pending_dash = false
+		if dash_enabled and cooldown_remaining <= 0.0:
+			dash_remaining = dash_duration
+			cooldown_remaining = dash_duration + dash_cooldown
+	dash_remaining = maxf(0.0, dash_remaining - delta)
+	cooldown_remaining = maxf(0.0, cooldown_remaining - delta)
+	var move_direction: Vector3 = _keyboard_direction()
+	if move_direction.length_squared() > 0.001:
+		_cancel_destination()
+	elif is_moving:
+		if is_instance_valid(interact_target) and _try_interact(interact_target):
+			if not _can_move():
+				return
 		else:
-			# 朝目标方向平滑移动
-			var move_dir = (flat_target - flat_current).normalized()
-			velocity.x = move_toward(velocity.x, move_dir.x * move_speed, acceleration * delta)
-			velocity.z = move_toward(velocity.z, move_dir.z * move_speed, acceleration * delta)
-
-			# 沉稳的转向插值
-			var target_angle = atan2(move_dir.x, move_dir.z)
-			rotation.y = lerp_angle(rotation.y, target_angle, rotation_speed * delta)
-
-			# 红猪式绅士大叔的稳重踱步微摆动画
-			if visual_mesh:
-				var walk_step = sin(Time.get_ticks_msec() * 0.012)
-				visual_mesh.position.y = abs(walk_step) * 0.05
-				visual_mesh.rotation.z = walk_step * 0.04
-	else:
-		velocity.x = move_toward(velocity.x, 0, acceleration * delta)
-		velocity.z = move_toward(velocity.z, 0, acceleration * delta)
-		if visual_mesh:
-			visual_mesh.position.y = move_toward(visual_mesh.position.y, 0, delta * 2.0)
-			visual_mesh.rotation.z = move_toward(visual_mesh.rotation.z, 0, delta * 2.0)
-
-	# 简易重力
-	if not is_on_floor():
-		velocity.y -= 9.8 * delta
-	else:
-		velocity.y = 0
-
+			var offset: Vector3 = target_destination - global_position
+			offset.y = 0.0
+			if offset.length() <= stopping_distance:
+				_cancel_destination()
+			else:
+				move_direction = offset.normalized()
+	var speed: float = move_speed * (dash_multiplier if dash_remaining > 0.0 else 1.0)
+	velocity.x = move_toward(velocity.x, move_direction.x * speed, acceleration * delta)
+	velocity.z = move_toward(velocity.z, move_direction.z * speed, acceleration * delta)
+	velocity.y = -0.2 if is_on_floor() else velocity.y - 9.8 * delta
+	var previous_position: Vector3 = global_position
 	move_and_slide()
+	if is_moving:
+		var travelled: Vector3 = global_position - previous_position
+		travelled.y = 0.0
+		if travelled.length() < move_speed * delta * 0.12:
+			_stuck_time += delta
+		else:
+			_stuck_time = 0.0
+		if _stuck_time > 0.55:
+			_cancel_destination()
+			velocity.x = 0.0
+			velocity.z = 0.0
+	_update_pose(move_direction, delta)
+	dash_state_changed.emit(dash_remaining, cooldown_remaining)
 
-	# 物理碰撞推移 (Untitled Goose Game 式的物体物理互动)
-	for i in range(get_slide_collision_count()):
-		var collision = get_slide_collision(i)
-		var collider = collision.get_collider()
-		if collider is RigidBody3D:
-			# 施加柔和的推力，将碰到的杯子撞倒或把办公椅推开
-			var push_dir = -collision.get_normal()
-			push_dir.y = 0.2 # 带有轻微上挑，杯子更容易翻倒
-			collider.apply_impulse(push_dir.normalized() * 1.5, collision.get_position() - collider.global_position)
+func _update_pose(direction: Vector3, delta: float) -> void:
+	if direction.length_squared() > 0.001:
+		# The existing pig mesh faces -Z, so atan2 needs the negated vector.
+		rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), minf(1.0, rotation_speed * delta))
+		var walk_step: float = sin(Time.get_ticks_msec() * 0.014)
+		visual_mesh.position.y = absf(walk_step) * 0.045
+		visual_mesh.rotation.z = walk_step * 0.035
+	else:
+		visual_mesh.position.y = move_toward(visual_mesh.position.y, 0.0, delta * 0.8)
+		visual_mesh.rotation.z = move_toward(visual_mesh.rotation.z, 0.0, delta * 0.8)

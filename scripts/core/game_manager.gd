@@ -1,133 +1,106 @@
 extends Node
 
-# Global Game Manager (Autoload)
-# 管理全局角色、语言、游戏进度、主线与支线任务状态
-
+# One owner for the whitebox demo's run state. No persistence or art dependencies.
+signal state_changed
 signal character_selected(character_id: String)
 signal language_changed(language_code: String)
-signal objective_updated(quest_type: String, quest_id: String, completed: bool)
 
-enum CharacterType {
-	PIG,    # 特立独行的猪 (MVP核心唯一主角)
-	OX,     # 老黄牛 (后续篇章)
-	HORSE,  # 神秘马 (后续篇章)
-	SHEEP   # 领头羊 (后续篇章)
-}
+enum CharacterType { PIG, OX, HORSE, SHEEP }
 
-# 游戏状态
 var current_character: CharacterType = CharacterType.PIG
 var current_language: String = "zh_CN"
-var current_floor: int = 3 # 第3层
-
-# 角色解锁状态 (MVP期间仅做猪)
-var unlocked_characters = {
-	CharacterType.PIG: true,
-	CharacterType.OX: false,
-	CharacterType.HORSE: false,
-	CharacterType.SHEEP: false
+var unlocked_characters: Dictionary = {
+	CharacterType.PIG: true, CharacterType.OX: false,
+	CharacterType.HORSE: false, CharacterType.SHEEP: false
 }
 
-# 主线任务链：逃离第3层 (Main Quest)
-var main_quests = {
-	"m1_escape_box": {
-		"title": "破箱脱困",
-		"desc": "挣脱身上的吉祥物红绸带，冲破工位纸箱",
-		"completed": false
-	},
-	"m2_inspect_elevator": {
-		"title": "探明封锁",
-		"desc": "侦查电梯厅，发现需要【P8总监黑金工牌】才能下行",
-		"completed": false
-	},
-	"m3_distract_director": {
-		"title": "调虎离山",
-		"desc": "制造混乱引出风暴会议室里正在洗脑的P8总监",
-		"completed": false
-	},
-	"m4_steal_badge": {
-		"title": "顺手牵牌",
-		"desc": "潜入风暴会议室，叼走桌上的【P8总监黑金工牌】",
-		"completed": false
-	},
-	"m5_bypass_hr": {
-		"title": "突破封锁",
-		"desc": "利用茶水间制冰机与热咖啡滑倒堵在走廊的HR政委",
-		"completed": false
-	},
-	"m6_escape_elevator": {
-		"title": "电梯大逃亡",
-		"desc": "刷卡开启电梯，在追兵赶到前踏入下行电梯轿厢！",
-		"completed": false
-	}
-}
+var stage: String = "prologue"
+var has_pin: bool = false
+var npc_completed: Dictionary = {"ox": false, "sheep": false, "horse": false}
+var npc_met: Dictionary = {"ox": false, "sheep": false, "horse": false}
+var has_read_record: bool = false
+var ending: String = ""
 
-# 支线恶作剧清单：打工猪的搞事日常 (Side Quests / Mischief List)
-var side_quests = {
-	"sq_break_coffee": {
-		"title": "让程序员当场破防",
-		"desc": "把程序员的冰美式撞翻在青轴机械键盘上",
-		"completed": false
-	},
-	"sq_steal_pen": {
-		"title": "打破商业闭环",
-		"desc": "偷走产品经理画饼用的所有白板马克笔",
-		"completed": false
-	},
-	"sq_room_brawl": {
-		"title": "抢会议室修罗场",
-		"desc": "交换会议室预订门牌，引发两大部门总监当场开撕",
-		"completed": false
-	},
-	"sq_leak_salary": {
-		"title": "薪酬倒挂大白天下",
-		"desc": "撞开保密文件柜，让应届生薪酬表在中央空调风口起飞",
-		"completed": false
-	},
-	"sq_comfort_intern": {
-		"title": "整顿职场温情一击",
-		"desc": "给楼梯间偷偷哭泣的实习生叼去一包威化饼干",
-		"completed": false
-	},
-	"sq_raid_fridge": {
-		"title": "扫荡高管专享冷柜",
-		"desc": "把茶水间高管小冰箱里的瑞士卷和车厘子炫光",
-		"completed": false
-	},
-	"sq_mega_oink": {
-		"title": "发出反叛的猪叫",
-		"desc": "在全静音办公区发出最大音量的反抗之吼！",
-		"completed": false
-	}
-}
+func reset_run() -> void:
+	stage = "prologue"
+	has_pin = false
+	npc_completed = {"ox": false, "sheep": false, "horse": false}
+	npc_met = {"ox": false, "sheep": false, "horse": false}
+	has_read_record = false
+	ending = ""
+	state_changed.emit()
 
-# 搞事统计
-var stats = {
-	"oink_count": 0,
-	"chairs_pushed": 0,
-	"items_destroyed": 0,
-	"time_spent": 0.0
-}
+func choose_red() -> bool:
+	if stage != "prologue":
+		return false
+	has_pin = true
+	stage = "exploring"
+	state_changed.emit()
+	return true
 
-func _ready() -> void:
-	print("[GameManager] 《特立独行的猪》主线与支线故事系统已就绪！")
+func choose_blue() -> bool:
+	if stage != "prologue":
+		return false
+	ending = "stay"
+	stage = "ending"
+	state_changed.emit()
+	return true
 
-func complete_main_quest(quest_id: String) -> void:
-	if main_quests.has(quest_id) and not main_quests[quest_id]["completed"]:
-		main_quests[quest_id]["completed"] = true
-		objective_updated.emit("main", quest_id, true)
-		print("[MainQuest] 主线完成: ", main_quests[quest_id]["title"])
+func complete_npc(id: String) -> bool:
+	if stage != "exploring" or not npc_completed.has(id) or npc_completed[id]:
+		return false
+	if id == "horse" and not has_read_record:
+		return false
+	npc_met[id] = true
+	npc_completed[id] = true
+	state_changed.emit()
+	return true
 
-func complete_side_quest(quest_id: String) -> void:
-	if side_quests.has(quest_id) and not side_quests[quest_id]["completed"]:
-		side_quests[quest_id]["completed"] = true
-		objective_updated.emit("side", quest_id, true)
-		print("[SideQuest] 支线恶作剧达成: ", side_quests[quest_id]["title"])
+func read_record() -> void:
+	if stage != "exploring" or has_read_record:
+		return
+	has_read_record = true
+	state_changed.emit()
 
-func get_current_main_objective() -> String:
-	for q_id in ["m1_escape_box", "m2_inspect_elevator", "m3_distract_director", "m4_steal_badge", "m5_bypass_hr", "m6_escape_elevator"]:
-		if not main_quests[q_id]["completed"]:
-			return "%s: %s" % [main_quests[q_id]["title"], main_quests[q_id]["desc"]]
-	return "所有主线已完成！准备逃出生天！"
+func start_chase() -> bool:
+	if stage != "exploring" or not has_pin:
+		return false
+	stage = "chase"
+	state_changed.emit()
+	return true
+
+func retry_chase() -> bool:
+	if stage != "chase":
+		return false
+	# Completed companions and the pin survive a retry. Scene resets are external.
+	stage = "exploring"
+	state_changed.emit()
+	return true
+
+func complete_chase() -> bool:
+	if stage != "chase":
+		return false
+	stage = "showdown"
+	state_changed.emit()
+	return true
+
+func complete_showdown() -> bool:
+	if stage != "showdown":
+		return false
+	stage = "cablecar_ready"
+	state_changed.emit()
+	return true
+
+func can_launch_cablecar() -> bool:
+	return stage == "cablecar_ready" and has_pin
+
+func finish_escape() -> bool:
+	if not can_launch_cablecar():
+		return false
+	ending = "escape"
+	stage = "ending"
+	state_changed.emit()
+	return true
 
 func select_character(type: CharacterType) -> bool:
 	if not unlocked_characters.get(type, false):
@@ -137,6 +110,16 @@ func select_character(type: CharacterType) -> bool:
 	return true
 
 func set_language(lang: String) -> void:
-	if lang == "zh_CN" or lang == "en":
+	if lang in ["zh_CN", "en"]:
 		current_language = lang
 		language_changed.emit(lang)
+
+func get_current_main_objective() -> String:
+	match stage:
+		"prologue": return "与老岩羊交谈，选择你的路。"
+		"exploring": return "向下山方向探索；伙伴可选，穿过大院到铁门。"
+		"chase": return "绕开护院犬，向铁门前的出口跑！"
+		"showdown": return "靠近农场主，完成三回合意志对决。"
+		"cablecar_ready": return "铁门已开：带着铜插销走到索道站。"
+		"ending": return "本次旅程结束，可以重新开始。"
+	return ""

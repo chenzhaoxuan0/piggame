@@ -1,171 +1,371 @@
 extends Node3D
 
-# 关卡控制器：《一口猪在金牌农场》第一篇章 (英雄之旅 · 意志凝聚版)
-# 核心机制：
-# 1. 悬崖在下方，老岩羊从崖底跃上残墙，给生锈铜插销
-# 2. 向上挺进，陌生相遇并点化牛、羊、马，分别汲取【坚忍】、【温柔】与【决绝】三股意志
-# 3. 意志齐聚直面中央钟楼老张，铁头撞断高压电闸引出星空
-# 4. 索道崖口交付引水图，度化老张，木缆车滑入原野
-
+const CHASE_SCRIPT = preload("res://scripts/chase/simple_chase.gd")
 @onready var player: PigController = $Pig
-@onready var camera = $IsometricCamera
-@onready var hud = $HUD
-
-# 对话 UI 节点
-@onready var dialogue_box = $HUD/DialogueBox
-@onready var avatar_label = $HUD/DialogueBox/Margin/VBox/Header/Avatar
-@onready var speaker_label = $HUD/DialogueBox/Margin/VBox/Header/NameVBox/LabelSpeaker
-@onready var title_label = $HUD/DialogueBox/Margin/VBox/Header/NameVBox/LabelTitle
-@onready var content_label = $HUD/DialogueBox/Margin/VBox/LabelContent
-@onready var options_container = $HUD/DialogueBox/Margin/VBox/OptionsContainer
-
-@onready var objective_label = $HUD/ObjectivePanel/LabelObjective
-@onready var cablecar_cabin = $FarmEnvironment/CableCarArea/CableCarCabin
-@onready var click_indicator = $Pig/ClickIndicator
-
-# 英雄意志掌握状态 (从同伴身上学到的意志)
-var will_ox: bool = false      # 从老黄牛处学到的【坚忍之骨】
-var will_sheep: bool = false   # 从小绵羊处学到的【洞察之眸】
-var will_horse: bool = false   # 从烈马处学到的【疾风之步】
-var power_cut: bool = false
-var is_game_finished: bool = false
+@onready var camera: IsometricCamera = $IsometricCamera
+@onready var greybox: Node3D = $Greybox
+var chase: SimpleChase
+var hud: Control
+var objective: Label
+var status: Label
+var prompt: Label
+var dialogue_panel: PanelContainer
+var speaker_label: Label
+var content_label: Label
+var options: VBoxContainer
+var overlay: ColorRect
+var overlay_title: Label
+var overlay_text: Label
+var overlay_buttons: VBoxContainer
+var dialogue_open := false
+var cinematic := false
+var paused := false
+var busy := false
+var current_dialogue := ""
+var current_options: Array = []
+var pressure := 999.0
+var pin_visual: MeshInstance3D
 
 func _ready() -> void:
-	print("[Level1] 《一口猪在金牌农场》启动！")
-	
-	if player:
-		player.moved_to_target.connect(_on_player_moved_to_target)
-		player.reached_interactable.connect(_on_player_reached_interactable)
-	
-	# 开局自动弹出悬崖边老岩羊对话
-	get_tree().create_timer(0.4).timeout.connect(func():
-		open_dialogue("cliff_goat_intro")
-	)
+	GameManager.reset_run()
+	chase = CHASE_SCRIPT.new()
+	add_child(chase)
+	chase.finished.connect(_on_chase_finished)
+	chase.pressure_changed.connect(func(value: float): pressure = value)
+	player.reached_interactable.connect(_on_interact)
+	greybox.chase_entered.connect(_start_chase)
+	GameManager.state_changed.connect(_refresh_hud)
+	_build_hud()
+	_build_pin()
+	player.reset_at(greybox.get_spawn_position())
+	camera.snap_to_target()
+	_refresh_hud()
+	player.set_control_mode("dialogue")
+	await get_tree().create_timer(0.25).timeout
+	open_dialogue("cliff_goat_intro")
 
-func _on_player_moved_to_target(pos: Vector3) -> void:
-	if click_indicator:
-		click_indicator.global_position = Vector3(pos.x, 0.05, pos.z)
-		click_indicator.visible = true
-		var tween = create_tween()
-		click_indicator.scale = Vector3(0.5, 0.5, 0.5)
-		tween.tween_property(click_indicator, "scale", Vector3(1.2, 1.2, 1.2), 0.25)
-		tween.tween_property(click_indicator, "scale", Vector3.ZERO, 0.2)
-		tween.tween_callback(func(): click_indicator.visible = false)
+func _build_pin() -> void:
+	pin_visual = MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(0.55, 0.08, 0.08)
+	pin_visual.mesh = mesh
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color("c9984d")
+	pin_visual.material_override = material
+	player.get_node("VisualMesh").add_child(pin_visual)
+	pin_visual.position = Vector3(0, 0.55, -0.9)
+	pin_visual.visible = false
 
-func _on_player_reached_interactable(target: Node3D) -> void:
-	print("[Level1] 到达目标: ", target.name)
-	
-	if target.is_in_group("npc_cliff_goat"):
-		open_dialogue("cliff_goat_intro")
-	elif target.is_in_group("npc_aniu"):
-		open_dialogue("aniu_interaction")
-		will_ox = true
-		check_hero_progress()
-	elif target.is_in_group("npc_mianmian"):
-		open_dialogue("mianmian_interaction")
-		will_sheep = true
-		check_hero_progress()
-	elif target.is_in_group("npc_zhuifeng"):
-		open_dialogue("zhuifeng_interaction")
-		will_horse = true
-		check_hero_progress()
-	elif target.is_in_group("npc_laozhang") or target.is_in_group("npc_supervisor"):
-		open_dialogue("ordeal_encounter")
-		power_cut = true
-		check_hero_progress()
-	elif target.is_in_group("cablecar_button"):
-		handle_cablecar_interact()
-	elif target.is_in_group("milk_jug"):
-		if target is RigidBody3D:
-			target.apply_impulse(Vector3(0.8, 1.4, 0.6) * 2.2)
+func _style(bg: Color, border: Color = Color("52626a")) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = bg
+	style.border_color = border
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(10)
+	style.content_margin_left = 22
+	style.content_margin_right = 22
+	style.content_margin_top = 15
+	style.content_margin_bottom = 15
+	return style
 
-func check_hero_progress() -> void:
-	var wills = []
-	if will_ox: wills.append("坚忍之骨")
-	if will_sheep: wills.append("洞察之眸")
-	if will_horse: wills.append("疾风之步")
-	
-	if will_ox and will_sheep and will_horse and not power_cut:
-		objective_label.text = "🎯 三大意志已凝聚【坚忍之骨·洞察之眸·疾风之步】！向下穿行农场，击溃农场主破门！"
-	elif power_cut:
-		objective_label.text = "🌟 大铁锁已碎，大门洞开！奔赴后山索道，滑向自由旷野！"
+func _label(text_value: String, font_size: int = 18) -> Label:
+	var node := Label.new()
+	node.text = text_value
+	node.add_theme_font_size_override("font_size", font_size)
+	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return node
+
+func _button(text_value: String, callback: Callable) -> Button:
+	var button := Button.new()
+	button.text = text_value
+	button.custom_minimum_size.y = 44
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	button.pressed.connect(callback)
+	return button
+
+func _build_hud() -> void:
+	var layer := CanvasLayer.new()
+	add_child(layer)
+	hud = Control.new()
+	hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(hud)
+	var theme := Theme.new()
+	var font := SystemFont.new()
+	font.font_names = PackedStringArray(["Microsoft YaHei", "Noto Sans CJK SC", "Arial"])
+	theme.default_font = font
+	theme.default_font_size = 17
+	theme.set_color("font_color", "Label", Color("eef1e8"))
+	theme.set_stylebox("normal", "Button", _style(Color("2d3e43")))
+	theme.set_stylebox("hover", "Button", _style(Color("455b5b"), Color("d6b576")))
+	theme.set_stylebox("pressed", "Button", _style(Color("657768")))
+	theme.set_stylebox("focus", "Button", _style(Color(0, 0, 0, 0), Color("e3bd70")))
+	hud.theme = theme
+	var top := PanelContainer.new()
+	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	top.offset_left = 24
+	top.offset_right = -24
+	top.offset_top = 20
+	top.offset_bottom = 110
+	top.add_theme_stylebox_override("panel", _style(Color(0.09, 0.14, 0.16, 0.94)))
+	hud.add_child(top)
+	var top_row := HBoxContainer.new()
+	top_row.add_theme_constant_override("separation", 30)
+	top.add_child(top_row)
+	var title_column := VBoxContainer.new()
+	title_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top_row.add_child(title_column)
+	title_column.add_child(_label("一口猪在金牌农场", 25))
+	objective = _label("", 16)
+	title_column.add_child(objective)
+	var right := VBoxContainer.new()
+	top_row.add_child(right)
+	right.add_child(_label("WHITEBOX / 玩法展示  01", 15))
+	status = _label("", 15)
+	right.add_child(status)
+	prompt = _label("", 19)
+	prompt.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	prompt.offset_left = -420
+	prompt.offset_right = 420
+	prompt.offset_top = -105
+	prompt.offset_bottom = -65
+	prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hud.add_child(prompt)
+	var controls := _label("WASD / 方向键 移动    ·    E 交互    ·    鼠标点击前往    ·    Esc 暂停", 15)
+	controls.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	controls.offset_top = -46
+	controls.offset_bottom = -15
+	controls.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hud.add_child(controls)
+	dialogue_panel = PanelContainer.new()
+	dialogue_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	dialogue_panel.offset_left = 100
+	dialogue_panel.offset_right = -100
+	dialogue_panel.offset_top = -325
+	dialogue_panel.offset_bottom = -65
+	dialogue_panel.add_theme_stylebox_override("panel", _style(Color(0.08, 0.13, 0.15, 0.98), Color("a6aa86")))
+	hud.add_child(dialogue_panel)
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 12)
+	dialogue_panel.add_child(column)
+	speaker_label = _label("", 21)
+	speaker_label.add_theme_color_override("font_color", Color("e5c27e"))
+	column.add_child(speaker_label)
+	content_label = _label("", 20)
+	content_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(content_label)
+	options = VBoxContainer.new()
+	options.add_theme_constant_override("separation", 7)
+	column.add_child(options)
+	dialogue_panel.visible = false
+	overlay = ColorRect.new()
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.color = Color(0.05, 0.09, 0.11, 0.94)
+	hud.add_child(overlay)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(center)
+	var card := VBoxContainer.new()
+	card.custom_minimum_size.x = 600
+	card.add_theme_constant_override("separation", 22)
+	center.add_child(card)
+	overlay_title = _label("", 38)
+	overlay_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	card.add_child(overlay_title)
+	overlay_text = _label("", 20)
+	overlay_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	overlay_text.custom_minimum_size.x = 600
+	overlay_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	card.add_child(overlay_text)
+	overlay_buttons = VBoxContainer.new()
+	overlay_buttons.add_theme_constant_override("separation", 10)
+	card.add_child(overlay_buttons)
+	overlay.visible = false
+
+func _process(_delta: float) -> void:
+	if not is_instance_valid(prompt): return
+	prompt.visible = not dialogue_open and not overlay.visible and not cinematic
+	if GameManager.stage == "chase":
+		prompt.text = "犬队追来了！朝铁门跑，绕开扑咬。  距离 %.1fm" % pressure
 	else:
-		var status = "、".join(wills) if wills.size() > 0 else "无"
-		objective_label.text = "🎯 穿行农场下山 · 已领悟意志: [%s] · 继续寻访陌生同伴" % status
+		var target := player.get_nearest_interactable()
+		if is_instance_valid(target):
+			var id: String = str(target.get_meta("interaction_id", ""))
+			var names := {"goat": "老岩羊", "ox": "老牛", "sheep": "小羊", "horse": "追风", "farmer": "农场主", "record_board": "纪录牌", "cablecar": "索道"}
+			prompt.text = "[ E ]  " + str(names.get(id, "调查"))
+		else:
+			prompt.text = "沿着地面标记向前探索"
 
-func handle_cablecar_interact() -> void:
-	if is_game_finished:
-		return
-	is_game_finished = true
-	open_dialogue("cablecar_climax")
-	
-	if cablecar_cabin:
-		var tween = create_tween()
-		tween.tween_property(cablecar_cabin, "position", cablecar_cabin.position + Vector3(15.0, -6.0, 10.0), 3.8)
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") and not cinematic and GameManager.stage != "ending":
+		if overlay.visible and not paused: return
+		paused = not paused
+		if paused:
+			player.set_control_mode("paused")
+			chase.set_active(false)
+			_show_overlay("稍作停留", "旅程不会在暂停时继续。", [{"text": "继续旅程", "call": _resume}, {"text": "从头开始", "call": _restart}])
+		else: _resume()
+		get_viewport().set_input_as_handled()
 
-func open_dialogue(node_key: String) -> void:
-	var node_data = DialogueManager.get_dialogue_node(node_key)
-	if node_data.is_empty():
+func _resume() -> void:
+	paused = false
+	overlay.visible = false
+	chase.set_active(GameManager.stage == "chase")
+	_restore_control()
+
+func _refresh_hud() -> void:
+	if not is_instance_valid(objective): return
+	objective.text = GameManager.get_current_main_objective()
+	var dash: String = "Shift 冲刺已解锁" if GameManager.npc_completed.get("horse", false) else "伙伴可自由探索"
+	status.text = ("铜插销：已取得  /  " if GameManager.has_pin else "铜插销：未取得  /  ") + dash
+	player.set_dash_enabled(GameManager.npc_completed.get("horse", false))
+	if is_instance_valid(pin_visual): pin_visual.visible = GameManager.has_pin
+
+func _on_interact(target: Node3D) -> void:
+	if dialogue_open or overlay.visible or cinematic or GameManager.stage in ["chase", "ending"]: return
+	if not is_instance_valid(target): return
+	var id := str(target.get_meta("interaction_id", ""))
+	var entry: String = DialogueManager.get_entry_for(id)
+	if GameManager.npc_met.has(id): GameManager.npc_met[id] = true
+	if not entry.is_empty(): open_dialogue(entry)
+
+func open_dialogue(key: String) -> void:
+	var data: Dictionary = DialogueManager.get_dialogue_node(key)
+	if data.is_empty():
+		push_error("Missing dialogue: " + key)
 		close_dialogue()
 		return
+	current_dialogue = key
+	dialogue_open = true
+	player.set_control_mode("dialogue")
+	dialogue_panel.visible = true
+	speaker_label.text = str(data.get("speaker", "")) + "  /  " + str(data.get("title", ""))
+	content_label.text = str(data.get("content", ""))
+	_clear_children(options)
+	current_options = data.get("options", [])
+	for index in range(current_options.size()):
+		var option: Dictionary = current_options[index]
+		options.add_child(_button(str(option.get("text", "继续")), _select_option.bind(index)))
+	if options.get_child_count() > 0: options.get_child(0).grab_focus()
 
-	if dialogue_box:
-		dialogue_box.visible = true
-		avatar_label.text = node_data.get("avatar", "🐷")
-		speaker_label.text = node_data.get("speaker", "神秘生灵")
-		title_label.text = node_data.get("title", "")
-		content_label.text = node_data.get("content", "")
-
-		for child in options_container.get_children():
-			child.queue_free()
-
-		var options = node_data.get("options", [])
-		for opt in options:
-			var btn = Button.new()
-			btn.text = "▶ " + opt.get("text", "继续")
-			btn.custom_minimum_size = Vector2(0, 36)
-			btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-			var next_key = opt.get("next", "")
-			btn.pressed.connect(func():
-				_on_option_selected(next_key)
-			)
-			options_container.add_child(btn)
-
-func _on_option_selected(next_key: String) -> void:
-	if next_key == "":
+func _select_option(index: int) -> void:
+	if busy or index < 0 or index >= current_options.size(): return
+	busy = true
+	for button in options.get_children(): button.disabled = true
+	var option: Dictionary = current_options[index].duplicate()
+	var event_id: String = str(option.get("event", ""))
+	var ok := true
+	match event_id:
+		"choose_red":
+			ok = GameManager.choose_red()
+			if ok: greybox.set_pigpen_open(true)
+		"choose_blue":
+			ok = GameManager.choose_blue()
+			if ok:
+				close_dialogue()
+				_show_ending()
+		"complete_ox", "complete_sheep", "complete_horse":
+			var id := event_id.trim_prefix("complete_")
+			if GameManager.stage == "exploring" and not GameManager.npc_completed.get(id, false):
+				greybox.set_npc_completed(id)
+				await get_tree().create_timer(0.85).timeout
+				ok = GameManager.complete_npc(id)
+			else: ok = false
+		"read_record": GameManager.read_record()
+		"complete_showdown":
+			ok = GameManager.complete_showdown()
+			if ok: greybox.set_gate_open(true)
+		"launch_cablecar":
+			ok = GameManager.can_launch_cablecar()
+			if ok:
+				close_dialogue()
+				_launch_cablecar()
+		"": pass
+		_:
+			ok = false
+			push_error("Unknown event: " + event_id)
+	await get_tree().process_frame
+	busy = false
+	if GameManager.stage == "ending" or cinematic: return
+	if not ok:
 		close_dialogue()
-	elif next_key == "game_win":
-		close_dialogue()
-		show_end_screen("escape")
-	elif next_key == "game_ending_sty":
-		close_dialogue()
-		show_end_screen("stay")
-	else:
-		open_dialogue(next_key)
+		return
+	var next_key := str(option.get("next", ""))
+	if next_key.is_empty(): close_dialogue()
+	else: open_dialogue(next_key)
 
 func close_dialogue() -> void:
-	if dialogue_box:
-		dialogue_box.visible = false
+	dialogue_open = false
+	dialogue_panel.visible = false
+	_restore_control()
 
-func show_end_screen(ending_type: String = "escape") -> void:
-	var end_panel = $HUD/EndScreenPanel
-	if end_panel:
-		end_panel.visible = true
-		var title_label_end = end_panel.get_node_or_null("VBox/Title")
-		var quote_label_end = end_panel.get_node_or_null("VBox/Quote")
-		var author_label_end = end_panel.get_node_or_null("VBox/Author")
-		
-		if ending_type == "stay":
-			if title_label_end:
-				title_label_end.text = "🥣 【结局一：安稳的肉馅】"
-			if quote_label_end:
-				quote_label_end.text = "🏆 成就解锁：【温热的泥浆】\n\n“温热的泥浆漫过肚皮，糖蜜发酵料甜得发腻。\n山脚下的柴油运猪车很远，此刻槽里的温饱很近……\n做一头合格的肉猪，安享一宿安稳，这又何尝不是一种归宿。”\n\n猪把头深埋在泥浆中，静静等待着天明。"
-			if author_label_end:
-				author_label_end.text = "—— 体验到此结束 · 亦可重新探索红色出逃之路 ——"
-		else:
-			if title_label_end:
-				title_label_end.text = "🌾 【结局二：旷野归途】"
-			if quote_label_end:
-				quote_label_end.text = "🏆 成就解锁：【特立独行的先驱】\n\n“金牌是农场的，但命是你自己的。”\n“世上只有一种特立独行：看清了槽里的把戏，依然坦坦荡荡奔向旷野。”\n\n一口猪走出了围城；天地很大，下山见。"
-			if author_label_end:
-				author_label_end.text = "—— 感谢体验《一口猪在金牌农场》MVP 试玩版 ——"
+func _restore_control() -> void:
+	if cinematic: player.set_control_mode("cinematic")
+	elif paused: player.set_control_mode("paused")
+	elif GameManager.stage == "ending" or overlay.visible: player.set_control_mode("ending")
+	elif dialogue_open: player.set_control_mode("dialogue")
+	else: player.set_control_mode("chase" if GameManager.stage == "chase" else "explore")
+
+func _start_chase() -> void:
+	if dialogue_open or cinematic or overlay.visible: return
+	if not GameManager.start_chase(): return
+	player.set_control_mode("chase")
+	var spawns: Array[Vector3] = [Vector3(-4, 0.2, -2), Vector3(4, 0.2, -1)]
+	chase.start_chase(player, spawns, -23.0)
+
+func _on_chase_finished(success: bool) -> void:
+	if success:
+		GameManager.complete_chase()
+		chase.stop_chase()
+		player.set_control_mode("explore")
+	else:
+		player.set_control_mode("ending")
+		_show_overlay("被犬队拦住了", "再试一次。已完成的伙伴交互会保留。\n沿中央路向前，扑咬出现时向侧面让开。", [{"text": "回到大院入口重试", "call": _retry}, {"text": "从头开始", "call": _restart}])
+
+func _retry() -> void:
+	if not GameManager.retry_chase(): return
+	chase.stop_chase()
+	player.reset_at(Vector3(0, 0.1, -3.0))
+	camera.snap_to_target()
+	overlay.visible = false
+	_restore_control()
+
+func _launch_cablecar() -> void:
+	cinematic = true
+	player.set_control_mode("cinematic")
+	var cabin: Node3D = greybox.get_cablecar()
+	player.global_position = cabin.global_position + Vector3(0, 0.5, 0)
+	player.set_physics_process(false)
+	var tween := create_tween().set_parallel(true)
+	var direction := Vector3(0, 1.5, -18)
+	tween.tween_property(cabin, "position", cabin.position + direction, 4.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(player, "global_position", player.global_position + direction, 4.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	await tween.finished
+	GameManager.finish_escape()
+	cinematic = false
+	_show_ending()
+
+func _show_ending() -> void:
+	player.set_control_mode("ending")
+	if GameManager.ending == "stay":
+		_show_overlay("安稳的肉馅", "甜料很暖，明早的车还很远。\n\n你选择留在猪圈。也可以再走一次另一条路。", [{"text": "重新选择", "call": _restart}])
+	else:
+		_show_overlay("旷野归途", "金牌是农场的，但命是你自己的。\n\n白模展示结束。场景、美术与模型仍为玩法占位。", [{"text": "重新出发", "call": _restart}])
+
+func _show_overlay(title: String, body: String, buttons: Array) -> void:
+	overlay_title.text = title
+	overlay_text.text = body
+	_clear_children(overlay_buttons)
+	for item in buttons:
+		overlay_buttons.add_child(_button(item["text"], item["call"]))
+	overlay.visible = true
+	if overlay_buttons.get_child_count() > 0: overlay_buttons.get_child(0).grab_focus()
+
+func _clear_children(node: Node) -> void:
+	for child in node.get_children():
+		node.remove_child(child)
+		child.queue_free()
+
+func _restart() -> void:
+	get_tree().reload_current_scene()
