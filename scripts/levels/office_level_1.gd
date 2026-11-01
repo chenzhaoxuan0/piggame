@@ -69,7 +69,7 @@ func _on_player_reached_interactable(target: Node3D) -> void:
 		open_dialogue("zhuifeng_interaction")
 		will_horse = true
 		check_hero_progress()
-	elif target.is_in_group("npc_laozhang"):
+	elif target.is_in_group("npc_laozhang") or target.is_in_group("npc_supervisor"):
 		open_dialogue("ordeal_encounter")
 		power_cut = true
 		check_hero_progress()
@@ -86,9 +86,9 @@ func check_hero_progress() -> void:
 	if will_horse: wills.append("疾风之步")
 	
 	if will_ox and will_sheep and will_horse and not power_cut:
-		objective_label.text = "🎯 三大意志已凝聚【坚忍之骨·洞察之眸·疾风之步】！向中央红砖钟楼冲锋，撞碎高压总闸！"
+		objective_label.text = "🎯 三大意志已凝聚【坚忍之骨·洞察之眸·疾风之步】！向后山铁闸门冲锋，击溃人类主管破门！"
 	elif power_cut:
-		objective_label.text = "🌟 高压电闸已碎，星空现世！在觉醒群星注视下，奔赴最上方悬崖索道！"
+		objective_label.text = "🌟 大铁锁已碎，大门洞开！在群星注视下，奔赴最上方悬崖索道！"
 	else:
 		var status = "、".join(wills) if wills.size() > 0 else "无"
 		objective_label.text = "🎯 向上探索农庄 · 已领悟意志: [%s] · 继续寻访陌生同伴" % status
