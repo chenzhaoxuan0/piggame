@@ -5,7 +5,8 @@
  * 为什么需要这个脚本而不是直接在 .mcp.json 里写 npx：
  *  - API Key 只存在项目根的 .env（已被 .gitignore 排除），配置文件本身不含密钥，
  *    这样 .mcp.json 可以安全地提交，团队/多 Agent 每个人用自己的 .env。
- *  - 代理只在一处配置（.env 的 AHOLO_PROXY_URL），不用每个 Agent 客户端重复写。
+ *  - 区域固定 cn，走国内网关 api.aholo3d.cn，直连即可、无需代理；
+ *    仅当本机到该域名网络不通时，才在 .env 配 AHOLO_PROXY_URL 兜底（一处配置，各客户端共用）。
  *
  * 用法：
  *   node scripts/mcp/aholo-mcp.mjs            # 以 stdio 启动 MCP Server（正常用法）
@@ -50,6 +51,7 @@ if (!env.AHOLO_API_KEY) {
 }
 env.AHOLO_REGION = env.AHOLO_REGION || 'cn';
 
+// 代理为可选兜底：cn 区域直连 api.aholo3d.cn，仅当 .env 显式配置 AHOLO_PROXY_URL 时才注入。
 const proxy = env.AHOLO_PROXY_URL || '';
 if (proxy) {
   env.HTTP_PROXY = proxy;
@@ -127,7 +129,7 @@ if (!doctor) {
     const names = tools.map((t) => t.name);
 
     console.log('');
-    console.log('[aholo-mcp] 握手成功，region=' + env.AHOLO_REGION + '，proxy=' + (proxy || '(未设置)'));
+    console.log('[aholo-mcp] 握手成功，region=' + env.AHOLO_REGION + '，proxy=' + (proxy || '未启用（直连 api.aholo3d.cn）'));
     console.log('[aholo-mcp] 工具总数: ' + tools.length);
     console.log('[aholo-mcp] Lux3D 工具: ' + names.filter((n) => n.startsWith('lux3d')).join(', '));
     console.log('[aholo-mcp] World 工具: ' + names.filter((n) => n.startsWith('world')).join(', '));
