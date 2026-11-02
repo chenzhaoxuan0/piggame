@@ -12,7 +12,7 @@ config/name_localized={
 "zh_CN": "一口猪在金牌农场"
 }
 config/description="2.5D 现代田园围城寓言：悬崖边的金牌农场，一口猪的旷野突围！"
-config/version="0.3.0-art"
+config/version="0.4.0-pastoral"
 run/main_scene="res://scenes/levels/office_level_1.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 config/icon="res://icon.svg"
@@ -79,4 +79,4 @@ action_oink={
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.web="gl_compatibility"
-anti_aliasing/quality/msaa_3d=1
+anti_aliasing/quality/msaa_3d=2

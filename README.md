@@ -1,6 +1,6 @@
 # 一口猪在金牌农场
 
-Godot 4.3，版本 `0.3.0-art`。14 件核心模型、4 类环境构件、七个角色骨骼动画、头像和结局插画已接入可玩流程。
+Godot 4.3，版本 `0.4.0-pastoral`。14 件核心模型、4 类环境构件、七个角色骨骼动画、头像和结局插画已接入可玩流程。环境按概念图重构为石墙悬崖猪圈、田垄水沟、剪毛矮棚、围栏马场与农机作业院。
 
 ## 运行
 
@@ -20,11 +20,14 @@ godot --headless --path . --export-pack "Windows Art Demo" builds/windows/PigGol
 
 ## 资产与验证
 
+- [环境重构与渲染说明](docs/art/ENVIRONMENT_REBUILD.md)：场景分区、色板、着色、光照、镜头及复现命令。
+- `assets/environments/pastoral_farm.scn`：可在 Godot 中打开的烘焙环境场景；生成源为 `scripts/art/pastoral_environment.gd`。
 - [完整交付清单](docs/art/ASSET_MANIFEST.md)：任务号、尺寸、面数、动画和人工修复说明。
 - `assets/models/aholo/`：原始模型、运行时模型、预览、输入和 Blender 源文件。
 - `assets/art_references/delivery/`：实机与角色验收图。
 - `tests/scene/test_art_assets.gd`：18 件资产、骨骼运动、道具和门的状态回归。
 - `tests/scene/test_full_journey.gd`：真实渲染、正常移动、追逐、对决与双结局回归。
 - `tests/scene/test_export_pack.gd`：独立运行包的资源完整性检查。
+- `tests/scene/test_pastoral_environment.gd`：沿正常道路走访牛、羊、马并完成故事，验证新建筑碰撞与烘焙场景接入。
 
 `.env` 只供本地生成管线使用，不参与游戏运行或导出。

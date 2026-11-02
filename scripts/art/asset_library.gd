@@ -55,11 +55,10 @@ static func _flat_materials(node: Node) -> void:
 			if source:
 				var key := source.get_instance_id()
 				if not _materials.has(key):
-					var material := source.duplicate() as StandardMaterial3D
-					material.roughness = 1.0
-					material.metallic = 0.0
-					material.metallic_specular = 0.0
-					material.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
+					var material := ShaderMaterial.new()
+					material.shader = preload("res://scripts/art/pastoral_surface.gdshader")
+					material.set_shader_parameter("vertex_palette", false)
+					material.set_shader_parameter("pigment", source.albedo_color)
 					_materials[key] = material
 				mesh.set_surface_override_material(i, _materials[key])
 	for child in node.get_children(): _flat_materials(child)

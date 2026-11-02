@@ -27,5 +27,9 @@ func _run() -> void:
 	await create_timer(0.7).timeout
 	_check(game.get_node_or_null("Pig/VisualMesh/CHAR_01") != null, "packed player model mounted")
 	_check(game.get_node("Farm/Gate").find_child("GateLeft", true, false) != null, "packed gate hinged")
+	var environment: Node3D = game.get_node_or_null("Farm/PastoralEnvironment")
+	_check(environment != null and environment.get_script() == null, "authored environment is baked into the pack")
+	_check(ResourceLoader.exists("res://scripts/art/pastoral_surface.gdshader"), "pastoral shader packaged")
+	_check(game.get_node_or_null("Farm/PigpenGate/TimberGate") != null, "pigpen gate insert packaged")
 	print("EXPORTED_ART_TEST failures=%d" % failures)
 	quit(failures)

@@ -24,11 +24,13 @@ func _scan(node: Node) -> void:
 		for surface in mesh.get_surface_count():
 			var arrays := mesh.surface_get_arrays(surface)
 			triangles += arrays[Mesh.ARRAY_INDEX].size() / 3 if arrays[Mesh.ARRAY_INDEX] != null else arrays[Mesh.ARRAY_VERTEX].size() / 3
-			var material: StandardMaterial3D = node.get_active_material(surface)
+			var material := node.get_active_material(surface) as ShaderMaterial
 			_check(material != null, "surface has authored material")
-			_check(material.albedo_texture == null, "runtime palette has no baked texture noise")
-			_check(material.metallic == 0 and material.roughness == 1, "matte material")
-			_check(material.diffuse_mode == BaseMaterial3D.DIFFUSE_TOON, "Toon diffuse")
+			if material == null: continue
+			_check(material.shader.resource_path == "res://scripts/art/pastoral_surface.gdshader", "actors and scenery share pastoral lighting")
+			_check(material.get_shader_parameter("vertex_palette") == false, "model retains authored pigment")
+			var pigment: Color = material.get_shader_parameter("pigment")
+			_check(pigment.a == 1.0 and pigment.r >= 0 and pigment.r <= 1, "opaque bounded pigment without texture noise")
 	for child in node.get_children(): _scan(child)
 
 func _run() -> void:

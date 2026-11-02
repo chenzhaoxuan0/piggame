@@ -2,11 +2,11 @@ extends Camera3D
 
 class_name IsometricCamera
 
-# Orthographic greybox camera. Geometry and gameplay stay legible before final art.
+# Orthographic pastoral view: enough side view to read roofs, stonework and cliffs.
 
 @export var target_path: NodePath
 @export var smooth_speed: float = 5.0
-@export var camera_offset: Vector3 = Vector3(9.0, 15.0, 12.0)
+@export var camera_offset: Vector3 = Vector3(10.0, 10.5, 14.0)
 @export var look_ahead_factor: float = 1.5
 
 var target: Node3D = null
@@ -18,9 +18,9 @@ func _ready() -> void:
 	if not target_path.is_empty():
 		target = get_node_or_null(target_path) as Node3D
 	projection = Camera3D.PROJECTION_ORTHOGONAL
-	size = 19.0
+	size = 16.0
 	near = 0.1
-	far = 180.0
+	far = 300.0
 	current = true
 	_acquire_target()
 	if is_instance_valid(target):

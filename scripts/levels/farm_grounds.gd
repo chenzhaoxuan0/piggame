@@ -76,7 +76,48 @@ func _ready() -> void:
 	_build_gate_area()
 	_build_exit()
 	_install_art()
-	_build_wilderness_wheat()
+	_install_environment()
+
+func _install_environment() -> void:
+	# Retain gameplay roots and accepted imported models. Replace the blockout
+	# environment as one coherent architectural pass, including every boundary.
+	for child in get_children():
+		var title := String(child.get_meta("blockout_name", child.name))
+		var keep := false
+		for prefix in ["ArtCable", "CableCarLever", "Lantern", "Barrel", "CartBed", "Scarecrow", "Windmill", "Blades", "SignPost", "SignBoard", "TroughWater"]:
+			if title.begins_with(prefix): keep = true
+		_retire_environment_meshes(child, keep)
+	var environment: Node3D
+	var packed_path := "res://assets/environments/pastoral_farm.scn"
+	if ResourceLoader.exists(packed_path) and not "--rebuild-environment" in OS.get_cmdline_user_args():
+		environment = load(packed_path).instantiate()
+	else:
+		environment = preload("res://scripts/art/pastoral_environment.gd").new()
+		environment.build(self)
+	add_child(environment)
+	var gate_insert := environment.get_node("PigpenGateInsert").duplicate() as MeshInstance3D
+	gate_insert.name = "TimberGate"
+	gate_insert.show()
+	_pigpen_gate.add_child(gate_insert)
+
+func _retire_environment_meshes(node: Node, keep: bool = false) -> void:
+	if node.has_meta("asset_id"): return
+	if node is MeshInstance3D and not keep: node.hide()
+	if node is Label3D:
+		if node.name == "NameLabel":
+			node.scale = Vector3.ONE * 0.72
+			node.visibility_range_end = 24.0
+		elif node.name == "BoardText":
+			node.text = "35 秒\n春季纪录"
+			node.position = Vector3(0.2, 0.42, 0)
+			node.font_size = 24
+			node.pixel_size = 0.009
+			node.no_depth_test = true
+			node.outline_size = 2
+			node.modulate = Color("394837")
+			node.outline_modulate = Color("E1DDC5")
+		else: node.hide()
+	for child in node.get_children(): _retire_environment_meshes(child, keep)
 
 func _install_art() -> void:
 	var cabin_art := ASSETS.replace_visuals(_cabin, "PROP_01")
@@ -760,6 +801,7 @@ func _build_farmer(body: Node3D) -> void:
 func _tree(pos: Vector3, scale_factor: float) -> void:
 	var root := Node3D.new()
 	root.name = "Tree"
+	root.set_meta("environment_type", "tree")
 	root.position = pos
 	add_child(root)
 	var trunk := MeshInstance3D.new()
@@ -961,6 +1003,7 @@ func _fence(parent: Node3D, from: Vector3, to: Vector3, solid: bool = false) -> 
 	else:
 		root = Node3D.new()
 	root.name = "Fence"
+	root.set_meta("environment_type", "fence")
 	root.position = Vector3(mid.x, 0, mid.z)
 	root.rotation.y = atan2(run.x, run.z)
 	parent.add_child(root)
@@ -988,6 +1031,7 @@ func _box(parent: Node3D, node_name: String, size: Vector3, pos: Vector3, color:
 	else:
 		root = Node3D.new()
 	root.name = node_name
+	root.set_meta("blockout_name", node_name)
 	root.position = pos
 	parent.add_child(root)
 	var mesh := MeshInstance3D.new()
@@ -1016,6 +1060,7 @@ func _cylinder(parent: Node3D, node_name: String, top_radius: float, bottom_radi
 	else:
 		root = Node3D.new()
 	root.name = node_name
+	root.set_meta("blockout_name", node_name)
 	root.position = pos
 	parent.add_child(root)
 	var mesh := MeshInstance3D.new()
@@ -1040,6 +1085,7 @@ func _cylinder(parent: Node3D, node_name: String, top_radius: float, bottom_radi
 func _sphere(parent: Node3D, node_name: String, radius: float, pos: Vector3, color: Color) -> MeshInstance3D:
 	var mesh := MeshInstance3D.new()
 	mesh.name = node_name
+	mesh.set_meta("blockout_name", node_name)
 	var sphere := SphereMesh.new()
 	sphere.radius = radius
 	sphere.height = radius * 2.0
