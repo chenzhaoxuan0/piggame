@@ -2,10 +2,10 @@
 1. Zero decimation: Keep 100% of authentic G1 raw geometry (~75k-80k tris).
 2. Zero palette quantization: Keep 100% of original 2048x2048 PBR albedo texture.
 3. Zero smoothing/welding/modification: 100% pristine low-poly faceted appearance.
-4. Add standard 8-bone armature rig & weights.
-5. Add 4 standard NLA animation clips: idle, walk, run, celebrate.
-6. Ground to Y=0, face Godot -Z.
-7. Export to {cid}_game.glb and render authentic preview {cid}.png.
+4. Correct spatial orientation: Align forward direction to Blender +Y (Godot -Z).
+5. Add standard 8-bone armature rig & weights.
+6. Add 4 standard NLA animation clips: idle, walk, run, celebrate.
+7. Ground to Y=0, export to {cid}_game.glb and render authentic preview {cid}.png.
 """
 import bpy
 import json
@@ -17,6 +17,16 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 BASE = ROOT / 'assets/models/aholo'
+
+YAWS = {
+    'CHAR_01': -125,
+    'CHAR_02': 180,
+    'CHAR_03': 180,
+    'CHAR_04': -135,
+    'CHAR_05': 180,
+    'CHAR_06': 180,
+    'CHAR_07': 180,
+}
 
 HEIGHTS = {
     'CHAR_01': 1.08,
@@ -145,7 +155,7 @@ def make_armature(obj, cid, lo, hi):
     return rig
 
 def process_character(cid):
-    print(f"\nProcessing {cid} with ZERO modification + Rigging...")
+    print(f"\nProcessing {cid} with ZERO modification + Yaw alignment + Rigging...")
     folder = BASE / cid
     raw_glb = folder / f'{cid}.glb'
     game_glb = folder / f'{cid}_game.glb'
@@ -177,11 +187,16 @@ def process_character(cid):
     obj = bpy.context.object
     obj.name = cid
     
-    # ZERO DECIMATION
-    # ZERO PALETTE QUANTIZATION
-    # PRESERVE 100% ORIGINAL MATERIALS & TEXTURES
+    # 1. Rotate to face Blender +Y (Godot -Z forward)
+    yaw = YAWS.get(cid, 0)
+    if yaw != 0:
+        rot = Matrix.Rotation(math.radians(yaw), 3, 'Z')
+        for v in obj.data.vertices:
+            v.co = rot @ v.co
+        obj.data.update()
+        bpy.context.view_layer.update()
     
-    # Scale to standard character height and ground to Y=0
+    # 2. Scale to standard character height and ground to Y=0
     bounds = [Vector(c) for c in obj.bound_box]
     low = Vector(tuple(min(p[i] for p in bounds) for i in range(3)))
     high = Vector(tuple(max(p[i] for p in bounds) for i in range(3)))
@@ -193,7 +208,7 @@ def process_character(cid):
     obj.data.update()
     bpy.context.view_layer.update()
     
-    # Make Rig
+    # 3. Make Rig
     bounds = [Vector(c) for c in obj.bound_box]
     low = Vector(tuple(min(p[i] for p in bounds) for i in range(3)))
     high = Vector(tuple(max(p[i] for p in bounds) for i in range(3)))
@@ -222,7 +237,7 @@ def process_character(cid):
         export_lights=False
     )
     
-    # Render preview PNG with textured shading
+    # Render preview PNG with textured shading from front-right
     scene = bpy.context.scene
     scene.render.engine = 'BLENDER_WORKBENCH'
     scene.display.shading.light = 'STUDIO'
@@ -244,7 +259,9 @@ def process_character(cid):
     scene.collection.objects.link(cam)
     scene.camera = cam
     
-    eye = cam_center + Vector((1.5, -1.8, 1.2)) * (size / 1.5)
+    # Facing +Y, so front is +Y, right is -X, left is +X
+    # To view from front-right (showing face and right ear tag): (-1.4, 1.8, 1.0)
+    eye = cam_center + Vector((-1.4, 1.8, 1.0)) * (size / 1.5)
     cam.location = eye
     cam.rotation_euler = (cam_center - eye).to_track_quat('-Z', 'Y').to_euler()
     
