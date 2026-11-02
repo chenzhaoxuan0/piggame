@@ -18,6 +18,8 @@ var _captured: bool = false
 var _visual: Node3D
 var _warning: MeshInstance3D
 var _body_material: StandardMaterial3D
+var course: Array[Vector3] = []
+const LAYOUT = preload("res://scripts/levels/farm_layout.gd")
 
 func _ready() -> void:
 	collision_layer = 4
@@ -93,8 +95,8 @@ func _physics_process(delta: float) -> void:
 			if phase_time <= 0.0:
 				phase = "seek"
 		"seek":
-			movement = _steer_around_obstacles(to_player.normalized()) * chase_speed
-			if distance < 3.0:
+			movement = _steer_around_obstacles(_course_direction(to_player)) * chase_speed
+			if distance < 3.0 and _can_reach_player():
 				phase = "windup"
 				phase_time = windup_duration
 				_lunge_direction = to_player.normalized()
@@ -148,6 +150,20 @@ func _steer_around_obstacles(direction: Vector3) -> Vector3:
 		if global_position.x > 0.0:
 			tangent = -tangent
 	return tangent.normalized()
+
+func _course_direction(to_player: Vector3) -> Vector3:
+	if course.is_empty(): return to_player.normalized()
+	var here := LAYOUT.closest_on_path(global_position,course)
+	var there := LAYOUT.closest_on_path(target.global_position,course)
+	if here.index==there.index and _can_reach_player(): return to_player.normalized()
+	var next_index: int = mini(here.index+1,course.size()-1) if there.progress>=here.progress else here.index
+	var waypoint: Vector3 = course[next_index]
+	if global_position.distance_to(waypoint)<1.2:
+		next_index=clampi(next_index+(1 if there.progress>=here.progress else -1),0,course.size()-1)
+		waypoint=course[next_index]
+	var direction:=waypoint-global_position
+	direction.y=0
+	return direction.normalized()
 
 func _can_reach_player() -> bool:
 	# A nearby pig on the other side of cover must not be caught through it.

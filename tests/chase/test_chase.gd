@@ -62,6 +62,31 @@ func _run() -> void:
 		chase.start_chase(player, spawns)
 		_check(chase.get_child_count() == 2, "retry %d contains no old dogs" % iteration)
 		chase.stop_chase()
+	var course: Array[Vector3]=[Vector3(0,0,0),Vector3(-8,0,8),Vector3(-16,0,0),Vector3(-8,0,-8),Vector3(0,0,-4)]
+	_results.clear()
+	chase.start_course(player,spawns,course)
+	player.global_position=course[-1]
+	chase._physics_process(.016)
+	_check(_results.is_empty() and chase.course_checkpoint==0,"jumping directly to exit cannot skip course")
+	player.global_position=course[1]
+	chase.set_active(false)
+	chase._physics_process(.016)
+	_check(chase.course_checkpoint==0,"pause cannot advance course checkpoints")
+	chase.set_active(true)
+	for point in course.slice(1):
+		player.global_position=point
+		chase._physics_process(.016)
+	_check(_results.size()==1 and _results[0],"ordered curved course finishes once")
+	chase.stop_chase()
+	_check(chase.course.is_empty() and chase.course_checkpoint==0,"retry clears old checkpoint progress")
+	_results.clear()
+	chase.start_course(player,spawns,course)
+	for point in course.slice(1,-1):
+		player.global_position=point
+		chase._physics_process(.016)
+	player.global_position=course[-1]
+	chase._on_player_caught(chase._dogs[0])
+	_check(_results.size()==1 and _results[0],"course exit wins same-frame capture before manager tick")
 	world.queue_free()
 	await process_frame
 	print("CHASE CONTRACT TESTS: %s" % ("PASS" if _failures == 0 else "FAIL"))

@@ -40,7 +40,7 @@ directional_shadow_max_distance = 65.0
 [node name="Farm" parent="." instance=ExtResource("4")]
 
 [node name="Pig" parent="." instance=ExtResource("2")]
-position = Vector3(0, 0.1, 93)
+position = Vector3(0, 32.1, 100)
 
 [node name="IsometricCamera" type="Camera3D" parent="."]
 script = ExtResource("3")

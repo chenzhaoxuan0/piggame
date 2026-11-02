@@ -2,6 +2,7 @@ extends Node3D
 
 const CHASE_SCRIPT = preload("res://scripts/chase/simple_chase.gd")
 const ART_2D = preload("res://scripts/art/art_2d.gd")
+const L = preload("res://scripts/levels/farm_layout.gd")
 @onready var player: PigController = $Pig
 @onready var camera: IsometricCamera = $IsometricCamera
 @onready var farm: Node3D = $Farm
@@ -153,7 +154,7 @@ func _build_hud() -> void:
 	prompt.offset_bottom = -65
 	prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hud.add_child(prompt)
-	var controls := _label("WASD / 方向键 移动    ·    E 交互    ·    鼠标点击前往    ·    Shift 冲刺    ·    Esc 暂停", 15)
+	var controls := _label("WASD 移动  ·  空格 跳跃  ·  E 交互  ·  点击前往  ·  Shift 冲刺  ·  Esc 设置", 15)
 	controls.add_theme_color_override("font_shadow_color", Color(1, 1, 1, 0.75))
 	controls.add_theme_constant_override("shadow_offset_x", 1)
 	controls.add_theme_constant_override("shadow_offset_y", 1)
@@ -233,7 +234,7 @@ func _process(_delta: float) -> void:
 	if not is_instance_valid(prompt): return
 	prompt.visible = not dialogue_open and not overlay.visible and not cinematic
 	if GameManager.stage == "chase":
-		prompt.text = "犬队追来了！朝铁门跑，绕开扑咬。  距离 %.1fm" % pressure
+		prompt.text = "绕过草垛，沿弯道突围  %d / %d   ·   犬队 %.1f m" % [chase.course_checkpoint, L.path("chase").size()-1, pressure]
 	else:
 		var target := player.get_nearest_interactable()
 		if is_instance_valid(target):
@@ -241,7 +242,7 @@ func _process(_delta: float) -> void:
 			var names := {"goat": "老岩羊", "ox": "老牛", "sheep": "小羊", "horse": "追风", "farmer": "农场主", "record_board": "纪录牌", "cablecar": "索道"}
 			prompt.text = "[ E ]  " + str(names.get(id, "调查"))
 		else:
-			prompt.text = "沿着土路向前探索"
+			prompt.text = "沿山路下行 · 空格跳跃" + ("  /  测试高视角" if camera.test_high_view else "")
 
 func _unhandled_input(event: InputEvent) -> void:
 	if dialogue_open and not busy and not cinematic:
@@ -258,7 +259,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if paused:
 			player.set_control_mode("paused")
 			chase.set_active(false)
-			_show_overlay("稍作停留", "旅程不会在暂停时继续。", [{"text": "继续旅程", "call": _resume}, {"text": "从头开始", "call": _restart}])
+			_show_pause_settings()
 		else: _resume()
 		get_viewport().set_input_as_handled()
 
@@ -267,6 +268,16 @@ func _resume() -> void:
 	overlay.visible = false
 	chase.set_active(GameManager.stage == "chase")
 	_restore_control()
+
+func _show_pause_settings() -> void:
+	_show_overlay("稍作停留 · 设置", "空格跳跃可跨过倒木和溪桥缺口。\n默认使用近景镜头；高视角仅供地图测试。", [{"text":"继续旅程", "call":_resume}, {"text":"从头开始", "call":_restart}])
+	var toggle := CheckButton.new()
+	toggle.name = "TestHighCamera"
+	toggle.text = "测试用高视角（原高度 / 原视野）"
+	toggle.button_pressed = camera.test_high_view
+	toggle.toggled.connect(camera.set_test_high_view)
+	overlay_buttons.add_child(toggle)
+	overlay_buttons.move_child(toggle,0)
 
 func _refresh_hud() -> void:
 	if not is_instance_valid(objective): return
@@ -396,12 +407,8 @@ func _start_chase() -> void:
 	if dialogue_open or cinematic or overlay.visible: return
 	if not GameManager.start_chase(): return
 	player.set_control_mode("chase")
-	# Dogs always spawn just behind the pig, wherever it crosses into the run.
-	var spawns: Array[Vector3] = [
-		player.global_position + Vector3(-4.0, 0.15, 3.0),
-		player.global_position + Vector3(4.0, 0.15, 2.0),
-	]
-	chase.start_chase(player, spawns, farm.CHASE_EXIT_Z)
+	var spawns: Array[Vector3] = [Vector3(-24,4.2,-166),Vector3(-22.5,4.2,-165)]
+	chase.start_course(player,spawns,L.path("chase"),L.chase_course())
 
 func _on_chase_finished(success: bool) -> void:
 	if success:
@@ -416,6 +423,7 @@ func _retry() -> void:
 	if not GameManager.retry_chase(): return
 	chase.stop_chase()
 	player.reset_at(farm.RETRY_POSITION)
+	farm._checkpoint = farm.RETRY_POSITION
 	camera.snap_to_target()
 	overlay.visible = false
 	_restore_control()

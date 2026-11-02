@@ -77,9 +77,9 @@ func _run() -> void:
 	await process_frame
 	_check(farm.get_node("CableCarCabin").get_child_count() > 0, "cabin remains on moving root")
 	_check(farm.get_node("CableCarCabin/PROP_01").visible, "accepted cabin visible")
-	_check(not farm.get_node("CableCarCabin/Deck").visible, "duplicate placeholder cabin hidden")
+	_check(farm.get_node_or_null("CableCarCabin/Deck") == null, "placeholder cabin removed")
 	var ox_art := farm.get_node_or_null("NPC_ox/CHAR_03")
-	_check(farm.get_node("NPC_ox/Body").visible == (ox_art == null), "ox fallback follows accepted model availability")
+	_check(ox_art != null and ox_art.visible, "accepted ox model mounted on story body")
 	_check(get_nodes_in_group("interactable").size() == 7, "art keeps interaction roots")
 	var gate := farm.get_node("Gate")
 	var left := gate.find_child("GateLeft", true, false) as Node3D

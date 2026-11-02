@@ -83,3 +83,8 @@ Slate Grey / Mist        Loam Brown / Meadow Green / Straw Yellow    Dark Iron /
 ```text
 (worst quality, low quality:1.4), photorealistic, skin pores, hyperrealistic fur, hair noise, complex normal map, noisy textures, dirty grunge textures, micro-details, ultra-realistic, uncanny valley, cinematic film grain, neon cyberpunk, high-poly details, messy topology, human eyes on animals, clothing on animals (pants, shirts), flat 2D flash vector, blurry, text, watermark.
 ```
+
+
+### 2026-11-02 实机镜头补充
+
+正式游戏采用近景正交镜头：size=8、相对跟随点偏移 (5, 5.25, 7)。旧 size=16、偏移 (10, 10.5, 14) 仅供 Esc 设置中的测试高视角。场地总览图可另设更大视野，但必须标明测试用途。低多边形平涂色板不变；前景树冠允许局部视线开窗，避免完全遮住主角。山地场景规格见 [MOUNTAIN_MAP.md](MOUNTAIN_MAP.md)。

@@ -87,3 +87,8 @@
 - 生成任务均已完成。不要重提已有 taskId；修改模型前保留原件与输入 SHA。
 
 预览见 `assets/art_references/delivery/`。首阶段已提交为 `3cabe01`；后续完整资产、场景、测试与交付文档另作本地提交。未推送。
+
+
+## 2026-11-02 山地地图更新
+
+当前关卡是 `0.5.0-mountain`，替换了上述初次合成版本的平面直线布局。模型原件和 18 件运行资产未重生成。场地、碰撞、近景镜头、50 米直道、跳跃和曲折追逐的事实源及验收见 [MOUNTAIN_MAP.md](MOUNTAIN_MAP.md)；当前预览在 `assets/art_references/mountain_farm/`。

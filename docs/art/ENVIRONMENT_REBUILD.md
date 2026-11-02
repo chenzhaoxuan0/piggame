@@ -12,29 +12,26 @@
 
 | 环节 | 事实源 | 本轮实现 |
 | --- | --- | --- |
-| 场景结构 | `scripts/art/pastoral_environment.gd` | 分区手工几何；按 20 米空间格分批；烘焙为 `assets/environments/pastoral_farm.scn` |
+| 场景结构 | `scripts/levels/farm_layout.gd` + `scripts/art/mountain_environment.gd` | 共用道路/碰撞顶点；台地与下山路；建筑来自 `pastoral_environment.gd`；按 20 米分批，烘焙为 `assets/environments/pastoral_farm.scn` |
 | 纯色与光影 | `scripts/art/pastoral_surface.gdshader` | 无纹理、无高光；限定亮部与阴影明度，阴影带冷色；低于地表的山谷有淡灰紫空气色 |
 | 角色一致性 | `scripts/art/asset_library.gd` | 保留原模型的材质颜色，以共享 ShaderMaterial 接入相同着色；不修改 GLB 原件 |
 | 主光与阴影方向 | `scenes/levels/office_level_1.tscn` | 单一方向光；近景阴影距离 65 米；修正阴影偏移避免条纹 |
-| 构图 | `scripts/core/isometric_camera.gd` | 正交 size=16，偏移 (10, 10.5, 14)，比旧版降低俯视角，使墙、梁和悬崖侧面可见 |
+| 构图 | `scripts/core/isometric_camera.gd` | 默认正交 size=8，偏移 (5, 5.25, 7)，高度与视野各减半；Esc 设置可暂时启用旧 size=16 / (10,10.5,14) 测试镜头 |
 | 边缘 | `project.godot` | Compatibility 渲染，4× MSAA |
 
 固定美术主光下，shader 自行限定明暗幅度；太阳旋转控制投影方向。`illumination` 的两个值、冷暖 `tint`、环境源文件的颜色常量分别控制对比度、阴影色和物体配色。没有用噪声贴图、全屏滤镜或写实 PBR 增加细节。
 
 环境轮廓、土路、砌块墙、棚屋木板和梁柱、田垄、水渠、桥板、喂食架、提桶、围栏、马厩、起跑线、农机棚、树篱、麦田与崖下远景均为实几何。水面和薄雾采用纯色平面，薄雾只在谷底；当前没有体积雾或动态水面模拟。
 
-旧 `farm_grounds.gd` 继续提供故事碰撞和状态接口，其白模环境视觉隐藏；已有 Lux3D 模型保留。新增棚墙、柱子、马厩、长椅、食架和围栏有独立碰撞。屋顶剖开是明确的游戏镜头设计，保证羊棚内的交互可见。场景不是原画整图转换的模型。
+`farm_grounds.gd` 保留故事状态接口，旧直线地图、巨型平地和旧环境碰撞均已移除；已有 Lux3D 模型保留。新增棚墙、柱子、马厩、长椅、食架和围栏有独立碰撞。屋顶剖开是明确的游戏镜头设计，保证羊棚内的交互可见。场景不是原画整图转换的模型。
 
-## 验收结果
+## 当前山地版本
 
-- 状态回归 168 项、农场回归 22 项、资产回归 462 项通过。
-- 新增环境回归 32 项通过：烘焙场景加载、七个环境分区可见、建筑碰撞，以及正常键盘走访牛/羊/马并完成各自故事。
-- 渲染实机完整主线 `FULL_JOURNEY failures=0`：蓝结局、重开、主路移动、零技能追逐、三轮对决、铁门和索道红结局。
-- 独立目录中的导出 PCK 资源检查与渲染双结局完整路线均通过；包含烘焙环境、统一着色器、18 个既有运行时模型及头像/结局图；生成输入和密钥未打包。
-- 九个区域预览和一张正常 HUD 画面在 `assets/art_references/environment_v2/`。区域总览为方便检查建筑使用不同正交缩放；`10_gameplay.png` 使用正常 size=16。
-- 当前环境场景约 1.81 MiB，PCK 约 10.9 MiB。截图的引擎帧统计约 8.7–23.5 万三角面、169–354 次绘制，包含阴影和现有角色；不是跨设备帧率保证。
+详细地图规格及本轮验收见 [MOUNTAIN_MAP.md](MOUNTAIN_MAP.md)。早期平面地图的截图保留在 `environment_v2/` 作为历史参考，当前截图为 `mountain_farm/`。
 
-本机仍有已有的根证书/用户 shader 缓存权限日志；headless dummy renderer 在释放旧基础网格时产生 `Parameter m is null`，真实渲染与通关另行通过。
+八张 `normal` 截图使用真实默认 size=8；两张 `test` 总览显式扩大视野，只供看地图结构。树冠共享主光，但在前景遮挡猪时挖开一个小范围视线窗口，既保留树林遮挡，也能辨认主角。角色和土路不会被此规则剔除。
+
+本机存在根证书读取、GLES shader cache 权限日志和 headless dummy renderer 释放网格时的 `Parameter m is null`；实机渲染和通关另行验证。
 
 ## 重建与运行
 

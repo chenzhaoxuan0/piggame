@@ -1,7 +1,6 @@
 extends Node3D
-## Authored, deterministic farm architecture. Meshes are batched by district;
-## the existing farm owns story bodies, barriers and interaction state.
-## Run build_environment.gd to bake this source into pastoral_farm.scn.
+## Reusable pastoral architecture and palette mesh primitives.
+## mountain_environment.gd places these modules on the shared mountain layout.
 
 const GRASS := Color("879B60")
 const MEADOW := Color("95A96A")
@@ -29,25 +28,6 @@ var _district := "Landscape"
 var _rng := RandomNumberGenerator.new()
 var _material: ShaderMaterial
 var _farm: Node3D
-
-func build(farm: Node3D) -> void:
-	_farm = farm
-	_rng.seed = 4701
-	name = "PastoralEnvironment"
-	set_meta("source", "Authored modular environment from ENV_01/03/04/05 concepts")
-	_material = ShaderMaterial.new()
-	_material.shader = preload("res://scripts/art/pastoral_surface.gdshader")
-	_landscape()
-	_rebuild_fences()
-	_pigpen()
-	_fields()
-	_shearing()
-	_racecourse()
-	_workyard()
-	_gate_and_station()
-	_vegetation()
-	_flush()
-	_farm = null
 
 func _tool(point: Vector3) -> SurfaceTool:
 	var key := "%s_%d_%d" % [_district, floori(point.x / 20), floori(point.z / 20)]
@@ -234,96 +214,6 @@ func _collider(label: String, p: Vector3, size: Vector3) -> void:
 	shape.shape = box
 	body.add_child(shape)
 	add_child(body)
-
-func _landscape() -> void:
-	_district = "MeadowAndLanes"
-	# The narrow summit widens into agricultural land. No rectangular zone tiles.
-	var outline := [Vector2(-11, 104), Vector2(10, 104), Vector2(12, 99), Vector2(10, 86), Vector2(8, 80), Vector2(9, 73), Vector2(47, 69), Vector2(49, 40), Vector2(47, 10), Vector2(48, -30), Vector2(47, -85), Vector2(33, -99), Vector2(22, -109), Vector2(-23, -109), Vector2(-47, -93), Vector2(-48, -40), Vector2(-48, 4), Vector2(-47, 39), Vector2(-48, 69), Vector2(-10, 73), Vector2(-8, 84), Vector2(-12, 97)]
-	var flat := PackedVector2Array(outline)
-	for x in range(-60, 60, 20):
-		for z in range(-120, 120, 20):
-			var cell := PackedVector2Array([Vector2(x, z), Vector2(x + 20, z), Vector2(x + 20, z + 20), Vector2(x, z + 20)])
-			for polygon in Geometry2D.intersect_polygons(flat, cell):
-				var indices := Geometry2D.triangulate_polygon(polygon)
-				for i in range(0, indices.size(), 3):
-					var a: Vector2 = polygon[indices[i]]
-					var b: Vector2 = polygon[indices[i + 1]]
-					var c: Vector2 = polygon[indices[i + 2]]
-					_tri(Vector3(a.x, 0.012, a.y), Vector3(b.x, 0.012, b.y), Vector3(c.x, 0.012, c.y), GRASS, Vector3.UP)
-	_district = "CliffFaces"
-	for i in outline.size():
-		var a: Vector2 = outline[i]
-		var b: Vector2 = outline[(i + 1) % outline.size()]
-		var top_a := Vector3(a.x, 0.01, a.y)
-		var top_b := Vector3(b.x, 0.01, b.y)
-		var midpoint := (top_a + top_b) * 0.5
-		var outward := Vector3(midpoint.x, 0, midpoint.z + 3).normalized()
-		var bottom_a := top_a + outward * 3.0 - Vector3.UP * 13.0
-		var bottom_b := top_b + outward * 3.0 - Vector3.UP * 13.0
-		var knee := midpoint + outward * 1.1 - Vector3.UP * 5.5
-		_tri(top_a, top_b, knee, ROCK.lightened(0.06 if i % 3 == 0 else 0), outward)
-		_tri(top_a, knee, bottom_a, ROCK.darkened(0.06), outward)
-		_tri(knee, bottom_b, bottom_a, ROCK.darkened(0.13), outward)
-		_tri(top_b, bottom_b, knee, ROCK, outward)
-	_district = "MeadowAndLanes"
-	# Broad quiet grass masses around worked land; never camouflage travel paths.
-	for p in [Vector3(-27, .024, 45), Vector3(25, .024, 52), Vector3(27, .024, 6), Vector3(-25, .024, -28), Vector3(27, .024, -68)]:
-		_patch(p, Vector2(18, 16), MEADOW, 22, .08)
-	var lane: Array[Vector3] = []
-	for i in 51: lane.append(Vector3(sin(i * .9) * .22, .042, 87 - i * 3.85))
-	_ribbon(lane, 3.5, PATH)
-	_ribbon([Vector3(0, .05, 58), Vector3(-5, .05, 53), Vector3(-10, .05, 49), Vector3(-26, .05, 40)], 2.3, PATH)
-	_ribbon([Vector3(0, .05, 13), Vector3(-6, .05, 12), Vector3(-12, .05, 10)], 2.4, PATH)
-	_ribbon([Vector3(0, .05, -21), Vector3(5, .05, -24), Vector3(8, .05, -28)], 2.6, PATH)
-	# Far valley: desaturated silhouettes below the summit.
-	_district = "ValleyAndHorizon"
-	_patch(Vector3(0, -18, 25), Vector2(230, 240), Color("ABB8BA"), 32, .05)
-	for i in 16:
-		var x := -88.0 if i % 2 == 0 else 82.0
-		_boulder(Vector3(x + sin(i) * 16, -13, 110 - i * 15), Vector3(33, 12, 24), Color("94A6A3").lerp(Color("B9BBC1"), float(i % 4) * .16), i)
-	for i in 8:
-		_boulder(Vector3(22 + i * 8, -10, 113 + i * 4), Vector3(15, 7, 9), Color("B8B6C1"), i)
-		_patch(Vector3(19 + i * 9, -6.8, 112 + i * 6), Vector2(17, 5), Color("D4CDCA"), 24, .08)
-	# Mist banks at the base of the summit establish the drop without hiding play.
-	for i in 10:
-		for side in [-1, 1]:
-			_patch(Vector3(side * (17 + sin(i) * 5), -5.8 - i * .2, 77 + i * 4), Vector2(10, 4.8), Color("CDC7CB").lerp(Color("B6BDC5"), float(i % 3) * .15), 22, .07)
-
-func _rebuild_fences() -> void:
-	# Use the actual collision transforms, so visible limits agree with physics.
-	for child in _farm.get_children():
-		if not child is StaticBody3D or child.get_meta("environment_type", "") != "fence": continue
-		var collision: CollisionShape3D
-		for shape in child.get_children():
-			if shape is CollisionShape3D: collision = shape
-		if collision == null or not collision.shape is BoxShape3D: continue
-		var length: float = collision.shape.size.z
-		var a: Vector3 = child.transform * Vector3(0, 0, -length * .5)
-		var b: Vector3 = child.transform * Vector3(0, 0, length * .5)
-		var center: Vector3 = (a + b) * .5
-		if center.z > 100 and length > 30: continue
-		_district = "FieldBoundaries" if center.z < 70 else "SummitBoundaries"
-		if center.z > 85 and absf(center.x) < 12 and length < 25:
-			if center.x < -8 or center.z > 99:
-				_stone_wall(a, b, .68, .55)
-				_fence(a + Vector3.UP * .25, b + Vector3.UP * .25, WOOD, .95)
-			else:
-				_stone_wall(a, b, .68, .50)
-		elif center.z > 70 and absf(center.x) < 10:
-			_fence(a, b, WOOD, 1.05)
-			_hedge(a + Vector3(signf(center.x) * .7, 0, 0), b + Vector3(signf(center.x) * .7, 0, 0), .7)
-		elif center.z > 70:
-			continue # no white rectangle floating outside the summit
-		elif center.z > -38 and center.z < -18 and center.x > 4 and center.x < 30 and length < 12:
-			_fence(a, b, CREAM, 1.2)
-		else:
-			_fence(a, b, WOOD_DARK, 1.0)
-			_hedge(a, b, .95 if absf(center.x) < 10 else 1.2)
-	# Each traversal opening has proper wooden gateposts instead of white blocks.
-	for z in [70, 38, 24, -2, -16, -40, -54]:
-		for x in [-2.5, 2.5]:
-			_box(Vector3(x, .73, z), Vector3(.5, 1.46, .5), WOOD)
-			_box(Vector3(x, 1.49, z), Vector3(.55, .10, .55), WOOD_LIGHT)
 
 func _pigpen() -> void:
 	_district = "PigpenStoneAndMud"
@@ -513,36 +403,6 @@ func _pond(p: Vector3) -> void:
 		_patch(p + Vector3(sin(i * 4) * 4.8, .065, cos(i * 4) * 3.5), Vector2(.42, .28), LEAF_LIGHT, 9, .08)
 		_box(p + Vector3(sin(i * 3) * 4.8, .071, cos(i * 3) * 3.5), Vector3(.65, .01, .028), Color("B1CBC0"))
 
-func _racecourse() -> void:
-	_district = "HorsePaddockAndTrack"
-	var p := Vector3(16, 0, -28)
-	_patch(p + Vector3.UP * .045, Vector2(14.0, 9.3), Color("B79B75"), 64, 0)
-	_patch(p + Vector3.UP * .055, Vector2(10.6, 6.4), MEADOW, 64, 0)
-	# Thin worn running lines and a cream starting line.
-	for radius in [Vector2(13.35, 8.75), Vector2(11.5, 7.3)]:
-		for i in 64:
-			var a := TAU * i / 64
-			var b := TAU * (i + 1) / 64
-			var first := p + Vector3(cos(a) * radius.x, .062, sin(a) * radius.y)
-			var second := p + Vector3(cos(b) * radius.x, .062, sin(b) * radius.y)
-			_ribbon([first, second], .07, PATH)
-	_box(p + Vector3(0, .07, 7.9), Vector3(.18, .01, 2.5), CREAM)
-	for x in [-.5, .5]:
-		_box(p + Vector3(x, .07, 7.9), Vector3(.05, .01, 2.5), CREAM)
-	_barn(Vector3(31.5, 0, -24.5), Vector3(5.5, 2.8, 4.8))
-	# Entry bunting sits north of the existing enclosure, outside its approach.
-	for x in [8, 23]: _box(Vector3(x, 1.95, -17.8), Vector3(.14, 3.9, .14), WOOD_DARK)
-	for i in 17:
-		var x := 8.2 + i * .85
-		var y := 3.7 - sin(float(i) / 16 * PI) * .45
-		_tri(Vector3(x, y, -17.8), Vector3(x + .65, y - .04, -17.8), Vector3(x + .32, y - .65, -17.8), RED if i % 2 == 0 else CREAM, Vector3.BACK)
-		_tri(Vector3(x + .65, y - .04, -17.8), Vector3(x, y, -17.8), Vector3(x + .32, y - .65, -17.8), RED if i % 2 == 0 else CREAM, Vector3.FORWARD)
-	_bench(Vector3(30, 0, -33))
-	_feed_rack(Vector3(30.5, 0, -20), 2.8)
-	_bucket(Vector3(29, .02, -21))
-	for i in 14: _tuft(p + Vector3(sin(i * 2) * 7.5, .07, cos(i * 2) * 4), .4)
-	for q in [Vector3(5, .07, -34), Vector3(28, .07, -20), Vector3(30, .07, -36)]: _flowers(q, 12)
-
 func _bench(p: Vector3) -> void:
 	for i in 3: _box(p + Vector3(0, .65, (i - 1) * .20), Vector3(2.3, .10, .18), WOOD)
 	for i in 2: _box(p + Vector3(0, 1.0 + i * .24, -.37), Vector3(2.3, .18, .10), WOOD)
@@ -550,90 +410,15 @@ func _bench(p: Vector3) -> void:
 		for z in [-.25, .25]: _box(p + Vector3(x, .33, z), Vector3(.10, .66, .10), IRON)
 	_collider("Bench", p + Vector3(0, .6, 0), Vector3(2.3, 1.2, .7))
 
-func _workyard() -> void:
-	_district = "FarmWorkingYard"
-	_patch(Vector3(0, .048, -70), Vector2(19, 15), Color("AD9F7B"), 24, .09)
-	_ribbon([Vector3(0, .06, -54), Vector3(.15, .06, -69), Vector3(0, .06, -85)], 4.2, PATH)
-	for x in [-1.1, 1.1]: _ribbon([Vector3(x, .065, -56), Vector3(x + .1, .065, -68), Vector3(x, .065, -81)], .22, Color("96886C"))
-	_barn(Vector3(-27, 0, -65), Vector3(9, 4.0, 7))
-	# Open equipment shelter behind the tractor, broad enough to read as a farm.
-	for x in [-21, -13]:
-		for z in [-74, -66]:
-			_box(Vector3(x, 1.7, z), Vector3(.25, 3.4, .25), WOOD_DARK)
-			_collider("EquipmentPost", Vector3(x, 1.7, z), Vector3(.25, 3.4, .25))
-	_quad(Vector3(-22, 3.5, -75), Vector3(-12, 3.5, -75), Vector3(-12, 3.2, -65), Vector3(-22, 3.2, -65), ROOF, Vector3.UP)
-	for x in [-21, -17, -13]: _beam(Vector3(x, 3.47, -74), Vector3(x, 3.2, -66), .14, .18, WOOD_DARK)
-	for z in [-74, -66]: _beam(Vector3(-21, 3.4, z), Vector3(-13, 3.4, z), .2, .2, WOOD)
-	# Grazing fields flank the work lane; low vegetation keeps chase readable.
-	for x in [22, 30, 38]:
-		for z in [-59, -68, -78]:
-			_patch(Vector3(x, .05, z), Vector2(4, 3.0), MEADOW, 14, .12)
-			for i in 8: _tuft(Vector3(x + sin(i * 4) * 3, .06, z + cos(i * 4) * 2), .42)
-	_fence(Vector3(18, 0, -55), Vector3(18, 0, -80), WOOD, 1.1)
-	_collider("PastureFence", Vector3(18, .55, -67.5), Vector3(.3, 1.1, 25))
-
-func _gate_and_station() -> void:
-	_district = "StoneGatewayAndCableStation"
-	_patch(Vector3(0, .051, -88), Vector2(12, 4.5), Color("ABA58F"), 20, .07)
-	_stone_wall(Vector3(-45.8, 0, -90), Vector3(-3.2, 0, -90), 1.75, .7)
-	_stone_wall(Vector3(3.2, 0, -90), Vector3(45.8, 0, -90), 1.75, .7)
-	for x in [-2.85, 2.85]:
-		for i in 7: _box(Vector3(x, .18 + i * .36, -90), Vector3(.9, .34, .9), STONE.lightened(float(i % 2) * .07))
-		_box(Vector3(x, 2.62, -90), Vector3(1.13, .18, 1.13), STONE_LIGHT)
-	_patch(Vector3(0, .05, -100), Vector2(12, 7.5), Color("9B9C87"), 20, .13)
-	_ribbon([Vector3(0, .07, -91), Vector3(-.5, .07, -98), Vector3(0, .07, -104)], 3.3, PATH)
-	for i in 16:
-		var z := -96 - i * .55
-		_box(Vector3(0, .08, z), Vector3(3.7, .12, .51), WOOD.lerp(WOOD_LIGHT, float(i % 3) * .14))
-	for x in [-2.1, 2.1]: _fence(Vector3(x, 0, -99), Vector3(x, 0, -104), WOOD_DARK)
-	for x in [-8, 7]:
-		_boulder(Vector3(x, -.1, -106), Vector3(3, 1.4, 2.3), ROCK, x)
-	# Golden farmland opens out beyond the final cliff.
-	_district = "GoldenWilderness"
-	_patch(Vector3(0, -7.0, -143), Vector2(70, 31), Color("C8A662"), 32, .06)
-	for row in 36:
-		var z := -117.0 - row * .95
-		for col in 92:
-			var x := -48.0 + col * 1.05 + sin(row * 4 + col) * .32
-			var p := Vector3(x, -7, z)
-			var h := .9 + sin(col + row) * .10
-			for dx in [-.15, .12]:
-				_tri(p + Vector3(dx - .03, 0, 0), p + Vector3(dx + .03, 0, 0), p + Vector3(dx + .12, h, 0), STRAW, Vector3.BACK)
-				_quad(p + Vector3(dx + .04, h - .08, 0), p + Vector3(dx + .20, h - .08, 0), p + Vector3(dx + .15, h + .30, 0), p + Vector3(dx + .09, h + .30, 0), Color("D6B45D"), Vector3.BACK)
-	for i in 7:
-		_boulder(Vector3(-70 + i * 24, -6, -173 - (i % 2) * 12), Vector3(25, 17, 16), Color("8E9B93").lerp(Color("AAB4B2"), float(i % 3) * .2), i)
-
 func _flowers(p: Vector3, count: int) -> void:
 	for i in count:
 		var q := p + Vector3(sin(i * 8.6) * 1.1, 0, cos(i * 5.2) * 1.0)
 		_tuft(q, .32, LEAF_LIGHT)
 		_patch(q + Vector3.UP * (.27 + (i % 3) * .03), Vector2(.11, .11), CREAM if i % 4 else STRAW, 6, .08)
 
-func _vegetation() -> void:
-	_district = "OrchardsAndWildEdges"
-	# Rebuild the pre-existing tree bodies at their exact positions.
-	for child in _farm.get_children():
-		if child is Node3D and child.get_meta("environment_type", "") == "tree":
-			var p: Vector3 = child.position
-			if p.z > 70 and absf(p.x) > 15: continue
-			if p.z < -110: continue
-			_tree(p, .9 if absf(p.x) < 12 else 1.2)
-	for i in 220:
-		var z := _rng.randf_range(-85, 68)
-		var x := _rng.randf_range(4, 44) * (-1 if i % 2 else 1)
-		# Keep the worked field, roofs, race surface, and main lane clean.
-		if x < -6 and z > 39 and z < 69: continue
-		if x < -8 and z > 5 and z < 15: continue
-		if x > 2 and z > -38 and z < -18: continue
-		_tuft(Vector3(x, .06, z), _rng.randf_range(.30, .65))
-	for z in [79, 74, 35, 28, -6, -12, -44, -49]:
-		for x in [-4.9, 4.9]:
-			_flowers(Vector3(x, .06, z), 7)
-	for q in [Vector3(-7, 0, 81), Vector3(7, 0, 76), Vector3(12, 0, 16), Vector3(-25, 0, 21), Vector3(31, 0, -40), Vector3(-20, 0, -82)]:
-		_boulder(q + Vector3(0, .45, 0), Vector3(1.3, 1.0, .8), STONE, q.z)
-		for i in 6: _tuft(q + Vector3(sin(i) * 1.4, .06, cos(i) * .9), .55)
-
 func _flush() -> void:
+	var canopy_material:=_material.duplicate() as ShaderMaterial
+	canopy_material.set_shader_parameter("canopy_cutout",true)
 	for key in _batches:
 		var mesh := MeshInstance3D.new()
 		mesh.name = key
@@ -644,7 +429,9 @@ func _flush() -> void:
 			var golden_material := _material.duplicate() as ShaderMaterial
 			golden_material.set_shader_parameter("valley_haze_enabled", false)
 			mesh.material_override = golden_material
-		if String(key).begins_with("MeadowAndLanes") or String(key).begins_with("ValleyAndHorizon") or String(key).begins_with("Ground_"):
+		if String(key).begins_with("TreeCanopies"):
+			mesh.material_override=canopy_material
+		if String(key).begins_with("MountainSlopes") or String(key).begins_with("ValleyAndHorizon") or String(key).begins_with("Ground_"):
 			mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mesh)
 	_batches.clear()

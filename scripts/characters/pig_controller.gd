@@ -27,6 +27,12 @@ var _pending_click: Vector2 = Vector2.ZERO
 var _has_pending_click: bool = false
 var _pending_interact: bool = false
 var _pending_dash: bool = false
+var _jump_buffer := 0.0
+var _coyote_time := 0.0
+var jumps := 0
+var _click_route: Array[Vector3] = []
+const JUMP_SPEED := 5.8
+const GRAVITY := 18.0
 
 @onready var visual_mesh: Node3D = $VisualMesh
 
@@ -42,6 +48,8 @@ func set_control_mode(mode: String) -> void:
 	_has_pending_click = false
 	_pending_interact = false
 	_pending_dash = false
+	_jump_buffer = 0.0
+	_coyote_time = 0.0
 	velocity = Vector3.ZERO
 	if not _can_move():
 		dash_remaining = 0.0
@@ -54,6 +62,8 @@ func reset_at(pos: Vector3) -> void:
 	_has_pending_click = false
 	_pending_interact = false
 	_pending_dash = false
+	_jump_buffer = 0.0
+	_coyote_time = 0.0
 	dash_remaining = 0.0
 	cooldown_remaining = 0.0
 	if is_instance_valid(visual_mesh):
@@ -79,6 +89,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("action_dash") and not event.is_echo():
 		_pending_dash = true
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("action_jump") and not event.is_echo():
+		_jump_buffer = .16
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		_pending_click = event.position
@@ -112,7 +125,6 @@ func handle_click_or_tap(screen_pos: Vector2) -> void:
 		if offset.length_squared() < 0.01:
 			offset = Vector3.BACK
 		target_destination = collider.global_position + offset.normalized() * (interact_distance * 0.75)
-		target_destination.y = global_position.y
 	else:
 		var normal: Vector3 = hit.get("normal", Vector3.UP)
 		# Side faces are not walkable destinations. A blocked top-face target
@@ -121,7 +133,12 @@ func handle_click_or_tap(screen_pos: Vector2) -> void:
 			return
 		interact_target = null
 		var position_hit: Vector3 = hit.get("position", global_position)
-		target_destination = Vector3(position_hit.x, global_position.y, position_hit.z)
+		target_destination = position_hit
+	_click_route.clear()
+	var world := get_tree().get_first_node_in_group("farm_world")
+	if world and world.has_method("click_path"):
+		_click_route = world.click_path(global_position, target_destination)
+		if not _click_route.is_empty(): target_destination = _click_route.pop_front()
 	is_moving = true
 	_stuck_time = 0.0
 	moved_to_target.emit(target_destination)
@@ -173,6 +190,7 @@ func _try_interact(target: Node3D) -> bool:
 	return true
 
 func _cancel_destination() -> void:
+	_click_route.clear()
 	is_moving = false
 	interact_target = null
 	_stuck_time = 0.0
@@ -225,13 +243,22 @@ func _physics_process(delta: float) -> void:
 			var offset: Vector3 = target_destination - global_position
 			offset.y = 0.0
 			if offset.length() <= stopping_distance:
-				_cancel_destination()
+				if not _click_route.is_empty(): target_destination = _click_route.pop_front()
+				else: _cancel_destination()
 			else:
 				move_direction = offset.normalized()
 	var speed: float = move_speed * (dash_multiplier if dash_remaining > 0.0 else 1.0)
 	velocity.x = move_toward(velocity.x, move_direction.x * speed, acceleration * delta)
 	velocity.z = move_toward(velocity.z, move_direction.z * speed, acceleration * delta)
-	velocity.y = -0.2 if is_on_floor() else velocity.y - 9.8 * delta
+	_coyote_time = .1 if is_on_floor() else maxf(0.0, _coyote_time-delta)
+	_jump_buffer = maxf(0.0, _jump_buffer-delta)
+	if _jump_buffer>0 and _coyote_time>0:
+		velocity.y=JUMP_SPEED
+		_jump_buffer=0
+		_coyote_time=0
+		jumps+=1
+	else:
+		velocity.y = -0.2 if is_on_floor() else velocity.y - GRAVITY * delta
 	var previous_position: Vector3 = global_position
 	move_and_slide()
 	if is_moving:

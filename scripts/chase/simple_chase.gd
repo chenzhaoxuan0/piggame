@@ -11,6 +11,29 @@ var active: bool = false
 var _player: Node3D = null
 var _exit_z: float = -23.0
 var _dogs: Array[ChaseDog] = []
+var course: Array[Vector3] = []
+var course_checkpoint := 0
+
+func start_course(player: Node3D, spawns: Array[Vector3], points: Array[Vector3], pursuit_path: Array[Vector3] = []) -> void:
+	start_chase(player, spawns, -INF)
+	course = points.duplicate()
+	course_checkpoint = 0
+	for dog in _dogs:
+		dog.course = course if pursuit_path.is_empty() else pursuit_path
+		dog.chase_speed = 4.1
+
+func fail_course() -> void:
+	if running and active: _finish(false)
+
+func _at_exit() -> bool:
+	if not is_instance_valid(_player): return false
+	if course.is_empty(): return _player.global_position.z <= _exit_z
+	return course_checkpoint >= course.size()-1 and _player.global_position.distance_to(course[-1]) < 3.0
+
+func _update_course_progress() -> void:
+	if not course.is_empty() and course_checkpoint < course.size()-1 and is_instance_valid(_player):
+		if _player.global_position.distance_to(course[course_checkpoint+1]) < 3.8:
+			course_checkpoint += 1
 
 func start_chase(player: Node3D, spawn_positions: Array[Vector3], exit_z: float = -23.0) -> void:
 	stop_chase()
@@ -34,6 +57,8 @@ func start_chase(player: Node3D, spawn_positions: Array[Vector3], exit_z: float 
 		dog.configure(player, 0.75 + index * 0.4)
 
 func stop_chase() -> void:
+	course.clear()
+	course_checkpoint = 0
 	running = false
 	active = false
 	_player = null
@@ -56,7 +81,8 @@ func _physics_process(_delta: float) -> void:
 	if not is_instance_valid(_player):
 		stop_chase()
 		return
-	if _player.global_position.z <= _exit_z:
+	_update_course_progress()
+	if _at_exit():
 		_finish(true)
 		return
 	var nearest: float = 999.0
@@ -70,7 +96,8 @@ func _physics_process(_delta: float) -> void:
 func _on_player_caught(dog: ChaseDog) -> void:
 	if running and active and _dogs.has(dog):
 		# Crossing the exit and a dog callback in the same frame favors escape.
-		_finish(is_instance_valid(_player) and _player.global_position.z <= _exit_z)
+		_update_course_progress()
+		_finish(_at_exit())
 
 func _finish(success: bool) -> void:
 	if not running:
