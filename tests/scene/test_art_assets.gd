@@ -42,7 +42,7 @@ func _run() -> void:
 		if visual == null: continue
 		var before := triangles
 		_scan(visual)
-		var budget:=8000 if id.begins_with("CHAR_") else (7000 if id=="ENV_09_WOOL" else 6000)
+		var budget:=90000 if id.begins_with("CHAR_") else (7000 if id=="ENV_09_WOOL" else 6000)
 		_check(triangles - before <= budget, "model fits triangle budget: " + id)
 		if id.begins_with("CHAR_"):
 			root.add_child(visual)

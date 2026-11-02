@@ -2,6 +2,8 @@ shader_type spatial;
 render_mode specular_disabled, ambient_light_disabled;
 uniform bool vertex_palette = true;
 uniform vec4 pigment = vec4(1.0);
+uniform bool use_texture = false;
+uniform sampler2D albedo_texture : source_color, filter_linear_mipmap;
 uniform bool valley_haze_enabled = true;
 uniform bool canopy_cutout = false;
 uniform vec3 player_focus = vec3(0.0,32.7,100.0);
@@ -24,7 +26,7 @@ void fragment() {
 		}
 	}
 	float valley_haze = valley_haze_enabled ? clamp((-world_position.y - 2.0) / 18.0, 0.0, 0.75) : 0.0;
-	vec3 base = vertex_palette ? COLOR.rgb : pigment.rgb;
+	vec3 base = use_texture ? (texture(albedo_texture, UV).rgb * pigment.rgb) : (vertex_palette ? COLOR.rgb : pigment.rgb);
 	ALBEDO = mix(base, vec3(0.73, 0.73, 0.79), valley_haze);
 	ROUGHNESS = 1.0;
 }

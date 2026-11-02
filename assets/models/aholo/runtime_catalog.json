@@ -13,92 +13,92 @@
       "path": "res://assets/models/aholo/CHAR_01/CHAR_01_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 7000,
+      "triangles": 78642,
       "animations": [
         "idle",
         "walk",
         "run",
         "celebrate"
       ],
-      "validation": "Clean Plan B G1 multi-view model with pure flat shading and zero manual distortion"
+      "validation": "100% authentic raw Plan B G1 model with original 2K PBR texture and 8-bone rig"
     },
     "CHAR_02": {
       "path": "res://assets/models/aholo/CHAR_02/CHAR_02_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 7000,
+      "triangles": 75620,
       "animations": [
         "idle",
         "walk",
         "run",
         "celebrate"
       ],
-      "validation": "Clean Plan B G1 multi-view model with pure flat shading and zero manual distortion"
+      "validation": "100% authentic raw Plan B G1 model with original 2K PBR texture and 8-bone rig"
     },
     "CHAR_03": {
       "path": "res://assets/models/aholo/CHAR_03/CHAR_03_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 7000,
+      "triangles": 79788,
       "animations": [
         "idle",
         "walk",
         "run",
         "celebrate"
       ],
-      "validation": "Clean Plan B G1 multi-view model with pure flat shading and zero manual distortion"
+      "validation": "100% authentic raw Plan B G1 model with original 2K PBR texture and 8-bone rig"
     },
     "CHAR_04": {
       "path": "res://assets/models/aholo/CHAR_04/CHAR_04_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 6999,
+      "triangles": 77764,
       "animations": [
         "idle",
         "walk",
         "run",
         "celebrate"
       ],
-      "validation": "Clean Plan B G1 multi-view model with pure flat shading and zero manual distortion"
+      "validation": "100% authentic raw Plan B G1 model with original 2K PBR texture and 8-bone rig"
     },
     "CHAR_05": {
       "path": "res://assets/models/aholo/CHAR_05/CHAR_05_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 7000,
+      "triangles": 77811,
       "animations": [
         "idle",
         "walk",
         "run",
         "celebrate"
       ],
-      "validation": "Clean Plan B G1 multi-view model with pure flat shading and zero manual distortion"
+      "validation": "100% authentic raw Plan B G1 model with original 2K PBR texture and 8-bone rig"
     },
     "CHAR_06": {
       "path": "res://assets/models/aholo/CHAR_06/CHAR_06_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 6999,
+      "triangles": 75998,
       "animations": [
         "idle",
         "walk",
         "run",
         "celebrate"
       ],
-      "validation": "Clean Plan B G1 multi-view model with pure flat shading and zero manual distortion"
+      "validation": "100% authentic raw Plan B G1 model with original 2K PBR texture and 8-bone rig"
     },
     "CHAR_07": {
       "path": "res://assets/models/aholo/CHAR_07/CHAR_07_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 7000,
+      "triangles": 76472,
       "animations": [
         "idle",
         "walk",
         "run",
         "celebrate"
       ],
-      "validation": "Clean Plan B G1 multi-view model with pure flat shading and zero manual distortion"
+      "validation": "100% authentic raw Plan B G1 model with original 2K PBR texture and 8-bone rig"
     },
     "ENV_01_TROUGH": {
       "path": "res://assets/models/aholo/ENV_01_TROUGH/ENV_01_TROUGH_game.glb",

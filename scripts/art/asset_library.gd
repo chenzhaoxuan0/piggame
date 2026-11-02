@@ -59,6 +59,11 @@ static func _flat_materials(node: Node) -> void:
 					material.shader = preload("res://scripts/art/pastoral_surface.gdshader")
 					material.set_shader_parameter("vertex_palette", false)
 					material.set_shader_parameter("pigment", source.albedo_color)
+					if source.albedo_texture != null:
+						material.set_shader_parameter("use_texture", true)
+						material.set_shader_parameter("albedo_texture", source.albedo_texture)
+					else:
+						material.set_shader_parameter("use_texture", false)
 					_materials[key] = material
 				mesh.set_surface_override_material(i, _materials[key])
 	for child in node.get_children(): _flat_materials(child)
