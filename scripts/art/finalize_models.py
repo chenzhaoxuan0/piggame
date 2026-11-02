@@ -12,7 +12,7 @@ from mathutils import Vector, Matrix
 ROOT=Path(__file__).resolve().parents[2]
 BASE=ROOT/'assets/models/aholo'
 PALETTES=next(ast.literal_eval(n.value) for n in ast.parse((ROOT/'scripts/art/process_models.py').read_text()).body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='PALETTES' for t in n.targets))
-YAWS={'CHAR_01':135,'CHAR_02':180,'CHAR_03':180,'CHAR_04':155,'CHAR_05':135,'CHAR_06':180,'CHAR_07':180}
+YAWS={'CHAR_01':234.1,'CHAR_02':180,'CHAR_03':180,'CHAR_04':225,'CHAR_05':180,'CHAR_06':180,'CHAR_07':180}
 LEG_HEIGHT={'CHAR_01':.31,'CHAR_02':.35,'CHAR_03':.39,'CHAR_04':.27,'CHAR_05':.43,'CHAR_06':.43,'CHAR_07':.48}
 
 def mat(name,color):
@@ -265,8 +265,7 @@ def finish(a):
  # Force current polygon centres after coordinate edits.
  bpy.context.view_layer.update()
  finish_colors(obj,a,lo,hi);rig=None
- if a=='CHAR_04':
-  obj=rebuild_sheep(obj);lo,hi=recenter(obj);bpy.context.view_layer.update()
+ # CHAR_04 uses authentic G1 multiview mesh.
  if a=='PROP_07':
   parts=[obj];gold=mat('Baton_safety_band','FFD600')
   for z in [.14,.24,.34,.44]:
@@ -303,7 +302,7 @@ def finish(a):
  bpy.ops.wm.save_as_mainfile(filepath=str(source_dir/(a+'.blend')))
  report=json.loads((folder/'import_report.json').read_text());report.update(triangles=sum(sum(len(p.vertices)-2 for p in o.data.polygons) for o in objects if o.type=='MESH'),file_bytes=path.stat().st_size,size_godot_xyz=[high.x-low.x,high.z-low.z,high.y-low.y],finishing='Authored palette regions, facing Godot -Z, local Blender postproduction',rig_bones=len(rig.data.bones) if rig else 0,animations=['idle','walk','run','celebrate'] if rig else [],gate_hinges=a=='PROP_02')
  if a=='ENV_01_TROUGH':report['manual_repairs']='Lux3D cavity rejected as non-manifold. Five bevelled stone slabs rebuilt in Blender to original concept and gameplay dimensions.'
- if a=='CHAR_04':report['manual_repairs']='Lux3D folded wool shell and missing feet rejected. Wool lobes, pink face, ears and four hooves reconstructed to approved concept, with an authored eight-bone rig.'
+ if a=='CHAR_04':report['manual_repairs']='Reconstructed with Aholo Lux3D G1 multi-view pipeline (Plan B), with authored eight-bone rig and flat palette.'
  (folder/'import_report.json').write_text(json.dumps(report,indent=2)+'\n');print('FINALIZED',a,json.dumps(report))
 
 for a in sys.argv[sys.argv.index('--')+1:]:finish(a)

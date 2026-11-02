@@ -21,20 +21,21 @@
       "input": "assets/models/aholo/_input/CHAR_01/subject.png",
       "input_method": "local original-pixel mask; see extraction.json",
       "input_sha256": "e2b4e65224bfdf60f11a5e8a218cf3ec387cf787bdc9cfc8059d9e77fdce4545",
-      "generation_task": 4568990,
+      "generation_task": 4581171,
       "generation_parameters": {
-        "version": "G1-Turbo",
-        "faceCount": 30000,
+        "version": "G1",
+        "method": "Plan B: four_view -> G1 multiview",
+        "faceCount": 80000,
         "outputFormat": [
           "zip",
           "glb"
         ],
-        "enablePbr": true,
         "aiPredictSize": false,
-        "wait": false
+        "four_view_task": 4581015,
+        "generation_task": 4581171
       },
       "model_status": "downloaded",
-      "generated_at": "2026-11-02T02:07:56.872776+00:00",
+      "generated_at": "2026-11-02T09:20:04.763325+00:00",
       "generation_status": 3,
       "raw_model": "assets/models/aholo/CHAR_01/CHAR_01.glb",
       "model_sha256": "7225592917637a4016b5c9ff733d24580178203adaac0a14aa99a60ac14dce50",
@@ -58,20 +59,21 @@
       "isolation_status": 3,
       "input": "assets/models/aholo/_input/CHAR_02/subject.png",
       "input_sha256": "bf3e4b4004cef64bb5f107e96ef3891bb25691f7a7c793fa16c42523d05ce6f4",
-      "generation_task": 4566594,
+      "generation_task": 4581174,
       "generation_parameters": {
-        "version": "G1-Turbo",
-        "faceCount": 30000,
+        "version": "G1",
+        "method": "Plan B: four_view -> G1 multiview",
+        "faceCount": 80000,
         "outputFormat": [
           "zip",
           "glb"
         ],
-        "enablePbr": true,
         "aiPredictSize": false,
-        "wait": false
+        "four_view_task": 4581056,
+        "generation_task": 4581174
       },
       "model_status": "downloaded",
-      "generated_at": "2026-11-01T21:40:04.535889+00:00",
+      "generated_at": "2026-11-02T09:20:04.763345+00:00",
       "generation_status": 3,
       "raw_model": "assets/models/aholo/CHAR_02/CHAR_02.glb",
       "model_sha256": "fcdfbb045d11540a9288a286709582ff8d671bb06736569a8eafd293e6531751",
@@ -95,20 +97,21 @@
       "isolation_status": 3,
       "input": "assets/models/aholo/_input/CHAR_03/subject.png",
       "input_sha256": "fdc49fb1c906245615f7323b9a348b426c170796817d9bc7a00c222212419ee8",
-      "generation_task": 4566597,
+      "generation_task": 4581177,
       "generation_parameters": {
-        "version": "G1-Turbo",
-        "faceCount": 30000,
+        "version": "G1",
+        "method": "Plan B: four_view -> G1 multiview",
+        "faceCount": 80000,
         "outputFormat": [
           "zip",
           "glb"
         ],
-        "enablePbr": true,
         "aiPredictSize": false,
-        "wait": false
+        "four_view_task": 4581061,
+        "generation_task": 4581177
       },
       "model_status": "downloaded",
-      "generated_at": "2026-11-01T21:40:07.508702+00:00",
+      "generated_at": "2026-11-02T09:20:04.763350+00:00",
       "generation_status": 3,
       "raw_model": "assets/models/aholo/CHAR_03/CHAR_03.glb",
       "model_sha256": "d2af4acb01ca288cd1f7c201b58bdbf5c028574d88180deb712ec669bd8d7fe7",
@@ -137,20 +140,21 @@
       "input": "assets/models/aholo/_input/CHAR_04/subject.png",
       "input_method": "local original-pixel mask; see extraction.json",
       "input_sha256": "e89111bfd0cfea19eb2421d1f32950f0887a4ab90aa035e2c5e63f65e8f30073",
-      "generation_task": 4568995,
+      "generation_task": 4581181,
       "generation_parameters": {
-        "version": "G1-Turbo",
-        "faceCount": 30000,
+        "version": "G1",
+        "method": "Plan B: four_view -> G1 multiview",
+        "faceCount": 80000,
         "outputFormat": [
           "zip",
           "glb"
         ],
-        "enablePbr": true,
         "aiPredictSize": false,
-        "wait": false
+        "four_view_task": 4581064,
+        "generation_task": 4581181
       },
       "model_status": "downloaded",
-      "generated_at": "2026-11-02T02:07:59.775575+00:00",
+      "generated_at": "2026-11-02T09:20:04.763354+00:00",
       "generation_status": 3,
       "raw_model": "assets/models/aholo/CHAR_04/CHAR_04.glb",
       "model_sha256": "579bab5d506cc29868d4c9463eab7536db3491b54d0921266acd0f357ca20e32",
@@ -175,20 +179,21 @@
         }
       ],
       "input_sha256": "daf25272e3f5efa09dd1485eb3b4ac947d8f669d4085e272bd88336f7b1e8645",
-      "generation_task": 4566600,
+      "generation_task": 4581260,
       "generation_parameters": {
-        "version": "G1-Turbo",
-        "faceCount": 30000,
+        "version": "G1",
+        "method": "Plan B: four_view -> G1 multiview",
+        "faceCount": 80000,
         "outputFormat": [
           "zip",
           "glb"
         ],
-        "enablePbr": true,
         "aiPredictSize": false,
-        "wait": false
+        "four_view_task": 4581067,
+        "generation_task": 4581260
       },
       "model_status": "downloaded",
-      "generated_at": "2026-11-01T21:40:10.513497+00:00",
+      "generated_at": "2026-11-02T09:20:04.763358+00:00",
       "generation_status": 3,
       "raw_model": "assets/models/aholo/CHAR_05/CHAR_05.glb",
       "model_sha256": "92763dbdd53e234357da6df0aac8216d39793ef522446cb04d7751610a61818b",
@@ -406,20 +411,21 @@
       "isolation_status": 3,
       "input": "assets/models/aholo/_input/CHAR_06/subject.png",
       "input_sha256": "81166384778a0ee9a17977c58e25e863b02503ba38c5972544465a972c27c4a8",
-      "generation_task": 4566603,
+      "generation_task": 4581299,
       "generation_parameters": {
-        "version": "G1-Turbo",
-        "faceCount": 30000,
+        "version": "G1",
+        "method": "Plan B: four_view -> G1 multiview",
+        "faceCount": 80000,
         "outputFormat": [
           "zip",
           "glb"
         ],
-        "enablePbr": true,
         "aiPredictSize": false,
-        "wait": false
+        "four_view_task": 4581070,
+        "generation_task": 4581299
       },
       "model_status": "downloaded",
-      "generated_at": "2026-11-01T21:40:13.584800+00:00",
+      "generated_at": "2026-11-02T09:20:04.763361+00:00",
       "generation_status": 3,
       "raw_model": "assets/models/aholo/CHAR_06/CHAR_06.glb",
       "model_sha256": "ba83bb6b939a69d7e796bc304907997f6b62a270417f39d2cc27a43f0d27fed3",
@@ -438,20 +444,21 @@
       "input": "assets/models/aholo/_input/CHAR_07/subject.png",
       "input_method": "local original-pixel mask; see extraction.json",
       "input_sha256": "b2be1cdde0965a921343809fd874d8aa0f27299edb25d89f128a7b26d22850a8",
-      "generation_task": 4569000,
+      "generation_task": 4581342,
       "generation_parameters": {
-        "version": "G1-Turbo",
-        "faceCount": 30000,
+        "version": "G1",
+        "method": "Plan B: four_view -> G1 multiview",
+        "faceCount": 80000,
         "outputFormat": [
           "zip",
           "glb"
         ],
-        "enablePbr": true,
         "aiPredictSize": false,
-        "wait": false
+        "four_view_task": 4581164,
+        "generation_task": 4581342
       },
       "model_status": "downloaded",
-      "generated_at": "2026-11-02T02:08:02.727584+00:00",
+      "generated_at": "2026-11-02T09:20:04.763364+00:00",
       "generation_status": 3,
       "raw_model": "assets/models/aholo/CHAR_07/CHAR_07.glb",
       "model_sha256": "d50d6fd2f751a9beb7f4f627d13c93396fa73286e53acad65444ca51e56b85fc",

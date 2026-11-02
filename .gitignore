@@ -35,3 +35,6 @@ desktop.ini
 # sources, manifests and runtime models are versioned. Rejected trials stay local.
 assets/models/aholo/ENV_09_*/*_lux3d.zip
 assets/models/aholo/ENV_09_*/source/rejected_*/
+
+# Local pipeline exchange
+assets/models/aholo/_ipc/

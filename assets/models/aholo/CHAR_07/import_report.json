@@ -1,21 +1,21 @@
 {
   "asset_id": "CHAR_07",
-  "raw_triangles": 29392,
+  "raw_triangles": 76472,
   "triangles": 6336,
-  "vertices": 8609,
+  "vertices": 13245,
   "size_blender_xyz": [
-    0.909445583820343,
-    0.5240441560745239,
-    1.9500001668930054
+    1.0517712831497192,
+    0.5870756506919861,
+    1.9499999284744263
   ],
   "material_count": 9,
-  "file_bytes": 1014660,
+  "file_bytes": 1015700,
   "postprocess": "UV albedo sampled to authored solid palette; decimated; angle-split normals; grounded; metre scale",
   "runtime": "assets/models/aholo/CHAR_07/CHAR_07_game.glb",
   "size_godot_xyz": [
-    0.909445583820343,
-    1.9500001072883606,
-    0.5240441560745239
+    1.0517712831497192,
+    1.9499999284744263,
+    0.5870756506919861
   ],
   "finishing": "Authored palette regions, facing Godot -Z, local Blender postproduction",
   "rig_bones": 7,
