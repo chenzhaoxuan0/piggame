@@ -93,7 +93,8 @@ func _button(text_value: String, callback: Callable) -> Button:
 	button.text = text_value
 	button.custom_minimum_size.y = 44
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	button.clip_text = true
+	button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	button.pressed.connect(callback)
 	button.add_theme_color_override("font_color", Color("343b30"))
 	button.add_theme_color_override("font_hover_color", Color("343b30"))
@@ -154,7 +155,7 @@ func _build_hud() -> void:
 	prompt.offset_bottom = -65
 	prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hud.add_child(prompt)
-	var controls := _label("WASD 移动  ·  空格 跳跃  ·  E 交互  ·  点击前往  ·  Shift 冲刺  ·  Esc 设置", 15)
+	var controls := _label("WASD 移动  ·  空格 跳跃  ·  F 交互  ·  点击前往  ·  Shift 冲刺  ·  Esc 设置", 15)
 	controls.add_theme_color_override("font_shadow_color", Color(1, 1, 1, 0.75))
 	controls.add_theme_constant_override("shadow_offset_x", 1)
 	controls.add_theme_constant_override("shadow_offset_y", 1)
@@ -240,7 +241,7 @@ func _process(_delta: float) -> void:
 		if is_instance_valid(target):
 			var id: String = str(target.get_meta("interaction_id", ""))
 			var names := {"goat": "老岩羊", "ox": "老牛", "sheep": "小羊", "horse": "追风", "farmer": "农场主", "record_board": "纪录牌", "cablecar": "索道"}
-			prompt.text = "[ E ]  " + str(names.get(id, "调查"))
+			prompt.text = "[ F ]  " + str(names.get(id, "调查"))
 		else:
 			prompt.text = "沿山路下行 · 空格跳跃" + ("  /  测试高视角" if camera.test_high_view else "")
 

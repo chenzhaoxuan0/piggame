@@ -10,7 +10,7 @@ Godot 4.3，版本 `0.6.0-enriched-farm`。36 件运行模型、七个角色骨�
 powershell -File scripts/art/run_demo.ps1
 ```
 
-WASD / 方向键移动，鼠标点击地面沿路前往，空格跳跃，E 交互，Shift 冲刺，Esc 暂停及设置。默认镜头高度和正交视野均为旧版一半；设置中的「测试用高视角」仅在本次运行启用。跟随序幕选择进入蓝结局或沿农场前往铁门与索道。
+WASD / 方向键移动，鼠标点击地面沿路前往，空格跳跃，F 交互，Shift 冲刺，Esc 暂停及设置。默认镜头高度和正交视野均为旧版一半；设置中的「测试用高视角」仅在本次运行启用。跟随序幕选择进入蓝结局或沿农场前往铁门与索道。
 
 本机的 `builds/windows/PigGoldenFarm.pck` 是经过验证的运行资源包，可用 `powershell -File scripts/art/run_demo.ps1 -Packed` 运行。它需要项目自带 Godot 引擎，不是独立安装包。`builds/` 不入库，可通过导出配置重建：
 
