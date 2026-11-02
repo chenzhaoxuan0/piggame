@@ -125,15 +125,17 @@ func _stone_wall(a: Vector3, b: Vector3, height: float = 1.05, thickness: float 
 	var count := maxi(1, ceili(length / 1.05))
 	var direction := (b - a).normalized()
 	var angle := atan2(direction.x, direction.z)
-	for row in ceili(height / 0.34):
+	var row_count := maxi(1, roundi((height - 0.16) / 0.34))
+	for row in row_count:
 		for i in count:
 			var p := a.lerp(b, (i + 0.5) / count)
 			p.y += 0.17 + row * 0.34
 			var shade := STONE.lerp(STONE_LIGHT, _rng.randf_range(0, 0.55))
 			_stone_block(p, Vector3(thickness + _rng.randf_range(-0.04, 0.04), 0.32, length / count - 0.025), shade, angle + _rng.randf_range(-0.025, 0.025))
-	# Coping is a separate, slightly wider course.
+	# Coping is a separate, slightly wider course resting cleanly on top of the uppermost wall course.
+	var coping_y: float = 0.17 + (row_count - 1) * 0.34 + 0.16 + 0.07
 	for i in count:
-		_stone_block(a.lerp(b, (i + 0.5) / count) + Vector3.UP * (height + 0.08), Vector3(thickness + 0.12, 0.16, length / count - 0.025), STONE_LIGHT, angle)
+		_stone_block(a.lerp(b, (i + 0.5) / count) + Vector3.UP * coping_y, Vector3(thickness + 0.12, 0.16, length / count - 0.025), STONE_LIGHT, angle)
 
 func _stone_block(p: Vector3, size: Vector3, color: Color, angle: float) -> void:
 	var basis := Basis(Vector3.UP, angle)
