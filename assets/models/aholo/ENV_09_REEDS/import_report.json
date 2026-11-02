@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_09_REEDS",
+  "raw_triangles": 9612,
+  "triangles": 994,
+  "size_blender_xyz": [
+    1.2504642009735107,
+    1.2539453506469727,
+    1.4500000476837158
+  ],
+  "file_bytes": 80368,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_09_REEDS/ENV_09_REEDS_game.glb"
+}

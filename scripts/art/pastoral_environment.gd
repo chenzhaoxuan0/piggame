@@ -429,7 +429,7 @@ func _flush() -> void:
 			var golden_material := _material.duplicate() as ShaderMaterial
 			golden_material.set_shader_parameter("valley_haze_enabled", false)
 			mesh.material_override = golden_material
-		if String(key).begins_with("TreeCanopies"):
+		if String(key).begins_with("TreeCanopies") or String(key).begins_with("FarmWorkingYard"):
 			mesh.material_override=canopy_material
 		if String(key).begins_with("MountainSlopes") or String(key).begins_with("ValleyAndHorizon") or String(key).begins_with("Ground_"):
 			mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

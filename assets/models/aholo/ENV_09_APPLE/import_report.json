@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_09_APPLE",
+  "raw_triangles": 9612,
+  "triangles": 1993,
+  "size_blender_xyz": [
+    4.733693599700928,
+    1.9122674465179443,
+    4.200000286102295
+  ],
+  "file_bytes": 158296,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_09_APPLE/ENV_09_APPLE_game.glb"
+}

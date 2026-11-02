@@ -154,4 +154,5 @@ def process(asset_id):
  bpy.ops.render.render(write_still=True)
  print('PROCESSED',json.dumps(stats))
 
-for asset_id in sys.argv[sys.argv.index('--')+1:]: process(asset_id)
+if __name__=='__main__':
+ for asset_id in sys.argv[sys.argv.index('--')+1:]: process(asset_id)

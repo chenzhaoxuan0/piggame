@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_09_CART",
+  "raw_triangles": 9718,
+  "triangles": 1981,
+  "size_blender_xyz": [
+    2.0121209621429443,
+    2.8045573234558105,
+    1.4499999284744263
+  ],
+  "file_bytes": 155552,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_09_CART/ENV_09_CART_game.glb"
+}

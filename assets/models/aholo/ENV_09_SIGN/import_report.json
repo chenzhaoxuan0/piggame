@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_09_SIGN",
+  "raw_triangles": 9417,
+  "triangles": 997,
+  "size_blender_xyz": [
+    1.1850239038467407,
+    0.9305970072746277,
+    1.8000000715255737
+  ],
+  "file_bytes": 78948,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_09_SIGN/ENV_09_SIGN_game.glb"
+}

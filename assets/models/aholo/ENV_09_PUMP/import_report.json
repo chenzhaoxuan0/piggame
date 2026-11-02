@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_09_PUMP",
+  "raw_triangles": 9912,
+  "triangles": 1598,
+  "size_blender_xyz": [
+    0.9783270359039307,
+    0.3668861389160156,
+    1.4500000476837158
+  ],
+  "file_bytes": 125772,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_09_PUMP/ENV_09_PUMP_game.glb"
+}

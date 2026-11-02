@@ -25,7 +25,7 @@ func _run() -> void:
 	await physics_frame
 	_check(farm.get_spawn_position()==L.SPAWN,"summit spawn contract")
 	_check(get_nodes_in_group("interactable").size()==7,"seven story interaction targets")
-	_check(farm.get_node("PastoralEnvironment").get_meta("layout_version")==3,"mountain bake is current")
+	_check(farm.get_node("PastoralEnvironment").get_meta("layout_version")==4,"mountain bake is current")
 	_check(farm.get_node("PastoralEnvironment").get_script()==null,"runtime uses baked geometry")
 	_check(farm.get_node_or_null("Ground")==null,"old giant flat floor removed")
 	for point in [L.GATE,L.PIG_GATE]:

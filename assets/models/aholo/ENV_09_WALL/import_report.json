@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_09_WALL",
+  "raw_triangles": 9817,
+  "triangles": 1600,
+  "size_blender_xyz": [
+    3.4432132244110107,
+    0.4417571723461151,
+    1.100000023841858
+  ],
+  "file_bytes": 125976,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_09_WALL/ENV_09_WALL_game.glb"
+}

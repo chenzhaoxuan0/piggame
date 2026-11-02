@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_09_RAIL",
+  "raw_triangles": 9596,
+  "triangles": 999,
+  "size_blender_xyz": [
+    1.7410389184951782,
+    0.20493184030056,
+    1.2000001668930054
+  ],
+  "file_bytes": 78952,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_09_RAIL/ENV_09_RAIL_game.glb"
+}

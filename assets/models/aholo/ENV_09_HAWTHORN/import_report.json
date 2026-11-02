@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_09_HAWTHORN",
+  "raw_triangles": 9910,
+  "triangles": 1199,
+  "size_blender_xyz": [
+    1.8019276857376099,
+    0.9312729835510254,
+    1.25
+  ],
+  "file_bytes": 95236,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_09_HAWTHORN/ENV_09_HAWTHORN_game.glb"
+}

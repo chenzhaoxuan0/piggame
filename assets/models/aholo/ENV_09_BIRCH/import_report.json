@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_09_BIRCH",
+  "raw_triangles": 9242,
+  "triangles": 1796,
+  "size_blender_xyz": [
+    3.913501739501953,
+    1.932690978050232,
+    5.799999713897705
+  ],
+  "file_bytes": 142096,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_09_BIRCH/ENV_09_BIRCH_game.glb"
+}

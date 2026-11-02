@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_09_HURDLE",
+  "raw_triangles": 9645,
+  "triangles": 3700,
+  "size_blender_xyz": [
+    1.0102468729019165,
+    2.5285797119140625,
+    1.600000023841858
+  ],
+  "file_bytes": 191972,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_09_HURDLE/ENV_09_HURDLE_game.glb"
+}

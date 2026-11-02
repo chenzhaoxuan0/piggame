@@ -55,7 +55,7 @@ def call(name, args, key):
     # response on restart instead of submitting the same paid generation twice.
     fingerprint=hashlib.sha256(json.dumps(args,sort_keys=True,ensure_ascii=False).encode()).hexdigest()[:12]
     argfile, outfile = CACHE / (key+'_'+fingerprint+'_args.json'), CACHE / (key+'_'+fingerprint+'_response.json')
-    if name in ['lux3d_multimodal_to_image','lux3d_img_to_3d_from_file'] and outfile.exists():
+    if name in ['lux3d_multimodal_to_image','lux3d_img_to_3d_from_file','lux3d_text_to_3d'] and outfile.exists():
         cached=json.loads(outfile.read_text(encoding='utf-8'))
         if not cached.get('isError'):
             payload=json.loads(next(c['text'] for c in cached['content'] if c['type']=='text'))

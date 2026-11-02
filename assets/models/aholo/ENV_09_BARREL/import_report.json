@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_09_BARREL",
+  "raw_triangles": 19426,
+  "triangles": 4070,
+  "size_blender_xyz": [
+    0.8128557205200195,
+    0.802130401134491,
+    0.9999999403953552
+  ],
+  "file_bytes": 196484,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_09_BARREL/ENV_09_BARREL_game.glb"
+}

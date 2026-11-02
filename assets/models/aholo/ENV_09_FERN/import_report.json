@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_09_FERN",
+  "raw_triangles": 9890,
+  "triangles": 800,
+  "size_blender_xyz": [
+    1.8877023458480835,
+    1.6567426919937134,
+    0.699999988079071
+  ],
+  "file_bytes": 63572,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_09_FERN/ENV_09_FERN_game.glb"
+}

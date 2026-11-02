@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_09_ROCK",
+  "raw_triangles": 9496,
+  "triangles": 900,
+  "size_blender_xyz": [
+    1.8397984504699707,
+    1.8609662055969238,
+    1.399999976158142
+  ],
+  "file_bytes": 72200,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_09_ROCK/ENV_09_ROCK_game.glb"
+}

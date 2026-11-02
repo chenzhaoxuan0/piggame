@@ -85,7 +85,7 @@ func _install_environment() -> void:
 	var environment: Node3D
 	if not "--rebuild-environment" in OS.get_cmdline_user_args() and ResourceLoader.exists("res://assets/environments/pastoral_farm.scn"):
 		environment=load("res://assets/environments/pastoral_farm.scn").instantiate()
-		if environment.get_meta("layout_version",0)!=3:
+		if environment.get_meta("layout_version",0)!=4:
 			environment.free()
 			environment=null
 	if environment==null:
@@ -93,6 +93,7 @@ func _install_environment() -> void:
 		add_child(environment)
 		environment.build(self)
 	else: add_child(environment)
+	preload("res://scripts/art/dressing_batches.gd").restore(environment)
 
 func _interaction(node_name: String,id: String,p: Vector3,size: Vector3) -> StaticBody3D:
 	var body:=StaticBody3D.new()

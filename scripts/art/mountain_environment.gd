@@ -2,13 +2,16 @@ extends "res://scripts/art/pastoral_environment.gd"
 ## Mountain farm: authored structures are reused at metre scale; land and roads
 ## share their exact vertices with collision so slopes never float above a floor.
 const L = preload("res://scripts/levels/farm_layout.gd")
+const SURFACE = preload("res://scripts/art/mountain_surface.gd")
+const DRESSING = preload("res://scripts/art/farm_dressing.gd")
+var _dressing = preload("res://scripts/art/dressing_batches.gd").new()
 var _origin := Vector3.ZERO
 
 func build(farm: Node3D) -> void:
 	_farm = farm
 	_rng.seed = 4701
 	name = "PastoralEnvironment"
-	set_meta("layout_version", 3)
+	set_meta("layout_version", 4)
 	_material = ShaderMaterial.new()
 	_material.shader = preload("res://scripts/art/pastoral_surface.gdshader")
 	_mountainside()
@@ -30,36 +33,22 @@ func build(farm: Node3D) -> void:
 	_meadow_lanes()
 	_station()
 	_landmarks()
+	DRESSING.new().build(self)
 	_flush()
+	_dressing.flush(self)
 	_farm = null
 
 func _slope_height(p: Vector3) -> float:
-	var height := -25.0
-	for terrace in L.TERRACES:
-		var c: Vector3=terrace.center
-		var r: Vector2=terrace.half
-		var outside:=Vector2(maxf(0,absf(p.x-c.x)-r.x),maxf(0,absf(p.z-c.z)-r.y)).length()
-		height=maxf(height,c.y-6-outside*.78)
-	for id in L.ROUTES:
-		var route:=L.path(id)
-		# Query horizontally: vertical differences must not skew ridge placement.
-		for i in route.size()-1:
-			var a:=Vector2(route[i].x,route[i].z)
-			var b:=Vector2(route[i+1].x,route[i+1].z)
-			var v:=Vector2(p.x,p.z)
-			var t:=clampf((v-a).dot(b-a)/(b-a).length_squared(),0,1)
-			var distance:=v.distance_to(a.lerp(b,t))
-			height=maxf(height,lerpf(route[i].y,route[i+1].y,t)-6-maxf(0,distance-3)*.7)
-	return height
+	return SURFACE.height_at(p)
 
 func _mountainside() -> void:
 	# A continuous slope beneath the ledges connects the farm into one mountain.
 	# It is scenery below the recoverable drop, never a shortcut collision floor.
 	_district="MountainSlopes"
 	var rows: Array=[]
-	for z in range(-320,140,6):
+	for z in range(-380,179,3):
 		var row: Array[Vector3]=[]
-		for x in range(-125,126,6):
+		for x in range(-190,191,3):
 			var p:=Vector3(x,0,z)
 			p.y=_slope_height(p)
 			row.append(p)
@@ -70,8 +59,19 @@ func _mountainside() -> void:
 			var b: Vector3=rows[row][col+1]
 			var c: Vector3=rows[row+1][col+1]
 			var d: Vector3=rows[row+1][col]
-			var color:=GRASS_DARK.lerp(GRASS,float((row+col)%4)*.07)
+			var color:=GRASS_DARK.lerp(GRASS,.3+.16*sin(a.x*.024+a.z*.036))
 			_quad(a,b,c,d,color,Vector3.UP)
+	# Close the far rim below the normal camera's sight line.
+	for row in rows.size()-1:
+		for col in [0,rows[row].size()-1]:
+			var a: Vector3=rows[row][col]
+			var b: Vector3=rows[row+1][col]
+			_quad(a,b,Vector3(b.x,-90,b.z),Vector3(a.x,-90,a.z),ROCK,Vector3.LEFT if col==0 else Vector3.RIGHT)
+	for row in [0,rows.size()-1]:
+		for col in rows[row].size()-1:
+			var a: Vector3=rows[row][col]
+			var b: Vector3=rows[row][col+1]
+			_quad(a,b,Vector3(b.x,-90,b.z),Vector3(a.x,-90,a.z),ROCK,Vector3.FORWARD if row==0 else Vector3.BACK)
 
 func _tri(a: Vector3,b: Vector3,c: Vector3,color: Color,outward: Vector3) -> void:
 	var offset := Vector3.ZERO if _district == "PigGateGeometry" else _origin
@@ -81,10 +81,12 @@ func _collider(label: String,p: Vector3,size: Vector3) -> void:
 	super._collider(label,p+_origin,size)
 
 func _tree(p: Vector3,scale_factor: float=1.0) -> void:
-	var previous:=_district
-	_district="TreeCanopies"
-	super._tree(p,scale_factor)
-	_district=previous
+	var q:=p+_origin
+	var id: String=["ENV_09_OAK","ENV_09_BIRCH","ENV_09_PINE"][posmod(roundi(q.x*.7+q.z),3)]
+	if _district=="OxFurrowsAndIrrigation" and p.x>0: id="ENV_09_APPLE"
+	# The old roadside trees were placed at road height over empty space.
+	q.y=SURFACE.mesh_height_at(q)-.08
+	_dressing.place(id,q,Vector3.ONE*scale_factor*.85,_rng.randf()*TAU)
 
 func _convex(label: String, top: Array[Vector3], depth: float = .6) -> void:
 	var points := PackedVector3Array()
@@ -119,10 +121,26 @@ func _terrace(data: Dictionary) -> void:
 		_district = "Cliffs_"+data.id
 		var down := Vector3(0,-15,0)
 		_quad(a,b,b+down,a+down,ROCK,(a+b)*.5-p)
-		for j in 5:
-			var q := a.lerp(b,(j+.5)/5.0)
-			_boulder(q+Vector3(0,-5,0),Vector3(4,11,3),ROCK.lightened(.05*(j%3)),j)
+		for j in 3:
+			var q := a.lerp(b,(j+.5)/3.0)
+			_boulder(q+Vector3(0,-1.0,0),Vector3(2.0,2.1,1.5),ROCK.lightened(.03*(j%3)),j)
 		_district = "Ground_"+data.id
+	# Grazing boundaries make the edge of playable ground legible. Connections
+	# remain open; the scenery skin outside is never mistaken for a walkable field.
+	if data.id in ["OxTerrace","SheepMeadow","HorsePasture"]:
+		_district="PastureBoundary_"+data.id
+		for i in contour.size():
+			var a:=contour[i].lerp(p,.025)
+			var b:=contour[(i+1)%contour.size()].lerp(p,.025)
+			var count:=ceili(a.distance_to(b)/3.4)
+			for j in count:
+				var first:=a.lerp(b,float(j)/count)
+				var last:=a.lerp(b,float(j+1)/count)
+				var connection:=false
+				for id in L.ROUTES:
+					for endpoint in [L.path(id).front(),L.path(id).back()]:
+						if first.distance_to(endpoint)<7 or last.distance_to(endpoint)<7: connection=true
+				if not connection: _edge_wall(first,last)
 	# Meadow details stay outside the route entrances and building footprints.
 	for i in 32:
 		var q := p+Vector3(_rng.randf_range(-r.x*.8,r.x*.8),.05,_rng.randf_range(-r.y*.8,r.y*.8))
@@ -133,8 +151,23 @@ func _terrace(data: Dictionary) -> void:
 
 func _edge_wall(a: Vector3,b: Vector3,hedge: bool=false) -> void:
 	var h := 1.8 if hedge else 1.45
-	if hedge: _hedge(a,b,h)
-	else: _fence(a,b,WOOD,h)
+	var direction := (b-a).normalized()
+	var side_vector:=direction.cross(Vector3.UP).normalized()
+	var count:=maxi(1,ceili(a.distance_to(b)/3.8))
+	for i in count:
+		var first:=a.lerp(b,float(i)/count)
+		var last:=a.lerp(b,float(i+1)/count)
+		var q:=(first+last)*.5
+		var variant:=posmod(i+roundi(a.x+a.z),5)
+		if variant==0 or (hedge and variant==3):
+			_stone_wall(first,last,1.25 if hedge else .85,.42)
+		else:
+			_fence(first,last,WOOD_DARK if variant==2 else WOOD,h)
+			if variant==2: _beam(first+Vector3.UP*.2,last+Vector3.UP*(h*.9),.08,.1,WOOD_LIGHT)
+		# Vegetation is in broken clumps, with a visible fence behind every gap.
+		if variant in [1,3]:
+			q+=side_vector*.4
+			_dressing.place("ENV_09_HAWTHORN",q-Vector3.UP*.08,Vector3(1.15,.8,1.0),i*1.7)
 	# Convex sloping barriers match the visible posts/hedges on descending roads.
 	var side := (b-a).normalized().cross(Vector3.UP).normalized()*.15
 	_convex("RoadHedge" if hedge else "RoadRail",[a-side+Vector3.UP*h,a+side+Vector3.UP*h,b+side+Vector3.UP*h,b-side+Vector3.UP*h],h)
@@ -180,7 +213,10 @@ func _road(id: String) -> void:
 					var q:=start.lerp(end,(plank+.5)/count)+Vector3.UP*.045
 					_beam(q-side,q+side,.38,.08,WOOD_LIGHT.lightened(.035*(plank%3)))
 			else:
-				_ribbon([start+Vector3.UP*.035,end+Vector3.UP*.035],4.4,PATH)
+				# Follow the same cross-sections as the grass mesh: an independent
+				# straight strip intersects twisted miter quads on sloping bends.
+				var inset:=.5-2.2/(a.distance_to(b))
+				_quad(a.lerp(b,inset)+Vector3.UP*.09,b.lerp(a,inset)+Vector3.UP*.09,c.lerp(d,inset)+Vector3.UP*.09,d.lerp(c,inset)+Vector3.UP*.09,PATH,Vector3.UP)
 			_district = "Cliffs_Route_"+id
 			for edge in [[a,d],[b,c]]:
 				_quad(edge[0],edge[1],edge[1]-Vector3.UP*12,edge[0]-Vector3.UP*12,ROCK,(edge[0]-start).normalized())
@@ -191,8 +227,10 @@ func _road(id: String) -> void:
 		var middle := (points[i]+points[i+1])*.5
 		var outward := (right[i]-left[i]).normalized()
 		if id!="chase":
-			_tree(middle+outward*5.5-Vector3.UP*.5,.8)
-			_boulder(middle-outward*5.3-Vector3.UP*1.5,Vector3(3.5,4,2.8),ROCK,i)
+			_tree(middle+outward*7.8,.8)
+			var rock_pos:=middle-outward*5.6
+			rock_pos.y=SURFACE.mesh_height_at(rock_pos)-.2
+			_dressing.place("ENV_09_ROCK",rock_pos,Vector3(1.4,1.1,1.3),i)
 	# Additional flora on both sides of the path, not in the pig's sight line.
 	for i in range(1,points.size()-1):
 		_flowers(left[i]+(right[i]-left[i]).normalized()*.6+Vector3.UP*.05,5)
@@ -260,7 +298,7 @@ func _large_racetrack() -> void:
 
 func _chase_dressing() -> void:
 	_district="FarmWorkingYard"
-	_barn(Vector3(-63,2,-176),Vector3(11,4,9))
+	_barn(Vector3(-59,2,-174),Vector3(8,3.3,7))
 	# Off-centre stacks constrict alternating sides, leaving a clear running line.
 	for p in [Vector3(-57,4,-154),Vector3(-76,3.3,-176),Vector3(-46,2,-201)]:
 		var size:=Vector3(3,1.3,2.4) if p.x==-57 else Vector3(2.4,1.3,3)

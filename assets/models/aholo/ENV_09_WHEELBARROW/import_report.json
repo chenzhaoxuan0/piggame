@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_09_WHEELBARROW",
+  "raw_triangles": 9672,
+  "triangles": 1597,
+  "size_blender_xyz": [
+    0.8774353265762329,
+    1.9362527132034302,
+    0.949999988079071
+  ],
+  "file_bytes": 128252,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_09_WHEELBARROW/ENV_09_WHEELBARROW_game.glb"
+}

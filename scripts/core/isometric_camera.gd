@@ -67,9 +67,9 @@ func _update_foliage_cutout() -> void:
 	if _canopy_materials.is_empty():
 		var farm:=get_tree().get_first_node_in_group("farm_world")
 		if farm:
-			for mesh in farm.find_children("TreeCanopies*","MeshInstance3D",true,false):
+			for mesh in farm.find_children("*","GeometryInstance3D",true,false):
 				var material:=mesh.material_override as ShaderMaterial
-				if material and not _canopy_materials.has(material): _canopy_materials.append(material)
+				if material and material.get_shader_parameter("canopy_cutout")==true and not _canopy_materials.has(material): _canopy_materials.append(material)
 	for material in _canopy_materials:
 		material.set_shader_parameter("player_focus",target.global_position+Vector3.UP*.65)
 		material.set_shader_parameter("player_camera",global_position)

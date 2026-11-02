@@ -25,7 +25,7 @@ const NPCS := {
 }
 const RESTS := {"ox": Vector3(38,24,34), "sheep": Vector3(-48,16,-41.5), "horse": Vector3(30,8,-120)}
 const ROUTES := {
-	"summit": [Vector3(0,32,88),Vector3(0,31,78),Vector3(-20,29,72),Vector3(-29,27,87),Vector3(-30,26,105),Vector3(-52,25,105),Vector3(-58,24,80),Vector3(-48,24,62),Vector3(-25,24,60),Vector3(-8,24,68),Vector3(16,24,68),Vector3(30,24,55)],
+	"summit": [Vector3(0,32,88),Vector3(0,31,78),Vector3(-20,29,72),Vector3(-29,27,87),Vector3(-30,26,105),Vector3(-52,25,105),Vector3(-58,24,80),Vector3(-48,24,62),Vector3(-25,24,54),Vector3(-8,24,50),Vector3(16,24,64),Vector3(30,24,55)],
 	"creek": [Vector3(72,24,20),Vector3(72,23,8),Vector3(50,22,0),Vector3(32,21,8),Vector3(12,20,4),Vector3(-2,18,-10),Vector3(-20,16,-8),Vector3(-40,16,-22)],
 	"woodland": [Vector3(-66,16,-62),Vector3(-66,15,-76),Vector3(-46,14,-82),Vector3(-34,13,-70),Vector3(-14,12,-76),Vector3(0,10,-78),Vector3(18,8,-90)],
 	"approach": [Vector3(-6,8,-135),Vector3(-18,7,-138),Vector3(-16,6,-154),Vector3(-24,4,-166),Vector3(-30,4,-172)],

@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_09_OAK",
+  "raw_triangles": 9927,
+  "triangles": 2199,
+  "size_blender_xyz": [
+    4.832895755767822,
+    5.360024929046631,
+    6.199999809265137
+  ],
+  "file_bytes": 173524,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_09_OAK/ENV_09_OAK_game.glb"
+}

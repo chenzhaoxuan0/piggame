@@ -12,7 +12,7 @@ func _check(value: bool, message: String) -> void:
 func _run() -> void:
 	var assets = load("res://scripts/art/asset_library.gd")
 	var catalog: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/models/aholo/runtime_catalog.json"))
-	_check(catalog.assets.size() == 18, "all runtime models packaged")
+	_check(catalog.assets.size() == 36, "all runtime models packaged")
 	for id in catalog.assets:
 		var visual: Node3D = assets.make(id)
 		_check(visual != null, "packed model loads: " + id)
@@ -22,6 +22,8 @@ func _run() -> void:
 	for ending in art.ENDINGS.values(): _check(ending != null and ending.get_width() > 0, "packed ending loads")
 	for private_path in ["res://.env", "res://assets/models/aholo/production.json", "res://scripts/art/produce_assets.py", "res://assets/models/aholo/CHAR_01/CHAR_01_lux3d.zip", "res://assets/models/aholo/_input/CHAR_01/subject.png"]:
 		_check(not FileAccess.file_exists(private_path), "production-only file excluded: " + private_path)
+	for private_path in ["res://assets/models/aholo/dressing_production.json","res://assets/models/aholo/ENV_09_BARREL/ENV_09_BARREL_lux3d.zip","res://assets/models/aholo/ENV_09_BARREL/ENV_09_BARREL.glb","res://assets/models/aholo/ENV_09_BARREL/source/ENV_09_BARREL.blend","res://assets/models/aholo/_input/ENV_09_BARREL/subject.png"]:
+		_check(not FileAccess.file_exists(private_path),"dressing source excluded: "+private_path)
 	var game: Node3D = load("res://scenes/levels/office_level_1.tscn").instantiate()
 	root.add_child(game)
 	await create_timer(0.7).timeout
@@ -29,7 +31,13 @@ func _run() -> void:
 	_check(game.get_node("Farm/Gate").find_child("GateLeft", true, false) != null, "packed gate hinged")
 	var environment: Node3D = game.get_node_or_null("Farm/PastoralEnvironment")
 	_check(environment != null and environment.get_script() == null, "authored environment is baked into the pack")
-	_check(environment.get_meta("layout_version",0)==3,"mountain environment version packaged")
+	_check(environment.get_meta("layout_version",0)==4,"enriched mountain environment version packaged")
+	_check(environment.get_meta("dressing_counts",{}).size()>=18,"dressing catalog survives export")
+	for batch in environment.find_children("Dressing_*","MultiMeshInstance3D",true,false):
+		_check(batch.multimesh.mesh!=null,"packed dressing mesh loads")
+		var placements: Array=batch.get_meta("placements",[])
+		_check(placements.size()==batch.multimesh.instance_count,"packed placements preserved")
+		if DisplayServer.get_name()!="headless": _check(batch.multimesh.get_instance_transform(0).basis.determinant()>.001,"packed GPU instance transform restored")
 	_check(game.camera.size==8 and not game.camera.test_high_view,"packed game starts with close gameplay camera")
 	_check(ResourceLoader.exists("res://scripts/levels/farm_layout.gd"),"mountain layout packaged")
 	_check(InputMap.has_action("action_jump"),"jump input packaged")
