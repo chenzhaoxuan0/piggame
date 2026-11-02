@@ -1,0 +1,24 @@
+{
+  "asset_id": "ENV_06_CRATE",
+  "raw_triangles": 9996,
+  "triangles": 4000,
+  "vertices": 3926,
+  "size_blender_xyz": [
+    2.1905577182769775,
+    1.4069902896881104,
+    1.0
+  ],
+  "material_count": 3,
+  "file_bytes": 409292,
+  "postprocess": "UV albedo sampled to authored solid palette; decimated; angle-split normals; grounded; metre scale",
+  "runtime": "assets/models/aholo/ENV_06_CRATE/ENV_06_CRATE_game.glb",
+  "size_godot_xyz": [
+    1.0,
+    1.0,
+    0.9999999403953552
+  ],
+  "finishing": "Authored palette regions, facing Godot -Z, local Blender postproduction",
+  "rig_bones": 0,
+  "animations": [],
+  "gate_hinges": false
+}

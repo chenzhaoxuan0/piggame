@@ -1,0 +1,14 @@
+{
+  "method": "original-pixel manual silhouette mask; no generative redraw",
+  "source": "assets/2d/ENV_06_\u519c\u573a\u5f00\u9614\u7a7a\u5730_2D\u6982\u5ff5\u56fe.png",
+  "source_sha256": "66cd193cf6f6e68f1c92d275f517c8dad30b7efb1bb203dcc7012c2bbf82c674",
+  "mask": "subject_mask.png",
+  "reference_width": 1024,
+  "script": "scripts/art/extract_subjects.py",
+  "bounds": [
+    351,
+    111,
+    432,
+    178
+  ]
+}

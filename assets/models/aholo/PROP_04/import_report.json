@@ -1,0 +1,24 @@
+{
+  "asset_id": "PROP_04",
+  "raw_triangles": 15336,
+  "triangles": 4000,
+  "vertices": 5417,
+  "size_blender_xyz": [
+    1.735963225364685,
+    0.9110749959945679,
+    1.5000001192092896
+  ],
+  "material_count": 5,
+  "file_bytes": 409232,
+  "postprocess": "UV albedo sampled to authored solid palette; decimated; angle-split normals; grounded; metre scale",
+  "runtime": "assets/models/aholo/PROP_04/PROP_04_game.glb",
+  "size_godot_xyz": [
+    1.735963225364685,
+    1.5000001192092896,
+    0.9110749959945679
+  ],
+  "finishing": "Authored palette regions, facing Godot -Z, local Blender postproduction",
+  "rig_bones": 0,
+  "animations": [],
+  "gate_hinges": false
+}

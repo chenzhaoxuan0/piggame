@@ -7,7 +7,178 @@
       "yaw_degrees": 0,
       "triangles": 4156,
       "mount": "Farm/CableCarCabin",
-      "validation": "Rendered full journey and cablecar travel passed; 2026-11-02"
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "CHAR_01": {
+      "path": "res://assets/models/aholo/CHAR_01/CHAR_01_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 7157,
+      "animations": [
+        "idle",
+        "walk",
+        "run",
+        "celebrate"
+      ],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "CHAR_02": {
+      "path": "res://assets/models/aholo/CHAR_02/CHAR_02_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 6336,
+      "animations": [
+        "idle",
+        "walk",
+        "run",
+        "celebrate"
+      ],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "CHAR_03": {
+      "path": "res://assets/models/aholo/CHAR_03/CHAR_03_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 6336,
+      "animations": [
+        "idle",
+        "walk",
+        "run",
+        "celebrate"
+      ],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "CHAR_04": {
+      "path": "res://assets/models/aholo/CHAR_04/CHAR_04_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 1536,
+      "animations": [
+        "idle",
+        "walk",
+        "run",
+        "celebrate"
+      ],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "CHAR_05": {
+      "path": "res://assets/models/aholo/CHAR_05/CHAR_05_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 6671,
+      "animations": [
+        "idle",
+        "walk",
+        "run",
+        "celebrate"
+      ],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "CHAR_06": {
+      "path": "res://assets/models/aholo/CHAR_06/CHAR_06_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 6336,
+      "animations": [
+        "idle",
+        "walk",
+        "run",
+        "celebrate"
+      ],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "CHAR_07": {
+      "path": "res://assets/models/aholo/CHAR_07/CHAR_07_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 6336,
+      "animations": [
+        "idle",
+        "walk",
+        "run",
+        "celebrate"
+      ],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "ENV_01_TROUGH": {
+      "path": "res://assets/models/aholo/ENV_01_TROUGH/ENV_01_TROUGH_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 220,
+      "animations": [],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "ENV_06_CRATE": {
+      "path": "res://assets/models/aholo/ENV_06_CRATE/ENV_06_CRATE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 4000,
+      "animations": [],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "ENV_06_HAY": {
+      "path": "res://assets/models/aholo/ENV_06_HAY/ENV_06_HAY_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 4000,
+      "animations": [],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "ENV_06_TRACTOR": {
+      "path": "res://assets/models/aholo/ENV_06_TRACTOR/ENV_06_TRACTOR_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 4000,
+      "animations": [],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "PROP_02": {
+      "path": "res://assets/models/aholo/PROP_02/PROP_02_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 3998,
+      "animations": [],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "PROP_03": {
+      "path": "res://assets/models/aholo/PROP_03/PROP_03_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 3999,
+      "animations": [],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "PROP_04": {
+      "path": "res://assets/models/aholo/PROP_04/PROP_04_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 4000,
+      "animations": [],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "PROP_05": {
+      "path": "res://assets/models/aholo/PROP_05/PROP_05_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 4000,
+      "animations": [],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "PROP_06": {
+      "path": "res://assets/models/aholo/PROP_06/PROP_06_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 4000,
+      "animations": [],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+    },
+    "PROP_07": {
+      "path": "res://assets/models/aholo/PROP_07/PROP_07_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 4240,
+      "animations": [],
+      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
     }
   }
 }

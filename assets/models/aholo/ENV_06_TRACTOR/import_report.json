@@ -1,0 +1,24 @@
+{
+  "asset_id": "ENV_06_TRACTOR",
+  "raw_triangles": 19232,
+  "triangles": 4000,
+  "vertices": 4976,
+  "size_blender_xyz": [
+    2.073143720626831,
+    3.6101791858673096,
+    2.200000047683716
+  ],
+  "material_count": 6,
+  "file_bytes": 410404,
+  "postprocess": "UV albedo sampled to authored solid palette; decimated; angle-split normals; grounded; metre scale",
+  "runtime": "assets/models/aholo/ENV_06_TRACTOR/ENV_06_TRACTOR_game.glb",
+  "size_godot_xyz": [
+    2.073143720626831,
+    2.195500612258911,
+    3.6101791858673096
+  ],
+  "finishing": "Authored palette regions, facing Godot -Z, local Blender postproduction",
+  "rig_bones": 0,
+  "animations": [],
+  "gate_hinges": false
+}

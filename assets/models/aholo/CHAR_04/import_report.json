@@ -1,0 +1,30 @@
+{
+  "asset_id": "CHAR_04",
+  "raw_triangles": 29983,
+  "triangles": 1536,
+  "vertices": 2278,
+  "size_blender_xyz": [
+    1.393248438835144,
+    1.7743602991104126,
+    1.1200000047683716
+  ],
+  "material_count": 6,
+  "file_bytes": 237260,
+  "postprocess": "UV albedo sampled to authored solid palette; decimated; angle-split normals; grounded; metre scale",
+  "runtime": "assets/models/aholo/CHAR_04/CHAR_04_game.glb",
+  "size_godot_xyz": [
+    1.4486770629882812,
+    1.1700000762939453,
+    1.629999816417694
+  ],
+  "finishing": "Authored palette regions, facing Godot -Z, local Blender postproduction",
+  "rig_bones": 8,
+  "animations": [
+    "idle",
+    "walk",
+    "run",
+    "celebrate"
+  ],
+  "gate_hinges": false,
+  "manual_repairs": "Lux3D folded wool shell and missing feet rejected. Wool lobes, pink face, ears and four hooves reconstructed to approved concept, with an authored eight-bone rig."
+}

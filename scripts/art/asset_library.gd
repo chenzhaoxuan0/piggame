@@ -4,6 +4,7 @@ extends RefCounted
 const DIRECTORY := "res://assets/models/aholo/"
 static var _cache: Dictionary = {}
 static var _catalog: Dictionary = {}
+static var _materials: Dictionary = {}
 
 static func make(asset_id: String) -> Node3D:
 	if _catalog.is_empty():
@@ -22,7 +23,29 @@ static func make(asset_id: String) -> Node3D:
 	visual.set_meta("source", "Aholo Lux3D")
 	visual.rotation.y = deg_to_rad(float(entry.get("yaw_degrees", 0)))
 	_flat_materials(visual)
+	if asset_id.begins_with("CHAR_"):
+		var animator := Node.new()
+		animator.name = "ActorAnimation"
+		animator.set_script(preload("res://scripts/art/actor_animation.gd"))
+		visual.add_child(animator)
 	return visual
+
+static func attach_to_bone(visual: Node3D, bone_name: String, prop: Node3D, rest_position: Vector3, rest_rotation := Vector3.ZERO) -> bool:
+	if visual == null or prop == null: return false
+	for skeleton in visual.find_children("*", "Skeleton3D", true, false):
+		var index: int = skeleton.find_bone(bone_name)
+		if index < 0: continue
+		var socket := BoneAttachment3D.new()
+		socket.name = bone_name + "PropSocket"
+		socket.bone_name = bone_name
+		skeleton.add_child(socket)
+		if prop.get_parent(): prop.get_parent().remove_child(prop)
+		socket.add_child(prop)
+		var rest := Transform3D(Basis.from_euler(rest_rotation), rest_position)
+		var relative: Transform3D = visual.global_transform.affine_inverse() * skeleton.global_transform
+		prop.transform = (relative * skeleton.get_bone_global_rest(index)).affine_inverse() * rest
+		return true
+	return false
 
 static func _flat_materials(node: Node) -> void:
 	if node is MeshInstance3D:
@@ -30,12 +53,15 @@ static func _flat_materials(node: Node) -> void:
 		for i in mesh.mesh.get_surface_count() if mesh.mesh else 0:
 			var source := mesh.get_active_material(i) as StandardMaterial3D
 			if source:
-				var material := source.duplicate() as StandardMaterial3D
-				material.roughness = 1.0
-				material.metallic = 0.0
-				material.metallic_specular = 0.0
-				material.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
-				mesh.set_surface_override_material(i, material)
+				var key := source.get_instance_id()
+				if not _materials.has(key):
+					var material := source.duplicate() as StandardMaterial3D
+					material.roughness = 1.0
+					material.metallic = 0.0
+					material.metallic_specular = 0.0
+					material.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
+					_materials[key] = material
+				mesh.set_surface_override_material(i, _materials[key])
 	for child in node.get_children(): _flat_materials(child)
 
 static func replace_visuals(parent: Node3D, asset_id: String, offset := Vector3.ZERO, yaw := 0.0) -> Node3D:

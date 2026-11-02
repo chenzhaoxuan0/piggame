@@ -63,7 +63,9 @@ func _interact() -> void:
 func _shot(id: String) -> void:
 	if DisplayServer.get_name() == "headless": return
 	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png("res://builds/journey_%s.png" % id)
+	var directory := ProjectSettings.globalize_path("res://builds")
+	DirAccess.make_dir_recursive_absolute(directory)
+	root.get_texture().get_image().save_png(directory.path_join("journey_%s.png" % id))
 
 func _run() -> void:
 	game = root.get_node("GameManager")

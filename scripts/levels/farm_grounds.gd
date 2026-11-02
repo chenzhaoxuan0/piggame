@@ -23,15 +23,15 @@ const MAP_HALF_X := 46.0
 const BOUNDARY_ZS := [70.0, 38.0, 24.0, -2.0, -16.0, -40.0, -54.0]
 
 # Palette: sunlit storybook farm, matte surfaces, no specular.
-const GRASS := Color(0.55, 0.70, 0.36)
-const GRASS_LIGHT := Color(0.64, 0.77, 0.42)
+const GRASS := Color("74A87C")
+const GRASS_LIGHT := Color("91B88A")
 const GRASS_DRY := Color(0.62, 0.70, 0.40)
 const WORN := Color(0.68, 0.67, 0.43)
 const DIRT := Color(0.68, 0.54, 0.36)
 const MUD := Color(0.50, 0.41, 0.30)
 const MUD_TRACK := Color(0.47, 0.36, 0.25)
 const PATH := Color(0.82, 0.70, 0.48)
-const SOIL := Color(0.44, 0.32, 0.21)
+const SOIL := Color("3E2723")
 const WOOD := Color(0.74, 0.56, 0.36)
 const WOOD_DARK := Color(0.56, 0.41, 0.26)
 const BARN_RED := Color(0.79, 0.32, 0.25)
@@ -76,6 +76,7 @@ func _ready() -> void:
 	_build_gate_area()
 	_build_exit()
 	_install_art()
+	_build_wilderness_wheat()
 
 func _install_art() -> void:
 	var cabin_art := ASSETS.replace_visuals(_cabin, "PROP_01")
@@ -107,12 +108,30 @@ func _install_art() -> void:
 	_sheep_tag = ASSETS.make("PROP_05")
 	if _sheep_tag:
 		_npcs["sheep"].add_child(_sheep_tag)
-		_sheep_tag.position = Vector3(0, 0.5, -0.58)
+		_sheep_tag.position = Vector3(0, 0.35, -0.86)
+		ASSETS.attach_to_bone(_npcs["sheep"].get_node_or_null("CHAR_04"), "Head", _sheep_tag, _sheep_tag.position)
+		_label(_sheep_tag, "GradeText", "三等残次", Vector3(0, 0.15, -0.035), 24)
 	_farmer_baton = ASSETS.make("PROP_07")
 	if _farmer_baton:
 		_npcs["farmer"].add_child(_farmer_baton)
-		_farmer_baton.position = Vector3(0.5, 0.7, -0.12)
+		_farmer_baton.position = Vector3(0.43, 0.83, -0.10)
 		_farmer_baton.rotation.x = -0.6
+		ASSETS.attach_to_bone(_npcs["farmer"].get_node_or_null("CHAR_07"), "ArmL", _farmer_baton, _farmer_baton.position, _farmer_baton.rotation)
+	var tractor := ASSETS.make("ENV_06_TRACTOR")
+	if tractor:
+		add_child(tractor)
+		tractor.position = Vector3(-17, 0, -69)
+		tractor.rotation.y = -0.6
+		# This dressing is outside the established chase lane.
+		var body := StaticBody3D.new()
+		tractor.add_child(body)
+		var shape := CollisionShape3D.new()
+		var box := BoxShape3D.new()
+		box.size = Vector3(2.0, 1.7, 3.5)
+		shape.shape = box
+		shape.position.y = 0.85
+		body.add_child(shape)
+		body.collision_layer = 1
 
 func _process(delta: float) -> void:
 	if is_instance_valid(_windmill_blades):
@@ -445,11 +464,16 @@ func _shearing_shed(pos: Vector3) -> void:
 	_box(self, "ShedSideS", Vector3(10, 2.2, 0.5), pos + Vector3(0, 1.1, 3.25), WOOD, true)
 	var roof := MeshInstance3D.new()
 	var prism := PrismMesh.new()
-	prism.size = Vector3(10.8, 1.6, 7.8)
+	# A cutaway near roof keeps the sheep and interaction readable from the game camera.
+	prism.size = Vector3(4.8, 1.2, 7.8)
+	roof.name = "ShearingRoof"
 	roof.mesh = prism
 	roof.material_override = _material(WOOD_DARK)
-	roof.position = pos + Vector3(0, 3.0, 0)
+	roof.position = pos + Vector3(-3, 2.8, 0)
 	add_child(roof)
+	for z in [-3.1, 3.1]:
+		_box(self, "ShedFrontPost", Vector3(0.18, 2.5, 0.18), pos + Vector3(4.5, 1.25, z), WOOD_DARK)
+	_box(self, "ShedFrontBeam", Vector3(0.18, 0.18, 6.4), pos + Vector3(4.5, 2.5, 0), WOOD_DARK)
 	_box(self, "ShearingStand", Vector3(1.4, 0.8, 0.9), pos + Vector3(-2.5, 0.4, 1.6), WOOD_DARK, true)
 
 func _wool_bale(pos: Vector3, scale_factor: float = 1.0) -> void:
@@ -801,10 +825,14 @@ func _sun_patch(pos: Vector3, size: float) -> void:
 func _hay_bale(pos: Vector3, scale_factor: float = 1.0) -> void:
 	var body := _box(self, "HayBale", Vector3(1.7 * scale_factor, 0.9 * scale_factor, 1.15 * scale_factor), pos + Vector3(0, 0.45 * scale_factor, 0), HAY, true)
 	_box(body, "Band", Vector3(1.74 * scale_factor, 0.12, 0.2), Vector3(0, 0.1, 0), Color(0.78, 0.62, 0.24))
+	var art := ASSETS.replace_visuals(body, "ENV_06_HAY", Vector3(0, -0.45 * scale_factor, 0))
+	if art: art.scale *= scale_factor
 
 func _crate(pos: Vector3, size: float) -> void:
-	_box(self, "Crate", Vector3(size, size, size), pos + Vector3(0, size * 0.5, 0), WOOD, true)
-	_box(self, "CrateLid", Vector3(size + 0.08, 0.1, size + 0.08), pos + Vector3(0, size + 0.02, 0), WOOD_DARK)
+	var body := _box(self, "Crate", Vector3(size, size, size), pos + Vector3(0, size * 0.5, 0), WOOD, true)
+	var art := ASSETS.replace_visuals(body, "ENV_06_CRATE", Vector3(0, -size * 0.5, 0))
+	if art: art.scale *= size
+	else: _box(self, "CrateLid", Vector3(size + 0.08, 0.1, size + 0.08), pos + Vector3(0, size + 0.02, 0), WOOD_DARK)
 
 func _barrel(pos: Vector3) -> void:
 	_cylinder(self, "Barrel", 0.42, 0.48, 1.1, pos + Vector3(0, 0.55, 0), WOOD_DARK, true)
@@ -836,8 +864,72 @@ func _farm_cart(pos: Vector3) -> void:
 	_box(body, "CartLoad", Vector3(1.8, 0.5, 1.2), Vector3(0, 0.45, 0), HAY)
 
 func _trough(pos: Vector3) -> void:
-	_box(self, "Trough", Vector3(1.8, 0.42, 0.9), pos + Vector3(0, 0.21, 0), Color(0.52, 0.60, 0.62), true)
-	_box(self, "TroughWater", Vector3(1.6, 0.06, 0.7), pos + Vector3(0, 0.40, 0), WATER)
+	var body := _box(self, "Trough", Vector3(1.8, 0.42, 0.9), pos + Vector3(0, 0.21, 0), Color(0.52, 0.60, 0.62), true)
+	ASSETS.replace_visuals(body, "ENV_01_TROUGH", Vector3(0, -0.21, 0))
+	_box(self, "TroughWater", Vector3(1.4, 0.03, 0.53), pos + Vector3(0, 0.32, 0), WATER)
+
+func _build_wilderness_wheat() -> void:
+	# One instanced mesh supplies the golden horizon below the cablecar route.
+	var stalk := CylinderMesh.new()
+	stalk.top_radius = 0.02
+	stalk.bottom_radius = 0.04
+	stalk.height = 1.25
+	stalk.radial_segments = 5
+	stalk.rings = 1
+	stalk.material = _material(Color("F5BE52"))
+	var ears := CylinderMesh.new()
+	ears.top_radius = 0.04
+	ears.bottom_radius = 0.11
+	ears.height = 0.38
+	ears.radial_segments = 5
+	ears.rings = 1
+	ears.material = _material(Color("F59E0B"))
+	var terrain := SurfaceTool.new()
+	terrain.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for row in 24:
+		for column in 40:
+			var x := -48.0 + column * 2.4
+			var z := -116.0 - row * 1.8
+			var corners := [Vector2(x, z), Vector2(x + 2.4, z), Vector2(x, z - 1.8), Vector2(x + 2.4, z - 1.8)]
+			terrain.set_color(Color("DDAA4B") if row % 5 < 2 else Color("E8BA59"))
+			for index in [0, 1, 2, 2, 1, 3]:
+				var point: Vector2 = corners[index]
+				terrain.add_vertex(Vector3(point.x, _wheat_surface_height(point.x, point.y), point.y))
+	terrain.generate_normals()
+	var field := MeshInstance3D.new()
+	field.name = "GoldenFields"
+	field.mesh = terrain.commit()
+	var field_material := _material(Color.WHITE)
+	field_material.vertex_color_use_as_albedo = true
+	field_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	field.material_override = field_material
+	add_child(field)
+	var count := 3200
+	for mesh in [stalk, ears]:
+		var batch := MultiMeshInstance3D.new()
+		batch.name = "GoldenWheat"
+		var multimesh := MultiMesh.new()
+		multimesh.transform_format = MultiMesh.TRANSFORM_3D
+		multimesh.mesh = mesh
+		multimesh.instance_count = count
+		batch.multimesh = multimesh
+		add_child(batch)
+		for i in count:
+			var x := -46.0 + float(i % 80) * 1.16
+			var z := -117.0 - float(i / 80) * 1.02
+			var wave := sin(x * 0.11 + z * 0.1)
+			var y := _wheat_surface_height(x, z) + 0.6 + (0.78 if mesh == ears else 0.0)
+			var tilt := Basis.from_euler(Vector3(0, float(i) * 0.7, 0.08 * wave))
+			multimesh.set_instance_transform(i, Transform3D(tilt, Vector3(x, y, z)))
+
+func _wheat_surface_height(x: float, z: float) -> float:
+	var height := -7.0
+	for hill in [Vector4(-30, -6, -122, 18), Vector4(28, -7, -128, 20), Vector4(0, -10, -140, 24)]:
+		var radius: float = hill.w * 1.4
+		var distance_squared := (Vector2(x, z) - Vector2(hill.x, hill.z)).length_squared() / (radius * radius)
+		if distance_squared < 1.0:
+			height = maxf(height, hill.y + sqrt(1.0 - distance_squared) * hill.w * 0.225)
+	return height + 0.06
 
 func _plow(pos: Vector3) -> void:
 	_box(self, "PlowBeam", Vector3(0.22, 0.22, 1.9), pos + Vector3(0, 0.5, 0), WOOD, true)

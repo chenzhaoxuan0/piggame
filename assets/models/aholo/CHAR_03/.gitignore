@@ -1,0 +1,4 @@
+# Godot-extracted source textures remain inside the original GLB.
+CHAR_03_[0-9]*.png
+CHAR_03_[0-9]*.png.import
+*.blend1

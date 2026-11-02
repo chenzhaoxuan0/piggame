@@ -32,12 +32,39 @@ func _scan(node: Node) -> void:
 	for child in node.get_children(): _scan(child)
 
 func _run() -> void:
-	var visual := ASSETS.make("PROP_01")
-	_check(visual != null, "accepted cabin loads")
-	if visual:
+	var catalog: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/models/aholo/runtime_catalog.json"))
+	_check(catalog.assets.size() == 18, "14 core assets and 4 environment modules delivered")
+	for id in catalog.assets:
+		var visual := ASSETS.make(id)
+		_check(visual != null, "accepted model loads: " + id)
+		if visual == null: continue
+		var before := triangles
 		_scan(visual)
-		_check(meshes > 0 and triangles <= 4500, "cabin fits triangle budget")
-		visual.free()
+		_check(triangles - before <= (8000 if id.begins_with("CHAR_") else 6000), "model fits triangle budget: " + id)
+		if id.begins_with("CHAR_"):
+			root.add_child(visual)
+			await process_frame
+			var players := visual.find_children("*", "AnimationPlayer", true, false)
+			var skeletons := visual.find_children("*", "Skeleton3D", true, false)
+			_check(players.size() == 1 and skeletons.size() == 1, "character has one skeleton and animation player: " + id)
+			if players.size() == 1 and skeletons.size() == 1:
+				var player := players[0] as AnimationPlayer
+				var skeleton := skeletons[0] as Skeleton3D
+				_check(skeleton.get_bone_count() >= 7, "usable articulated skeleton: " + id)
+				for clip in ["idle", "walk", "run", "celebrate"]: _check(player.has_animation(clip), "required clip " + id + "/" + clip)
+				visual.get_node("ActorAnimation").set_process(false)
+				player.play("walk")
+				player.pause()
+				player.seek(0, true)
+				await process_frame
+				var bone := skeleton.find_bone("LegL" if id == "CHAR_07" else "LegLF")
+				var pose := skeleton.get_bone_pose_rotation(bone)
+				player.seek(0.25, true)
+				await process_frame
+				_check(not pose.is_equal_approx(skeleton.get_bone_pose_rotation(bone)), "walk actually articulates leg: " + id)
+		visual.queue_free()
+		await process_frame
+		await process_frame
 	_check(ASSETS.make("UNREVIEWED_ASSET") == null, "unreviewed asset cannot enter runtime")
 	for texture in ART_2D.PORTRAITS.values():
 		_check(texture != null and texture.get_width() > 0, "portrait loads")
@@ -52,6 +79,21 @@ func _run() -> void:
 	var ox_art := farm.get_node_or_null("NPC_ox/CHAR_03")
 	_check(farm.get_node("NPC_ox/Body").visible == (ox_art == null), "ox fallback follows accepted model availability")
 	_check(get_nodes_in_group("interactable").size() == 7, "art keeps interaction roots")
+	var gate := farm.get_node("Gate")
+	var left := gate.find_child("GateLeft", true, false) as Node3D
+	var right := gate.find_child("GateRight", true, false) as Node3D
+	_check(left != null and right != null, "gate has separate hinges")
+	farm.set_gate_open(true)
+	await create_timer(0.75).timeout
+	_check(gate.get_node("CollisionShape3D").disabled, "open gate collision disabled")
+	_check(left.rotation.y > 1.4 and right.rotation.y < -1.4, "both gate leaves swing open")
+	_check(not farm._farmer_baton.visible, "farmer baton hidden after showdown")
+	farm.set_npc_completed("sheep")
+	_check(not farm._sheep_tag.visible, "sheep sheds grade tag")
+	farm.reset_world()
+	await create_timer(0.75).timeout
+	_check(farm._sheep_tag.visible and farm._farmer_baton.visible, "reset restores removable props")
+	_check(absf(left.rotation.y) < 0.01 and absf(right.rotation.y) < 0.01, "reset closes gate hinges")
 	farm.queue_free()
 	await process_frame
 	print("ART_ASSETS_TEST assertions=%d failures=%d triangles=%d" % [assertions, failures, triangles])

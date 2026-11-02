@@ -57,6 +57,7 @@ func _build_pin() -> void:
 		_build_fallback_pin(pin_visual)
 	player.get_node("VisualMesh").add_child(pin_visual)
 	pin_visual.position = Vector3(0, 0.55, -0.9)
+	preload("res://scripts/art/asset_library.gd").attach_to_bone(player.get_node_or_null("VisualMesh/CHAR_01"), "Head", pin_visual, pin_visual.position)
 	pin_visual.visible = false
 
 func _build_fallback_pin(mesh_node: MeshInstance3D) -> void:

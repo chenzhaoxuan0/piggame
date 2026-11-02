@@ -23,6 +23,10 @@ BASE = ROOT / 'assets/models/aholo'
 MANIFEST = BASE / 'production.json'
 CACHE = ROOT / 'builds/lux3d'
 SPECS = {
+    'ENV_01_TROUGH': ('the single stone drinking trough', 10000),
+    'ENV_06_HAY': ('the single golden cylindrical hay bale', 10000),
+    'ENV_06_CRATE': ('the single wooden crate', 10000),
+    'ENV_06_TRACTOR': ('the single green farm tractor', 20000),
     'CHAR_01': ('the pale pink pig, yellow 047 ear tag, red flank stamp, curly tail; neutral standing on four complete legs, mouth empty, no pin', 30000),
     'CHAR_02': ('the old grey bighorn goat with curled dark horns; neutral standing on four complete legs; remove rocks, chains and ground', 30000),
     'CHAR_03': ('the brown ox with pale horns and a simple wooden neck yoke; neutral standing on four complete legs; remove trough, plow, rock and field', 30000),

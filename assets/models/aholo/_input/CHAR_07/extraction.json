@@ -1,0 +1,14 @@
+{
+  "method": "original-pixel manual silhouette mask; no generative redraw",
+  "source": "assets/models/aholo/_input/CHAR_07/extracted.jpg",
+  "source_sha256": "32c5a1d3bbf00492f7dba3eddf9a6fd1f968c3ae77a28215842669d50e47f34b",
+  "mask": "subject_mask.png",
+  "reference_width": 1024,
+  "script": "scripts/art/extract_subjects.py",
+  "bounds": [
+    321,
+    94,
+    703,
+    951
+  ]
+}

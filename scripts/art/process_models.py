@@ -9,11 +9,17 @@ import sys
 from pathlib import Path
 from mathutils import Vector
 import numpy as np
+import bmesh
 
 ROOT=Path(__file__).resolve().parents[2]
 BASE=ROOT/'assets/models/aholo'
 HEIGHTS={'CHAR_01':1.08,'CHAR_02':1.6,'CHAR_03':1.8,'CHAR_04':1.12,'CHAR_05':2.25,'CHAR_06':1.05,'CHAR_07':1.95,'PROP_01':4.3,'PROP_02':1.8,'PROP_03':0.16,'PROP_04':1.5,'PROP_05':0.42,'PROP_06':2.0,'PROP_07':0.65}
+HEIGHTS.update(ENV_01_TROUGH=.42,ENV_06_HAY=.9,ENV_06_CRATE=1.0,ENV_06_TRACTOR=2.2)
 PALETTES={
+ 'ENV_01_TROUGH':['9BA3A3','C1C6C2','767E7E'],
+ 'ENV_06_HAY':['E3BD57','CDA23F','F1CF75'],
+ 'ENV_06_CRATE':['AA8658','C19C6B','896E4C'],
+ 'ENV_06_TRACTOR':['4C793C','709454','2D522B','353937','E4BE56','BBC8C1'],
  'PROP_01':['B98850','D6A66A','946333','E3BD87','40464D','697079','CDA04C'],
  'PROP_02':['343A40','5A6269','22272C','E9B747','8B692F'],
  'PROP_03':['B85D3D','D4885A','7D422C','52B788','387F64'],
@@ -53,6 +59,13 @@ def process(asset_id):
  bpy.context.view_layer.objects.active=meshes[0]
  bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
  bpy.ops.object.join();obj=bpy.context.object;obj.name=asset_id
+ # Generated GLBs split UV seams into duplicate vertices. Weld before reduction
+ # so decimation preserves the connected silhouette instead of collapsing shards.
+ if asset_id=='CHAR_01':
+  bm=bmesh.new();bm.from_mesh(obj.data)
+  bmesh.ops.remove_doubles(bm,verts=list(bm.verts),dist=.00001)
+  bmesh.ops.recalc_face_normals(bm,faces=list(bm.faces));bm.to_mesh(obj.data);bm.free()
+  obj.data.validate(clean_customdata=False);obj.data.update()
  limit=6000 if asset_id.startswith('CHAR') else 4000
  if raw_triangles>limit:
   dec=obj.modifiers.new('Game silhouette reduction','DECIMATE');dec.ratio=limit/raw_triangles

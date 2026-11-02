@@ -6,49 +6,160 @@
       "source": "assets/2d/CHAR_01_猪包子_2D概念图_无插销变体.png",
       "extraction_prompt": "必须严格遵守：输出是《无题大鹅模拟 Untitled Goose Game》风格的极简低多边形游戏模型立绘，不是照片！在原图基础上单独提取主体，保留原图的大块多边形纯色色块、极简黑圆点眼睛和轮廓比例。绝对禁止写实肌肉、毛发、皮毛细节、材质纹理、细碎噪点、摄影。移除所有场景、投影、地板、地面、无关物件。白底纯白无阴影，1:1正方形居中留白10%。具体唯一主体：the pale pink pig, yellow 047 ear tag, red flank stamp, curly tail; neutral standing on four complete legs, mouth empty, no pin. Flat polygonal 3D game render, completely untextured solid color materials, graphic silhouette, black bead eyes. Match the provided reference exactly.",
       "isolation_task": 4566410,
-      "input_status": "pending",
+      "input_status": "reviewed",
       "rejected_inputs": [
         {
           "task": 4566227,
           "reason": "Photorealistic material drift; rejected before 3D"
+        },
+        {
+          "task": 4566410,
+          "reason": "Second generated candidate remained photorealistic; use original concept silhouette"
         }
-      ]
+      ],
+      "isolation_status": 3,
+      "input": "assets/models/aholo/_input/CHAR_01/subject.png",
+      "input_method": "local original-pixel mask; see extraction.json",
+      "input_sha256": "e2b4e65224bfdf60f11a5e8a218cf3ec387cf787bdc9cfc8059d9e77fdce4545",
+      "generation_task": 4568990,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 30000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-02T02:07:56.872776+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/CHAR_01/CHAR_01.glb",
+      "model_sha256": "7225592917637a4016b5c9ff733d24580178203adaac0a14aa99a60ac14dce50",
+      "runtime": "assets/models/aholo/CHAR_01/CHAR_01_game.glb",
+      "runtime_sha256": "5a28a4fd7bbd222353939c7392d4b544565b7becf9af8852fca660d1d4901624",
+      "runtime_accepted": true,
+      "triangles": 7157,
+      "animation_source": "authored Blender skeleton and clips"
     },
     "CHAR_02": {
       "source": "assets/2d/CHAR_02_老岩羊_2D概念图.png",
       "extraction_prompt": "必须严格遵守：输出是《无题大鹅模拟 Untitled Goose Game》风格的极简低多边形游戏模型立绘，不是照片！在原图基础上单独提取主体，保留原图的大块多边形纯色色块、极简黑圆点眼睛和轮廓比例。绝对禁止写实肌肉、毛发、皮毛细节、材质纹理、细碎噪点、摄影。移除所有场景、投影、地板、地面、无关物件。白底纯白无阴影，1:1正方形居中留白10%。具体唯一主体：the old grey bighorn goat with curled dark horns; neutral standing on four complete legs; remove rocks, chains and ground. Flat polygonal 3D game render, completely untextured solid color materials, graphic silhouette, black bead eyes. Match the provided reference exactly.",
       "isolation_task": 4566414,
-      "input_status": "pending",
+      "input_status": "reviewed",
       "rejected_inputs": [
         {
           "task": 4566231,
           "reason": "Photorealistic material drift; rejected before 3D"
         }
-      ]
+      ],
+      "isolation_status": 3,
+      "input": "assets/models/aholo/_input/CHAR_02/subject.png",
+      "input_sha256": "bf3e4b4004cef64bb5f107e96ef3891bb25691f7a7c793fa16c42523d05ce6f4",
+      "generation_task": 4566594,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 30000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-01T21:40:04.535889+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/CHAR_02/CHAR_02.glb",
+      "model_sha256": "fcdfbb045d11540a9288a286709582ff8d671bb06736569a8eafd293e6531751",
+      "runtime": "assets/models/aholo/CHAR_02/CHAR_02_game.glb",
+      "runtime_sha256": "f5173a6e0878910bcf049ecf203773788d8f14ba23f79948a6ebbbb058b4f69f",
+      "runtime_accepted": true,
+      "triangles": 6336,
+      "animation_source": "authored Blender skeleton and clips"
     },
     "CHAR_03": {
       "source": "assets/2d/CHAR_03_老黄牛_2D概念图.png",
       "extraction_prompt": "必须严格遵守：输出是《无题大鹅模拟 Untitled Goose Game》风格的极简低多边形游戏模型立绘，不是照片！在原图基础上单独提取主体，保留原图的大块多边形纯色色块、极简黑圆点眼睛和轮廓比例。绝对禁止写实肌肉、毛发、皮毛细节、材质纹理、细碎噪点、摄影。移除所有场景、投影、地板、地面、无关物件。白底纯白无阴影，1:1正方形居中留白10%。具体唯一主体：the brown ox with pale horns and a simple wooden neck yoke; neutral standing on four complete legs; remove trough, plow, rock and field. Flat polygonal 3D game render, completely untextured solid color materials, graphic silhouette, black bead eyes. Match the provided reference exactly.",
       "isolation_task": 4566418,
-      "input_status": "pending",
+      "input_status": "reviewed",
       "rejected_inputs": [
         {
           "task": 4566237,
           "reason": "Photorealistic material drift; rejected before 3D"
         }
-      ]
+      ],
+      "isolation_status": 3,
+      "input": "assets/models/aholo/_input/CHAR_03/subject.png",
+      "input_sha256": "fdc49fb1c906245615f7323b9a348b426c170796817d9bc7a00c222212419ee8",
+      "generation_task": 4566597,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 30000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-01T21:40:07.508702+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/CHAR_03/CHAR_03.glb",
+      "model_sha256": "d2af4acb01ca288cd1f7c201b58bdbf5c028574d88180deb712ec669bd8d7fe7",
+      "runtime": "assets/models/aholo/CHAR_03/CHAR_03_game.glb",
+      "runtime_sha256": "f56811eeb43059564d886e4ae6439db0c053f4dbca917a9a9ee51fa33ab5b754",
+      "runtime_accepted": true,
+      "triangles": 6336,
+      "animation_source": "authored Blender skeleton and clips"
     },
     "CHAR_04": {
       "source": "assets/2d/CHAR_04_小绵羊_2D概念图_沐光无牌变体.png",
       "extraction_prompt": "必须严格遵守：输出是《无题大鹅模拟 Untitled Goose Game》风格的极简低多边形游戏模型立绘，不是照片！在原图基础上单独提取主体，保留原图的大块多边形纯色色块、极简黑圆点眼睛和轮廓比例。绝对禁止写实肌肉、毛发、皮毛细节、材质纹理、细碎噪点、摄影。移除所有场景、投影、地板、地面、无关物件。白底纯白无阴影，1:1正方形居中留白10%。具体唯一主体：the small white fluffy sheep with pink face and black dot eyes; neutral standing on four short dark legs, no tag, no glow. Flat polygonal 3D game render, completely untextured solid color materials, graphic silhouette, black bead eyes. Match the provided reference exactly.",
       "isolation_task": 4566424,
-      "input_status": "pending",
+      "input_status": "reviewed",
       "rejected_inputs": [
         {
           "task": 4566241,
           "reason": "Photorealistic material drift; rejected before 3D"
+        },
+        {
+          "task": 4566424,
+          "reason": "Second generated candidate remained photorealistic; use original concept silhouette"
         }
-      ]
+      ],
+      "isolation_status": 3,
+      "input": "assets/models/aholo/_input/CHAR_04/subject.png",
+      "input_method": "local original-pixel mask; see extraction.json",
+      "input_sha256": "e89111bfd0cfea19eb2421d1f32950f0887a4ab90aa035e2c5e63f65e8f30073",
+      "generation_task": 4568995,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 30000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-02T02:07:59.775575+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/CHAR_04/CHAR_04.glb",
+      "model_sha256": "579bab5d506cc29868d4c9463eab7536db3491b54d0921266acd0f357ca20e32",
+      "runtime": "assets/models/aholo/CHAR_04/CHAR_04_game.glb",
+      "runtime_sha256": "329a0b4c40c8ed1170f6ef348363d7cd5befaa9afc6af47a56431ca17514ca69",
+      "runtime_accepted": true,
+      "triangles": 1536,
+      "animation_source": "authored Blender skeleton and clips",
+      "manual_repairs": "Lux3D folded wool shell and missing feet rejected. Wool lobes, pink face, ears and four hooves reconstructed to approved concept, with an authored eight-bone rig."
     },
     "CHAR_05": {
       "source": "assets/2d/CHAR_05_中年烈马追风_2D概念图.png",
@@ -63,7 +174,29 @@
           "reason": "Photorealistic style rejected"
         }
       ],
-      "input_sha256": "daf25272e3f5efa09dd1485eb3b4ac947d8f669d4085e272bd88336f7b1e8645"
+      "input_sha256": "daf25272e3f5efa09dd1485eb3b4ac947d8f669d4085e272bd88336f7b1e8645",
+      "generation_task": 4566600,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 30000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-01T21:40:10.513497+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/CHAR_05/CHAR_05.glb",
+      "model_sha256": "92763dbdd53e234357da6df0aac8216d39793ef522446cb04d7751610a61818b",
+      "runtime": "assets/models/aholo/CHAR_05/CHAR_05_game.glb",
+      "runtime_sha256": "5c8e029c57a2ede69ad43fe647cbf97f24726caca72b2099926d353b2b019d46",
+      "runtime_accepted": true,
+      "triangles": 6671,
+      "animation_source": "authored Blender skeleton and clips"
     },
     "PROP_01": {
       "source": "assets/2d/PROP_01_后山悬崖木质索道站与吊厢_2D概念图.png",
@@ -93,77 +226,411 @@
       "runtime_model": "assets/models/aholo/PROP_01/PROP_01_game.glb",
       "scene_mount": "Farm/CableCarCabin",
       "validation": "Rendered journey completed both endings and cabin travel; first sample accepted 2026-11-02",
-      "runtime_sha256": "e9a480a59774a81c108bfb62e8ff1b3b419f271fe429b53527b36816e982f6ce"
+      "runtime_sha256": "e9a480a59774a81c108bfb62e8ff1b3b419f271fe429b53527b36816e982f6ce",
+      "runtime": "assets/models/aholo/PROP_01/PROP_01_game.glb",
+      "runtime_accepted": true,
+      "triangles": 4156,
+      "animation_source": null,
+      "manual_repairs": "Cabin shell retained from Lux3D; flattened to 3.2 x 2.6 x 1.6 m; missing suspension and pulley wheels reconstructed in Blender; uniform authored wood palette."
     },
     "PROP_02": {
       "source": "assets/2d/PROP_02_后山重型大铁闸门与碎锁_2D概念图.png",
       "extraction_prompt": "Extract and reconstruct ONLY ONLY the closed pair of dark iron gate leaves with vertical bars and small brass padlock; remove both stone pillars, shadows, ground; straight-on three quarter view. Preserve the exact reference design and minimalist flat-shaded low-poly game style. Single complete object fully visible and centered with 8 percent margins on pure white background. Square 1:1. No floor, no ground, no cast shadow, no environment, no lighting gradients, no other objects. Solid matte colors, no texture noise, no realistic fur. This is a clean image-to-3D subject sheet.",
       "isolation_task": 4566302,
-      "input_status": "rejected",
+      "input_status": "reviewed",
       "isolation_status": 3,
       "input": "assets/models/aholo/_input/PROP_02/subject.png",
-      "rejection_reason": "Texture noise / style drift or included pillars; do not use for 3D."
+      "rejection_reason": "Texture noise / style drift or included pillars; do not use for 3D.",
+      "input_method": "local original-pixel mask; see extraction.json",
+      "input_sha256": "71bda7f388791467dada6463e7b472e75326cd6c874fc9f76fa41c5cd70c63c1",
+      "generation_task": 4569003,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 20000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-02T02:08:05.779573+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/PROP_02/PROP_02.glb",
+      "model_sha256": "c33f174e64d940ea70856495703c6193f5a7dc36495c9c9c399075d498a976af",
+      "runtime": "assets/models/aholo/PROP_02/PROP_02_game.glb",
+      "runtime_sha256": "aa7a92acb823ae387ddfd02e80b3bde6e548eae5c97962b7a742b54a60e36bfb",
+      "runtime_accepted": true,
+      "triangles": 3998,
+      "animation_source": null
     },
     "PROP_03": {
       "source": "assets/2d/PROP_03_生锈红铜插销_2D概念图.png",
       "extraction_prompt": "Extract and reconstruct ONLY the single bronze latch pin with ring handle and red copper/teal patina color blocks; remove all shadows. Preserve the exact reference design and minimalist flat-shaded low-poly game style. Single complete object fully visible and centered with 8 percent margins on pure white background. Square 1:1. No floor, no ground, no cast shadow, no environment, no lighting gradients, no other objects. Solid matte colors, no texture noise, no realistic fur. This is a clean image-to-3D subject sheet.",
       "isolation_task": 4566306,
-      "input_status": "rejected",
+      "input_status": "reviewed",
       "isolation_status": 3,
       "input": "assets/models/aholo/_input/PROP_03/subject.png",
-      "rejection_reason": "Texture noise / style drift or included pillars; do not use for 3D."
+      "rejection_reason": "Texture noise / style drift or included pillars; do not use for 3D.",
+      "input_method": "local original-pixel mask; see extraction.json",
+      "input_sha256": "4f31ae40a19c43ae2a7d2a6d874541f312e1351dd30fe684ece94f37b17b017e",
+      "generation_task": 4569008,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-02T02:08:08.803365+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/PROP_03/PROP_03.glb",
+      "model_sha256": "7cfec1836998bd67f51e5d720b8bceefec97a761353f3f27bf80418bf634af7f",
+      "runtime": "assets/models/aholo/PROP_03/PROP_03_game.glb",
+      "runtime_sha256": "e5242ce2f542422e4c17b5fc8f9e57ddb2be907ee3bd7d0b464669d178d007cd",
+      "runtime_accepted": true,
+      "triangles": 3999,
+      "animation_source": null
     },
     "PROP_04": {
       "source": "assets/2d/PROP_04_花岗岩顽石与卷刃深铁犁_2D概念图.png",
       "extraction_prompt": "Extract and reconstruct ONLY the grey granite boulder with the chipped dark iron plow blade wedged against it, as one assembled prop; remove loose dirt and pebbles. Preserve the exact reference design and minimalist flat-shaded low-poly game style. Single complete object fully visible and centered with 8 percent margins on pure white background. Square 1:1. No floor, no ground, no cast shadow, no environment, no lighting gradients, no other objects. Solid matte colors, no texture noise, no realistic fur. This is a clean image-to-3D subject sheet.",
       "isolation_task": 4566312,
-      "input_status": "rejected",
+      "input_status": "reviewed",
       "isolation_status": 3,
       "input": "assets/models/aholo/_input/PROP_04/subject.png",
-      "rejection_reason": "Texture noise / style drift or included pillars; do not use for 3D."
+      "rejection_reason": "Texture noise / style drift or included pillars; do not use for 3D.",
+      "input_method": "local original-pixel mask; see extraction.json",
+      "input_sha256": "26d1e97d7c10c036256ab1fe381360cab68433c47cb0e42592191bb8aeb7be28",
+      "generation_task": 4569112,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 16000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-02T02:13:53.125666+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/PROP_04/PROP_04.glb",
+      "model_sha256": "09d1f24cf866f5a80f51ed1c5a0ad091b3843c3c482f91d452f4bb956fdf7f1d",
+      "runtime": "assets/models/aholo/PROP_04/PROP_04_game.glb",
+      "runtime_sha256": "0ffe3b713f92ca3a70a7996459924a409ba7088b59d174906b1ff02936033345",
+      "runtime_accepted": true,
+      "triangles": 4000,
+      "animation_source": null
     },
     "PROP_05": {
       "source": "assets/2d/PROP_05_三等残次木质评定吊牌_2D概念图.png",
       "extraction_prompt": "Extract and reconstruct ONLY the single pale wooden grade tag and white cord loop, keep black markings; remove all shadows. Preserve the exact reference design and minimalist flat-shaded low-poly game style. Single complete object fully visible and centered with 8 percent margins on pure white background. Square 1:1. No floor, no ground, no cast shadow, no environment, no lighting gradients, no other objects. Solid matte colors, no texture noise, no realistic fur. This is a clean image-to-3D subject sheet.",
       "isolation_task": 4566318,
-      "input_status": "rejected",
+      "input_status": "reviewed",
       "isolation_status": 3,
       "input": "assets/models/aholo/_input/PROP_05/subject.png",
-      "rejection_reason": "Texture noise / style drift or included pillars; do not use for 3D."
+      "rejection_reason": "Texture noise / style drift or included pillars; do not use for 3D.",
+      "input_method": "local original-pixel mask; see extraction.json",
+      "input_sha256": "18d3bfb5e170e9320ec25511447e55ed7341bc2ac33070b39e45b3c1594eaf26",
+      "generation_task": 4569117,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-02T02:13:56.129987+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/PROP_05/PROP_05.glb",
+      "model_sha256": "cb9d8fa5d60882f09be09b3b5d85e20288af83f2a4ce9841dafc7f2af294e975",
+      "runtime": "assets/models/aholo/PROP_05/PROP_05_game.glb",
+      "runtime_sha256": "c6cbd071967c7f0fdada0ebd3cf8d873c1b341d2b094007b65bc6cc1c2972374",
+      "runtime_accepted": true,
+      "triangles": 4000,
+      "animation_source": null
     },
     "PROP_06": {
       "source": "assets/2d/PROP_06_35秒春季新纪录看板_2D概念图.png",
       "extraction_prompt": "Extract and reconstruct ONLY the single white 35s record sign with green border and both wooden posts; remove all shadows, same baseline for posts. Preserve the exact reference design and minimalist flat-shaded low-poly game style. Single complete object fully visible and centered with 8 percent margins on pure white background. Square 1:1. No floor, no ground, no cast shadow, no environment, no lighting gradients, no other objects. Solid matte colors, no texture noise, no realistic fur. This is a clean image-to-3D subject sheet.",
       "isolation_task": 4566322,
-      "input_status": "rejected",
+      "input_status": "reviewed",
       "isolation_status": 3,
       "input": "assets/models/aholo/_input/PROP_06/subject.png",
-      "rejection_reason": "Texture noise / style drift or included pillars; do not use for 3D."
+      "rejection_reason": "Texture noise / style drift or included pillars; do not use for 3D.",
+      "input_method": "local original-pixel mask; see extraction.json",
+      "input_sha256": "f8202b3ca4f4e11c08fb67884f2170a6c821c3d6adcc13bcec3dd93352150906",
+      "generation_task": 4569130,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-02T02:13:59.211481+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/PROP_06/PROP_06.glb",
+      "model_sha256": "0aebf7366ef97e08d87848bbcff9e75326af8b87b9c4bbcc9128db8a64358518",
+      "runtime": "assets/models/aholo/PROP_06/PROP_06_game.glb",
+      "runtime_sha256": "93b84fe78162891fc1b2e2ee4ef51cceb84eeb0a9439948180bbd865e748f75b",
+      "runtime_accepted": true,
+      "triangles": 4000,
+      "animation_source": null
     },
     "CHAR_06": {
       "source": "assets/2d/CHAR_06_农场护院犬_2D概念图.png",
       "extraction_prompt": "必须严格遵守：输出是《无题大鹅模拟 Untitled Goose Game》风格的极简低多边形游戏模型立绘，不是照片！在原图基础上单独提取主体，保留原图的大块多边形纯色色块、极简黑圆点眼睛和轮廓比例。绝对禁止写实肌肉、毛发、皮毛细节、材质纹理、细碎噪点、摄影。移除所有场景、投影、地板、地面、无关物件。白底纯白无阴影，1:1正方形居中留白10%。具体唯一主体：the tan and black guard dog with pointed ears and plain collar; neutral standing on four complete legs rather than running. Flat polygonal 3D game render, completely untextured solid color materials, graphic silhouette, black bead eyes. Match the provided reference exactly.",
       "isolation_task": 4566438,
-      "input_status": "pending"
+      "input_status": "reviewed",
+      "isolation_status": 3,
+      "input": "assets/models/aholo/_input/CHAR_06/subject.png",
+      "input_sha256": "81166384778a0ee9a17977c58e25e863b02503ba38c5972544465a972c27c4a8",
+      "generation_task": 4566603,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 30000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-01T21:40:13.584800+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/CHAR_06/CHAR_06.glb",
+      "model_sha256": "ba83bb6b939a69d7e796bc304907997f6b62a270417f39d2cc27a43f0d27fed3",
+      "runtime": "assets/models/aholo/CHAR_06/CHAR_06_game.glb",
+      "runtime_sha256": "6a2388963417ad9f0c7b5d2ed7a50c01e549b2e2cc6febd7d2798225f0b811cb",
+      "runtime_accepted": true,
+      "triangles": 6336,
+      "animation_source": "authored Blender skeleton and clips"
     },
     "CHAR_07": {
       "source": "assets/2d/CHAR_07_农场主_2D概念图.png",
       "extraction_prompt": "必须严格遵守：输出是《无题大鹅模拟 Untitled Goose Game》风格的极简低多边形游戏模型立绘，不是照片！在原图基础上单独提取主体，保留原图的大块多边形纯色色块、极简黑圆点眼睛和轮廓比例。绝对禁止写实肌肉、毛发、皮毛细节、材质纹理、细碎噪点、摄影。移除所有场景、投影、地板、地面、无关物件。白底纯白无阴影，1:1正方形居中留白10%。具体唯一主体：the farmer wearing cap, mustard sweater, blue dungarees and green Wellington boots; reconstruct as standing neutral relaxed A-pose, both feet on same baseline, empty hands, no baton. Flat polygonal 3D game render, completely untextured solid color materials, graphic silhouette, black bead eyes. Match the provided reference exactly.",
       "isolation_task": 4566442,
-      "input_status": "pending"
+      "input_status": "reviewed",
+      "isolation_status": 3,
+      "input": "assets/models/aholo/_input/CHAR_07/subject.png",
+      "input_method": "local original-pixel mask; see extraction.json",
+      "input_sha256": "b2be1cdde0965a921343809fd874d8aa0f27299edb25d89f128a7b26d22850a8",
+      "generation_task": 4569000,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 30000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-02T02:08:02.727584+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/CHAR_07/CHAR_07.glb",
+      "model_sha256": "d50d6fd2f751a9beb7f4f627d13c93396fa73286e53acad65444ca51e56b85fc",
+      "runtime": "assets/models/aholo/CHAR_07/CHAR_07_game.glb",
+      "runtime_sha256": "fe673fdc005e0df578309a4f7798c82fb37163bc8b69f8b5c2b14d2a9996eb8b",
+      "runtime_accepted": true,
+      "triangles": 6336,
+      "animation_source": "authored Blender skeleton and clips"
     },
     "PROP_07": {
       "source": "assets/2d/PROP_07_农场主高压防暴电击棍_2D概念图.png",
       "extraction_prompt": "必须严格遵守：输出是《无题大鹅模拟 Untitled Goose Game》风格的极简低多边形游戏模型立绘，不是照片！在原图基础上单独提取主体，保留原图的大块多边形纯色色块、极简黑圆点眼睛和轮廓比例。绝对禁止写实肌肉、毛发、皮毛细节、材质纹理、细碎噪点、摄影。移除所有场景、投影、地板、地面、无关物件。白底纯白无阴影，1:1正方形居中留白10%。具体唯一主体：the single black and yellow electric baton with grey front tip; remove floating spark and all shadows. Flat polygonal 3D game render, completely untextured solid color materials, graphic silhouette, black bead eyes. Match the provided reference exactly.",
       "isolation_task": 4566449,
-      "input_status": "pending"
+      "input_status": "reviewed",
+      "isolation_status": 3,
+      "input": "assets/models/aholo/_input/PROP_07/subject.png",
+      "input_sha256": "47bfff75c394a3ee19cbf890c28313c9e1e118693b90a29a83194e3127170904",
+      "generation_task": 4566606,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-01T21:40:16.442909+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/PROP_07/PROP_07.glb",
+      "model_sha256": "38f793205116e40594edd9daf205166a943b2487c47eb72d41e8d859d1dc628c",
+      "runtime": "assets/models/aholo/PROP_07/PROP_07_game.glb",
+      "runtime_sha256": "acf243b535b70e36ed5991c2810100e93cc7912633a2b2e93f0360a610f38d2b",
+      "runtime_accepted": true,
+      "triangles": 4240,
+      "animation_source": null
+    },
+    "ENV_01_TROUGH": {
+      "source": "assets/2d/ENV_01_山顶悬崖废弃猪圈_2D概念图.png",
+      "input_status": "reviewed",
+      "scope": "modular environment prop derived from approved scene concept",
+      "input": "assets/models/aholo/_input/ENV_01_TROUGH/subject.png",
+      "input_method": "original-pixel manually traced mask",
+      "input_sha256": "87c1bd0114ac815a84ac250258239dbadee6583c364cebb90f98a3fa7733f10e",
+      "generation_task": 4569267,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-02T02:20:44.874606+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/ENV_01_TROUGH/ENV_01_TROUGH.glb",
+      "model_sha256": "1e18bc218a5f2f3493ba63c54a9de6bb6d68400b10a263a5e6fbad6b2ee40680",
+      "runtime": "assets/models/aholo/ENV_01_TROUGH/ENV_01_TROUGH_game.glb",
+      "runtime_sha256": "1e3b96404613bc5e344b1a8ed70f26d4d4ab59cb2e7e8f54f48b355c1a5eae2e",
+      "runtime_accepted": true,
+      "triangles": 220,
+      "animation_source": null,
+      "manual_repairs": "Lux3D cavity rejected as non-manifold. Five bevelled stone slabs rebuilt in Blender to original concept and gameplay dimensions."
+    },
+    "ENV_06_HAY": {
+      "source": "assets/2d/ENV_06_农场开阔空地_2D概念图.png",
+      "input_status": "reviewed",
+      "scope": "modular environment prop derived from approved scene concept",
+      "input": "assets/models/aholo/_input/ENV_06_HAY/subject.png",
+      "input_method": "original-pixel manually traced mask",
+      "input_sha256": "fa6dd7634f46b3dc0bd22e5f8467ef89ded6131ba6f4744dbe2e7654b322dc71",
+      "generation_task": 4569274,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-02T02:20:47.928162+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/ENV_06_HAY/ENV_06_HAY.glb",
+      "model_sha256": "89d421efee51e6080d200e0d98e5ce2360af11f56ace61c97b17161131d9971e",
+      "runtime": "assets/models/aholo/ENV_06_HAY/ENV_06_HAY_game.glb",
+      "runtime_sha256": "65d8c55faf61cac36211e8c5d1d9052c62f9f905606b1c5a350b8446e3967760",
+      "runtime_accepted": true,
+      "triangles": 4000,
+      "animation_source": null
+    },
+    "ENV_06_CRATE": {
+      "source": "assets/2d/ENV_06_农场开阔空地_2D概念图.png",
+      "input_status": "reviewed",
+      "scope": "modular environment prop derived from approved scene concept",
+      "input": "assets/models/aholo/_input/ENV_06_CRATE/subject.png",
+      "input_method": "original-pixel manually traced mask",
+      "input_sha256": "19066884c0f3fa4c255c2dda7dcb7b3ae1e98f14c11be0dec1037011fd9f3e6a",
+      "generation_task": 4569279,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-02T02:20:50.955381+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/ENV_06_CRATE/ENV_06_CRATE.glb",
+      "model_sha256": "451a7aa776ec13d5347d81673f7a5037bbafd9045328744d4d3250048d47aed7",
+      "runtime": "assets/models/aholo/ENV_06_CRATE/ENV_06_CRATE_game.glb",
+      "runtime_sha256": "2ebe055a4e3cd7eb4f4e09dfd1ada09bb8489155f769f454f502bcee9fb7b0e6",
+      "runtime_accepted": true,
+      "triangles": 4000,
+      "animation_source": null
+    },
+    "ENV_06_TRACTOR": {
+      "source": "assets/2d/ENV_06_农场开阔空地_2D概念图.png",
+      "input_status": "reviewed",
+      "scope": "modular environment prop derived from approved scene concept",
+      "input": "assets/models/aholo/_input/ENV_06_TRACTOR/subject.png",
+      "input_method": "original-pixel manually traced mask",
+      "input_sha256": "f3d013532354c8f0544b95e351340d015df1362ba237262b7ca5bdbde5bee8c7",
+      "generation_task": 4569284,
+      "generation_parameters": {
+        "version": "G1-Turbo",
+        "faceCount": 20000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "model_status": "downloaded",
+      "generated_at": "2026-11-02T02:20:54.093660+00:00",
+      "generation_status": 3,
+      "raw_model": "assets/models/aholo/ENV_06_TRACTOR/ENV_06_TRACTOR.glb",
+      "model_sha256": "e7dd5fbdce956e305a07ae1e202b42049cdfc92a86bc92144ccbc0ecf2739c7d",
+      "runtime": "assets/models/aholo/ENV_06_TRACTOR/ENV_06_TRACTOR_game.glb",
+      "runtime_sha256": "c36633901ed02c03af490d0a38d0fe0849ac29c9c9353d9ccd6c1750d50005ab",
+      "runtime_accepted": true,
+      "triangles": 4000,
+      "animation_source": null
     }
   },
-  "blocker": {
-    "kind": "automatic_approval_service_failure",
-    "message": "Two review timeouts, then 502 Bad Gateway / Upstream access forbidden. Later cloud queries and revision submissions were not executed. Do not bypass approval.",
-    "pending_action": "Restore approval service, collect already-submitted tasks, review inputs, generate remaining assets."
-  },
   "baseline_commit": "9e4b1d0",
-  "active_workspace": "piggame (master)"
+  "active_workspace": "piggame (master)",
+  "delivery": {
+    "date": "2026-11-02",
+    "version": "0.3.0-art",
+    "core_count": 14,
+    "environment_modules": 4,
+    "runtime_triangles": 81321,
+    "runtime_glb_bytes": 9499880,
+    "generation_complete": true,
+    "validation": {
+      "state_assertions": 168,
+      "farm_assertions": 22,
+      "asset_assertions": 462,
+      "physics": "pass",
+      "full_journey": "both endings passed",
+      "export_pack": "independent-directory assets and full journey passed"
+    }
+  }
 }
