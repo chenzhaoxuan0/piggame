@@ -101,7 +101,7 @@ def process(asset_id):
  for i,rgb in enumerate(palette): obj.data.materials.append(material(asset_id+'_flat_'+str(i),rgb))
  for poly,index in zip(obj.data.polygons,assignments):
   poly.material_index=0 if asset_id=='PROP_01' else index
-  poly.use_smooth=True
+  poly.use_smooth=False
  obj.data.set_sharp_from_angle(angle=math.radians(35))
  bounds=[Vector(c) for c in obj.bound_box]
  low=Vector(tuple(min(p[i] for p in bounds) for i in range(3)))

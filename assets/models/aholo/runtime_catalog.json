@@ -13,92 +13,92 @@
       "path": "res://assets/models/aholo/CHAR_01/CHAR_01_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 7157,
+      "triangles": 7000,
       "animations": [
         "idle",
         "walk",
         "run",
         "celebrate"
       ],
-      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+      "validation": "Clean Plan B G1 multi-view model with pure flat shading and zero manual distortion"
     },
     "CHAR_02": {
       "path": "res://assets/models/aholo/CHAR_02/CHAR_02_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 6336,
+      "triangles": 7000,
       "animations": [
         "idle",
         "walk",
         "run",
         "celebrate"
       ],
-      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+      "validation": "Clean Plan B G1 multi-view model with pure flat shading and zero manual distortion"
     },
     "CHAR_03": {
       "path": "res://assets/models/aholo/CHAR_03/CHAR_03_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 6336,
+      "triangles": 7000,
       "animations": [
         "idle",
         "walk",
         "run",
         "celebrate"
       ],
-      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+      "validation": "Clean Plan B G1 multi-view model with pure flat shading and zero manual distortion"
     },
     "CHAR_04": {
       "path": "res://assets/models/aholo/CHAR_04/CHAR_04_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 1536,
+      "triangles": 6999,
       "animations": [
         "idle",
         "walk",
         "run",
         "celebrate"
       ],
-      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+      "validation": "Clean Plan B G1 multi-view model with pure flat shading and zero manual distortion"
     },
     "CHAR_05": {
       "path": "res://assets/models/aholo/CHAR_05/CHAR_05_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 6671,
+      "triangles": 7000,
       "animations": [
         "idle",
         "walk",
         "run",
         "celebrate"
       ],
-      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+      "validation": "Clean Plan B G1 multi-view model with pure flat shading and zero manual distortion"
     },
     "CHAR_06": {
       "path": "res://assets/models/aholo/CHAR_06/CHAR_06_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 6336,
+      "triangles": 6999,
       "animations": [
         "idle",
         "walk",
         "run",
         "celebrate"
       ],
-      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+      "validation": "Clean Plan B G1 multi-view model with pure flat shading and zero manual distortion"
     },
     "CHAR_07": {
       "path": "res://assets/models/aholo/CHAR_07/CHAR_07_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 6336,
+      "triangles": 7000,
       "animations": [
         "idle",
         "walk",
         "run",
         "celebrate"
       ],
-      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+      "validation": "Clean Plan B G1 multi-view model with pure flat shading and zero manual distortion"
     },
     "ENV_01_TROUGH": {
       "path": "res://assets/models/aholo/ENV_01_TROUGH/ENV_01_TROUGH_game.glb",
