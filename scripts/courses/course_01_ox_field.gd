@@ -132,24 +132,23 @@ func _build_surroundings() -> void:
 	var rock := Color("777F8D")
 	var stone := Color("8B9093")
 	var stone_light := Color("A5A69F")
-	# Cliff masses flanking the track, tops just below the walking surface.
+	# Mountain body sits well below the track (tops ~-4.4) and outboard, so it
+	# reads as cliffs dropping away without occluding the racing surface.
 	env._district = "MountainSlopes"
 	for z in [4.0, -10.0, -24.0, -38.0, -52.0, -66.0, -80.0, -94.0]:
 		for side in [-1.0, 1.0]:
 			var shade := rock.lerp(stone, 0.3 + 0.2 * sin(z))
-			env._boulder(Vector3(side * 6.0, -6.5, z), Vector3(9, 11, 12), shade, z * 0.1)
+			env._boulder(Vector3(side * 7.0, -9.0, z), Vector3(10, 8, 13), shade, z * 0.1)
 	env._boulder(Vector3(0, -9.5, -36), Vector3(12, 9, 16), rock, 0.7)
 	# Distant peaks faded by the shader's valley haze.
-	for p in [Vector3(-48, -13, -30), Vector3(50, -14, -70), Vector3(-44, -15, -95)]:
-		env._boulder(p, Vector3(30, 26, 40), stone_light, p.x)
+	for p in [Vector3(-48, -16, -30), Vector3(50, -17, -70), Vector3(-44, -18, -95)]:
+		env._boulder(p, Vector3(30, 22, 40), stone_light, p.x)
 	# Trees and boulders grounded on the wide terraces.
 	env._district = "CourseTrees"
 	env._tree(Vector3(-7, 0, 11), 0.9)
 	env._tree(Vector3(7, 0, 11), 1.0)
 	env._tree(Vector3(-5, 0, -103), 0.9)
 	env._tree(Vector3(5, 0, -103), 1.0)
-	env._tree(Vector3(-6, -0.2, -18), 0.7)
-	env._tree(Vector3(-6, -0.2, -66), 0.75)
 	env._district = "CourseRocks"
 	env._boulder(Vector3(7.2, 0.1, -2), Vector3(1.6, 1.3, 1.5), stone, 0.3)
 	env._boulder(Vector3(-7.0, 0.1, 6), Vector3(1.3, 1.0, 1.2), rock, 1.1)
