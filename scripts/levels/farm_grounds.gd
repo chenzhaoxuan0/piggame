@@ -101,6 +101,7 @@ func _ready() -> void:
 		var point: Vector3=L.path("chase")[i]
 		_label(self,"EscapeMarker","◆ 突围 %d" % i,point+Vector3(0,2.4,0),20)
 	_build_secret_mario_pipe()
+	_build_secret_mario_pipe_exit()
 	reset_world()
 
 func _install_environment() -> void:
@@ -392,9 +393,10 @@ func _on_gate_passed(body: Node3D, gate_id: String) -> void:
 func _build_secret_mario_pipe() -> void:
 	var pipe_root := Node3D.new()
 	pipe_root.name = "SecretMarioPipe"
-	# Positioned directly in the middle of the downhill summit road per user arrow direction!
-	# (Moved from the blocked cliff ledge into the middle of the road)
-	var pipe_pos := Vector3(-11.0, 29.9, 74.7)
+	# Positioned right at the final corner of the summit escape before Ox's gate!
+	# Placed after basic tutorial training (WASD movement, fallen logs, dog ambushes, and struggle).
+	# Located at the corner apex (Vector3(16.0, 24.0, 65.5)), prominently visible before the ox gate stretch.
+	var pipe_pos := Vector3(16.0, 24.0, 65.5)
 	pipe_root.position = pipe_pos
 	add_child(pipe_root)
 
@@ -512,3 +514,62 @@ func _on_secret_pipe_body_entered(body: Node3D) -> void:
 	# Test compatibility helper
 	if body.is_in_group("player"):
 		secret_pipe_entered.emit("course_1")
+
+func _build_secret_mario_pipe_exit() -> void:
+	var exit_root := Node3D.new()
+	exit_root.name = "SecretMarioPipeExit"
+	# Positioned right at the entrance of the Ox field level (just inside GATE_OX)!
+	var exit_pos := Vector3(33.0, 24.0, 52.5)
+	exit_root.position = exit_pos
+	add_child(exit_root)
+
+	var pipe_body := StaticBody3D.new()
+	pipe_body.name = "ExitPipeBody"
+	pipe_body.collision_layer = 1
+	pipe_body.collision_mask = 0
+	var body_shape := CollisionShape3D.new()
+	var cyl_shape := CylinderShape3D.new()
+	cyl_shape.radius = 1.05
+	cyl_shape.height = 0.35
+	body_shape.shape = cyl_shape
+	body_shape.position.y = 0.175
+	pipe_body.add_child(body_shape)
+
+	var pipe_mat := StandardMaterial3D.new()
+	pipe_mat.albedo_color = Color("2E7D32")
+	pipe_mat.roughness = 0.45
+
+	var body_mesh := MeshInstance3D.new()
+	var body_cyl := CylinderMesh.new()
+	body_cyl.top_radius = 1.0
+	body_cyl.bottom_radius = 1.0
+	body_cyl.height = 0.35
+	body_mesh.mesh = body_cyl
+	body_mesh.position.y = 0.175
+	body_mesh.material_override = pipe_mat
+	pipe_body.add_child(body_mesh)
+
+	var rim_mesh := MeshInstance3D.new()
+	var rim_cyl := CylinderMesh.new()
+	rim_cyl.top_radius = 1.2
+	rim_cyl.bottom_radius = 1.2
+	rim_cyl.height = 0.15
+	rim_mesh.mesh = rim_cyl
+	rim_mesh.position.y = 0.3
+	rim_mesh.material_override = pipe_mat
+	pipe_body.add_child(rim_mesh)
+
+	var hole_mesh := MeshInstance3D.new()
+	var hole_cyl := CylinderMesh.new()
+	hole_cyl.top_radius = 0.88
+	hole_cyl.bottom_radius = 0.88
+	hole_cyl.height = 0.04
+	hole_mesh.mesh = hole_cyl
+	hole_mesh.position.y = 0.37
+	var hole_mat := StandardMaterial3D.new()
+	hole_mat.albedo_color = Color("0A150A")
+	hole_mesh.material_override = hole_mat
+	pipe_body.add_child(hole_mesh)
+
+	exit_root.add_child(pipe_body)
+	_label(exit_root, "ExitPipeSign", "★ 地下隐藏关 · 出口 ★", Vector3(0, 1.8, 0), 20)

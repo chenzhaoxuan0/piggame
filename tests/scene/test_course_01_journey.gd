@@ -25,10 +25,11 @@ func _run() -> void:
 	office.farm.set_pigpen_open(true)
 	await process_frame
 
-	# 1. Secret Mario Pipe on the downhill summit road
-	_check(office.farm.has_node("SecretMarioPipe"), "Farm has SecretMarioPipe branch")
+	# 1. Secret Mario Pipe at final summit corner
+	_check(office.farm.has_node("SecretMarioPipe"), "Farm has SecretMarioPipe entrance")
+	_check(office.farm.has_node("SecretMarioPipeExit"), "Farm has SecretMarioPipeExit at ox field entrance")
 	var pipe: Node3D = office.farm.get_node("SecretMarioPipe")
-	_check(pipe.position.distance_to(Vector3(-11.0, 29.9, 74.7)) < 0.5, "Secret pipe located in the middle of summit road")
+	_check(pipe.position.distance_to(Vector3(16.0, 24.0, 65.5)) < 1.0, "Secret pipe located at final summit corner")
 	_check(pipe.has_node("PipeBody") and pipe.has_node("PipeTopArea"), "Pipe has solid body and top detection area")
 
 	# Pig jumps onto pipe rim -> top area triggers stance
@@ -98,7 +99,9 @@ func _run() -> void:
 	_check(office.active_course == null, "Course scene unloaded")
 	_check(office.farm.get_parent() == office, "Farm restored to tree")
 	_check(game.stage == "exploring", "Returned to exploring stage")
-	_check(office.player.global_position.distance_to(L.NPCS["ox"]) < 6.0, "Pig emerged at Ox's terrace next to Ox")
+	_check(office.player.global_position.distance_to(Vector3(33.0, 24.1, 54.0)) < 1.5, "Pig emerged at Ox field entrance")
+	_check(office.player.global_position.distance_to(L.GATE_OX) < 5.0, "Pig emerged near Ox gate, not directly at Ox")
+	_check(office.player.global_position.distance_to(L.NPCS["ox"]) > 10.0, "Pig not spawned directly at Old Ox")
 
 	print("\nALL COURSE JOURNEY TESTS DONE: %d failures" % failures)
 	quit(0 if failures == 0 else 1)
