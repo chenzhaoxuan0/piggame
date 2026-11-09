@@ -87,6 +87,18 @@ SPECS = {
         'palette': ['F39C12', 'E74C3C', 'F1C40F', '2ECC71', '3498DB'],
         'faceCount': 10000,
     },
+    'PROP_C1_WALL': {
+        'prompt': 'A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One wooden plank partition wall for a farm obstacle course, flat rectangular wall panel of vertical warm brown wood planks with two horizontal support beams across the front, chunky toy-like barn fence wall. Single flat wall segment.',
+        'target_height': 3.0,
+        'palette': ['8D7B68', 'A0855B', '665A48', '9C805E'],
+        'faceCount': 10000,
+    },
+    'PROP_C1_GRASS': {
+        'prompt': 'A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no background, no cast shadow geometry, no extra objects, no text. Complete object. One square low-poly grass ground tile, nearly flat top with very subtle broad polygonal patches of two muted sage green tones, clean straight vertical dark soil sides, no rocks, no plants, no flowers, no grass blades, nothing on top. Simple toy-like terrain block.',
+        'target_height': 0.5,
+        'palette': ['74A87C', '879B60', '3E2723', '5D4037'],
+        'faceCount': 10000,
+    },
 }
 
 def call_mcp(operation, args, cache_key):

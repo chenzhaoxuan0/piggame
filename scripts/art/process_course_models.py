@@ -99,6 +99,20 @@ DIMENSIONS = {
         'ground_bottom': True,
         'center_xy': True,
     },
+    'PROP_C1_WALL': {
+        'target_x': 5.0,
+        'target_y': 0.5,
+        'target_z': 3.0,
+        'ground_bottom': True,
+        'center_xy': True,
+    },
+    'PROP_C1_GRASS': {
+        'target_x': 4.0,
+        'target_y': 4.0,
+        'target_z': 0.5,
+        'ground_bottom': True,
+        'center_xy': True,
+    },
 }
 
 def align_axis(obj, mode):

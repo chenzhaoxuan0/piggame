@@ -100,6 +100,24 @@
       "remote_status": 3,
       "raw_model": "assets/models/aholo/PROP_C1_FINISHARCH/PROP_C1_FINISHARCH.glb",
       "sha256": "051d0549e3f226ada518c5eafdf5f6b6fd742a4bb448084c1f9f1f4b95560bf4"
+    },
+    "PROP_C1_WALL": {
+      "task_id": 5233471,
+      "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One wooden plank partition wall for a farm obstacle course, flat rectangular wall panel of vertical warm brown wood planks with two horizontal support beams across the front, chunky toy-like barn fence wall. Single flat wall segment.",
+      "status": "downloaded",
+      "submitted_at": "2026-11-09T17:11:22.614129+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C1_WALL/PROP_C1_WALL.glb",
+      "sha256": "92d0de737e595f7558f18974dfbaed54fa8d29b4d646dcba3fa7cc53ad9e8cdc"
+    },
+    "PROP_C1_GRASS": {
+      "task_id": 5233539,
+      "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no background, no cast shadow geometry, no extra objects, no text. Complete object. One square low-poly grass ground tile, nearly flat top with very subtle broad polygonal patches of two muted sage green tones, clean straight vertical dark soil sides, no rocks, no plants, no flowers, no grass blades, nothing on top. Simple toy-like terrain block.",
+      "status": "downloaded",
+      "submitted_at": "2026-11-09T17:11:25.578911+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C1_GRASS/PROP_C1_GRASS.glb",
+      "sha256": "545669490bc78af17eefeea82830fb174e2eac0da826755b199452ec7c3bfde2"
     }
   }
 }

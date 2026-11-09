@@ -429,6 +429,22 @@
       "triangles": 3500,
       "mount": "Course/FinishArch",
       "validation": "Aholo Lux3D G1-Turbo text_to_3d + Blender decimate & flat toon pipeline, textured QA views reviewed; 2026-11-10"
+    },
+    "PROP_C1_WALL": {
+      "path": "res://assets/models/aholo/PROP_C1_WALL/PROP_C1_WALL_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 3500,
+      "mount": "Course/DecoyWall",
+      "validation": "Aholo Lux3D G1-Turbo text_to_3d + Blender decimate & flat toon pipeline, textured QA views reviewed; 2026-11-10"
+    },
+    "PROP_C1_GRASS": {
+      "path": "res://assets/models/aholo/PROP_C1_GRASS/PROP_C1_GRASS_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 3500,
+      "mount": "Course/Terrace",
+      "validation": "Aholo Lux3D G1-Turbo text_to_3d + Blender decimate & flat toon pipeline, textured QA views reviewed; 2026-11-10"
     }
   }
 }
