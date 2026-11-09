@@ -48,7 +48,7 @@ func _ready() -> void:
 	_pivot.add_child(head)
 	var area := Area3D.new()
 	area.collision_layer = 0
-	area.collision_mask = 2
+	area.collision_mask = 2 | 4
 	var shape := CollisionShape3D.new()
 	var sphere := SphereShape3D.new()
 	sphere.radius = 0.75
@@ -63,11 +63,17 @@ func _physics_process(delta: float) -> void:
 	_hit_timer = maxf(0.0, _hit_timer - delta)
 
 func _on_head_body(body: Node3D) -> void:
-	if not _is_player(body) or _hit_timer > 0.0:
+	if _hit_timer > 0.0:
 		return
-	if body.has_method("is_knocked_back") and body.is_knocked_back():
-		return
-	_hit_timer = hit_cooldown
-	var dir := _flat_dir(global_position, body.global_position)
-	_knock(body, dir * knockback_power + Vector3.UP * knockback_up, 0.7)
-	_meme(meme_id, body.global_position)
+	if _is_player(body):
+		if body.has_method("is_knocked_back") and body.is_knocked_back():
+			return
+		_hit_timer = hit_cooldown
+		var dir := _flat_dir(global_position, body.global_position)
+		_knock(body, dir * knockback_power + Vector3.UP * knockback_up, 0.7)
+		_meme(meme_id, body.global_position)
+	elif _is_dog(body):
+		_hit_timer = hit_cooldown
+		var dir := _flat_dir(global_position, body.global_position)
+		_hit_dog(body, 2.5, dir * 6.0)
+		_meme("dog_bonk", body.global_position)

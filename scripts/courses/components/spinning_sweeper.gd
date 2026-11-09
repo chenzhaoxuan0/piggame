@@ -49,7 +49,7 @@ func _ready() -> void:
 	# Sweeper collision area
 	var area := Area3D.new()
 	area.collision_layer = 0
-	area.collision_mask = 2
+	area.collision_mask = 2 | 4
 	var shape := CollisionShape3D.new()
 	var box_shape := BoxShape3D.new()
 	box_shape.size = Vector3(bar_length, bar_radius * 2.2, bar_radius * 2.2)
@@ -63,11 +63,8 @@ func _physics_process(delta: float) -> void:
 	_hit_timer = maxf(0.0, _hit_timer - delta)
 
 func _on_bar_body(body: Node3D) -> void:
-	if not _is_player(body) or _hit_timer > 0.0:
+	if _hit_timer > 0.0:
 		return
-	if body.has_method("is_knocked_back") and body.is_knocked_back():
-		return
-	_hit_timer = hit_cooldown
 
 	# Knock direction: tangential velocity of the sweeping bar at contact
 	var rel_pos: Vector3 = body.global_position - global_position
@@ -76,5 +73,14 @@ func _on_bar_body(body: Node3D) -> void:
 	if rotate_speed < 0:
 		tangent = -tangent
 	var knock_dir := (tangent * 0.75 + _flat_dir(global_position, body.global_position) * 0.25).normalized()
-	_knock(body, knock_dir * knockback_power + Vector3.UP * knockback_up, 0.75)
-	_meme(meme_id, body.global_position)
+
+	if _is_player(body):
+		if body.has_method("is_knocked_back") and body.is_knocked_back():
+			return
+		_hit_timer = hit_cooldown
+		_knock(body, knock_dir * knockback_power + Vector3.UP * knockback_up, 0.75)
+		_meme(meme_id, body.global_position)
+	elif _is_dog(body):
+		_hit_timer = hit_cooldown
+		_hit_dog(body, 2.0, knock_dir * 5.0)
+		_meme("dog_bonk", body.global_position)

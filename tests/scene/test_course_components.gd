@@ -1,5 +1,9 @@
 extends SceneTree
 
+const BUMPER_PILLAR = preload("res://scripts/courses/components/bumper_pillar.gd")
+const DOOR_DASH = preload("res://scripts/courses/components/door_dash_gate.gd")
+const PENDULUM_BALL = preload("res://scripts/courses/components/pendulum_ball.gd")
+
 var failures := 0
 
 func _initialize() -> void:
@@ -83,6 +87,39 @@ func _run() -> void:
 	sweeper._on_bar_body(pig)
 	_check(pig.is_knocked_back(), "SpinningSweeper applies knockback")
 	sweeper.queue_free()
+
+	# BumperPillar
+	var bumper = BUMPER_PILLAR.new()
+	root.add_child(bumper)
+	await process_frame
+	pig.reset_at(Vector3(0, 0.5, 1.0))
+	bumper._on_body(pig)
+	_check(pig.is_knocked_back(), "BumperPillar applies bouncy knockback")
+	bumper.queue_free()
+
+	# DoorDashGate
+	var gate = DOOR_DASH.new()
+	gate.breakable_index = 1
+	root.add_child(gate)
+	await process_frame
+	# Test fake door (door 0)
+	pig.reset_at(Vector3(-2.5, 0.5, 0.5))
+	gate._on_fake_door_hit(pig, gate._doors[0])
+	_check(pig.is_knocked_back(), "DoorDashGate fake door repels pig")
+	# Test breakable door (door 1)
+	pig.reset_at(Vector3(0, 0.5, 0.5))
+	gate._on_breakable_door_hit(pig, gate._doors[1])
+	_check(gate._is_broken, "DoorDashGate breakable door breaks open")
+	gate.queue_free()
+
+	# PendulumBall
+	var pendulum = PENDULUM_BALL.new()
+	root.add_child(pendulum)
+	await process_frame
+	pig.reset_at(Vector3(0, 0.5, 0))
+	pendulum._on_ball_body(pig)
+	_check(pig.is_knocked_back(), "PendulumBall imparts lateral knockback")
+	pendulum.queue_free()
 
 	await process_frame
 	print("\nALL COURSE COMPONENT TESTS DONE: %d failures" % failures)
