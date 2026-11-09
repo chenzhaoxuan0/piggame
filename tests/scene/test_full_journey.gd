@@ -5,6 +5,7 @@ var office: Node
 var failures := 0
 var game: Node
 var dog_progress := 0.0
+var _entering_course := false
 
 func _initialize() -> void:
 	call_deferred("_run")
@@ -38,6 +39,7 @@ func _walk_to(point: Vector3) -> void:
 		offset.y = 0
 		if offset.length() < 0.35: break
 		if office.overlay.visible or office.dialogue_open: break
+		if _entering_course and is_instance_valid(office.active_course): return
 		if office.in_skill_card:
 			office._dismiss_skill_card()
 		if office.in_qte:
@@ -118,7 +120,7 @@ func _run() -> void:
 	_check(game.stage == "showdown", "zero skill winding chase won")
 	_check(dog_progress>L.length_of(L.chase_course())*.70,"dogs follow bends and obstacles: %.1f m" % dog_progress)
 	_check(office.farm.recoveries==0, "whole journey without fall recovery or teleport")
-	_check(office.player.jumps>=3, "actual Space input clears two logs and creek gap")
+	_check(office.player.jumps>=2, "actual Space input clears woodland log and creek gap (summit log now lives in Course 1)")
 	await _walk_to(Vector3(-79.4,2.1,-225))
 	await _interact()
 	await _dialogue()
@@ -138,10 +140,57 @@ func _follow(points: Array[Vector3]) -> void:
 	for point in points: await _walk_to(point+Vector3.UP*.1)
 
 func _travel_to_chase() -> void:
-	await _follow(L.path("summit"))
-	await _follow([Vector3(46,24,55),Vector3(56,24,38),Vector3(72,24,20)])
+	# Walking the summit trigger now enters Course 1 (farm is swapped out).
+	_entering_course = true
+	await _walk_to(Vector3(0, 31.1, 78))
+	_entering_course = false
+	if is_instance_valid(office.active_course):
+		await _traverse_course()
+	# Course exit returns the pig to the creek entrance; continue down the farm.
 	await _follow(L.path("creek"))
 	await _follow([Vector3(-40,16,-32),Vector3(-38,16,-53),Vector3(-66,16,-62)])
 	await _follow(L.path("woodland"))
 	await _follow([Vector3(20,8,-102),Vector3(30,8,-110),Vector3(10,8,-120),Vector3(-6,8,-135)])
 	await _follow(L.path("approach"))
+
+func _traverse_course() -> void:
+	# Click-move (world-space target) through the course geometry. Dog pressure
+	# is covered separately by test_course_01_journey; disable it here so the
+	# walkability check is deterministic. Click-move re-drives the pig forward
+	# each frame, recovering from slapstick knockback that would stall keyboard input.
+	for dog in office.active_course.runner._dogs:
+		dog.set_active(false)
+	# Trap behavior is unit-tested in test_course_components / test_course_01_journey.
+	# Disable trap trigger areas here so this test validates pure course geometry
+	# walkability (slopes, gaps, bridges). Checkpoint/start/exit areas stay active.
+	for area in office.active_course.find_children("*", "Area3D", true, false):
+		if area.is_in_group("course_checkpoint") or area.is_in_group("course_start") or area.is_in_group("course_exit"):
+			continue
+		area.set_deferred("monitoring", false)
+	await _course_walk_to(Vector3(0, 0.6, -3))
+	await _course_walk_to(Vector3(0, 0.6, -22))
+	await _course_walk_to(Vector3(0, 0.6, -50))
+	# Straight through the real gap; the painted fake door is off to the side.
+	await _course_walk_to(Vector3(0, 0.6, -58))
+	await _course_walk_to(Vector3(0, 0.6, -63))
+	await _course_walk_to(Vector3(0, 0.6, -68))
+	await _course_walk_to(Vector3(0, 0.6, -88))
+	await _course_walk_to(Vector3(0, 0.6, -98))
+
+func _course_walk_to(point: Vector3) -> void:
+	for frame in 2400:
+		# Reaching the exit completes the course and swaps the farm back in;
+		# stop cleanly instead of chasing course coordinates in the farm world.
+		if not is_instance_valid(office.active_course):
+			return
+		var offset: Vector3 = point - office.player.global_position
+		offset.y = 0
+		if offset.length() < 0.35: break
+		if office.overlay.visible or office.dialogue_open: break
+		if office.in_qte: office._on_qte_tapped()
+		office.player.target_destination = point
+		office.player.is_moving = true
+		await physics_frame
+	office.player.is_moving = false
+	if is_instance_valid(office.active_course):
+		_check(office.player.global_position.distance_to(point) < 0.8, "course walk to %s actual=%s" % [point, office.player.global_position])

@@ -34,6 +34,11 @@ var _dodge_cooldown_timer: float = 0.0
 var _dodge_direction: Vector3 = Vector3.FORWARD
 var _successful_dodges: int = 0
 
+# Slapstick knockback: traps launch the pig, input is overridden until it expires
+@export var knockback_friction: float = 5.0
+var knockback_velocity: Vector3 = Vector3.ZERO
+var knockback_timer: float = 0.0
+
 var target_destination: Vector3 = Vector3.ZERO
 var is_moving: bool = false
 var interact_target: Node3D = null
@@ -90,6 +95,8 @@ func reset_at(pos: Vector3) -> void:
 	is_sprinting = false
 	dodge_timer = 0.0
 	_dodge_cooldown_timer = 0.0
+	knockback_timer = 0.0
+	knockback_velocity = Vector3.ZERO
 	force_dodge_available = false
 	dash_remaining = 0.0
 	cooldown_remaining = 0.0
@@ -113,6 +120,19 @@ var force_dodge_available: bool = false # For unit testing / debug
 
 func is_dodging() -> bool:
 	return dodge_timer > 0.0
+
+func is_knocked_back() -> bool:
+	return knockback_timer > 0.0
+
+func apply_knockback(impulse: Vector3, duration: float = 0.65) -> void:
+	if not _can_move():
+		return
+	knockback_velocity = impulse
+	knockback_timer = duration
+	velocity = impulse
+	_cancel_destination()
+	is_sprinting = false
+	dodge_timer = 0.0
 
 func is_under_dog_threat() -> bool:
 	if not is_inside_tree():
@@ -323,6 +343,23 @@ func _physics_process(delta: float) -> void:
 		_pending_dash = false
 		if can_dodge():
 			_perform_dodge()
+
+	if knockback_timer > 0.0:
+		knockback_timer = maxf(0.0, knockback_timer - delta)
+		knockback_velocity.x = move_toward(knockback_velocity.x, 0.0, knockback_friction * delta)
+		knockback_velocity.z = move_toward(knockback_velocity.z, 0.0, knockback_friction * delta)
+		velocity.x = knockback_velocity.x
+		velocity.z = knockback_velocity.z
+		velocity.y = -0.2 if is_on_floor() and velocity.y <= 0.0 else velocity.y - GRAVITY * delta
+		move_and_slide()
+		if is_instance_valid(visual_mesh):
+			visual_mesh.rotation.x += delta * 10.0
+		if knockback_timer <= 0.0:
+			knockback_velocity = Vector3.ZERO
+			if is_instance_valid(visual_mesh):
+				visual_mesh.rotation.x = 0.0
+		dash_state_changed.emit(stamina, cooldown_remaining)
+		return
 
 	# Sustained Sprint (Hold Shift with Horse Skill)
 	var dash_held: bool = Input.is_action_pressed("action_dash")

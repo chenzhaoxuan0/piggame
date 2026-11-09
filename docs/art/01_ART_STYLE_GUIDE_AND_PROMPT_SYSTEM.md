@@ -1,8 +1,29 @@
 # 《一口猪在金牌农场》美术总风格与提示词工程体系规范
 
-> **版本**：v2.0.0 (《无题大鹅模拟》风格全面对标版)  
+> **版本**：v3.0.0（分区画风制，2026-11-09 闯关 redesign 起生效）  
 > **核心对标基准**：**《无题大鹅模拟》(Untitled Goose Game)** —— 极简低多边形、平涂色块、零高频噪点、生动肢体叙事。  
-> **制定目的**：统一全项目 2D 概念图、立绘、UI 以及 **Aholo Lux3D** 3D 资产生成的提示词语法标准，确保全流程资产与《无题大鹅模拟》的视觉美学纯度 100% 保持一致。
+> **制定目的**：统一全项目 2D 概念图、立绘、UI 以及 **Aholo Lux3D** 3D 资产生成的提示词语法标准。  
+> **适用范围变更**：下文第一至三节的大鹅风格支柱与提示词公式，自此**专用于角色资产与牛耕地基准世界**；其余赛道区域按第〇节分区子规范执行。redesign 事实源见 `../COURSE_REDESIGN.md`。
+
+---
+
+## 〇、分区画风制总纲（2026-11-09 起）
+
+整个下山地图按赛道分区，**每区独立画风**；画风突变是设计出来的笑点。两条铁律：
+
+1. **角色恒定**：猪、伙伴、恶犬、农场主永远使用大鹅平涂语言（下文第一至三节），不随区域换风格——角色是穿越进不同世界的游客，反差即喜剧。
+2. **区域不串风格**：区域资产（地形、道具、陷阱、标牌）只回所属区域的风格语言；资产编号加区域段（`ENV_C1_*` 牛耕地 / `ENV_C2_*` 溪流 / `ENV_C3_*` 林间 / `ENV_C4_*` 大院），与分区提示词条目一一对应。
+
+| 区域 | 画风 | 色板方向 | 提示词风格修饰语（替换公式 A/B 中的大鹅修饰段） | 梗土壤 |
+| :--- | :--- | :--- | :--- | :--- |
+| C1 牛耕地 | 低多边形平涂田园（基准世界） | 沿用第四节田园色板：麦黄 `#F59E0B` / 草绿 `#74A87C` / 土褐 `#3E2723` | 沿用下文大鹅公式原文 | 马里奥、猫里奥 |
+| C2 溪流 | 像素/体素风 | 高饱和青蓝 `#38BDF8` + 像素绿 `#4ADE80`，硬边色阶 | `voxel art style, voxel blocks, pixel-art textures, hard color steps, retro 16-bit game aesthetic, isometric voxel diorama` | 我的世界、复古游戏 |
+| C3 林间 | 童话手绘风 |  storybook 暖绿 `#86A873` + 奶油金 `#FDE68A`，柔边水彩 | `storybook illustration style, hand-painted watercolor textures, soft edges, fairy tale picture book aesthetic, Studio Ghibli inspired warmth` | 迪士尼/吉卜力 |
+| C4 大院 | 糖豆人荧光综艺风 | 荧光粉 `#FF6FD8` / 亮紫 `#8B5CF6` / 亮黄 `#FDE047`，高饱和撞色 | `Fall Guys game show aesthetic, glossy inflated plastic shapes, vibrant neon candy colors, bold obstacle course geometry, playful battle royale energy` | 糖豆人本题 |
+
+**分区负向提示词增补**：C2 追加 `smooth gradients, soft bevels`；C3 追加 `hard edges, neon colors, plastic gloss`；C4 追加 `muted colors, pastoral matte finish, photorealism`。通用负向词库（第三节）各区仍然生效。
+
+**梗层约束**：中文互联网梗与游戏文化梗只落在文本/标牌/音效/演出层（可配置替换），不进入 3D 资产本体；禁止直接搬运表情包图片，用文字捏他、音效复刻、场景戏仿。
 
 > **2026-11-02 实机落地补充**：环境重构版本 `0.4.0-pastoral` 使用 `pastoral_surface.gdshader` 统一环境与角色的哑光纯色、冷阴影和受控亮部。仅切换 `StandardMaterial3D.diffuse_mode` 不足以产生目标风格；结构、色板、光照和镜头必须一起验收。当前实现与性能测量见 `ENVIRONMENT_REBUILD.md`，下文“60 FPS”是历史目标描述，不是已验证的跨设备性能承诺。
 

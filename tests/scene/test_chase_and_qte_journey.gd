@@ -46,34 +46,43 @@ func _run() -> void:
 	_check(game.has_pin, "Pig acquired the brass pin")
 	_check(game.get_to_do_items()[0]["done"], "First task is completed and marked with strikethrough")
 
-	# Trigger chase 1
+	# Enter Course 1 (Fall Guys-style obstacle course replaces chase_1)
 	office.start_stage_chase("chase_1")
 	await process_frame
-	_check(game.is_in_chase(), "Game entered Chase 1 stage")
-	_check(office.player.control_mode == "chase", "Player in chase control mode")
-	_check(office.chase.running and office.chase.active, "Chase system running")
-	_check(office.chase._dogs.size() >= 1, "Chasing dog spawned")
-	_check(office.chase._dogs[0].chase_speed >= 4.7, "Dog speed is faster than base pig speed for tension")
+	_check(is_instance_valid(office.active_course), "Course 1 scene loaded")
+	var runner: CourseRunner = office.active_course.runner
+	_check(runner._dogs.size() >= 1, "Course rubber-band dog spawned")
 
-	# Simulate Pig jumping over road obstacle
+	# Ox at course entrance grants Struggle QTE skill
+	game.complete_npc("ox")
+	await process_frame
+	_check(game.has_struggle_skill, "Struggle QTE skill unlocked from entrance Ox")
+
+	# Cross course start trigger
+	runner._on_start(office.player)
+	await process_frame
+	_check(game.is_in_chase(), "Game entered Chase 1 stage on course start")
+	_check(office.player.control_mode == "chase", "Player in chase control mode")
+	for dog in runner._dogs: dog.set_active(false)
+
+	# Simulate Pig jumping
 	for i in 10: await physics_frame
 	var pre_jumps: int = office.player.jumps
 	_input_action("action_jump")
 	for i in 8: await physics_frame
-	_check(office.player.jumps > pre_jumps or office.player.velocity.y > 0, "Pig jumped successfully over obstacle")
+	_check(office.player.jumps > pre_jumps or office.player.velocity.y > 0, "Pig jumped successfully in course")
 
-	# Reach Ox Gate -> Gate shuts and locks -> Chase 1 victory
-	office._on_farm_gate_passed("ox")
+	# Reach course exit -> Course 1 victory, farm restored
+	runner._on_exit(office.player)
 	await process_frame
-	_check(not game.is_in_chase(), "Chase 1 ended safely after passing gate")
+	_check(not game.is_in_chase(), "Course 1 ended safely after reaching exit")
 	_check(game.chase_completed.get("chase_1", false), "Chase 1 marked complete in manager")
-	_check(office.player.control_mode == "explore", "Player restored to explore mode in ox terrace")
+	_check(office.player.control_mode == "explore", "Player restored to explore mode")
+	_check(office.farm.get_parent() == office, "Farm restored after course")
 
-	# 3. Complete Ox dialogue & gain Struggle QTE skill
-	game.complete_npc("ox")
+	# 3. Sync Ox completion to farm
 	office.farm.set_npc_completed("ox")
 	await process_frame
-	_check(game.has_struggle_skill, "Struggle QTE skill unlocked from companion Ox")
 	_check(game.get_to_do_items()[2]["done"], "Ox companion task marked complete with strikethrough")
 
 	# 4. Test Chase 2 & QTE Struggle (Ox -> Sheep)

@@ -4,6 +4,7 @@ const CHASE_SCRIPT = preload("res://scripts/chase/simple_chase.gd")
 const ART_2D = preload("res://scripts/art/art_2d.gd")
 const L = preload("res://scripts/levels/farm_layout.gd")
 const POKEMON_SHOWDOWN = preload("res://scripts/battle/pokemon_showdown.gd")
+const COURSE_SCENES = {"chase_1": preload("res://scenes/courses/course_01_ox_field.tscn")}
 
 @onready var player: PigController = $Pig
 @onready var camera: IsometricCamera = $IsometricCamera
@@ -12,6 +13,8 @@ const POKEMON_SHOWDOWN = preload("res://scripts/battle/pokemon_showdown.gd")
 var pokemon_battle: Control = null
 
 var chase: SimpleChase
+var active_course: Node3D = null
+var _farm_removed := false
 var hud: Control
 var objective: Label
 var status: Label
@@ -543,7 +546,14 @@ func _finish_qte(success: bool) -> void:
 	qte_panel.visible = false
 	var dog := current_qte_dog
 	current_qte_dog = null
-	
+
+	if is_instance_valid(active_course):
+		active_course.runner.resolve_qte(dog, success)
+		player.set_control_mode("chase")
+		if success:
+			_show_toast("挣脱成功！", "借老牛之力震退恶犬，继续闯关！")
+		return
+
 	if success:
 		var toast_desc_text := "借老牛之力震退恶犬，继续跑！" if GameManager.has_struggle_skill else "挣脱了恶犬的纠缠，快跑！"
 		_show_toast("挣脱成功！", toast_desc_text)
@@ -1362,6 +1372,9 @@ func _on_farm_chase_triggered(stage_id: String) -> void:
 
 func start_stage_chase(stage_id: String) -> void:
 	current_chase_id = stage_id
+	if COURSE_SCENES.has(stage_id):
+		_enter_course(stage_id)
+		return
 	if not GameManager.start_stage_chase(stage_id): return
 	player.set_control_mode("chase")
 	
@@ -1377,6 +1390,58 @@ func _start_chase() -> void:
 	# Standard entrance trigger for the final courtyard chase
 	if dialogue_open or cinematic or overlay.visible: return
 	start_stage_chase("chase_final")
+
+# -------------------------------------------------------------
+# Course Mode (Fall Guys-style obstacle courses)
+# -------------------------------------------------------------
+func _enter_course(stage_id: String) -> void:
+	if is_instance_valid(active_course): return
+	active_course = COURSE_SCENES[stage_id].instantiate()
+	add_child(active_course)
+	if is_instance_valid(farm) and farm.get_parent() == self:
+		remove_child(farm)
+		_farm_removed = true
+	active_course.setup(player)
+	player.set_control_mode("explore")
+	camera.snap_to_target()
+	active_course.runner.course_started.connect(_on_course_started)
+	active_course.runner.course_completed.connect(_on_course_completed)
+	active_course.runner.qte_requested.connect(_on_qte_requested)
+	active_course.runner.player_respawned.connect(func(_pos: Vector3): camera.snap_to_target())
+	_show_toast(active_course.runner.config.title, active_course.runner.config.desc)
+	_refresh_hud()
+
+func _on_course_started() -> void:
+	GameManager.start_stage_chase(current_chase_id)
+	player.set_control_mode("chase")
+	_refresh_hud()
+
+func _on_course_completed() -> void:
+	GameManager.complete_stage_chase(current_chase_id)
+	# Defer the world swap out of the physics callback so the pig's reset position
+	# is not overwritten by the same frame's move_and_slide.
+	_finish_course_deferred.call_deferred()
+
+func _finish_course_deferred() -> void:
+	_exit_course()
+	_show_toast("闯关成功！", "牛耕地赛道通关，回到农场前往溪流区。")
+	_refresh_hud()
+
+func _exit_course() -> void:
+	if is_instance_valid(active_course):
+		active_course.queue_free()
+		active_course = null
+	if _farm_removed and is_instance_valid(farm):
+		add_child(farm)
+		_farm_removed = false
+	for id in GameManager.npc_completed:
+		if GameManager.npc_completed[id]:
+			farm.set_npc_completed(id)
+	if GameManager.chase_completed.get("chase_1", false):
+		farm.set_named_gate_open("ox", true)
+	player.reset_at(L.path("creek")[0] + Vector3.UP * 0.5)
+	player.set_control_mode("explore")
+	camera.snap_to_target()
 
 func _on_farm_gate_passed(gate_id: String) -> void:
 	# Player safely crossed a zone gate!

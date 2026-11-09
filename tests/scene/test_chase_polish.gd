@@ -48,19 +48,20 @@ func _run() -> void:
 	_check(not level.in_skill_card, "Player exits skill card state")
 	_check(level.player.control_mode == "explore", "Player control restored to explore mode")
 	
-	# 2. Test QTE in Chase 1 (before meeting Ox) - Must NOT instantly fail!
+	# 2. Test QTE in Chase 2 (before meeting Ox) - Must NOT instantly fail!
 	var game: Node = root.get_node("GameManager")
 	game.reset_run()
-	level.start_stage_chase("chase_1")
+	game.choose_red()
+	level.start_stage_chase("chase_2")
 	await process_frame
-	_check(game.is_in_chase(), "Chase 1 is active")
-	_check(not game.has_struggle_skill, "Player does not yet have Ox struggle skill in Chase 1")
-	
-	# Simulate dog grappling player in Chase 1
+	_check(game.is_in_chase(), "Chase 2 is active")
+	_check(not game.has_struggle_skill, "Player does not yet have Ox struggle skill in Chase 2")
+
+	# Simulate dog grappling player in Chase 2
 	var first_dog: ChaseDog = level.chase._dogs[0]
 	level.chase._on_dog_grapple(first_dog)
 	await process_frame
-	_check(level.in_qte, "Grapple triggers QTE struggle mode even in Chase 1")
+	_check(level.in_qte, "Grapple triggers QTE struggle mode even in Chase 2")
 	_check(level.qte_panel.visible, "QTE struggle panel is visible to player")
 	_check(level.qte_time_remaining >= 3.0, "QTE provides generous 3.5s struggle countdown")
 	_check("空格" in level.qte_btn_label.text, "QTE panel shows prominent Space key prompt")

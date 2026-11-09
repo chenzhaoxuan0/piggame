@@ -149,7 +149,7 @@ func set_language(lang: String) -> void:
 func get_current_main_objective() -> String:
 	match stage:
 		"prologue": return "与老岩羊交谈，选择你的路。"
-		"chase_1": return "【第一段追逐】过去的阴影在追赶！按空格跳过倒木，逃向牛耕地！"
+		"chase_1": return "【牛耕地闯关】顶问号砖、过假地板、识破画中门、跟着大锤节奏走位！"
 		"chase_2": return "【第二段追逐】避开幻影，若被咬住狂按空格挣脱，逃向羊棚！"
 		"chase_3": return "【第三段追逐】看穿幻影虚影，跨过障碍冲向追风马场！"
 		"chase_final", "chase": return "【最终突围】按 Shift 爆发冲刺，甩开犬队冲向大铁门！"
