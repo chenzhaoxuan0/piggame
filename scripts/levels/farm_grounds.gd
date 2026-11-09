@@ -169,8 +169,11 @@ func _physics_process(_delta: float) -> void:
 		if _player.global_position.y < closest.point.y - 7.5 or _player.global_position.y < -5.0:
 			recoveries += 1
 			_player.reset_at(_checkpoint)
-	if _player_on_pipe and not _pipe_entering:
-		if Input.is_action_pressed("move_down") or Input.is_action_just_pressed("move_down"):
+	if _player_on_pipe and not _pipe_entering and is_instance_valid(_player):
+		var pipe_node: Node3D = get_node_or_null("SecretMarioPipe")
+		var on_top: bool = _player.is_on_floor() and (pipe_node == null or _player.global_position.y >= pipe_node.global_position.y + 0.55)
+		var stationary: bool = _player.velocity.length() < 0.8
+		if on_top and stationary and (Input.is_action_pressed("move_down") or Input.is_action_just_pressed("action_interact")):
 			_trigger_pipe_enter()
 
 func get_spawn_position() -> Vector3: return to_global(SPAWN)
@@ -393,10 +396,10 @@ func _on_gate_passed(body: Node3D, gate_id: String) -> void:
 func _build_secret_mario_pipe() -> void:
 	var pipe_root := Node3D.new()
 	pipe_root.name = "SecretMarioPipe"
-	# Positioned right at the final corner of the summit escape before Ox's gate!
+	# Positioned right in the middle of the dirt road after the final summit corner before Ox's gate!
 	# Placed after basic tutorial training (WASD movement, fallen logs, dog ambushes, and struggle).
-	# Located at the corner apex (Vector3(16.0, 24.0, 65.5)), prominently visible before the ox gate stretch.
-	var pipe_pos := Vector3(16.0, 24.0, 65.5)
+	# Located right at the final summit corner bend (Vector3(16.0, 24.0, 66.0)), prominently visible before Ox's gate.
+	var pipe_pos := Vector3(16.0, 24.0, 66.0)
 	pipe_root.position = pipe_pos
 	add_child(pipe_root)
 
@@ -408,15 +411,14 @@ func _build_secret_mario_pipe() -> void:
 	var body_shape := CollisionShape3D.new()
 	var cyl_shape := CylinderShape3D.new()
 	cyl_shape.radius = 1.05
-	cyl_shape.height = 0.65
+	cyl_shape.height = 0.70
 	body_shape.shape = cyl_shape
-	body_shape.position.y = 0.325
+	body_shape.position.y = 0.35
 	pipe_body.add_child(body_shape)
 
 	# Visuals: Lux3D model or procedural cylinder fallback
 	var lux_pipe := ASSETS.make("PROP_C1_PIPE")
 	if lux_pipe:
-		lux_pipe.scale = Vector3(1.2, 0.55, 1.2)
 		pipe_body.add_child(lux_pipe)
 	else:
 		var pipe_mat := StandardMaterial3D.new()
@@ -543,7 +545,7 @@ func _build_secret_mario_pipe_exit() -> void:
 	# Visuals: Lux3D model or procedural cylinder fallback
 	var lux_pipe := ASSETS.make("PROP_C1_PIPE")
 	if lux_pipe:
-		lux_pipe.scale = Vector3(1.2, 0.35, 1.2)
+		lux_pipe.scale = Vector3(1.0, 0.65, 1.0)
 		pipe_body.add_child(lux_pipe)
 	else:
 		var pipe_mat := StandardMaterial3D.new()

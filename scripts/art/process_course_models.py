@@ -1,9 +1,9 @@
 """
 Blender processing for Course 1 obstacle models:
 - Normalizes mesh transforms and origins
-- Scales to target real-world height
-- Welds seams and decimates to <= 4000 triangles
-- Replaces PBR noise with flat solid palette materials
+- Scales to accurate real-world collision bounds
+- Keeps authentic 2048x2048 albedo textures from Lux3D with flat toon shading
+- Decimates triangles to <= 3500 while preserving UVs
 - Exports runtime _game.glb
 """
 import bpy
@@ -12,41 +12,49 @@ import math
 import sys
 from pathlib import Path
 from mathutils import Vector
-import numpy as np
 import bmesh
 
 ROOT = Path(__file__).resolve().parents[2]
 BASE = ROOT / 'assets/models/aholo'
 
-HEIGHTS = {
-    'PROP_C1_BUMPER': 1.1,
-    'PROP_C1_HAMMER': 0.9,
-    'PROP_C1_PENDULUM': 1.5,
-    'PROP_C1_DOOR': 2.6,
-    'PROP_C1_PIPE': 1.2,
+# Dimensions in Blender coordinates (X, Y, Z; where Z is Up, which becomes Godot Y):
+DIMENSIONS = {
+    'PROP_C1_PIPE': {
+        'target_x': 2.1,
+        'target_y': 2.1,
+        'target_z': 0.70,
+        'ground_bottom': True,
+        'center_xy': True,
+    },
+    'PROP_C1_BUMPER': {
+        'target_x': 1.6,
+        'target_y': 1.6,
+        'target_z': 1.35,
+        'ground_bottom': True,
+        'center_xy': True,
+    },
+    'PROP_C1_HAMMER': {
+        'target_x': 1.1,
+        'target_y': 0.85,
+        'target_z': 0.85,
+        'ground_bottom': False,  # Center origin for rotating head
+        'center_xy': True,
+    },
+    'PROP_C1_DOOR': {
+        'target_x': 2.45,
+        'target_y': 0.35,
+        'target_z': 2.70,
+        'ground_bottom': True,
+        'center_xy': True,
+    },
+    'PROP_C1_PENDULUM': {
+        'target_x': 1.8,
+        'target_y': 1.8,
+        'target_z': 1.8,
+        'ground_bottom': False,  # Center origin for pendulum wrecking ball
+        'center_xy': True,
+    },
 }
-
-PALETTES = {
-    'PROP_C1_BUMPER': ['FF1493', 'FF69B4', 'FFD700', '00E5FF', '2C3E50'],
-    'PROP_C1_HAMMER': ['8D7B68', 'A0855B', '5D6D7E', '34495E', 'E67E22'],
-    'PROP_C1_PENDULUM': ['34495E', '2C3E50', '7F8C8D', '95A5A6'],
-    'PROP_C1_DOOR': ['E74C3C', 'C0392B', 'F39C12', 'FFFFFF', '34495E'],
-    'PROP_C1_PIPE': ['2E7D32', '388E3C', '1B5E20', '1E272C'],
-}
-
-def create_toon_mat(name, hex_color):
-    rgb = [int(hex_color[i:i+2], 16) / 255.0 for i in (0, 2, 4)]
-    # sRGB to linear
-    linear_rgb = [(c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4) for c in rgb]
-    m = bpy.data.materials.new(name)
-    m.diffuse_color = (*linear_rgb, 1.0)
-    m.use_nodes = True
-    bsdf = next(n for n in m.node_tree.nodes if n.type == 'BSDF_PRINCIPLED')
-    bsdf.inputs['Base Color'].default_value = (*linear_rgb, 1.0)
-    bsdf.inputs['Roughness'].default_value = 1.0
-    if 'Specular IOR Level' in bsdf.inputs:
-        bsdf.inputs['Specular IOR Level'].default_value = 0.0
-    return m
 
 def process(asset_id):
     print(f"--- Processing {asset_id} ---", flush=True)
@@ -56,9 +64,7 @@ def process(asset_id):
         print(f"File not found: {raw_glb}", flush=True)
         return False
     
-    bpy.ops.object.select_all(action='SELECT')
-    bpy.ops.object.delete(use_global=False)
-    
+    bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.import_scene.gltf(filepath=str(raw_glb))
     meshes = [o for o in bpy.context.scene.objects if o.type == 'MESH']
     if not meshes:
@@ -81,53 +87,77 @@ def process(asset_id):
     obj = bpy.context.object
     obj.name = asset_id
     
-    # Scale to target height
-    z_coords = [v.co.z for v in obj.data.vertices]
-    initial_h = max(z_coords) - min(z_coords)
-    target_h = HEIGHTS.get(asset_id, 1.0)
-    if initial_h > 0.001:
-        scale_fac = target_h / initial_h
+    # Scale to dimensions
+    spec = DIMENSIONS.get(asset_id, {})
+    xs = [v.co.x for v in obj.data.vertices]
+    ys = [v.co.y for v in obj.data.vertices]
+    zs = [v.co.z for v in obj.data.vertices]
+    dx = max(xs) - min(xs)
+    dy = max(ys) - min(ys)
+    dz = max(zs) - min(zs)
+    
+    tx = spec.get('target_x', dx)
+    ty = spec.get('target_y', dy)
+    tz = spec.get('target_z', dz)
+    
+    sx = tx / dx if dx > 0.001 else 1.0
+    sy = ty / dy if dy > 0.001 else 1.0
+    sz = tz / dz if dz > 0.001 else 1.0
+    
+    for v in obj.data.vertices:
+        v.co.x *= sx
+        v.co.y *= sy
+        v.co.z *= sz
+    
+    # Re-calculate bounds after scaling
+    xs = [v.co.x for v in obj.data.vertices]
+    ys = [v.co.y for v in obj.data.vertices]
+    zs = [v.co.z for v in obj.data.vertices]
+    
+    if spec.get('center_xy', True):
+        cx = (max(xs) + min(xs)) * 0.5
+        cy = (max(ys) + min(ys)) * 0.5
         for v in obj.data.vertices:
-            v.co *= scale_fac
+            v.co.x -= cx
+            v.co.y -= cy
     
-    # Ground at y=0 (or z=min for Z-up)
-    min_z = min(v.co.z for v in obj.data.vertices)
-    for v in obj.data.vertices:
-        v.co.z -= min_z
-        # Also center X and Y
-    center_x = (max(v.co.x for v in obj.data.vertices) + min(v.co.x for v in obj.data.vertices)) * 0.5
-    center_y = (max(v.co.y for v in obj.data.vertices) + min(v.co.y for v in obj.data.vertices)) * 0.5
-    for v in obj.data.vertices:
-        v.co.x -= center_x
-        v.co.y -= center_y
-    
+    if spec.get('ground_bottom', True):
+        min_z = min(zs)
+        for v in obj.data.vertices:
+            v.co.z -= min_z
+    else:
+        # Center Z
+        cz = (max(zs) + min(zs)) * 0.5
+        for v in obj.data.vertices:
+            v.co.z -= cz
+            
     obj.data.update()
     
-    # Weld duplicate vertices
-    bm = bmesh.new()
-    bm.from_mesh(obj.data)
-    bmesh.ops.remove_doubles(bm, verts=list(bm.verts), dist=0.001)
-    bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
-    bm.to_mesh(obj.data)
-    bm.free()
-    obj.data.validate(clean_customdata=False)
-    obj.data.update()
-    
-    # Decimate if faces > 3500
+    # Decimate if faces > 3500 (preserving UVs and materials)
     triangles = sum(len(p.vertices) - 2 for p in obj.data.polygons)
-    print(f"Raw triangles: {triangles}", flush=True)
+    print(f"Raw triangles for {asset_id}: {triangles}", flush=True)
     if triangles > 3500:
         dec = obj.modifiers.new('Decimate', 'DECIMATE')
         dec.ratio = 3500.0 / triangles
         bpy.ops.object.modifier_apply(modifier=dec.name)
         triangles = sum(len(p.vertices) - 2 for p in obj.data.polygons)
-        print(f"Reduced to: {triangles} triangles", flush=True)
+        print(f"Decimated to: {triangles} triangles", flush=True)
     
-    # Apply primary flat palette material
-    palette_hex = PALETTES.get(asset_id, ['74A87C', 'E1DDC5'])
-    main_mat = create_toon_mat(f"{asset_id}_Mat", palette_hex[0])
-    obj.data.materials.clear()
-    obj.data.materials.append(main_mat)
+    # Tune materials for pastoral flat toon style (keep albedo texture, set roughness=1.0, metallic=0.0)
+    for mat in obj.data.materials:
+        if mat and mat.node_tree:
+            for node in mat.node_tree.nodes:
+                if node.type == 'BSDF_PRINCIPLED':
+                    node.inputs['Roughness'].default_value = 1.0
+                    if 'Metallic' in node.inputs:
+                        node.inputs['Metallic'].default_value = 0.0
+                    if 'Specular IOR Level' in node.inputs:
+                        node.inputs['Specular IOR Level'].default_value = 0.0
+                    # Disconnect normal maps / metallic maps so it stays cleanly flat
+                    for inp_name in ['Normal', 'Metallic', 'Roughness']:
+                        if inp_name in node.inputs and node.inputs[inp_name].is_linked:
+                            for link in list(node.inputs[inp_name].links):
+                                mat.node_tree.links.remove(link)
     
     # Export _game.glb
     out_glb = folder / f"{asset_id}_game.glb"
@@ -143,6 +173,6 @@ def process(asset_id):
     return True
 
 if __name__ == '__main__':
-    args = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else list(HEIGHTS.keys())
+    args = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else list(DIMENSIONS.keys())
     for aid in args:
         process(aid)

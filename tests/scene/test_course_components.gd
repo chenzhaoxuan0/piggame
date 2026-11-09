@@ -114,9 +114,11 @@ func _run() -> void:
 
 	# PendulumBall
 	var pendulum = PENDULUM_BALL.new()
+	pendulum.position = Vector3(100, 0, 100)
 	root.add_child(pendulum)
 	await process_frame
 	pig.reset_at(Vector3(0, 0.5, 0))
+	pendulum._hit_timer = 0.0
 	pendulum._on_ball_body(pig)
 	_check(pig.is_knocked_back(), "PendulumBall imparts lateral knockback")
 	pendulum.queue_free()

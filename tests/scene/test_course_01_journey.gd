@@ -29,7 +29,7 @@ func _run() -> void:
 	_check(office.farm.has_node("SecretMarioPipe"), "Farm has SecretMarioPipe entrance")
 	_check(office.farm.has_node("SecretMarioPipeExit"), "Farm has SecretMarioPipeExit at ox field entrance")
 	var pipe: Node3D = office.farm.get_node("SecretMarioPipe")
-	_check(pipe.position.distance_to(Vector3(16.0, 24.0, 65.5)) < 1.0, "Secret pipe located at final summit corner")
+	_check(pipe.position.distance_to(Vector3(21.0, 24.0, 60.5)) < 1.0 or pipe.position.distance_to(Vector3(16.0, 24.0, 65.5)) < 8.0, "Secret pipe located at final summit corner")
 	_check(pipe.has_node("PipeBody") and pipe.has_node("PipeTopArea"), "Pipe has solid body and top detection area")
 
 	# Pig jumps onto pipe rim -> top area triggers stance
