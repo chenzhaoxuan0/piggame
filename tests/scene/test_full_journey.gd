@@ -23,6 +23,10 @@ func _click_option(index: int = 0) -> void:
 	while office.busy: await process_frame
 
 func _dialogue() -> void:
+	if office.in_start_menu:
+		office.start_game()
+	if not office.dialogue_open and game.stage == 'prologue':
+		office.open_dialogue('cliff_goat_intro')
 	for i in 20:
 		if not office.dialogue_open: return
 		await _click_option()
@@ -34,6 +38,10 @@ func _walk_to(point: Vector3) -> void:
 		offset.y = 0
 		if offset.length() < 0.35: break
 		if office.overlay.visible or office.dialogue_open: break
+		if office.in_skill_card:
+			office._dismiss_skill_card()
+		if office.in_qte:
+			office._on_qte_tapped()
 		for dog in office.chase._dogs:
 			dog_progress=maxf(dog_progress,L.closest_on_path(dog.global_position,L.chase_course()).progress)
 		var right: Vector3 = office.camera.global_basis.x
@@ -91,6 +99,8 @@ func _run() -> void:
 	office = load("res://scenes/levels/office_level_1.tscn").instantiate()
 	root.add_child(office)
 	await create_timer(0.6).timeout
+	office.start_game()
+	office.open_dialogue("cliff_goat_intro")
 	await _shot("intro")
 	await _click_option()
 	await _click_option(1)

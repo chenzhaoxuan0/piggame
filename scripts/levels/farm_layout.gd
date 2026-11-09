@@ -2,7 +2,11 @@ extends RefCounted
 ## Metres, Y up. Shared by terrain, route following, encounters and tests.
 const SPAWN := Vector3(0, 32.1, 100)
 const PIG_GATE := Vector3(0, 32, 88)
+const GATE_OX := Vector3(30, 24, 55)
+const GATE_SHEEP := Vector3(-40, 16, -22)
+const GATE_HORSE := Vector3(18, 8, -90)
 const GATE := Vector3(-82, 2, -229)
+const GATE_FINAL := GATE
 const STATION := Vector3(-12, 0, -280)
 const LEVER := Vector3(-14, 0, -277)
 const RETRY := Vector3(-24, 4.1, -166)
@@ -37,6 +41,93 @@ const LOGS := [
 	{"a": Vector3(-66,16,-62), "b": Vector3(-66,15,-76), "t": .5},
 ]
 const CREEK_CENTER := Vector3(41,21.5,4)
+
+const CHASE_CONFIGS := {
+	"chase_1": {
+		"title": "逃离猪圈 · 过去的阴影",
+		"desc": "沿下山蜿蜒小路奔跑，按空格跃过倒木与障碍，逃往牛的耕地！",
+		"route": "summit",
+		"spawns": [Vector3(0, 32, 92), Vector3(2.5, 32, 94)],
+		"retry": Vector3(0, 32.1, 86),
+		"gate_pos": GATE_OX,
+		"gate_id": "ox",
+		"dog_speed": 5.3,
+		"has_phantom": false,
+		"phantom_count": 0,
+		"allow_qte": true,
+		"ambushes": [
+			{"trigger": Vector3(-20, 29, 72), "spawn": Vector3(-15, 29, 66), "phantom": false, "radius": 5.5},
+			{"trigger": Vector3(-30, 26, 105), "spawn": Vector3(-36, 26, 112), "phantom": false, "radius": 5.5},
+			{"trigger": Vector3(-55, 24.5, 96), "spawn": Vector3(-50, 24.2, 76), "phantom": false, "radius": 5.5},
+			{"trigger": Vector3(-48, 24, 62), "spawn": Vector3(-40, 24, 68), "phantom": false, "radius": 5.5},
+			{"trigger": Vector3(-25, 24.1, 54), "spawn": Vector3(-18, 24.1, 44), "phantom": false, "radius": 5.5}
+		]
+	},
+	"chase_2": {
+		"title": "溪谷追奔 · 虚影初显",
+		"desc": "顺溪流向下冲刺，被扑咬时按空格快速挣脱，冲向小羊的矮棚！",
+		"route": "creek",
+		"spawns": [Vector3(72, 24, 26), Vector3(74, 24, 25), Vector3(70, 24, 28)],
+		"retry": Vector3(72, 24, 18),
+		"gate_pos": GATE_SHEEP,
+		"gate_id": "sheep",
+		"dog_speed": 5.5,
+		"has_phantom": true,
+		"phantom_count": 2,
+		"allow_qte": true,
+		"ambushes": [
+			{"trigger": Vector3(65, 23, 10), "spawn": Vector3(58, 23, 16), "phantom": true, "radius": 5.5},
+			{"trigger": Vector3(42, 21.5, 2), "spawn": Vector3(36, 21.5, -6), "phantom": false, "radius": 5.5},
+			{"trigger": Vector3(32, 21, 8), "spawn": Vector3(20, 21, 14), "phantom": true, "radius": 5.5},
+			{"trigger": Vector3(12, 20, 4), "spawn": Vector3(6, 20, -4), "phantom": false, "radius": 5.5},
+			{"trigger": Vector3(-2, 18, -10), "spawn": Vector3(-12, 18, -18), "phantom": false, "radius": 5.5},
+			{"trigger": Vector3(-18, 16.5, -8), "spawn": Vector3(-26, 16.5, -2), "phantom": true, "radius": 5.5}
+		]
+	},
+	"chase_3": {
+		"title": "林间穿越 · 明眸破妄",
+		"desc": "幻影狗无法伤你，看准真身并跃过手推车，冲进追风的马场！",
+		"route": "woodland",
+		"spawns": [Vector3(-66, 16, -56), Vector3(-68, 16, -58), Vector3(-64, 16, -54)],
+		"retry": Vector3(-66, 16, -64),
+		"gate_pos": GATE_HORSE,
+		"gate_id": "horse",
+		"dog_speed": 5.65,
+		"has_phantom": true,
+		"phantom_count": 3,
+		"allow_qte": true,
+		"ambushes": [
+			{"trigger": Vector3(-66, 15.5, -70), "spawn": Vector3(-58, 15.5, -66), "phantom": false, "radius": 5.5},
+			{"trigger": Vector3(-46, 14, -82), "spawn": Vector3(-40, 14, -88), "phantom": true, "radius": 5.5},
+			{"trigger": Vector3(-34, 13, -70), "spawn": Vector3(-26, 13, -64), "phantom": true, "radius": 5.5},
+			{"trigger": Vector3(-22, 12.5, -72), "spawn": Vector3(-14, 12.5, -66), "phantom": false, "radius": 5.5},
+			{"trigger": Vector3(0, 10, -78), "spawn": Vector3(8, 10, -84), "phantom": false, "radius": 5.5},
+			{"trigger": Vector3(8, 9, -82), "spawn": Vector3(14, 8.5, -76), "phantom": true, "radius": 5.5}
+		]
+	},
+	"chase_final": {
+		"title": "终极突围 · 奔向自由",
+		"desc": "全速突围！长按 Shift 加速甩开犬队，红圈扑咬时按 Shift 灵巧闪避！",
+		"route": "chase",
+		"spawns": [Vector3(-24, 4.2, -166), Vector3(-22.5, 4.2, -165), Vector3(-26, 4.2, -168)],
+		"retry": Vector3(-24, 4.1, -166),
+		"gate_pos": GATE_FINAL,
+		"gate_id": "final",
+		"dog_speed": 5.85,
+		"has_phantom": true,
+		"phantom_count": 3,
+		"allow_qte": true,
+		"ambushes": [
+			{"trigger": Vector3(-36, 4, -172), "spawn": Vector3(-42, 4, -164), "phantom": false, "radius": 6.0},
+			{"trigger": Vector3(-50, 4, -154), "spawn": Vector3(-58, 4, -146), "phantom": false, "radius": 6.0},
+			{"trigger": Vector3(-68, 4, -154), "spawn": Vector3(-76, 4, -162), "phantom": true, "radius": 6.0},
+			{"trigger": Vector3(-80, 3, -174), "spawn": Vector3(-72, 3, -182), "phantom": false, "radius": 6.0},
+			{"trigger": Vector3(-66, 3, -190), "spawn": Vector3(-56, 3, -196), "phantom": true, "radius": 6.0},
+			{"trigger": Vector3(-46, 2, -200), "spawn": Vector3(-38, 2, -206), "phantom": false, "radius": 6.0},
+			{"trigger": Vector3(-65, 2, -210), "spawn": Vector3(-76, 2, -216), "phantom": true, "radius": 6.0}
+		]
+	}
+}
 
 static func chase_course() -> Array[Vector3]:
 	# A suggested line for click navigation and dogs. Player checkpoints are the

@@ -67,7 +67,10 @@ func _run() -> void:
 	var office: Node=load("res://scenes/levels/office_level_1.tscn").instantiate()
 	root.add_child(office)
 	await create_timer(.6).timeout
-	_check(office.dialogue_open,"intro opens")
+	_check(office.in_start_menu,"start menu opens on entry")
+	_check(not office.dialogue_open,"dialogue not auto opened on entry")
+	office.start_game()
+	_check(not office.in_start_menu and not office.dialogue_open,"game starts into explore mode")
 	_check(office.camera.size==8 and office.camera.camera_offset.y==5.25,"default camera halves view and height")
 	var pause:=InputEventAction.new()
 	pause.action="ui_cancel"

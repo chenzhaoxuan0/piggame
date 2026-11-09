@@ -17,9 +17,9 @@ var dialogue_tree: Dictionary = {
 		]
 	},
 	"cliff_goat_escape_start": {
-		"speaker": "一口猪", "title": "出圈", "avatar": "",
-		"content": "咔嚓——木栓断了。猪咬紧铜插销，迈进农场。\n\n沿路可以与牛、羊、马交谈，也可以直接穿过大院。",
-		"options": [{"text": "出发。", "next": ""}]
+		"speaker": "老岩羊", "title": "第一步 · 斩断过去", "avatar": "",
+		"content": "木栓已断！但记住：迈出第一步后，紧追你不放的是你身后的过去——对温饱泥槽的依恋、对未知的恐惧。\n别回头，沿下山小路一直跑！按空格跃过倒木与障碍，冲进牛耕地！",
+		"options": [{"text": "不回头，向前冲！", "next": ""}]
 	},
 	"ending_stay_in_sty": {
 		"speaker": "旁白", "title": "安稳的肉馅", "avatar": "",
@@ -63,14 +63,14 @@ var dialogue_tree: Dictionary = {
 		"options": [{"text": "看他卸下轭，走向水渠。", "event": "complete_ox", "next": "aniu_drink_water"}]
 	},
 	"aniu_drink_water": {
-		"speaker": "旁白", "title": "水渠边", "avatar": "",
-		"content": "阿牛低头喝水，长长喘了一口气。\n猪望了望已经卷刃的犁，继续往前走。",
-		"options": [{"text": "继续下山。", "next": ""}]
+		"speaker": "阿牛", "title": "水渠边 · 伙伴的力量", "avatar": "",
+		"content": "卸下了沉重木轭，我才发现脖子原来可以这么轻松！\n小白猪，既然你在勇敢往前走，我这身硬骨气传给你——要是被恶犬扑住，别认命！连续狂按【空格键 / E】，咬紧牙关强行挣脱重负！",
+		"options": [{"text": "【领悟伙伴之力 · 坚韧挣脱】多谢阿牛哥！", "next": ""}]
 	},
 	"aniu_post_idle": {
-		"speaker": "阿牛", "title": "歇一口气", "avatar": "",
-		"content": "犁头卷了，让铁匠来修。前面犬队可不好惹，跑的时候留神。",
-		"options": [{"text": "多谢，大叔。", "next": ""}]
+		"speaker": "阿牛", "title": "卸下重负", "avatar": "",
+		"content": "去吧！前面下山的溪流路里有恶犬巡逻。记住：一旦被咬住，立刻狂按空格挣脱，别放弃！",
+		"options": [{"text": "放心，我会一直跑！", "next": ""}]
 	},
 	"mianmian_interaction": {
 		"speaker": "绵绵", "title": "木棚阴影里", "avatar": "",
@@ -94,14 +94,14 @@ var dialogue_tree: Dictionary = {
 		"options": [{"text": "等绵绵回话。", "next": "mianmian_reply"}]
 	},
 	"mianmian_reply": {
-		"speaker": "绵绵", "title": "一点阳光", "avatar": "",
-		"content": "……原来，只是不适合拿来垫机床啊……",
-		"options": [{"text": "让她走出阴影，晒晒毛。", "event": "complete_sheep", "next": "mianmian_post_idle"}]
+		"speaker": "绵绵", "title": "阳光下 · 伙伴的力量", "avatar": "",
+		"content": "……原来，不是我的毛是错的，只是量我的尺子不合适！\n小白猪，谢谢你点醒我。前面林间小路的恶犬会用虚张声势的【幻影分身】迷惑你，但我把这双看透虚妄的眼睛赠予你——幻影皆为虚妄，无法伤你分毫，只需避开真身即可！",
+		"options": [{"text": "【领悟伙伴之力 · 破妄明眸】接纳真实的自己！", "event": "complete_sheep", "next": "mianmian_post_idle"}]
 	},
 	"mianmian_post_idle": {
-		"speaker": "绵绵", "title": "阳光下", "avatar": "",
-		"content": "这儿真暖和。小白猪，不管你去哪，都祝你找到自己的地方。",
-		"options": [{"text": "晒你的毛吧，我先走了。", "next": ""}]
+		"speaker": "绵绵", "title": "阳光下的软毛", "avatar": "",
+		"content": "这身软毛晒得暖洋洋的。去吧小白猪！幻影碰触不到你，穿过它们，冲进马场！",
+		"options": [{"text": "借你明澈双眸，我去冲破迷雾！", "next": ""}]
 	},
 	"inspect_record_board": {
 		"speaker": "纪录榜", "title": "新旧纪录", "avatar": "",
@@ -135,19 +135,19 @@ var dialogue_tree: Dictionary = {
 		"options": [{"text": "等追风停下。", "next": "zhuifeng_reply"}]
 	},
 	"zhuifeng_reply": {
-		"speaker": "追风", "title": "停步", "avatar": "",
-		"content": "……35 秒？去年就换了？\n我跑了一整年，追的是一个早就没了的影子……",
-		"options": [{"text": "看他探出栏杆，嚼一口野草。", "event": "complete_horse", "next": "learn_horse_will"}]
+		"speaker": "追风", "title": "停步 · 伙伴的力量", "avatar": "",
+		"content": "……35 秒？原来农场早就换了纪录，我一直在跑道里追着一个三年前的空影……\n小白猪，你说得对！奔跑不是为了向栅栏里的人讨要金牌，奔跑是为了感受迎面而来的山风！把我的速度带到旷野里去吧！",
+		"options": [{"text": "【领悟伙伴之力 · 疾风冲刺】向旷野奔腾！", "event": "complete_horse", "next": "learn_horse_will"}]
 	},
 	"learn_horse_will": {
 		"speaker": "一口猪", "title": "疾风之步", "avatar": "",
-		"content": "速度也可以为自己而用。\n已获得疾风之步：按 Shift 短时加速，之后需要恢复。即使不用它，也能靠走位穿过犬队。",
-		"options": [{"text": "试着向前跑。", "next": ""}]
+		"content": "速度，终于只为自己的脚步而奔流。\n【长按 Shift 消耗体力加速】：长按多久就加速多久，松开即可自动恢复体力！在恶犬红圈扑杀时按 Shift 灵巧侧身闪避！",
+		"options": [{"text": "发起终极突围，冲向大铁门！", "next": ""}]
 	},
 	"zhuifeng_post_idle": {
-		"speaker": "追风", "title": "栏外的草", "avatar": "",
-		"content": "这草真苦。……前面有犬队。跑的时候记着变向。",
-		"options": [{"text": "受教了。", "next": ""}]
+		"speaker": "追风", "title": "风吹鬃毛", "avatar": "",
+		"content": "冲吧小白猪！有我们大家的支持，前面没有围栏能挡住你！用疾风冲刺跨越终点！",
+		"options": [{"text": "出发，绝不停歇！", "next": ""}]
 	},
 	"ordeal_encounter": {
 		"speaker": "农场主", "title": "第一回合 · 甜料", "avatar": "",

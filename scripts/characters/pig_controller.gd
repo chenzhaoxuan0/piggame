@@ -4,6 +4,8 @@ class_name PigController
 signal moved_to_target(pos: Vector3)
 signal reached_interactable(target: Node3D)
 signal dash_state_changed(remaining: float, cooldown: float)
+signal dodge_succeeded(dog: Node3D)
+signal qte_tapped
 
 @export var move_speed: float = 4.5
 @export var acceleration: float = 20.0
@@ -13,6 +15,24 @@ signal dash_state_changed(remaining: float, cooldown: float)
 @export var dash_multiplier: float = 1.65
 @export var dash_duration: float = 2.0
 @export var dash_cooldown: float = 5.0
+
+# Horse sprint stamina system: hold Shift to sprint, drains stamina over time, recovers when released
+@export var max_stamina: float = 3.0
+@export var stamina_drain_rate: float = 1.0
+@export var stamina_recovery_rate: float = 0.95
+@export var stamina_recovery_delay: float = 0.25
+var stamina: float = 3.0
+var is_sprinting: bool = false
+var _recovery_timer: float = 0.0
+
+# Dodge / Sidestep maneuver: tap Shift to dodge dog pounce with i-frames
+@export var dodge_duration: float = 0.38
+@export var dodge_speed_multiplier: float = 1.85
+@export var dodge_cooldown: float = 0.50
+var dodge_timer: float = 0.0
+var _dodge_cooldown_timer: float = 0.0
+var _dodge_direction: Vector3 = Vector3.FORWARD
+var _successful_dodges: int = 0
 
 var target_destination: Vector3 = Vector3.ZERO
 var is_moving: bool = false
@@ -52,6 +72,8 @@ func set_control_mode(mode: String) -> void:
 	_coyote_time = 0.0
 	velocity = Vector3.ZERO
 	if not _can_move():
+		is_sprinting = false
+		dodge_timer = 0.0
 		dash_remaining = 0.0
 
 func reset_at(pos: Vector3) -> void:
@@ -64,24 +86,96 @@ func reset_at(pos: Vector3) -> void:
 	_pending_dash = false
 	_jump_buffer = 0.0
 	_coyote_time = 0.0
+	stamina = max_stamina
+	is_sprinting = false
+	dodge_timer = 0.0
+	_dodge_cooldown_timer = 0.0
+	force_dodge_available = false
 	dash_remaining = 0.0
 	cooldown_remaining = 0.0
 	if is_instance_valid(visual_mesh):
 		visual_mesh.position.y = 0.0
 		visual_mesh.rotation.z = 0.0
-	dash_state_changed.emit(dash_remaining, cooldown_remaining)
+		visual_mesh.rotation.x = 0.0
+	dash_state_changed.emit(stamina, cooldown_remaining)
 
 func set_dash_enabled(enabled: bool) -> void:
 	dash_enabled = enabled
 	if not enabled:
+		is_sprinting = false
 		dash_remaining = 0.0
 		cooldown_remaining = 0.0
-	dash_state_changed.emit(dash_remaining, cooldown_remaining)
+	else:
+		stamina = max_stamina
+	dash_state_changed.emit(stamina, cooldown_remaining)
+
+var force_dodge_available: bool = false # For unit testing / debug
+
+func is_dodging() -> bool:
+	return dodge_timer > 0.0
+
+func is_under_dog_threat() -> bool:
+	if not is_inside_tree():
+		return false
+	for node in get_tree().get_nodes_in_group("chase_dogs"):
+		var dog := node as ChaseDog
+		if is_instance_valid(dog) and dog.is_threatening_player():
+			return true
+	return false
+
+func can_dodge() -> bool:
+	if not _can_move():
+		return false
+	if _dodge_cooldown_timer > 0.0:
+		return false
+	if force_dodge_available:
+		return true
+	return is_under_dog_threat()
+
+func notify_dodge_success(dog: Node3D = null) -> void:
+	_successful_dodges += 1
+	dodge_succeeded.emit(dog)
+
+func _perform_dodge() -> void:
+	dodge_timer = dodge_duration
+	_dodge_cooldown_timer = dodge_cooldown
+	dash_remaining = dodge_duration
+	
+	var dir := _keyboard_direction()
+	if dir.length_squared() > 0.01:
+		_dodge_direction = dir.normalized()
+	elif is_moving:
+		var off := target_destination - global_position
+		off.y = 0.0
+		if off.length_squared() > 0.01:
+			_dodge_direction = off.normalized()
+		else:
+			_dodge_direction = -global_transform.basis.z.normalized()
+	else:
+		_dodge_direction = -global_transform.basis.z.normalized()
+	
+	_dodge_direction.y = 0.0
+	if _dodge_direction.length_squared() < 0.001:
+		_dodge_direction = Vector3.FORWARD
+	else:
+		_dodge_direction = _dodge_direction.normalized()
+
+	if dash_enabled:
+		stamina = maxf(0.0, stamina - 0.30)
+		_recovery_timer = stamina_recovery_delay
 
 func _can_move() -> bool:
 	return control_mode == "explore" or control_mode == "chase"
 
 func _unhandled_input(event: InputEvent) -> void:
+	if control_mode == "qte":
+		var is_tap: bool = (event.is_action_pressed("action_jump") or event.is_action_pressed("action_interact") or event.is_action_pressed("ui_accept")) and not event.is_echo()
+		if not is_tap and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			is_tap = true
+		if is_tap:
+			qte_tapped.emit()
+			get_viewport().set_input_as_handled()
+		return
 	if not _can_move():
 		return
 	if event.is_action_pressed("action_interact") and not event.is_echo():
@@ -227,12 +321,33 @@ func _physics_process(delta: float) -> void:
 			return
 	if _pending_dash:
 		_pending_dash = false
-		if dash_enabled and cooldown_remaining <= 0.0:
-			dash_remaining = dash_duration
-			cooldown_remaining = dash_duration + dash_cooldown
-	dash_remaining = maxf(0.0, dash_remaining - delta)
-	cooldown_remaining = maxf(0.0, cooldown_remaining - delta)
+		if can_dodge():
+			_perform_dodge()
+
+	# Sustained Sprint (Hold Shift with Horse Skill)
+	var dash_held: bool = Input.is_action_pressed("action_dash")
 	var move_direction: Vector3 = _keyboard_direction()
+	var has_movement_input: bool = move_direction.length_squared() > 0.001 or is_moving
+
+	if dash_enabled and dash_held and _can_move() and has_movement_input and stamina > 0.0:
+		is_sprinting = true
+		stamina = maxf(0.0, stamina - stamina_drain_rate * delta)
+		_recovery_timer = stamina_recovery_delay
+		dash_remaining = maxf(dodge_timer, stamina)
+		if stamina <= 0.0:
+			is_sprinting = false
+	else:
+		is_sprinting = false
+		if _recovery_timer > 0.0:
+			_recovery_timer = maxf(0.0, _recovery_timer - delta)
+		else:
+			stamina = minf(max_stamina, stamina + stamina_recovery_rate * delta)
+		dash_remaining = dodge_timer
+
+	dodge_timer = maxf(0.0, dodge_timer - delta)
+	_dodge_cooldown_timer = maxf(0.0, _dodge_cooldown_timer - delta)
+	cooldown_remaining = maxf(0.0, (max_stamina - stamina) if stamina <= 0.0 else 0.0)
+
 	if move_direction.length_squared() > 0.001:
 		_cancel_destination()
 	elif is_moving:
@@ -247,9 +362,19 @@ func _physics_process(delta: float) -> void:
 				else: _cancel_destination()
 			else:
 				move_direction = offset.normalized()
-	var speed: float = move_speed * (dash_multiplier if dash_remaining > 0.0 else 1.0)
-	velocity.x = move_toward(velocity.x, move_direction.x * speed, acceleration * delta)
-	velocity.z = move_toward(velocity.z, move_direction.z * speed, acceleration * delta)
+
+	var speed: float = move_speed
+	var current_dir := move_direction
+
+	if dodge_timer > 0.0:
+		speed = move_speed * dodge_speed_multiplier
+		current_dir = _dodge_direction
+	elif is_sprinting and move_direction.length_squared() > 0.001:
+		speed = move_speed * dash_multiplier
+
+	var accel_factor: float = 1.8 if dodge_timer > 0.0 else 1.0
+	velocity.x = move_toward(velocity.x, current_dir.x * speed, acceleration * delta * accel_factor)
+	velocity.z = move_toward(velocity.z, current_dir.z * speed, acceleration * delta * accel_factor)
 	_coyote_time = .1 if is_on_floor() else maxf(0.0, _coyote_time-delta)
 	_jump_buffer = maxf(0.0, _jump_buffer-delta)
 	if _jump_buffer>0 and _coyote_time>0:
@@ -273,15 +398,19 @@ func _physics_process(delta: float) -> void:
 			velocity.x = 0.0
 			velocity.z = 0.0
 	_update_pose(move_direction, delta)
-	dash_state_changed.emit(dash_remaining, cooldown_remaining)
+	dash_state_changed.emit(stamina, cooldown_remaining)
 
 func _update_pose(direction: Vector3, delta: float) -> void:
-	if direction.length_squared() > 0.001:
-		# The existing pig mesh faces -Z, so atan2 needs the negated vector.
-		rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), minf(1.0, rotation_speed * delta))
-		var walk_step: float = sin(Time.get_ticks_msec() * 0.014)
-		visual_mesh.position.y = absf(walk_step) * 0.045
-		visual_mesh.rotation.z = walk_step * 0.035
+	if direction.length_squared() > 0.001 or dodge_timer > 0.0:
+		var dir := _dodge_direction if dodge_timer > 0.0 else direction
+		rotation.y = lerp_angle(rotation.y, atan2(-dir.x, -dir.z), minf(1.0, rotation_speed * delta * (1.6 if dodge_timer > 0.0 else 1.0)))
+		var is_dashing := is_sprinting or dodge_timer > 0.0
+		var freq: float = 0.030 if dodge_timer > 0.0 else (0.024 if is_dashing else 0.014)
+		var walk_step: float = sin(Time.get_ticks_msec() * freq)
+		visual_mesh.position.y = absf(walk_step) * (0.08 if is_dashing else 0.045)
+		visual_mesh.rotation.z = walk_step * (0.07 if is_dashing else 0.035)
+		visual_mesh.rotation.x = -0.22 if dodge_timer > 0.0 else (-0.12 if is_dashing else 0.0)
 	else:
 		visual_mesh.position.y = move_toward(visual_mesh.position.y, 0.0, delta * 0.8)
+		visual_mesh.rotation.x = move_toward(visual_mesh.rotation.x, 0.0, delta * 0.8)
 		visual_mesh.rotation.z = move_toward(visual_mesh.rotation.z, 0.0, delta * 0.8)
