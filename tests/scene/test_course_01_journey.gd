@@ -25,10 +25,10 @@ func _run() -> void:
 	office.farm.set_pigpen_open(true)
 	await process_frame
 
-	# 1. Secret Mario Pipe on the final downhill summit corner
+	# 1. Secret Mario Pipe on the downhill summit road
 	_check(office.farm.has_node("SecretMarioPipe"), "Farm has SecretMarioPipe branch")
 	var pipe: Node3D = office.farm.get_node("SecretMarioPipe")
-	_check(pipe.position.distance_to(Vector3(16.5, 24.0, 66.2)) < 0.5, "Secret pipe located at final summit corner")
+	_check(pipe.position.distance_to(Vector3(-11.0, 29.9, 74.7)) < 0.5, "Secret pipe located in the middle of summit road")
 	_check(pipe.has_node("PipeBody") and pipe.has_node("PipeTopArea"), "Pipe has solid body and top detection area")
 
 	# Pig jumps onto pipe rim -> top area triggers stance

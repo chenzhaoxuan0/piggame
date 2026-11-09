@@ -392,10 +392,9 @@ func _on_gate_passed(body: Node3D, gate_id: String) -> void:
 func _build_secret_mario_pipe() -> void:
 	var pipe_root := Node3D.new()
 	pipe_root.name = "SecretMarioPipe"
-	# Positioned right at the outer bend of the final summit corner before Ox's gate!
-	# The pig sees it prominently ahead after clearing the fallen log and dog pressure.
-	# Clear of the road center line so running the normal escape route is unobstructed.
-	var pipe_pos := Vector3(16.5, 24.0, 66.2)
+	# Positioned directly in the middle of the downhill summit road per user arrow direction!
+	# (Moved from the blocked cliff ledge into the middle of the road)
+	var pipe_pos := Vector3(-11.0, 29.9, 74.7)
 	pipe_root.position = pipe_pos
 	add_child(pipe_root)
 

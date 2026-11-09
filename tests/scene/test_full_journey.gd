@@ -55,6 +55,8 @@ func _walk_to(point: Vector3) -> void:
 		if office.player.is_on_floor():
 			var obstacles: Array[Vector3]=[L.CREEK_CENTER]
 			for item in L.LOGS: obstacles.append(item.a.lerp(item.b,item.t))
+			var pipe_node: Node3D = office.farm.get_node_or_null("SecretMarioPipe") if office.farm else null
+			if is_instance_valid(pipe_node): obstacles.append(pipe_node.global_position)
 			for obstacle in obstacles:
 				var ahead: Vector3=obstacle-office.player.global_position
 				ahead.y=0
