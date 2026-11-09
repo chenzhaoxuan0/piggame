@@ -29,6 +29,9 @@ var _farmer_baton: Node3D
 var _checkpoint := SPAWN
 var recoveries := 0
 var _player: Node3D
+var _player_on_pipe := false
+var _pipe_entering := false
+var _pipe_hint_label: Label3D
 
 func _ready() -> void:
 	add_to_group("farm_world")
@@ -161,9 +164,13 @@ func _physics_process(_delta: float) -> void:
 	var closest := L.closest_on_path(_player.global_position, L.journey())
 	if _player.global_position.distance_to(closest.point) < 14.0:
 		_checkpoint = closest.point + Vector3.UP * 0.1
-	if _player.global_position.y < closest.point.y - 7.5 or _player.global_position.y < -5.0:
-		recoveries += 1
-		_player.reset_at(_checkpoint)
+	if not _pipe_entering:
+		if _player.global_position.y < closest.point.y - 7.5 or _player.global_position.y < -5.0:
+			recoveries += 1
+			_player.reset_at(_checkpoint)
+	if _player_on_pipe and not _pipe_entering:
+		if Input.is_action_pressed("move_down") or Input.is_action_just_pressed("move_down"):
+			_trigger_pipe_enter()
 
 func get_spawn_position() -> Vector3: return to_global(SPAWN)
 func get_cablecar() -> Node3D: return _cabin
@@ -385,73 +392,124 @@ func _on_gate_passed(body: Node3D, gate_id: String) -> void:
 func _build_secret_mario_pipe() -> void:
 	var pipe_root := Node3D.new()
 	pipe_root.name = "SecretMarioPipe"
-	# Placed off-trail on the scenic northern cliff branch (leaves main trail unobstructed)
-	var pipe_pos := Vector3(-6, 30.2, 64)
+	# Positioned right at the outer bend of the final summit corner before Ox's gate!
+	# The pig sees it prominently ahead after clearing the fallen log and dog pressure.
+	# Clear of the road center line so running the normal escape route is unobstructed.
+	var pipe_pos := Vector3(16.5, 24.0, 66.2)
 	pipe_root.position = pipe_pos
 	add_child(pipe_root)
 
-	# Branch walkway connecting trail to the scenic pipe overlook
-	_box(pipe_root, "BranchWalkway", Vector3(2.6, 0.35, 7.0), Vector3(-1.5, 0.18, 4.5), Color("8D7B68"), true)
-	# Platform under the pipe
-	_box(pipe_root, "PipePlatform", Vector3(3.6, 0.4, 3.6), Vector3(0, 0.2, 0), Color("8D7B68"), true)
-	_label(self, "BranchSign", "▶ 悬崖支路：神秘绿水管", Vector3(-9.5, 31.6, 73), 18)
+	# Solid Pipe Body (pig can jump onto it with Space)
+	var pipe_body := StaticBody3D.new()
+	pipe_body.name = "PipeBody"
+	pipe_body.collision_layer = 1
+	pipe_body.collision_mask = 0
+	var body_shape := CollisionShape3D.new()
+	var cyl_shape := CylinderShape3D.new()
+	cyl_shape.radius = 1.05
+	cyl_shape.height = 0.65
+	body_shape.shape = cyl_shape
+	body_shape.position.y = 0.325
+	pipe_body.add_child(body_shape)
 
-	# Green pipe body
-	var body_mesh := MeshInstance3D.new()
-	var body_cyl := CylinderMesh.new()
-	body_cyl.top_radius = 1.05
-	body_cyl.bottom_radius = 1.05
-	body_cyl.height = 1.3
-	body_mesh.mesh = body_cyl
-	body_mesh.position.y = 0.85
+	# Visuals
 	var pipe_mat := StandardMaterial3D.new()
 	pipe_mat.albedo_color = Color("2E7D32")
-	pipe_mat.roughness = 0.5
+	pipe_mat.roughness = 0.45
+
+	var body_mesh := MeshInstance3D.new()
+	var body_cyl := CylinderMesh.new()
+	body_cyl.top_radius = 1.0
+	body_cyl.bottom_radius = 1.0
+	body_cyl.height = 0.65
+	body_mesh.mesh = body_cyl
+	body_mesh.position.y = 0.325
 	body_mesh.material_override = pipe_mat
-	pipe_root.add_child(body_mesh)
+	pipe_body.add_child(body_mesh)
 
 	# Pipe rim flange
 	var rim_mesh := MeshInstance3D.new()
 	var rim_cyl := CylinderMesh.new()
-	rim_cyl.top_radius = 1.25
-	rim_cyl.bottom_radius = 1.25
-	rim_cyl.height = 0.35
+	rim_cyl.top_radius = 1.2
+	rim_cyl.bottom_radius = 1.2
+	rim_cyl.height = 0.2
 	rim_mesh.mesh = rim_cyl
-	rim_mesh.position.y = 1.45
+	rim_mesh.position.y = 0.58
 	rim_mesh.material_override = pipe_mat
-	pipe_root.add_child(rim_mesh)
+	pipe_body.add_child(rim_mesh)
 
 	# Dark interior hole
 	var hole_mesh := MeshInstance3D.new()
 	var hole_cyl := CylinderMesh.new()
-	hole_cyl.top_radius = 0.95
-	hole_cyl.bottom_radius = 0.95
-	hole_cyl.height = 0.05
+	hole_cyl.top_radius = 0.88
+	hole_cyl.bottom_radius = 0.88
+	hole_cyl.height = 0.04
 	hole_mesh.mesh = hole_cyl
-	hole_mesh.position.y = 1.62
+	hole_mesh.position.y = 0.67
 	var hole_mat := StandardMaterial3D.new()
 	hole_mat.albedo_color = Color("0A150A")
 	hole_mesh.material_override = hole_mat
-	pipe_root.add_child(hole_mesh)
+	pipe_body.add_child(hole_mesh)
 
-	# Floating sign & labels
-	_label(pipe_root, "PipeSign", "★ 神秘绿水管 · 隐藏捷径 ★", Vector3(0, 3.2, 0), 24)
-	_label(pipe_root, "PipeHint", "（按空格跳入 · 糖豆人试炼）", Vector3(0, 2.5, 0), 18)
+	pipe_root.add_child(pipe_body)
 
-	# Pipe Trigger Area
-	var pipe_area := Area3D.new()
-	pipe_area.name = "SecretPipeArea"
-	pipe_area.collision_layer = 0
-	pipe_area.collision_mask = 2
-	var shape := CollisionShape3D.new()
+	# Dynamic Hint Label above the pipe
+	_pipe_hint_label = _label(pipe_root, "PipeSign", "★ 超级绿水管 ★\n[ 跳上管顶按 S 钻入 ]", Vector3(0, 2.2, 0), 22)
+
+	# Pipe Top Stance Area (detects pig standing on the rim)
+	var top_area := Area3D.new()
+	top_area.name = "PipeTopArea"
+	top_area.collision_layer = 0
+	top_area.collision_mask = 2
+	var area_shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = Vector3(2.4, 2.2, 2.4)
-	shape.shape = box
-	shape.position.y = 1.6
-	pipe_area.add_child(shape)
-	pipe_area.body_entered.connect(_on_secret_pipe_body_entered)
-	pipe_root.add_child(pipe_area)
+	box.size = Vector3(1.8, 0.45, 1.8)
+	area_shape.shape = box
+	area_shape.position.y = 0.8
+	top_area.add_child(area_shape)
+	top_area.body_entered.connect(_on_pipe_top_entered)
+	top_area.body_exited.connect(_on_pipe_top_exited)
+	pipe_root.add_child(top_area)
+
+func _on_pipe_top_entered(body: Node3D) -> void:
+	if body.is_in_group("player"):
+		_player_on_pipe = true
+		if _pipe_hint_label:
+			_pipe_hint_label.text = "▼ 按 S 键钻入地下隐藏关！▼"
+			_pipe_hint_label.modulate = Color("FFE066")
+
+func _on_pipe_top_exited(body: Node3D) -> void:
+	if body.is_in_group("player"):
+		_player_on_pipe = false
+		if _pipe_hint_label:
+			_pipe_hint_label.text = "★ 超级绿水管 ★\n[ 跳上管顶按 S 钻入 ]"
+			_pipe_hint_label.modulate = CREAM
+
+func _trigger_pipe_enter() -> void:
+	if _pipe_entering or not is_instance_valid(_player): return
+	_pipe_entering = true
+	if _pipe_hint_label:
+		_pipe_hint_label.text = "▶ 咕噜噜……钻入地下关！◀"
+		_pipe_hint_label.modulate = Color("52B788")
+	if _player.has_method("set_control_mode"):
+		_player.set_control_mode("cinematic")
+	var pipe_node: Node3D = get_node_or_null("SecretMarioPipe")
+	var target_x: float = pipe_node.global_position.x if pipe_node else _player.global_position.x
+	var target_z: float = pipe_node.global_position.z if pipe_node else _player.global_position.z
+	var tween := create_tween()
+	# Center onto pipe then smoothly drop down inside (Mario pipe sound/feel)
+	tween.tween_property(_player, "global_position:x", target_x, 0.12)
+	tween.parallel().tween_property(_player, "global_position:z", target_z, 0.12)
+	tween.tween_property(_player, "global_position:y", _player.global_position.y - 1.1, 0.28)
+	tween.parallel().tween_property(_player, "scale:y", 0.4, 0.28)
+	tween.tween_callback(func():
+		_player.scale.y = 1.0
+		_pipe_entering = false
+		_player_on_pipe = false
+		secret_pipe_entered.emit("course_1")
+	)
 
 func _on_secret_pipe_body_entered(body: Node3D) -> void:
+	# Test compatibility helper
 	if body.is_in_group("player"):
 		secret_pipe_entered.emit("course_1")

@@ -25,11 +25,20 @@ func _run() -> void:
 	office.farm.set_pigpen_open(true)
 	await process_frame
 
-	# 1. Trigger Secret Mario Pipe on the farm downhill branch
+	# 1. Secret Mario Pipe on the final downhill summit corner
 	_check(office.farm.has_node("SecretMarioPipe"), "Farm has SecretMarioPipe branch")
-	office.farm._on_secret_pipe_body_entered(office.player)
-	await process_frame
-	_check(is_instance_valid(office.active_course), "Secret pipe trigger loaded course_1")
+	var pipe: Node3D = office.farm.get_node("SecretMarioPipe")
+	_check(pipe.position.distance_to(Vector3(16.5, 24.0, 66.2)) < 0.5, "Secret pipe located at final summit corner")
+	_check(pipe.has_node("PipeBody") and pipe.has_node("PipeTopArea"), "Pipe has solid body and top detection area")
+
+	# Pig jumps onto pipe rim -> top area triggers stance
+	office.farm._on_pipe_top_entered(office.player)
+	_check(office.farm._player_on_pipe, "Pig standing on pipe rim detected")
+
+	# Press S / trigger descent
+	office.farm._trigger_pipe_enter()
+	await create_timer(0.5).timeout
+	_check(is_instance_valid(office.active_course), "Secret pipe S-key trigger loaded course_1")
 	_check(office.farm.get_parent() == null, "Farm removed from tree during course")
 	_check(office.player.control_mode == "explore", "Entrance is explore mode so ox dialogue works")
 	var runner: CourseRunner = office.active_course.runner
