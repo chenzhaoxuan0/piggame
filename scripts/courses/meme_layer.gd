@@ -20,8 +20,7 @@ func _ready() -> void:
 	layer.layer = 10
 	add_child(layer)
 	_toast = PanelContainer.new()
-	_toast.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_toast.position = Vector2(-220, 24)
+	_toast.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_toast.custom_minimum_size = Vector2(440, 0)
 	_toast.visible = false
 	var style := StyleBoxFlat.new()
@@ -45,6 +44,7 @@ func _ready() -> void:
 	_text_label.add_theme_font_size_override("font_size", 16)
 	_text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_text_label.custom_minimum_size = Vector2(400, 0)
 	vbox.add_child(_text_label)
 	_toast.add_child(vbox)
 	layer.add_child(_toast)
@@ -86,8 +86,11 @@ func _show_toast(title_text: String, body_text: String, duration: float) -> void
 	_title_label.text = title_text
 	_title_label.visible = not title_text.is_empty()
 	_text_label.text = body_text
+	_toast.reset_size()
 	_toast.visible = true
-	_toast.position.x = -_toast.size.x * 0.5 if _toast.size.x > 0.0 else -220.0
+	var viewport_width := get_viewport().get_visible_rect().size.x
+	var toast_width := maxf(_toast.size.x, 440.0)
+	_toast.position = Vector2((viewport_width - toast_width) * 0.5, 24.0)
 	if _hide_timer:
 		_hide_timer.timeout.disconnect(_hide_toast)
 	_hide_timer = get_tree().create_timer(duration)

@@ -83,7 +83,7 @@ func _build_doors() -> void:
 		var sym := Label3D.new()
 		sym.text = "?" if not is_breakable else "!"
 		sym.font_size = 48
-		sym.position = Vector3(0, door_h * 0.55, 0.22)
+		sym.position = Vector3(0, door_h * 0.55, 0.3)
 		sym.modulate = Color.WHITE
 		door_root.add_child(sym)
 

@@ -1,6 +1,7 @@
 extends Node3D
 
 const ASSETS = preload("res://scripts/art/asset_library.gd")
+const PASTORAL_ENV = preload("res://scripts/art/pastoral_environment.gd")
 const RUNNER_SCRIPT = preload("res://scripts/courses/course_runner.gd")
 const MEME_SCRIPT = preload("res://scripts/courses/meme_layer.gd")
 const CONFIG_SCRIPT = preload("res://scripts/courses/course_config.gd")
@@ -19,6 +20,7 @@ const CREAM := Color("E1DDC5")
 const GRASS := Color("74A87C")
 const LOAM := Color("3E2723")
 const WOOD := Color("8D7B68")
+const MUD := Color("5D4037")
 const STRAW := Color("F59E0B")
 const PIPE_GREEN := Color("2E7D32")
 const HAZARD_YELLOW := Color("F1C40F")
@@ -29,7 +31,8 @@ var meme_layer: MemeLayer
 
 func _ready() -> void:
 	_build_ground()
-	_build_ox_npc()
+	_build_dressing()
+	_build_surroundings()
 	_build_launch_pads()
 	_build_bumpers()
 	_build_question_block()
@@ -89,34 +92,138 @@ func _make_config() -> CourseConfig:
 	return cfg
 
 func _build_ground() -> void:
-	_solid_box("StartTerrace", Vector3(16, 1, 16), Vector3(0, -0.5, 4), GRASS)
-	_solid_box("PathA", Vector3(8, 1, 26), Vector3(0, -0.5, -17), GRASS)
-	_solid_box("LowerPath", Vector3(10, 1, 18), Vector3(0, -4.0, -38), LOAM)
-	var ramp := _solid_box("RampBack", Vector3(8, 0.5, 9.0), Vector3(0, -2.0, -46), WOOD)
-	ramp.rotation.x = deg_to_rad(30.0)
-	_solid_box("PathB", Vector3(8, 1, 22), Vector3(0, -0.5, -60), GRASS)
-	_solid_box("HammerBridge", Vector3(4, 1, 22), Vector3(0, -0.5, -81), WOOD)
-	_solid_box("ExitTerrace", Vector3(12, 1, 14), Vector3(0, -0.5, -97), GRASS)
+	# Platforms abut edge-to-edge; overlapping coplanar tops z-fight.
+	_grass_platform("StartTerrace", Vector3(16, 1, 16), Vector3(0, -0.5, 4))
+	_grass_platform("PathA", Vector3(8, 1, 26), Vector3(0, -0.5, -17))
+	_platform("LowerPath", Vector3(10, 1, 14), Vector3(0, -4.0, -36), MUD)
+	# Ramp top surface runs exactly from LowerPath edge (-43, -3.5) to PathB edge (-49, 0).
+	var ramp := _solid_box("RampBack", Vector3(8, 0.5, 6.95), Vector3(0, -1.966, -46.126), WOOD)
+	ramp.rotation.x = deg_to_rad(30.26)
+	var ramp_deck := ASSETS.replace_visuals(ramp, "PROP_C1_FAKEBRIDGE", Vector3(0, 0.1, 0))
+	if ramp_deck:
+		ramp_deck.scale = Vector3(1.0, 1.0, 6.95 / 12.0)
+	_grass_platform("PathB", Vector3(8, 1, 21), Vector3(0, -0.5, -59.5))
+	var bridge := _solid_box("HammerBridge", Vector3(4, 1, 22), Vector3(0, -0.5, -81), WOOD)
+	var bridge_deck := ASSETS.replace_visuals(bridge, "PROP_C1_FAKEBRIDGE", Vector3(0, 0.35, 0))
+	if bridge_deck:
+		bridge_deck.scale = Vector3(0.5, 1.0, 22.0 / 12.0)
+	_grass_platform("ExitTerrace", Vector3(12, 1, 12), Vector3(0, -0.5, -98))
+	_build_checker_line(2.0, 8.0)
+	_build_checker_line(-92.8, 8.0)
 	_label("牛耕地隐藏闯关 · 糖豆人试炼", Vector3(0, 2.4, 9), 26)
 	_label("空格跳跃 / WASD 移动 / Shift 闪避", Vector3(0, 1.6, 1), 18)
 
-func _build_ox_npc() -> void:
+func _grass_platform(node_name: String, size: Vector3, pos: Vector3) -> StaticBody3D:
+	var body := _platform(node_name, size, pos, GRASS)
+	var grass := ASSETS.replace_visuals(body, "PROP_C1_GRASS", Vector3(0, -size.y * 0.5, 0))
+	if grass:
+		grass.scale = Vector3(size.x / 4.0, size.y * 2.0, size.z / 4.0)
+	return body
+
+func _build_surroundings() -> void:
+	# Scenery-only pastoral modules: a rocky back-mountain spur under the floating
+	# track, trees and rocks framing the terraces, and distant haze peaks.
+	var env := PASTORAL_ENV.new()
+	env.name = "CourseSurroundings"
+	env._material = ShaderMaterial.new()
+	env._material.shader = preload("res://scripts/art/pastoral_surface.gdshader")
+	env._rng.seed = 20261110
+	add_child(env)
+	var rock := Color("777F8D")
+	var stone := Color("8B9093")
+	var stone_light := Color("A5A69F")
+	# Cliff masses flanking the track, tops just below the walking surface.
+	env._district = "MountainSlopes"
+	for z in [4.0, -10.0, -24.0, -38.0, -52.0, -66.0, -80.0, -94.0]:
+		for side in [-1.0, 1.0]:
+			var shade := rock.lerp(stone, 0.3 + 0.2 * sin(z))
+			env._boulder(Vector3(side * 6.0, -6.5, z), Vector3(9, 11, 12), shade, z * 0.1)
+	env._boulder(Vector3(0, -9.5, -36), Vector3(12, 9, 16), rock, 0.7)
+	# Distant peaks faded by the shader's valley haze.
+	for p in [Vector3(-48, -13, -30), Vector3(50, -14, -70), Vector3(-44, -15, -95)]:
+		env._boulder(p, Vector3(30, 26, 40), stone_light, p.x)
+	# Trees and boulders grounded on the wide terraces.
+	env._district = "CourseTrees"
+	env._tree(Vector3(-7, 0, 11), 0.9)
+	env._tree(Vector3(7, 0, 11), 1.0)
+	env._tree(Vector3(-5, 0, -103), 0.9)
+	env._tree(Vector3(5, 0, -103), 1.0)
+	env._tree(Vector3(-6, -0.2, -18), 0.7)
+	env._tree(Vector3(-6, -0.2, -66), 0.75)
+	env._district = "CourseRocks"
+	env._boulder(Vector3(7.2, 0.1, -2), Vector3(1.6, 1.3, 1.5), stone, 0.3)
+	env._boulder(Vector3(-7.0, 0.1, 6), Vector3(1.3, 1.0, 1.2), rock, 1.1)
+	env._boulder(Vector3(5.2, 0.1, -95), Vector3(1.4, 1.1, 1.3), stone, 2.0)
+	# Grass tufts and flowers scattered over the terrace ground for detail.
+	env._district = "Ground_Detail"
+	for p in [Vector3(-5, 0.02, 2), Vector3(4, 0.02, 0), Vector3(-2, 0.02, 10), Vector3(6, 0.02, 8),
+		Vector3(-6, 0.02, -96), Vector3(3, 0.02, -100), Vector3(0, 0.02, -90), Vector3(-4, 0.02, -102)]:
+		env._tuft(p, 0.5)
+	env._flowers(Vector3(-4, 0.02, 8), 4)
+	env._flowers(Vector3(4, 0.02, -99), 4)
+	env._flush()
+
+func _platform(node_name: String, size: Vector3, pos: Vector3, top_color: Color) -> StaticBody3D:
 	var body := StaticBody3D.new()
-	body.name = "NPC_ox"
-	body.position = Vector3(-4, 0, 6)
+	body.name = node_name
+	body.position = pos
 	body.collision_layer = 1
 	body.collision_mask = 0
-	body.set_meta("interaction_id", "ox")
-	body.add_to_group("interactable")
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = Vector3(0.85, 1.2, 0.85)
+	box.size = size
 	shape.shape = box
-	shape.position.y = 0.6
 	body.add_child(shape)
-	body.add_child(ASSETS.make("CHAR_03"))
-	body.rotation.y = PI
-	_label("阿牛 · 卸下重负传你力气", Vector3(0, 2.2, 0), 22, body)
+	# Soil body + grass rim slab flush with the collision top; x-only overhang
+	# hides the seam without overlapping the next platform's slab.
+	_add_box_mesh(body, Vector3(size.x, size.y - 0.14, size.z), Vector3(0, -0.07, 0), LOAM)
+	_add_box_mesh(body, Vector3(size.x + 0.24, 0.14, size.z), Vector3(0, size.y * 0.5 - 0.07, 0), top_color)
+	add_child(body)
+	return body
+
+func _build_checker_line(z: float, width: float) -> void:
+	for row in 2:
+		for i in int(width):
+			var color := Color("FFF8E7") if (i + row) % 2 == 0 else HAZARD_DARK
+			var mesh := MeshInstance3D.new()
+			var box := BoxMesh.new()
+			box.size = Vector3(1, 0.06, 1)
+			mesh.mesh = box
+			mesh.position = Vector3(-width * 0.5 + 0.5 + i, 0.03, z - row)
+			var mat := StandardMaterial3D.new()
+			mat.albedo_color = color
+			mat.roughness = 1.0
+			mesh.material_override = mat
+			add_child(mesh)
+
+func _build_dressing() -> void:
+	_prop("ENV_06_HAY", Vector3(-6, 0, 9), 15, Vector3(1.7, 0.9, 1.15))
+	_prop("ENV_06_HAY", Vector3(6, 0, 9), -12, Vector3(1.7, 0.9, 1.15))
+	_prop("ENV_09_STUMP", Vector3(6.6, 0, 5.5), 0, Vector3(1.1, 0.75, 1.1))
+	for side in [-1.0, 1.0]:
+		for z in [0.5, 2.3, 4.1, 5.9, 7.7]:
+			_prop("ENV_09_RAIL", Vector3(side * 7.6, 0, z), 90, Vector3(1.75, 1.2, 0.25))
+	_prop("ENV_06_HAY", Vector3(-4.8, 0, -101), 20, Vector3(1.7, 0.9, 1.15))
+	_prop("ENV_06_HAY", Vector3(4.8, 0, -101), -15, Vector3(1.7, 0.9, 1.15))
+	_prop("ENV_09_ROCK", Vector3(4.2, -3.5, -31), 30, Vector3(1.8, 1.4, 1.8))
+	_prop("ENV_09_STUMP", Vector3(-4.2, -3.5, -33), 0, Vector3(1.1, 0.75, 1.1))
+
+func _prop(asset_id: String, pos: Vector3, yaw_deg: float, col_size: Vector3) -> void:
+	var visual := ASSETS.make(asset_id)
+	if visual == null:
+		return
+	var body := StaticBody3D.new()
+	body.position = pos
+	body.rotation.y = deg_to_rad(yaw_deg)
+	body.collision_layer = 1
+	body.collision_mask = 0
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = col_size
+	shape.shape = box
+	shape.position.y = col_size.y * 0.5
+	body.add_child(shape)
+	body.add_child(visual)
 	add_child(body)
 
 func _build_launch_pads() -> void:
@@ -204,14 +311,14 @@ func _build_door_dash() -> void:
 func _build_fake_floor_bridge() -> void:
 	var floor_tile := FAKE_FLOOR.new()
 	floor_tile.name = "FakeBridge"
-	floor_tile.position = Vector3(0, 0, -38)
+	floor_tile.position = Vector3(0, 0, -37)
 	floor_tile.tile_size = Vector3(8, 0.3, 12)
 	floor_tile.tile_color = WOOD
 	floor_tile.trigger_delay = 0.5
 	floor_tile.meme_id = "fake_floor"
 	floor_tile.telegraph_meme_id = "fake_floor_telegraph"
 	add_child(floor_tile)
-	_label("康庄大道 · 直通对面", Vector3(0, 1.6, -32), 20)
+	_label("康庄大道 · 直通对面", Vector3(0, 1.6, -31.5), 20)
 
 func _build_sweepers() -> void:
 	# Sweeper 1
@@ -254,19 +361,21 @@ func _build_pendulums() -> void:
 	_label("★ 悬挂大摆锤 ★", Vector3(0, 3.8, -54.5), 18)
 
 func _build_decoy_wall() -> void:
-	_solid_box("DecoyWallLeft", Vector3(5, 3, 0.5), Vector3(-3.5, 1.5, -61), WOOD)
-	_solid_box("DecoyWallRight", Vector3(5, 3, 0.5), Vector3(3.5, 1.5, -61), WOOD)
+	var wall_l := _solid_box("DecoyWallLeft", Vector3(5, 3, 0.5), Vector3(-3.5, 1.5, -61), WOOD)
+	var wall_r := _solid_box("DecoyWallRight", Vector3(5, 3, 0.5), Vector3(3.5, 1.5, -61), WOOD)
+	ASSETS.replace_visuals(wall_l, "PROP_C1_WALL", Vector3(0, -1.5, 0))
+	ASSETS.replace_visuals(wall_r, "PROP_C1_WALL", Vector3(0, -1.5, 0))
 	var painted := MeshInstance3D.new()
 	var quad := QuadMesh.new()
 	quad.size = Vector2(2.4, 2.6)
 	painted.mesh = quad
-	painted.position = Vector3(-3.5, 1.5, -60.7)
+	painted.position = Vector3(-3.5, 1.5, -60.6)
 	var glow := StandardMaterial3D.new()
 	glow.albedo_color = Color("52B788")
 	glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	painted.material_override = glow
 	add_child(painted)
-	_label("出口 EXIT", Vector3(-3.5, 2.4, -60.6), 40)
+	_label("出口 EXIT", Vector3(-3.5, 2.4, -60.45), 40)
 	var hint := _label("真出口 → 直走缺口", Vector3(0, 1.8, -60), 22)
 	var decoy := DECOY_GOAL.new()
 	decoy.name = "PaintedDoor"
@@ -277,8 +386,8 @@ func _build_decoy_wall() -> void:
 	add_child(decoy)
 
 func _build_hammer_bridge() -> void:
-	_solid_box("HammerRailL", Vector3(0.3, 0.9, 22), Vector3(-2.2, 0.45, -81), WOOD)
-	_solid_box("HammerRailR", Vector3(0.3, 0.9, 22), Vector3(2.2, 0.45, -81), WOOD)
+	_solid_box("HammerRailL", Vector3(0.3, 0.9, 22), Vector3(-1.95, 0.45, -81), WOOD)
+	_solid_box("HammerRailR", Vector3(0.3, 0.9, 22), Vector3(1.95, 0.45, -81), WOOD)
 	
 	# 4 Rhythmic hammers with alternating directions
 	var hammer_configs = [
@@ -316,21 +425,15 @@ func _build_decorations() -> void:
 	_build_flag_garland(Vector3(-5.0, 3.8, -94.0), Vector3(5.0, 3.8, -94.0))
 
 	# 2. Hazard warning stripes on floor before danger zones
-	_build_hazard_stripes(Vector3(0, 0.01, -48.5), Vector3(8.0, 0.02, 1.2))
-	_build_hazard_stripes(Vector3(0, 0.01, -71.5), Vector3(4.0, 0.02, 1.2))
+	_build_hazard_stripes(Vector3(0, 0.05, -50.0), Vector3(8.0, 0.06, 1.2))
+	_build_hazard_stripes(Vector3(0, 0.05, -71.5), Vector3(4.0, 0.06, 1.2))
 
 	# 3. Ground directional chevron arrows pointing forward
-	var arrow_z = [-4.0, -23.5, -47.0, -65.0, -92.0]
+	var arrow_z = [-4.0, -23.5, -52.0, -65.0, -92.0]
 	for z in arrow_z:
-		_build_chevron_arrow(Vector3(0, 0.02, z))
+		_build_chevron_arrow(Vector3(0, 0.06, z))
 
-	# 4. Cheering spectator stands on the sides
-	_build_spectator_stand(Vector3(-5.5, 0, -22.0), "加油！冲鸭！")
-	_build_spectator_stand(Vector3(5.5, 0, -22.0), "别回头！狗在后面！")
-	_build_spectator_stand(Vector3(-5.5, 0, -93.0), "★ 终点在眼前 ★")
-	_build_spectator_stand(Vector3(5.5, 0, -93.0), "太强了！糖豆猪！")
-
-	# 5. Victory finish archway
+	# 4. Victory finish archway
 	var finish_arch := StaticBody3D.new()
 	finish_arch.collision_layer = 1
 	finish_arch.collision_mask = 0
@@ -385,18 +488,6 @@ func _build_chevron_arrow(pos: Vector3) -> void:
 	arrow.outline_modulate = HAZARD_DARK
 	arrow.outline_size = 4
 	add_child(arrow)
-
-func _build_spectator_stand(pos: Vector3, cheer_text: String) -> void:
-	var stand := _solid_box("SpectatorStand", Vector3(2.4, 1.2, 2.4), pos + Vector3(0, 0.6, 0), WOOD)
-	var banner := Label3D.new()
-	banner.text = cheer_text
-	banner.font_size = 20
-	banner.position = Vector3(0, 2.2, 0)
-	banner.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	banner.modulate = Color("FFF275")
-	banner.outline_modulate = Color("3A3630")
-	banner.outline_size = 5
-	stand.add_child(banner)
 
 func _add_box_mesh(parent: Node3D, size: Vector3, pos: Vector3, color: Color) -> void:
 	var mesh := MeshInstance3D.new()
