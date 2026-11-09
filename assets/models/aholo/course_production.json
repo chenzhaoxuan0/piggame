@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "description": "Course 1 3D obstacle models produced with Aholo Lux3D",
+  "assets": {
+    "PROP_C1_BUMPER": {
+      "task_id": 5035984,
+      "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game and Fall Guys. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One colorful inflatable bumper pillar for an obstacle course, thick cylindrical body in bright magenta pink with a golden yellow domed rubber cap on top and soft beveled circular base ring. Simple clean toy-like arcade obstacle.",
+      "status": "downloaded",
+      "submitted_at": "2026-11-09T13:37:21.411770+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C1_BUMPER/PROP_C1_BUMPER.glb",
+      "sha256": "f431a804f3e1a3536ff1e4065b01a3fdbf826a06dc037804541329b3bcd71504"
+    },
+    "PROP_C1_HAMMER": {
+      "task_id": 5036229,
+      "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One heavy oversized cartoon wooden mallet hammer head, chunky cuboid block of rich oak wood with chamfered corners, dark grey iron bands around both ends, and a short round wooden handle socket. Comic slapstick prop.",
+      "status": "downloaded",
+      "submitted_at": "2026-11-09T13:37:24.566691+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C1_HAMMER/PROP_C1_HAMMER.glb",
+      "sha256": "ec5cbc31446e3e41a633500b6356ec04fcff08834898e62981807ba4f6a239e8"
+    },
+    "PROP_C1_PENDULUM": {
+      "task_id": 5036247,
+      "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One heavy cast iron spherical wrecking ball, dark slate grey matte iron, subtle low-poly facets, four blunt conical studs around equator, large sturdy iron suspension ring on top. Complete sphere.",
+      "status": "downloaded",
+      "submitted_at": "2026-11-09T13:37:27.256491+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C1_PENDULUM/PROP_C1_PENDULUM.glb",
+      "sha256": "74e4aa81e546b7c9995998b356a7fc251bc82f6bb1765196a2025a128263a0e3"
+    },
+    "PROP_C1_DOOR": {
+      "task_id": 5036265,
+      "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game and Fall Guys. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One cartoon wooden barrier door panel for an obstacle race, bright orange red painted vertical wood planks with horizontal cross beams and diagonal brace, bold white painted question mark in center. Chunky foam-like toy door.",
+      "status": "downloaded",
+      "submitted_at": "2026-11-09T13:37:29.916864+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C1_DOOR/PROP_C1_DOOR.glb",
+      "sha256": "ae73ba082284b3457bd4729442f5ba900e3204ac2d25a0e807ec064977aaa195"
+    },
+    "PROP_C1_PIPE": {
+      "task_id": 5036276,
+      "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One classic retro green warp pipe, chunky upright cylinder in bold emerald green with an enlarged round protruding top collar rim and dark hollow interior at the top. Clean arcade obstacle prop.",
+      "status": "downloaded",
+      "submitted_at": "2026-11-09T13:37:32.622891+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C1_PIPE/PROP_C1_PIPE.glb",
+      "sha256": "232320bacb76c1feb090b4650bfb1ac08dfdd1f247d5355cd4270c368ab5994b"
+    }
+  }
+}

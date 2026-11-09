@@ -31,9 +31,8 @@ desktop.ini
 .env.*
 !.env.example
 
-# ENV_09 preserves paid source archives locally; raw GLBs, editable Blender
-# sources, manifests and runtime models are versioned. Rejected trials stay local.
-assets/models/aholo/ENV_09_*/*_lux3d.zip
+# Aholo raw zip archives (preserve locally, do not commit huge archives to git)
+assets/models/aholo/*/*_lux3d.zip
 assets/models/aholo/ENV_09_*/source/rejected_*/
 
 # Local pipeline exchange

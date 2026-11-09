@@ -1,6 +1,8 @@
 extends CourseTrap
 class_name SpinHammer
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 @export var rotate_speed: float = 1.6
 @export var arm_length: float = 3.2
 @export var knockback_power: float = 8.0
@@ -36,16 +38,22 @@ func _ready() -> void:
 	arm.position.x = arm_length * 0.5
 	arm.material_override = post_mat
 	_pivot.add_child(arm)
-	var head := MeshInstance3D.new()
-	var head_box := BoxMesh.new()
-	head_box.size = Vector3(0.85, 0.85, 0.85)
-	head.mesh = head_box
-	head.position.x = arm_length
-	var head_mat := StandardMaterial3D.new()
-	head_mat.albedo_color = hammer_color
-	head_mat.roughness = 1.0
-	head.material_override = head_mat
-	_pivot.add_child(head)
+	
+	var lux_head := ASSETS.make("PROP_C1_HAMMER")
+	if lux_head:
+		lux_head.position.x = arm_length
+		_pivot.add_child(lux_head)
+	else:
+		var head := MeshInstance3D.new()
+		var head_box := BoxMesh.new()
+		head_box.size = Vector3(0.85, 0.85, 0.85)
+		head.mesh = head_box
+		head.position.x = arm_length
+		var head_mat := StandardMaterial3D.new()
+		head_mat.albedo_color = hammer_color
+		head_mat.roughness = 1.0
+		head.material_override = head_mat
+		_pivot.add_child(head)
 	var area := Area3D.new()
 	area.collision_layer = 0
 	area.collision_mask = 2 | 4

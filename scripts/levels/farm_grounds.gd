@@ -413,44 +413,49 @@ func _build_secret_mario_pipe() -> void:
 	body_shape.position.y = 0.325
 	pipe_body.add_child(body_shape)
 
-	# Visuals
-	var pipe_mat := StandardMaterial3D.new()
-	pipe_mat.albedo_color = Color("2E7D32")
-	pipe_mat.roughness = 0.45
+	# Visuals: Lux3D model or procedural cylinder fallback
+	var lux_pipe := ASSETS.make("PROP_C1_PIPE")
+	if lux_pipe:
+		lux_pipe.scale = Vector3(1.2, 0.55, 1.2)
+		pipe_body.add_child(lux_pipe)
+	else:
+		var pipe_mat := StandardMaterial3D.new()
+		pipe_mat.albedo_color = Color("2E7D32")
+		pipe_mat.roughness = 0.45
 
-	var body_mesh := MeshInstance3D.new()
-	var body_cyl := CylinderMesh.new()
-	body_cyl.top_radius = 1.0
-	body_cyl.bottom_radius = 1.0
-	body_cyl.height = 0.65
-	body_mesh.mesh = body_cyl
-	body_mesh.position.y = 0.325
-	body_mesh.material_override = pipe_mat
-	pipe_body.add_child(body_mesh)
+		var body_mesh := MeshInstance3D.new()
+		var body_cyl := CylinderMesh.new()
+		body_cyl.top_radius = 1.0
+		body_cyl.bottom_radius = 1.0
+		body_cyl.height = 0.65
+		body_mesh.mesh = body_cyl
+		body_mesh.position.y = 0.325
+		body_mesh.material_override = pipe_mat
+		pipe_body.add_child(body_mesh)
 
-	# Pipe rim flange
-	var rim_mesh := MeshInstance3D.new()
-	var rim_cyl := CylinderMesh.new()
-	rim_cyl.top_radius = 1.2
-	rim_cyl.bottom_radius = 1.2
-	rim_cyl.height = 0.2
-	rim_mesh.mesh = rim_cyl
-	rim_mesh.position.y = 0.58
-	rim_mesh.material_override = pipe_mat
-	pipe_body.add_child(rim_mesh)
+		# Pipe rim flange
+		var rim_mesh := MeshInstance3D.new()
+		var rim_cyl := CylinderMesh.new()
+		rim_cyl.top_radius = 1.2
+		rim_cyl.bottom_radius = 1.2
+		rim_cyl.height = 0.2
+		rim_mesh.mesh = rim_cyl
+		rim_mesh.position.y = 0.58
+		rim_mesh.material_override = pipe_mat
+		pipe_body.add_child(rim_mesh)
 
-	# Dark interior hole
-	var hole_mesh := MeshInstance3D.new()
-	var hole_cyl := CylinderMesh.new()
-	hole_cyl.top_radius = 0.88
-	hole_cyl.bottom_radius = 0.88
-	hole_cyl.height = 0.04
-	hole_mesh.mesh = hole_cyl
-	hole_mesh.position.y = 0.67
-	var hole_mat := StandardMaterial3D.new()
-	hole_mat.albedo_color = Color("0A150A")
-	hole_mesh.material_override = hole_mat
-	pipe_body.add_child(hole_mesh)
+		# Dark interior hole
+		var hole_mesh := MeshInstance3D.new()
+		var hole_cyl := CylinderMesh.new()
+		hole_cyl.top_radius = 0.88
+		hole_cyl.bottom_radius = 0.88
+		hole_cyl.height = 0.04
+		hole_mesh.mesh = hole_cyl
+		hole_mesh.position.y = 0.67
+		var hole_mat := StandardMaterial3D.new()
+		hole_mat.albedo_color = Color("0A150A")
+		hole_mesh.material_override = hole_mat
+		pipe_body.add_child(hole_mesh)
 
 	pipe_root.add_child(pipe_body)
 
@@ -535,41 +540,47 @@ func _build_secret_mario_pipe_exit() -> void:
 	body_shape.position.y = 0.175
 	pipe_body.add_child(body_shape)
 
-	var pipe_mat := StandardMaterial3D.new()
-	pipe_mat.albedo_color = Color("2E7D32")
-	pipe_mat.roughness = 0.45
+	# Visuals: Lux3D model or procedural cylinder fallback
+	var lux_pipe := ASSETS.make("PROP_C1_PIPE")
+	if lux_pipe:
+		lux_pipe.scale = Vector3(1.2, 0.35, 1.2)
+		pipe_body.add_child(lux_pipe)
+	else:
+		var pipe_mat := StandardMaterial3D.new()
+		pipe_mat.albedo_color = Color("2E7D32")
+		pipe_mat.roughness = 0.45
 
-	var body_mesh := MeshInstance3D.new()
-	var body_cyl := CylinderMesh.new()
-	body_cyl.top_radius = 1.0
-	body_cyl.bottom_radius = 1.0
-	body_cyl.height = 0.35
-	body_mesh.mesh = body_cyl
-	body_mesh.position.y = 0.175
-	body_mesh.material_override = pipe_mat
-	pipe_body.add_child(body_mesh)
+		var body_mesh := MeshInstance3D.new()
+		var body_cyl := CylinderMesh.new()
+		body_cyl.top_radius = 1.0
+		body_cyl.bottom_radius = 1.0
+		body_cyl.height = 0.35
+		body_mesh.mesh = body_cyl
+		body_mesh.position.y = 0.175
+		body_mesh.material_override = pipe_mat
+		pipe_body.add_child(body_mesh)
 
-	var rim_mesh := MeshInstance3D.new()
-	var rim_cyl := CylinderMesh.new()
-	rim_cyl.top_radius = 1.2
-	rim_cyl.bottom_radius = 1.2
-	rim_cyl.height = 0.15
-	rim_mesh.mesh = rim_cyl
-	rim_mesh.position.y = 0.3
-	rim_mesh.material_override = pipe_mat
-	pipe_body.add_child(rim_mesh)
+		var rim_mesh := MeshInstance3D.new()
+		var rim_cyl := CylinderMesh.new()
+		rim_cyl.top_radius = 1.2
+		rim_cyl.bottom_radius = 1.2
+		rim_cyl.height = 0.15
+		rim_mesh.mesh = rim_cyl
+		rim_mesh.position.y = 0.3
+		rim_mesh.material_override = pipe_mat
+		pipe_body.add_child(rim_mesh)
 
-	var hole_mesh := MeshInstance3D.new()
-	var hole_cyl := CylinderMesh.new()
-	hole_cyl.top_radius = 0.88
-	hole_cyl.bottom_radius = 0.88
-	hole_cyl.height = 0.04
-	hole_mesh.mesh = hole_cyl
-	hole_mesh.position.y = 0.37
-	var hole_mat := StandardMaterial3D.new()
-	hole_mat.albedo_color = Color("0A150A")
-	hole_mesh.material_override = hole_mat
-	pipe_body.add_child(hole_mesh)
+		var hole_mesh := MeshInstance3D.new()
+		var hole_cyl := CylinderMesh.new()
+		hole_cyl.top_radius = 0.88
+		hole_cyl.bottom_radius = 0.88
+		hole_cyl.height = 0.04
+		hole_mesh.mesh = hole_cyl
+		hole_mesh.position.y = 0.37
+		var hole_mat := StandardMaterial3D.new()
+		hole_mat.albedo_color = Color("0A150A")
+		hole_mesh.material_override = hole_mat
+		pipe_body.add_child(hole_mesh)
 
 	exit_root.add_child(pipe_body)
 	_label(exit_root, "ExitPipeSign", "★ 地下隐藏关 · 出口 ★", Vector3(0, 1.8, 0), 20)

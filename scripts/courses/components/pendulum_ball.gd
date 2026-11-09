@@ -1,6 +1,8 @@
 extends CourseTrap
 class_name PendulumBall
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 @export var swing_speed: float = 2.4
 @export var max_angle_deg: float = 46.0
 @export var arm_length: float = 4.0
@@ -12,7 +14,7 @@ class_name PendulumBall
 @export var ball_color: Color = Color("34495E")
 
 var _pivot: Node3D
-var _ball_mesh: MeshInstance3D
+var _ball_mesh: Node3D
 var _time := 0.0
 var _hit_timer := 0.0
 
@@ -50,19 +52,26 @@ func _build_pendulum() -> void:
 	chain.material_override = chain_mat
 	_pivot.add_child(chain)
 
-	# Wrecking ball at bottom
-	_ball_mesh = MeshInstance3D.new()
-	var sphere := SphereMesh.new()
-	sphere.radius = ball_radius
-	sphere.height = ball_radius * 2.0
-	_ball_mesh.mesh = sphere
-	_ball_mesh.position.y = -arm_length
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = ball_color
-	mat.metallic = 0.6
-	mat.roughness = 0.4
-	_ball_mesh.material_override = mat
-	_pivot.add_child(_ball_mesh)
+	# Wrecking ball at bottom (Lux3D model or procedural sphere fallback)
+	var lux_ball := ASSETS.make("PROP_C1_PENDULUM")
+	if lux_ball:
+		lux_ball.position.y = -arm_length
+		_ball_mesh = lux_ball
+		_pivot.add_child(lux_ball)
+	else:
+		var s_mesh := MeshInstance3D.new()
+		var sphere := SphereMesh.new()
+		sphere.radius = ball_radius
+		sphere.height = ball_radius * 2.0
+		s_mesh.mesh = sphere
+		s_mesh.position.y = -arm_length
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = ball_color
+		mat.metallic = 0.6
+		mat.roughness = 0.4
+		s_mesh.material_override = mat
+		_ball_mesh = s_mesh
+		_pivot.add_child(s_mesh)
 
 	# Collision area at ball
 	var area := Area3D.new()

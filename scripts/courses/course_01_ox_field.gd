@@ -404,20 +404,25 @@ func _add_box_mesh(parent: Node3D, size: Vector3, pos: Vector3, color: Color) ->
 	parent.add_child(mesh)
 
 func _build_exit() -> void:
-	# Pipe archway
-	var pipe := MeshInstance3D.new()
-	var cyl := CylinderMesh.new()
-	cyl.top_radius = 1.6
-	cyl.bottom_radius = 1.6
-	cyl.height = 2.4
-	pipe.mesh = cyl
-	pipe.rotation.x = deg_to_rad(90.0)
-	pipe.position = Vector3(0, 1.4, -98)
-	var pipe_mat := StandardMaterial3D.new()
-	pipe_mat.albedo_color = PIPE_GREEN
-	pipe_mat.roughness = 0.6
-	pipe.material_override = pipe_mat
-	add_child(pipe)
+	# Lux3D Warp Pipe model or procedural pipe archway fallback
+	var lux_pipe := ASSETS.make("PROP_C1_PIPE")
+	if lux_pipe:
+		lux_pipe.position = Vector3(0, 0, -98)
+		add_child(lux_pipe)
+	else:
+		var pipe := MeshInstance3D.new()
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = 1.6
+		cyl.bottom_radius = 1.6
+		cyl.height = 2.4
+		pipe.mesh = cyl
+		pipe.rotation.x = deg_to_rad(90.0)
+		pipe.position = Vector3(0, 1.4, -98)
+		var pipe_mat := StandardMaterial3D.new()
+		pipe_mat.albedo_color = PIPE_GREEN
+		pipe_mat.roughness = 0.6
+		pipe.material_override = pipe_mat
+		add_child(pipe)
 
 	_solid_box("ExitPostL", Vector3(0.4, 3, 0.4), Vector3(-3, 1.5, -98), WOOD)
 	_solid_box("ExitPostR", Vector3(0.4, 3, 0.4), Vector3(3, 1.5, -98), WOOD)

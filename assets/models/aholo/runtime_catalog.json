@@ -341,6 +341,46 @@
       "category": "environment_dressing",
       "triangle_budget": 2600,
       "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-02"
+    },
+    "PROP_C1_BUMPER": {
+      "path": "res://assets/models/aholo/PROP_C1_BUMPER/PROP_C1_BUMPER_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 3500,
+      "mount": "Course/Bumper",
+      "validation": "Aholo Lux3D G1-Turbo text_to_3d + Blender decimate & flat toon pipeline; 2026-11-09"
+    },
+    "PROP_C1_HAMMER": {
+      "path": "res://assets/models/aholo/PROP_C1_HAMMER/PROP_C1_HAMMER_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 3500,
+      "mount": "Course/SpinHammer",
+      "validation": "Aholo Lux3D G1-Turbo text_to_3d + Blender decimate & flat toon pipeline; 2026-11-09"
+    },
+    "PROP_C1_PENDULUM": {
+      "path": "res://assets/models/aholo/PROP_C1_PENDULUM/PROP_C1_PENDULUM_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 3500,
+      "mount": "Course/Pendulum",
+      "validation": "Aholo Lux3D G1-Turbo text_to_3d + Blender decimate & flat toon pipeline; 2026-11-09"
+    },
+    "PROP_C1_DOOR": {
+      "path": "res://assets/models/aholo/PROP_C1_DOOR/PROP_C1_DOOR_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 3499,
+      "mount": "Course/DoorDash",
+      "validation": "Aholo Lux3D G1-Turbo text_to_3d + Blender decimate & flat toon pipeline; 2026-11-09"
+    },
+    "PROP_C1_PIPE": {
+      "path": "res://assets/models/aholo/PROP_C1_PIPE/PROP_C1_PIPE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 3499,
+      "mount": "Course/WarpPipe",
+      "validation": "Aholo Lux3D G1-Turbo text_to_3d + Blender decimate & flat toon pipeline; 2026-11-09"
     }
   }
 }

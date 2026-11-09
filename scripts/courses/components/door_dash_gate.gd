@@ -1,6 +1,8 @@
 extends CourseTrap
 class_name DoorDashGate
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 @export var breakable_index: int = 1 # 0: Left, 1: Center, 2: Right
 @export var gate_width: float = 7.6
 @export var gate_height: float = 2.8
@@ -59,18 +61,23 @@ func _build_doors() -> void:
 		add_child(door_root)
 		_doors.append(door_root)
 
-		# Door panel mesh
-		var panel := MeshInstance3D.new()
-		var box := BoxMesh.new()
-		box.size = Vector3(door_w, door_h, 0.2)
-		panel.mesh = box
-		panel.position.y = door_h * 0.5
-		var mat := StandardMaterial3D.new()
-		mat.albedo_color = color
-		mat.roughness = 0.7
-		panel.material_override = mat
-		panel.name = "Panel"
-		door_root.add_child(panel)
+		# Door panel mesh (Lux3D model or procedural fallback)
+		var lux_door := ASSETS.make("PROP_C1_DOOR")
+		if lux_door:
+			lux_door.name = "Panel"
+			door_root.add_child(lux_door)
+		else:
+			var panel := MeshInstance3D.new()
+			var box := BoxMesh.new()
+			box.size = Vector3(door_w, door_h, 0.2)
+			panel.mesh = box
+			panel.position.y = door_h * 0.5
+			var mat := StandardMaterial3D.new()
+			mat.albedo_color = color
+			mat.roughness = 0.7
+			panel.material_override = mat
+			panel.name = "Panel"
+			door_root.add_child(panel)
 
 		# Door symbol / markings
 		var sym := Label3D.new()

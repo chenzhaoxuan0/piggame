@@ -1,6 +1,8 @@
 extends CourseTrap
 class_name BumperPillar
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 @export var bumper_radius: float = 0.65
 @export var bumper_height: float = 1.1
 @export var knockback_power: float = 8.5
@@ -31,51 +33,54 @@ func _ready() -> void:
 	_mesh_root = Node3D.new()
 	add_child(_mesh_root)
 
-	# Bumper Body Mesh
-	var body_mesh := MeshInstance3D.new()
-	var cyl := CylinderMesh.new()
-	cyl.top_radius = bumper_radius
-	cyl.bottom_radius = bumper_radius * 1.15
-	cyl.height = bumper_height
-	body_mesh.mesh = cyl
-	body_mesh.position.y = bumper_height * 0.5
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = bumper_color
-	mat.roughness = 0.4
-	mat.metallic = 0.2
-	body_mesh.material_override = mat
-	_mesh_root.add_child(body_mesh)
+	# Try loading Lux3D generated game model first
+	var lux_visual := ASSETS.make("PROP_C1_BUMPER")
+	if lux_visual:
+		_mesh_root.add_child(lux_visual)
+	else:
+		# Procedural fallback mesh
+		var body_mesh := MeshInstance3D.new()
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = bumper_radius
+		cyl.bottom_radius = bumper_radius * 1.15
+		cyl.height = bumper_height
+		body_mesh.mesh = cyl
+		body_mesh.position.y = bumper_height * 0.5
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = bumper_color
+		mat.roughness = 0.4
+		mat.metallic = 0.2
+		body_mesh.material_override = mat
+		_mesh_root.add_child(body_mesh)
 
-	# Bumper Cap Mesh (domed top)
-	var cap := MeshInstance3D.new()
-	var cap_sphere := SphereMesh.new()
-	cap_sphere.radius = bumper_radius * 0.95
-	cap_sphere.height = bumper_radius * 0.7
-	cap.mesh = cap_sphere
-	cap.position.y = bumper_height
-	var cap_mat := StandardMaterial3D.new()
-	cap_mat.albedo_color = cap_color
-	cap_mat.roughness = 0.3
-	cap_mat.emission_enabled = true
-	cap_mat.emission = cap_color * 0.4
-	cap.material_override = cap_mat
-	_mesh_root.add_child(cap)
+		var cap := MeshInstance3D.new()
+		var cap_sphere := SphereMesh.new()
+		cap_sphere.radius = bumper_radius * 0.95
+		cap_sphere.height = bumper_radius * 0.7
+		cap.mesh = cap_sphere
+		cap.position.y = bumper_height
+		var cap_mat := StandardMaterial3D.new()
+		cap_mat.albedo_color = cap_color
+		cap_mat.roughness = 0.3
+		cap_mat.emission_enabled = true
+		cap_mat.emission = cap_color * 0.4
+		cap.material_override = cap_mat
+		_mesh_root.add_child(cap)
 
-	# Star / Target Label on both sides
-	var label_f := Label3D.new()
-	label_f.text = "★"
-	label_f.font_size = 36
-	label_f.position = Vector3(0, bumper_height * 0.55, bumper_radius * 1.05)
-	label_f.modulate = star_color
-	_mesh_root.add_child(label_f)
+		var label_f := Label3D.new()
+		label_f.text = "★"
+		label_f.font_size = 36
+		label_f.position = Vector3(0, bumper_height * 0.55, bumper_radius * 1.05)
+		label_f.modulate = star_color
+		_mesh_root.add_child(label_f)
 
-	var label_b := Label3D.new()
-	label_b.text = "★"
-	label_b.font_size = 36
-	label_b.position = Vector3(0, bumper_height * 0.55, -bumper_radius * 1.05)
-	label_b.rotation.y = PI
-	label_b.modulate = star_color
-	_mesh_root.add_child(label_b)
+		var label_b := Label3D.new()
+		label_b.text = "★"
+		label_b.font_size = 36
+		label_b.position = Vector3(0, bumper_height * 0.55, -bumper_radius * 1.05)
+		label_b.rotation.y = PI
+		label_b.modulate = star_color
+		_mesh_root.add_child(label_b)
 
 	# Trigger area for collision detection
 	var area := Area3D.new()
