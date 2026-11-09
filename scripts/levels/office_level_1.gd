@@ -7,6 +7,13 @@ const POKEMON_SHOWDOWN = preload("res://scripts/battle/pokemon_showdown.gd")
 const COURSE_SCENES = {
 	"course_1": preload("res://scenes/courses/course_01_ox_field.tscn"),
 	"chase_1_course": preload("res://scenes/courses/course_01_ox_field.tscn"),
+	"course_2": preload("res://scenes/courses/course_02_creek.tscn"),
+	"chase_2_course": preload("res://scenes/courses/course_02_creek.tscn"),
+	"course_3": preload("res://scenes/courses/course_03_woodland.tscn"),
+	"chase_3_course": preload("res://scenes/courses/course_03_woodland.tscn"),
+	"course_4": preload("res://scenes/courses/course_04_courtyard.tscn"),
+	"chase_4_course": preload("res://scenes/courses/course_04_courtyard.tscn"),
+	"chase_final_course": preload("res://scenes/courses/course_04_courtyard.tscn"),
 }
 
 @onready var player: PigController = $Pig
@@ -1397,8 +1404,13 @@ func _on_secret_pipe_entered(course_id: String) -> void:
 		return
 	if is_instance_valid(chase) and chase.active:
 		chase.stop_chase()
-	current_chase_id = "chase_1"
-	_show_toast("【发现隐藏捷径！】", "钻入神秘绿水管，逃入糖豆人试炼赛道！")
+	match course_id:
+		"course_1": current_chase_id = "chase_1"
+		"course_2": current_chase_id = "chase_2"
+		"course_3": current_chase_id = "chase_3"
+		"course_4": current_chase_id = "chase_final"
+		_: current_chase_id = "chase_1"
+	_show_toast("【发现隐藏捷径！】", "钻入神秘管道，逃入隐藏试炼赛道！")
 	_enter_course(course_id)
 
 func enter_secret_course(course_id: String = "course_1") -> void:
@@ -1442,11 +1454,21 @@ func _on_course_completed() -> void:
 	_finish_course_deferred.call_deferred()
 
 func _finish_course_deferred() -> void:
+	var completed_id := current_chase_id
 	_exit_course()
-	_show_toast("通关成功！", "从神秘管道中喷出！顺利捷径抵达牛耕地！")
+	match completed_id:
+		"chase_1":
+			_show_toast("通关成功！", "从神秘管道中喷出！顺利捷径抵达牛耕地！")
+		"chase_2":
+			_show_toast("通关成功！", "从神秘管道中喷出！顺利捷径抵达小羊草甸！")
+		"chase_3":
+			_show_toast("通关成功！", "从神秘管道中喷出！顺利捷径抵达烈马赛道！")
+		"chase_final":
+			_show_toast("终极通关！", "勇夺金牌皇冠！顺利捷径抵达农场主铁门！")
 	_refresh_hud()
 
 func _exit_course() -> void:
+	var completed_id := current_chase_id
 	if is_instance_valid(active_course):
 		active_course.queue_free()
 		active_course = null
@@ -1458,9 +1480,22 @@ func _exit_course() -> void:
 			farm.set_npc_completed(id)
 	if GameManager.chase_completed.get("chase_1", false):
 		farm.set_named_gate_open("ox", true)
-	# Exit pipe drops the pig at the entrance to the Ox field level (just past the gate outside GateOxTrigger)!
-	var ox_entrance := Vector3(38.0, 24.1, 52.0)
-	player.reset_at(ox_entrance)
+	if GameManager.chase_completed.get("chase_2", false):
+		farm.set_named_gate_open("sheep", true)
+	if GameManager.chase_completed.get("chase_3", false):
+		farm.set_named_gate_open("horse", true)
+
+	var exit_pos := Vector3(38.0, 24.1, 52.0)
+	match completed_id:
+		"chase_1":
+			exit_pos = Vector3(38.0, 24.1, 52.0)
+		"chase_2":
+			exit_pos = Vector3(-38.0, 16.1, -20.0)
+		"chase_3":
+			exit_pos = Vector3(16.0, 8.1, -88.0)
+		"chase_final":
+			exit_pos = Vector3(-78.0, 2.1, -220.0)
+	player.reset_at(exit_pos)
 	player.set_control_mode("explore")
 	camera.snap_to_target()
 

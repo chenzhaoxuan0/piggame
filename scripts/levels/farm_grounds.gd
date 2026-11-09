@@ -31,6 +31,9 @@ var recoveries := 0
 var _player: Node3D
 var _player_on_pipe := false
 var _pipe_entering := false
+var _current_pipe_id := "course_1"
+var _current_pipe_node: Node3D = null
+var _current_hint_label: Label3D = null
 var _pipe_hint_label: Label3D
 
 func _ready() -> void:
@@ -102,6 +105,7 @@ func _ready() -> void:
 		_label(self,"EscapeMarker","◆ 突围 %d" % i,point+Vector3(0,2.4,0),20)
 	_build_secret_mario_pipe()
 	_build_secret_mario_pipe_exit()
+	_build_all_course_pipes()
 	reset_world()
 
 func _install_environment() -> void:
@@ -170,11 +174,11 @@ func _physics_process(_delta: float) -> void:
 			recoveries += 1
 			_player.reset_at(_checkpoint)
 	if _player_on_pipe and not _pipe_entering and is_instance_valid(_player):
-		var pipe_node: Node3D = get_node_or_null("SecretMarioPipe")
+		var pipe_node: Node3D = _current_pipe_node if is_instance_valid(_current_pipe_node) else get_node_or_null("SecretMarioPipe")
 		var on_top: bool = _player.is_on_floor() and (pipe_node == null or _player.global_position.y >= pipe_node.global_position.y + 0.55)
 		var stationary: bool = _player.velocity.length() < 0.8
 		if on_top and stationary and (Input.is_action_pressed("move_down") or Input.is_action_just_pressed("action_interact")):
-			_trigger_pipe_enter()
+			_trigger_pipe_enter(_current_pipe_id if not _current_pipe_id.is_empty() else "course_1", pipe_node)
 
 func get_spawn_position() -> Vector3: return to_global(SPAWN)
 func get_cablecar() -> Node3D: return _cabin
@@ -482,6 +486,9 @@ func _build_secret_mario_pipe() -> void:
 func _on_pipe_top_entered(body: Node3D) -> void:
 	if body.is_in_group("player"):
 		_player_on_pipe = true
+		_current_pipe_id = "course_1"
+		_current_pipe_node = get_node_or_null("SecretMarioPipe")
+		_current_hint_label = _pipe_hint_label
 		if _pipe_hint_label:
 			_pipe_hint_label.text = "▼ 按 S 键钻入地下隐藏关！▼"
 			_pipe_hint_label.modulate = Color("FFE066")
@@ -493,17 +500,35 @@ func _on_pipe_top_exited(body: Node3D) -> void:
 			_pipe_hint_label.text = "★ 超级绿水管 ★\n[ 跳上管顶按 S 钻入 ]"
 			_pipe_hint_label.modulate = CREAM
 
-func _trigger_pipe_enter() -> void:
+func _on_generic_pipe_top_entered(body: Node3D, course_id: String, hint_label: Label3D, pipe_node: Node3D) -> void:
+	if body.is_in_group("player"):
+		_player_on_pipe = true
+		_current_pipe_id = course_id
+		_current_pipe_node = pipe_node
+		_current_hint_label = hint_label
+		if hint_label:
+			hint_label.text = "▼ 按 S 键钻入隐藏关！▼"
+			hint_label.modulate = Color("FFE066")
+
+func _on_generic_pipe_top_exited(body: Node3D, hint_label: Label3D, default_text: String) -> void:
+	if body.is_in_group("player"):
+		_player_on_pipe = false
+		if hint_label:
+			hint_label.text = default_text + "\n[ 跳上管顶按 S 钻入 ]"
+			hint_label.modulate = CREAM
+
+func _trigger_pipe_enter(course_id: String = "course_1", pipe_node: Node3D = null) -> void:
 	if _pipe_entering or not is_instance_valid(_player): return
 	_pipe_entering = true
-	if _pipe_hint_label:
-		_pipe_hint_label.text = "▶ 咕噜噜……钻入地下关！◀"
-		_pipe_hint_label.modulate = Color("52B788")
+	var hint: Label3D = _current_hint_label if is_instance_valid(_current_hint_label) else _pipe_hint_label
+	if hint:
+		hint.text = "▶ 咕噜噜……钻入隐藏关！◀"
+		hint.modulate = Color("52B788")
 	if _player.has_method("set_control_mode"):
 		_player.set_control_mode("cinematic")
-	var pipe_node: Node3D = get_node_or_null("SecretMarioPipe")
-	var target_x: float = pipe_node.global_position.x if pipe_node else _player.global_position.x
-	var target_z: float = pipe_node.global_position.z if pipe_node else _player.global_position.z
+	var target_node: Node3D = pipe_node if is_instance_valid(pipe_node) else (_current_pipe_node if is_instance_valid(_current_pipe_node) else get_node_or_null("SecretMarioPipe"))
+	var target_x: float = target_node.global_position.x if target_node else _player.global_position.x
+	var target_z: float = target_node.global_position.z if target_node else _player.global_position.z
 	var tween := create_tween()
 	# Center onto pipe then smoothly drop down inside (Mario pipe sound/feel)
 	tween.tween_property(_player, "global_position:x", target_x, 0.12)
@@ -514,7 +539,7 @@ func _trigger_pipe_enter() -> void:
 		_player.scale.y = 1.0
 		_pipe_entering = false
 		_player_on_pipe = false
-		secret_pipe_entered.emit("course_1")
+		secret_pipe_entered.emit(course_id)
 	)
 
 func _on_secret_pipe_body_entered(body: Node3D) -> void:
@@ -586,3 +611,159 @@ func _build_secret_mario_pipe_exit() -> void:
 
 	exit_root.add_child(pipe_body)
 	_label(exit_root, "ExitPipeSign", "★ 地下隐藏关 · 出口 ★", Vector3(0, 1.8, 0), 20)
+
+func _build_all_course_pipes() -> void:
+	# Course 2 (Creek): Ox terrace heading into creek -> exits at Sheep meadow entrance
+	_build_custom_pipe_entrance("SecretCreekPipe", "course_2", Vector3(70.0, 24.0, 24.0), "★ 像素溪流管道 ★", Color("38BDF8"))
+	_build_custom_pipe_exit("SecretCreekPipeExit", Vector3(-38.0, 16.0, -20.0), "★ 溪流捷径 · 出口 ★", Color("38BDF8"))
+
+	# Course 3 (Woodland): Sheep meadow heading into woodland -> exits at Horse pasture entrance
+	_build_custom_pipe_entrance("SecretWoodlandPipe", "course_3", Vector3(-64.0, 16.0, -58.0), "★ 童话林间树洞 ★", Color("86A873"))
+	_build_custom_pipe_exit("SecretWoodlandPipeExit", Vector3(16.0, 8.0, -88.0), "★ 林间捷径 · 出口 ★", Color("86A873"))
+
+	# Course 4 (Courtyard): Horse pasture approach -> exits at final Showdown Gate
+	_build_custom_pipe_entrance("SecretCourtyardPipe", "course_4", Vector3(-22.0, 4.0, -164.0), "★ 终极综艺管道 ★", Color("FF1493"))
+	_build_custom_pipe_exit("SecretCourtyardPipeExit", Vector3(-78.0, 2.0, -220.0), "★ 终极大院 · 出口 ★", Color("FF1493"))
+
+func _build_custom_pipe_entrance(pipe_name: String, course_id: String, pos: Vector3, label_text: String, pipe_color: Color) -> Node3D:
+	var pipe_root := Node3D.new()
+	pipe_root.name = pipe_name
+	pipe_root.position = pos
+	add_child(pipe_root)
+
+	var pipe_body := StaticBody3D.new()
+	pipe_body.name = "PipeBody"
+	pipe_body.collision_layer = 1
+	pipe_body.collision_mask = 0
+	var body_shape := CollisionShape3D.new()
+	var cyl_shape := CylinderShape3D.new()
+	cyl_shape.radius = 1.05
+	cyl_shape.height = 0.70
+	body_shape.shape = cyl_shape
+	body_shape.position.y = 0.35
+	pipe_body.add_child(body_shape)
+
+	var lux_pipe := ASSETS.make("PROP_C1_PIPE")
+	if lux_pipe:
+		pipe_body.add_child(lux_pipe)
+	else:
+		var pipe_mat := StandardMaterial3D.new()
+		pipe_mat.albedo_color = pipe_color
+		pipe_mat.roughness = 0.45
+
+		var body_mesh := MeshInstance3D.new()
+		var body_cyl := CylinderMesh.new()
+		body_cyl.top_radius = 1.0
+		body_cyl.bottom_radius = 1.0
+		body_cyl.height = 0.65
+		body_mesh.mesh = body_cyl
+		body_mesh.position.y = 0.325
+		body_mesh.material_override = pipe_mat
+		pipe_body.add_child(body_mesh)
+
+		var rim_mesh := MeshInstance3D.new()
+		var rim_cyl := CylinderMesh.new()
+		rim_cyl.top_radius = 1.2
+		rim_cyl.bottom_radius = 1.2
+		rim_cyl.height = 0.2
+		rim_mesh.mesh = rim_cyl
+		rim_mesh.position.y = 0.58
+		rim_mesh.material_override = pipe_mat
+		pipe_body.add_child(rim_mesh)
+
+		var hole_mesh := MeshInstance3D.new()
+		var hole_cyl := CylinderMesh.new()
+		hole_cyl.top_radius = 0.88
+		hole_cyl.bottom_radius = 0.88
+		hole_cyl.height = 0.04
+		hole_mesh.mesh = hole_cyl
+		hole_mesh.position.y = 0.67
+		var hole_mat := StandardMaterial3D.new()
+		hole_mat.albedo_color = Color("0A150A")
+		hole_mesh.material_override = hole_mat
+		pipe_body.add_child(hole_mesh)
+
+	pipe_root.add_child(pipe_body)
+	var hint := _label(pipe_root, "PipeSign", label_text + "\n[ 跳上管顶按 S 钻入 ]", Vector3(0, 2.2, 0), 22)
+
+	var top_area := Area3D.new()
+	top_area.name = "PipeTopArea"
+	top_area.collision_layer = 0
+	top_area.collision_mask = 2
+	var area_shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(1.8, 0.45, 1.8)
+	area_shape.shape = box
+	area_shape.position.y = 0.8
+	top_area.add_child(area_shape)
+	top_area.body_entered.connect(func(body: Node3D):
+		_on_generic_pipe_top_entered(body, course_id, hint, pipe_root)
+	)
+	top_area.body_exited.connect(func(body: Node3D):
+		_on_generic_pipe_top_exited(body, hint, label_text)
+	)
+	pipe_root.add_child(top_area)
+	return pipe_root
+
+func _build_custom_pipe_exit(exit_name: String, pos: Vector3, label_text: String, pipe_color: Color) -> Node3D:
+	var exit_root := Node3D.new()
+	exit_root.name = exit_name
+	exit_root.position = pos
+	add_child(exit_root)
+
+	var pipe_body := StaticBody3D.new()
+	pipe_body.name = "ExitPipeBody"
+	pipe_body.collision_layer = 1
+	pipe_body.collision_mask = 0
+	var body_shape := CollisionShape3D.new()
+	var cyl_shape := CylinderShape3D.new()
+	cyl_shape.radius = 1.05
+	cyl_shape.height = 0.35
+	body_shape.shape = cyl_shape
+	body_shape.position.y = 0.175
+	pipe_body.add_child(body_shape)
+
+	var lux_pipe := ASSETS.make("PROP_C1_PIPE")
+	if lux_pipe:
+		lux_pipe.scale = Vector3(1.0, 0.65, 1.0)
+		pipe_body.add_child(lux_pipe)
+	else:
+		var pipe_mat := StandardMaterial3D.new()
+		pipe_mat.albedo_color = pipe_color
+		pipe_mat.roughness = 0.45
+
+		var body_mesh := MeshInstance3D.new()
+		var body_cyl := CylinderMesh.new()
+		body_cyl.top_radius = 1.0
+		body_cyl.bottom_radius = 1.0
+		body_cyl.height = 0.35
+		body_mesh.mesh = body_cyl
+		body_mesh.position.y = 0.175
+		body_mesh.material_override = pipe_mat
+		pipe_body.add_child(body_mesh)
+
+		var rim_mesh := MeshInstance3D.new()
+		var rim_cyl := CylinderMesh.new()
+		rim_cyl.top_radius = 1.2
+		rim_cyl.bottom_radius = 1.2
+		rim_cyl.height = 0.15
+		rim_mesh.mesh = rim_cyl
+		rim_mesh.position.y = 0.3
+		rim_mesh.material_override = pipe_mat
+		pipe_body.add_child(rim_mesh)
+
+		var hole_mesh := MeshInstance3D.new()
+		var hole_cyl := CylinderMesh.new()
+		hole_cyl.top_radius = 0.88
+		hole_cyl.bottom_radius = 0.88
+		hole_cyl.height = 0.04
+		hole_mesh.mesh = hole_cyl
+		hole_mesh.position.y = 0.37
+		var hole_mat := StandardMaterial3D.new()
+		hole_mat.albedo_color = Color("0A150A")
+		hole_mesh.material_override = hole_mat
+		pipe_body.add_child(hole_mesh)
+
+	exit_root.add_child(pipe_body)
+	_label(exit_root, "ExitPipeSign", label_text, Vector3(0, 1.8, 0), 20)
+	return exit_root

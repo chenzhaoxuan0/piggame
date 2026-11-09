@@ -3,6 +3,9 @@ extends SceneTree
 const BUMPER_PILLAR = preload("res://scripts/courses/components/bumper_pillar.gd")
 const DOOR_DASH = preload("res://scripts/courses/components/door_dash_gate.gd")
 const PENDULUM_BALL = preload("res://scripts/courses/components/pendulum_ball.gd")
+const VOXEL_TNT = preload("res://scripts/courses/components/voxel_tnt.gd")
+const BOUNCY_MUSHROOM = preload("res://scripts/courses/components/bouncy_mushroom.gd")
+const SEESAW = preload("res://scripts/courses/components/seesaw_platform.gd")
 
 var failures := 0
 
@@ -122,6 +125,38 @@ func _run() -> void:
 	pendulum._on_ball_body(pig)
 	_check(pig.is_knocked_back(), "PendulumBall imparts lateral knockback")
 	pendulum.queue_free()
+
+	# VoxelTNT
+	var tnt = VOXEL_TNT.new()
+	tnt.fuse_time = 0.05
+	root.add_child(tnt)
+	await process_frame
+	pig.reset_at(Vector3(0, 1.3, 0))
+	tnt._on_step(pig)
+	await create_timer(0.12).timeout
+	_check(pig.is_knocked_back(), "VoxelTNT explodes and knocks back target")
+	tnt.queue_free()
+
+	# BouncyMushroom
+	var shroom = BOUNCY_MUSHROOM.new()
+	root.add_child(shroom)
+	await process_frame
+	pig.reset_at(Vector3(0, 1.5, 0))
+	shroom._cooldown_timer = 0.0
+	shroom._on_cap_step(pig)
+	_check(pig.is_knocked_back(), "BouncyMushroom launches pig into air")
+	_check(pig.velocity.y > 0.0, "BouncyMushroom imparts upward boost")
+	shroom.queue_free()
+
+	# SeesawPlatform
+	var seesaw = SEESAW.new()
+	root.add_child(seesaw)
+	await process_frame
+	pig.reset_at(Vector3(0, 0.5, 4.0)) # Front side
+	seesaw._on_body_entered(pig)
+	seesaw._physics_process(0.2)
+	_check(absf(seesaw._target_tilt) > 0.01, "SeesawPlatform responds to player weight with tilt")
+	seesaw.queue_free()
 
 	await process_frame
 	print("\nALL COURSE COMPONENT TESTS DONE: %d failures" % failures)
