@@ -54,7 +54,80 @@ DIMENSIONS = {
         'ground_bottom': False,  # Center origin for pendulum wrecking ball
         'center_xy': True,
     },
+    'PROP_C1_LAUNCHPAD': {
+        'target_x': 1.7,
+        'target_y': 1.7,
+        'target_z': 0.55,
+        'ground_bottom': True,
+        'center_xy': True,
+    },
+    'PROP_C1_SWEEPER': {
+        'target_x': 7.6,
+        'target_y': 0.36,
+        'target_z': 0.36,
+        'ground_bottom': False,  # Center origin on rotation pivot
+        'center_xy': True,
+        'align': 'longest_x',
+    },
+    'PROP_C1_HAYBALE': {
+        'target_x': 1.2,
+        'target_y': 1.4,
+        'target_z': 1.4,
+        'ground_bottom': False,  # Center origin for rolling rigid body
+        'center_xy': True,
+        'align': 'shortest_x',  # Cylinder axis rolls around X
+    },
+    'PROP_C1_FAKEBRIDGE': {
+        'target_x': 8.0,
+        'target_y': 12.0,
+        'target_z': 0.3,
+        'ground_bottom': False,  # Center origin, collapse tween drops it
+        'center_xy': True,
+        'align': 'shortest_z',
+    },
+    'PROP_C1_QUESTIONBLOCK': {
+        'target_x': 1.2,
+        'target_y': 1.2,
+        'target_z': 1.2,
+        'ground_bottom': False,
+        'center_xy': True,
+    },
+    'PROP_C1_FINISHARCH': {
+        'target_x': 9.4,
+        'target_y': 0.6,
+        'target_z': 4.5,
+        'ground_bottom': True,
+        'center_xy': True,
+    },
 }
+
+def align_axis(obj, mode):
+    xs = [v.co.x for v in obj.data.vertices]
+    ys = [v.co.y for v in obj.data.vertices]
+    zs = [v.co.z for v in obj.data.vertices]
+    dims = [max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)]
+    if mode == 'longest_x':
+        src, dst = dims.index(max(dims)), 0
+    elif mode == 'shortest_x':
+        src, dst = dims.index(min(dims)), 0
+    elif mode == 'shortest_z':
+        src, dst = dims.index(min(dims)), 2
+    else:
+        return
+    if src == dst:
+        return
+    print(f"Aligning axis {src} -> {dst} ({mode})", flush=True)
+    for v in obj.data.vertices:
+        x, y, z = v.co
+        if (src, dst) == (1, 0):
+            v.co = (-y, x, z)
+        elif (src, dst) == (2, 0):
+            v.co = (z, y, -x)
+        elif (src, dst) == (1, 2):
+            v.co = (x, -z, y)
+        elif (src, dst) == (0, 2):
+            v.co = (z, y, -x)
+    obj.data.update()
 
 def process(asset_id):
     print(f"--- Processing {asset_id} ---", flush=True)
@@ -89,6 +162,8 @@ def process(asset_id):
     
     # Scale to dimensions
     spec = DIMENSIONS.get(asset_id, {})
+    if spec.get('align'):
+        align_axis(obj, spec['align'])
     xs = [v.co.x for v in obj.data.vertices]
     ys = [v.co.y for v in obj.data.vertices]
     zs = [v.co.z for v in obj.data.vertices]

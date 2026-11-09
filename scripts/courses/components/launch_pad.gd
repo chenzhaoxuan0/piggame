@@ -1,6 +1,8 @@
 extends CourseTrap
 class_name LaunchPad
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 @export var launch_direction: Vector3 = Vector3(0, 0, -1)
 @export var launch_power: float = 9.0
 @export var launch_up: float = 7.5
@@ -8,7 +10,7 @@ class_name LaunchPad
 @export var pad_color: Color = Color("F59E0B")
 
 var _cooldown_timer := 0.0
-var _top: MeshInstance3D
+var _top: Node3D
 
 func _ready() -> void:
 	var base := StaticBody3D.new()
@@ -21,26 +23,31 @@ func _ready() -> void:
 	shape.position.y = 0.15
 	base.add_child(shape)
 	add_child(base)
-	var base_mesh := MeshInstance3D.new()
-	var base_box := BoxMesh.new()
-	base_box.size = Vector3(1.7, 0.3, 1.7)
-	base_mesh.mesh = base_box
-	base_mesh.position.y = 0.15
-	var base_mat := StandardMaterial3D.new()
-	base_mat.albedo_color = Color("665A48")
-	base_mat.roughness = 1.0
-	base_mesh.material_override = base_mat
-	add_child(base_mesh)
-	_top = MeshInstance3D.new()
-	var top_box := BoxMesh.new()
-	top_box.size = Vector3(1.5, 0.22, 1.5)
-	_top.mesh = top_box
-	_top.position.y = 0.42
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = pad_color
-	mat.roughness = 1.0
-	_top.material_override = mat
-	add_child(_top)
+	var lux_pad := ASSETS.make("PROP_C1_LAUNCHPAD")
+	if lux_pad:
+		_top = lux_pad
+		add_child(_top)
+	else:
+		var base_mesh := MeshInstance3D.new()
+		var base_box := BoxMesh.new()
+		base_box.size = Vector3(1.7, 0.3, 1.7)
+		base_mesh.mesh = base_box
+		base_mesh.position.y = 0.15
+		var base_mat := StandardMaterial3D.new()
+		base_mat.albedo_color = Color("665A48")
+		base_mat.roughness = 1.0
+		base_mesh.material_override = base_mat
+		add_child(base_mesh)
+		_top = MeshInstance3D.new()
+		var top_box := BoxMesh.new()
+		top_box.size = Vector3(1.5, 0.22, 1.5)
+		_top.mesh = top_box
+		_top.position.y = 0.42
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = pad_color
+		mat.roughness = 1.0
+		_top.material_override = mat
+		add_child(_top)
 	var area := Area3D.new()
 	area.collision_layer = 0
 	area.collision_mask = 2

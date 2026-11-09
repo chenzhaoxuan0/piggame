@@ -174,8 +174,9 @@ func _build_bumpers() -> void:
 
 func _build_question_block() -> void:
 	var block := _solid_box("QuestionBlock", Vector3(1.2, 1.2, 1.2), Vector3(0, 2.8, -20.5), STRAW)
-	_label("?", Vector3(0, 0, 0.62), 64, block)
-	_label("?", Vector3(0, 0, -0.62), 64, block)
+	if ASSETS.replace_visuals(block, "PROP_C1_QUESTIONBLOCK") == null:
+		_label("?", Vector3(0, 0, 0.62), 64, block)
+		_label("?", Vector3(0, 0, -0.62), 64, block)
 	var hay := ROLLING_HAY.new()
 	hay.name = "QuestionHay"
 	hay.position = Vector3(1.5, 3.6, -22.5)
@@ -333,9 +334,14 @@ func _build_decorations() -> void:
 	var finish_arch := StaticBody3D.new()
 	finish_arch.collision_layer = 1
 	finish_arch.collision_mask = 0
-	_add_box_mesh(finish_arch, Vector3(0.4, 4.0, 0.4), Vector3(-4.5, 2.0, -94.0), Color("F39C12"))
-	_add_box_mesh(finish_arch, Vector3(0.4, 4.0, 0.4), Vector3(4.5, 2.0, -94.0), Color("F39C12"))
-	_add_box_mesh(finish_arch, Vector3(9.4, 0.5, 0.5), Vector3(0, 4.0, -94.0), Color("E74C3C"))
+	var lux_arch := ASSETS.make("PROP_C1_FINISHARCH")
+	if lux_arch:
+		lux_arch.position = Vector3(0, 0, -94.0)
+		finish_arch.add_child(lux_arch)
+	else:
+		_add_box_mesh(finish_arch, Vector3(0.4, 4.0, 0.4), Vector3(-4.5, 2.0, -94.0), Color("F39C12"))
+		_add_box_mesh(finish_arch, Vector3(0.4, 4.0, 0.4), Vector3(4.5, 2.0, -94.0), Color("F39C12"))
+		_add_box_mesh(finish_arch, Vector3(9.4, 0.5, 0.5), Vector3(0, 4.0, -94.0), Color("E74C3C"))
 	add_child(finish_arch)
 	_label("★ FINISH · 胜利大冲刺 ★", Vector3(0, 4.6, -94.0), 30)
 

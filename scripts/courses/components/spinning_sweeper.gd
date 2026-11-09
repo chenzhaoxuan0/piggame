@@ -1,6 +1,8 @@
 extends CourseTrap
 class_name SpinningSweeper
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 @export var rotate_speed: float = 2.2
 @export var bar_length: float = 7.5
 @export var bar_radius: float = 0.18
@@ -35,16 +37,21 @@ func _ready() -> void:
 	_pivot.rotation.y = phase_offset
 	add_child(_pivot)
 
-	# Sweeper bar mesh (double-sided arm)
-	var bar_mesh := MeshInstance3D.new()
-	var bar_box := BoxMesh.new()
-	bar_box.size = Vector3(bar_length, bar_radius * 2.0, bar_radius * 2.0)
-	bar_mesh.mesh = bar_box
-	var bar_mat := StandardMaterial3D.new()
-	bar_mat.albedo_color = sweeper_color
-	bar_mat.roughness = 0.8
-	bar_mesh.material_override = bar_mat
-	_pivot.add_child(bar_mesh)
+	# Sweeper bar (Lux3D padded beam or procedural box fallback)
+	var lux_bar := ASSETS.make("PROP_C1_SWEEPER")
+	if lux_bar:
+		lux_bar.scale.x = bar_length / 7.6
+		_pivot.add_child(lux_bar)
+	else:
+		var bar_mesh := MeshInstance3D.new()
+		var bar_box := BoxMesh.new()
+		bar_box.size = Vector3(bar_length, bar_radius * 2.0, bar_radius * 2.0)
+		bar_mesh.mesh = bar_box
+		var bar_mat := StandardMaterial3D.new()
+		bar_mat.albedo_color = sweeper_color
+		bar_mat.roughness = 0.8
+		bar_mesh.material_override = bar_mat
+		_pivot.add_child(bar_mesh)
 
 	# Sweeper collision area
 	var area := Area3D.new()

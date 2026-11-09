@@ -46,6 +46,60 @@
       "remote_status": 3,
       "raw_model": "assets/models/aholo/PROP_C1_PIPE/PROP_C1_PIPE.glb",
       "sha256": "232320bacb76c1feb090b4650bfb1ac08dfdd1f247d5355cd4270c368ab5994b"
+    },
+    "PROP_C1_LAUNCHPAD": {
+      "task_id": 5162344,
+      "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game and Fall Guys. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One colorful inflatable bounce pad for an obstacle course, rounded square cushion platform in bright golden yellow with a bold upward white arrow on the top surface, thick soft beveled foam sides in warm orange, short sturdy dark base. Simple clean toy-like arcade springboard.",
+      "status": "downloaded",
+      "submitted_at": "2026-11-09T16:16:24.076824+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C1_LAUNCHPAD/PROP_C1_LAUNCHPAD.glb",
+      "sha256": "229c16e1f7b670a1e505bad7214f17ffb74c148eb7f5baa6dbb1fbd15f67be14"
+    },
+    "PROP_C1_SWEEPER": {
+      "task_id": 5162386,
+      "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game and Fall Guys. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object. One long padded rotating sweeper bar for an obstacle course, horizontal cylindrical foam beam in bright orange with bold yellow hazard stripes near both rounded ends, small grey metal hub socket at the exact center. Straight uniform beam, toy-like arcade obstacle.",
+      "status": "downloaded",
+      "submitted_at": "2026-11-09T16:16:26.480736+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C1_SWEEPER/PROP_C1_SWEEPER.glb",
+      "sha256": "d040f2fb8f7a1a8d2bc3b53b2764d63f30382094b7ac2bb4da1aedcc363406ea"
+    },
+    "PROP_C1_HAYBALE": {
+      "task_id": 5162436,
+      "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object. One round cylindrical hay bale lying on its side, golden straw yellow rolled hay with broad spiral wrap lines on the circular ends, soft low-poly facets, matte dry grass color blocks. Complete single bale, no straps.",
+      "status": "downloaded",
+      "submitted_at": "2026-11-09T16:16:28.873722+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C1_HAYBALE/PROP_C1_HAYBALE.glb",
+      "sha256": "9d55e3efa03407be053ecafe61bbae5b1915edbdcc8063b8cb020b7149502990"
+    },
+    "PROP_C1_FAKEBRIDGE": {
+      "task_id": 5162494,
+      "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object. One flat rectangular wooden plank bridge platform tile for an obstacle course, warm brown parallel wood planks with small gaps and rounded edges, thin flat slab shape, no legs, no rails, no supports underneath. Simple toy-like arcade floor tile.",
+      "status": "downloaded",
+      "submitted_at": "2026-11-09T16:16:31.266269+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C1_FAKEBRIDGE/PROP_C1_FAKEBRIDGE.glb",
+      "sha256": "df9b9c1eb20c82cf52fe0803c1b858ed346ece9d72fc756226c49f46ac45bf40"
+    },
+    "PROP_C1_QUESTIONBLOCK": {
+      "task_id": 5162569,
+      "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects. Complete object. One golden mystery surprise block, chunky cube in bright golden yellow with softly rounded corners, one bold white question mark symbol on the front face, slightly darker orange beveled frame edges. Clean toy-like arcade box.",
+      "status": "downloaded",
+      "submitted_at": "2026-11-09T16:16:34.509464+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C1_QUESTIONBLOCK/PROP_C1_QUESTIONBLOCK.glb",
+      "sha256": "e09842f3265fb6561e60a8993aa7fc9d3334ae60a83f4b2976d9d10cfbe379f6"
+    },
+    "PROP_C1_FINISHARCH": {
+      "task_id": 5166137,
+      "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game and Fall Guys. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One festive carnival finish archway for an obstacle race, two chunky vertical posts in bright orange connected by a wide top beam in red with rounded corners, one golden yellow star on top center, colorful triangular bunting flags hanging under the beam. Complete freestanding arch structure.",
+      "status": "downloaded",
+      "submitted_at": "2026-11-09T16:19:24.003373+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C1_FINISHARCH/PROP_C1_FINISHARCH.glb",
+      "sha256": "051d0549e3f226ada518c5eafdf5f6b6fd742a4bb448084c1f9f1f4b95560bf4"
     }
   }
 }

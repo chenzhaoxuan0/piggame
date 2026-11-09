@@ -381,6 +381,54 @@
       "triangles": 3499,
       "mount": "Course/WarpPipe",
       "validation": "Aholo Lux3D G1-Turbo text_to_3d + Blender decimate & flat toon pipeline; 2026-11-09"
+    },
+    "PROP_C1_LAUNCHPAD": {
+      "path": "res://assets/models/aholo/PROP_C1_LAUNCHPAD/PROP_C1_LAUNCHPAD_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 3499,
+      "mount": "Course/LaunchPad",
+      "validation": "Aholo Lux3D G1-Turbo text_to_3d + Blender decimate & flat toon pipeline, textured QA views reviewed; 2026-11-10"
+    },
+    "PROP_C1_SWEEPER": {
+      "path": "res://assets/models/aholo/PROP_C1_SWEEPER/PROP_C1_SWEEPER_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 3499,
+      "mount": "Course/Sweeper",
+      "validation": "Aholo Lux3D G1-Turbo text_to_3d + Blender decimate & flat toon pipeline, textured QA views reviewed; 2026-11-10"
+    },
+    "PROP_C1_HAYBALE": {
+      "path": "res://assets/models/aholo/PROP_C1_HAYBALE/PROP_C1_HAYBALE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 3500,
+      "mount": "Course/RollingHay",
+      "validation": "Aholo Lux3D G1-Turbo text_to_3d + Blender decimate & flat toon pipeline, textured QA views reviewed; 2026-11-10"
+    },
+    "PROP_C1_FAKEBRIDGE": {
+      "path": "res://assets/models/aholo/PROP_C1_FAKEBRIDGE/PROP_C1_FAKEBRIDGE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 3500,
+      "mount": "Course/FakeFloor",
+      "validation": "Aholo Lux3D G1-Turbo text_to_3d + Blender decimate & flat toon pipeline, textured QA views reviewed; 2026-11-10"
+    },
+    "PROP_C1_QUESTIONBLOCK": {
+      "path": "res://assets/models/aholo/PROP_C1_QUESTIONBLOCK/PROP_C1_QUESTIONBLOCK_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 3498,
+      "mount": "Course/QuestionBlock",
+      "validation": "Aholo Lux3D G1-Turbo text_to_3d + Blender decimate & flat toon pipeline, textured QA views reviewed; 2026-11-10"
+    },
+    "PROP_C1_FINISHARCH": {
+      "path": "res://assets/models/aholo/PROP_C1_FINISHARCH/PROP_C1_FINISHARCH_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 3500,
+      "mount": "Course/FinishArch",
+      "validation": "Aholo Lux3D G1-Turbo text_to_3d + Blender decimate & flat toon pipeline, textured QA views reviewed; 2026-11-10"
     }
   }
 }

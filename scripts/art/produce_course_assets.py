@@ -51,6 +51,42 @@ SPECS = {
         'palette': ['2E7D32', '388E3C', '1B5E20', '1E272C'],
         'faceCount': 10000,
     },
+    'PROP_C1_LAUNCHPAD': {
+        'prompt': 'A single isolated freestanding game asset in the visual style of Untitled Goose Game and Fall Guys. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One colorful inflatable bounce pad for an obstacle course, rounded square cushion platform in bright golden yellow with a bold upward white arrow on the top surface, thick soft beveled foam sides in warm orange, short sturdy dark base. Simple clean toy-like arcade springboard.',
+        'target_height': 0.55,
+        'palette': ['F59E0B', 'E67E22', 'FFFFFF', '665A48'],
+        'faceCount': 10000,
+    },
+    'PROP_C1_SWEEPER': {
+        'prompt': 'A single isolated freestanding game asset in the visual style of Untitled Goose Game and Fall Guys. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object. One long padded rotating sweeper bar for an obstacle course, horizontal cylindrical foam beam in bright orange with bold yellow hazard stripes near both rounded ends, small grey metal hub socket at the exact center. Straight uniform beam, toy-like arcade obstacle.',
+        'target_height': 0.36,
+        'palette': ['E67E22', 'F1C40F', 'E74C3C', '5D6D7E'],
+        'faceCount': 10000,
+    },
+    'PROP_C1_HAYBALE': {
+        'prompt': 'A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object. One round cylindrical hay bale lying on its side, golden straw yellow rolled hay with broad spiral wrap lines on the circular ends, soft low-poly facets, matte dry grass color blocks. Complete single bale, no straps.',
+        'target_height': 1.4,
+        'palette': ['F59E0B', 'D4A017', 'B8860B', '8D7B68'],
+        'faceCount': 10000,
+    },
+    'PROP_C1_FAKEBRIDGE': {
+        'prompt': 'A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object. One flat rectangular wooden plank bridge platform tile for an obstacle course, warm brown parallel wood planks with small gaps and rounded edges, thin flat slab shape, no legs, no rails, no supports underneath. Simple toy-like arcade floor tile.',
+        'target_height': 0.3,
+        'palette': ['8D7B68', 'A0855B', '665A48', '3E2723'],
+        'faceCount': 10000,
+    },
+    'PROP_C1_QUESTIONBLOCK': {
+        'prompt': 'A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects. Complete object. One golden mystery surprise block, chunky cube in bright golden yellow with softly rounded corners, one bold white question mark symbol on the front face, slightly darker orange beveled frame edges. Clean toy-like arcade box.',
+        'target_height': 1.2,
+        'palette': ['F59E0B', 'E67E22', 'FFFFFF', 'B8860B'],
+        'faceCount': 10000,
+    },
+    'PROP_C1_FINISHARCH': {
+        'prompt': 'A single isolated freestanding game asset in the visual style of Untitled Goose Game and Fall Guys. Minimal low polygon, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One festive carnival finish archway for an obstacle race, two chunky vertical posts in bright orange connected by a wide top beam in red with rounded corners, one golden yellow star on top center, colorful triangular bunting flags hanging under the beam. Complete freestanding arch structure.',
+        'target_height': 4.5,
+        'palette': ['F39C12', 'E74C3C', 'F1C40F', '2ECC71', '3498DB'],
+        'faceCount': 10000,
+    },
 }
 
 def call_mcp(operation, args, cache_key):

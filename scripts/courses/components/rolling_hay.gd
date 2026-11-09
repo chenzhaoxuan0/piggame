@@ -1,6 +1,8 @@
 extends CourseTrap
 class_name RollingHay
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 @export var roll_impulse: float = 9.0
 @export var roll_direction: Vector3 = Vector3(0, 0, -1)
 @export var knockback_power: float = 7.0
@@ -28,18 +30,22 @@ func _ready() -> void:
 	shape.shape = cyl
 	shape.rotation.z = PI * 0.5
 	_bale.add_child(shape)
-	var mesh := MeshInstance3D.new()
-	var mesh_cyl := CylinderMesh.new()
-	mesh_cyl.top_radius = 0.7
-	mesh_cyl.bottom_radius = 0.7
-	mesh_cyl.height = 1.2
-	mesh.mesh = mesh_cyl
-	mesh.rotation.z = PI * 0.5
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = hay_color
-	mat.roughness = 1.0
-	mesh.material_override = mat
-	_bale.add_child(mesh)
+	var lux_bale := ASSETS.make("PROP_C1_HAYBALE")
+	if lux_bale:
+		_bale.add_child(lux_bale)
+	else:
+		var mesh := MeshInstance3D.new()
+		var mesh_cyl := CylinderMesh.new()
+		mesh_cyl.top_radius = 0.7
+		mesh_cyl.bottom_radius = 0.7
+		mesh_cyl.height = 1.2
+		mesh.mesh = mesh_cyl
+		mesh.rotation.z = PI * 0.5
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = hay_color
+		mat.roughness = 1.0
+		mesh.material_override = mat
+		_bale.add_child(mesh)
 	var contact := Area3D.new()
 	contact.collision_layer = 0
 	contact.collision_mask = 2

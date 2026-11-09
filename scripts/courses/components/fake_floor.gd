@@ -1,13 +1,15 @@
 extends CourseTrap
 class_name FakeFloor
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 @export var trigger_delay: float = 0.45
 @export var reset_time: float = 3.0
 @export var tile_size: Vector3 = Vector3(4.0, 0.3, 4.0)
 @export var tile_color: Color = Color("8D7B68")
 
 var _shape: CollisionShape3D
-var _mesh: MeshInstance3D
+var _mesh: Node3D
 var _state := "solid"
 var _timer := 0.0
 
@@ -21,14 +23,20 @@ func _ready() -> void:
 	_shape.shape = box
 	body.add_child(_shape)
 	add_child(body)
-	_mesh = MeshInstance3D.new()
-	var mesh_box := BoxMesh.new()
-	mesh_box.size = tile_size
-	_mesh.mesh = mesh_box
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = tile_color
-	mat.roughness = 1.0
-	_mesh.material_override = mat
+	var lux_bridge := ASSETS.make("PROP_C1_FAKEBRIDGE")
+	if lux_bridge:
+		_mesh = lux_bridge
+		_mesh.scale = Vector3(tile_size.x / 8.0, tile_size.y / 0.3, tile_size.z / 12.0)
+	else:
+		var mesh_instance := MeshInstance3D.new()
+		var mesh_box := BoxMesh.new()
+		mesh_box.size = tile_size
+		mesh_instance.mesh = mesh_box
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = tile_color
+		mat.roughness = 1.0
+		mesh_instance.material_override = mat
+		_mesh = mesh_instance
 	add_child(_mesh)
 	var area := Area3D.new()
 	area.collision_layer = 0
