@@ -99,8 +99,8 @@ func _run() -> void:
 	_check(office.active_course == null, "Course scene unloaded")
 	_check(office.farm.get_parent() == office, "Farm restored to tree")
 	_check(game.stage == "exploring", "Returned to exploring stage")
-	_check(office.player.global_position.distance_to(Vector3(33.0, 24.1, 54.0)) < 1.5, "Pig emerged at Ox field entrance")
-	_check(office.player.global_position.distance_to(L.GATE_OX) < 5.0, "Pig emerged near Ox gate, not directly at Ox")
+	_check(office.player.global_position.distance_to(Vector3(38.0, 24.1, 52.0)) < 1.5, "Pig emerged at Ox field entrance")
+	_check(office.player.global_position.distance_to(L.GATE_OX) < 10.0, "Pig emerged near Ox gate, not directly at Ox")
 	_check(office.player.global_position.distance_to(L.NPCS["ox"]) > 10.0, "Pig not spawned directly at Old Ox")
 
 	print("\nALL COURSE JOURNEY TESTS DONE: %d failures" % failures)

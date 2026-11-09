@@ -1458,8 +1458,8 @@ func _exit_course() -> void:
 			farm.set_npc_completed(id)
 	if GameManager.chase_completed.get("chase_1", false):
 		farm.set_named_gate_open("ox", true)
-	# Exit pipe drops the pig right at the entrance of the Ox field level (inside GATE_OX)!
-	var ox_entrance := Vector3(33.0, 24.1, 54.0)
+	# Exit pipe drops the pig at the entrance to the Ox field level (just past the gate outside GateOxTrigger)!
+	var ox_entrance := Vector3(38.0, 24.1, 52.0)
 	player.reset_at(ox_entrance)
 	player.set_control_mode("explore")
 	camera.snap_to_target()

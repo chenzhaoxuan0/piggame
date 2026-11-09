@@ -518,8 +518,8 @@ func _on_secret_pipe_body_entered(body: Node3D) -> void:
 func _build_secret_mario_pipe_exit() -> void:
 	var exit_root := Node3D.new()
 	exit_root.name = "SecretMarioPipeExit"
-	# Positioned right at the entrance of the Ox field level (just inside GATE_OX)!
-	var exit_pos := Vector3(33.0, 24.0, 52.5)
+	# Positioned right at the entrance of the Ox field level (just past the gate outside GateOxTrigger)!
+	var exit_pos := Vector3(38.0, 24.0, 52.0)
 	exit_root.position = exit_pos
 	add_child(exit_root)
 
