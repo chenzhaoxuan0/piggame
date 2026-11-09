@@ -75,6 +75,15 @@ func _run() -> void:
 	_check(pig.is_knocked_back(), "RollingHay knocks pig on contact")
 	hay.queue_free()
 
+	# SpinningSweeper
+	var sweeper := SpinningSweeper.new()
+	root.add_child(sweeper)
+	await process_frame
+	pig.reset_at(Vector3(1.5, 0.4, 0))
+	sweeper._on_bar_body(pig)
+	_check(pig.is_knocked_back(), "SpinningSweeper applies knockback")
+	sweeper.queue_free()
+
 	await process_frame
 	print("\nALL COURSE COMPONENT TESTS DONE: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

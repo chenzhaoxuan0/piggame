@@ -140,13 +140,17 @@ func _follow(points: Array[Vector3]) -> void:
 	for point in points: await _walk_to(point+Vector3.UP*.1)
 
 func _travel_to_chase() -> void:
-	# Walking the summit trigger now enters Course 1 (farm is swapped out).
+	# Walking the summit trigger starts chase 1 downhill
 	_entering_course = true
 	await _walk_to(Vector3(0, 31.1, 78))
 	_entering_course = false
 	if is_instance_valid(office.active_course):
 		await _traverse_course()
-	# Course exit returns the pig to the creek entrance; continue down the farm.
+	else:
+		# Main route: run downhill across summit path and pass ox gate
+		await _follow(L.path("summit"))
+		await _follow([Vector3(46,24,55),Vector3(56,24,38),Vector3(72,24,20)])
+	# Follow from ox terrace onwards into creek
 	await _follow(L.path("creek"))
 	await _follow([Vector3(-40,16,-32),Vector3(-38,16,-53),Vector3(-66,16,-62)])
 	await _follow(L.path("woodland"))

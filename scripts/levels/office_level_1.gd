@@ -4,7 +4,10 @@ const CHASE_SCRIPT = preload("res://scripts/chase/simple_chase.gd")
 const ART_2D = preload("res://scripts/art/art_2d.gd")
 const L = preload("res://scripts/levels/farm_layout.gd")
 const POKEMON_SHOWDOWN = preload("res://scripts/battle/pokemon_showdown.gd")
-const COURSE_SCENES = {"chase_1": preload("res://scenes/courses/course_01_ox_field.tscn")}
+const COURSE_SCENES = {
+	"course_1": preload("res://scenes/courses/course_01_ox_field.tscn"),
+	"chase_1_course": preload("res://scenes/courses/course_01_ox_field.tscn"),
+}
 
 @onready var player: PigController = $Pig
 @onready var camera: IsometricCamera = $IsometricCamera
@@ -101,6 +104,8 @@ func _ready() -> void:
 		farm.chase_triggered.connect(_on_farm_chase_triggered)
 	if farm.has_signal("stage_chase_completed"):
 		farm.stage_chase_completed.connect(_on_farm_gate_passed)
+	if farm.has_signal("secret_pipe_entered"):
+		farm.secret_pipe_entered.connect(_on_secret_pipe_entered)
 		
 	GameManager.state_changed.connect(_refresh_hud)
 	
@@ -702,6 +707,7 @@ func _build_dash_gauge() -> void:
 	dash_gauge.visible = false
 
 func _on_player_dash_changed(remaining: float, _cooldown: float) -> void:
+	if not is_instance_valid(dash_gauge): return
 	var battle_on: bool = is_instance_valid(pokemon_battle) and pokemon_battle.battle_active
 	if not GameManager.has_dash_skill or battle_on:
 		dash_gauge.visible = false
@@ -1386,6 +1392,18 @@ func start_stage_chase(stage_id: String) -> void:
 	chase.start_stage(stage_id, player, config, points)
 	_refresh_hud()
 
+func _on_secret_pipe_entered(course_id: String) -> void:
+	if dialogue_open or cinematic or overlay.visible or is_instance_valid(active_course):
+		return
+	if is_instance_valid(chase) and chase.active:
+		chase.stop_chase()
+	current_chase_id = "chase_1"
+	_show_toast("【发现隐藏捷径！】", "钻入神秘绿水管，逃入糖豆人试炼赛道！")
+	_enter_course(course_id)
+
+func enter_secret_course(course_id: String = "course_1") -> void:
+	_on_secret_pipe_entered(course_id)
+
 func _start_chase() -> void:
 	# Standard entrance trigger for the final courtyard chase
 	if dialogue_open or cinematic or overlay.visible: return
@@ -1396,7 +1414,8 @@ func _start_chase() -> void:
 # -------------------------------------------------------------
 func _enter_course(stage_id: String) -> void:
 	if is_instance_valid(active_course): return
-	active_course = COURSE_SCENES[stage_id].instantiate()
+	var scene_res = COURSE_SCENES.get(stage_id, COURSE_SCENES.get("course_1"))
+	active_course = scene_res.instantiate()
 	add_child(active_course)
 	if is_instance_valid(farm) and farm.get_parent() == self:
 		remove_child(farm)
@@ -1424,7 +1443,7 @@ func _on_course_completed() -> void:
 
 func _finish_course_deferred() -> void:
 	_exit_course()
-	_show_toast("闯关成功！", "牛耕地赛道通关，回到农场前往溪流区。")
+	_show_toast("通关成功！", "从神秘管道中喷出！顺利捷径抵达牛耕地！")
 	_refresh_hud()
 
 func _exit_course() -> void:
@@ -1439,7 +1458,8 @@ func _exit_course() -> void:
 			farm.set_npc_completed(id)
 	if GameManager.chase_completed.get("chase_1", false):
 		farm.set_named_gate_open("ox", true)
-	player.reset_at(L.path("creek")[0] + Vector3.UP * 0.5)
+	# Exit pipe drops the pig safely at the ox terrace right next to Ox!
+	player.reset_at(L.NPCS["ox"] + Vector3(0, 0.5, 4.0))
 	player.set_control_mode("explore")
 	camera.snap_to_target()
 

@@ -3,6 +3,7 @@ extends Node3D
 signal chase_entered
 signal chase_triggered(stage_id: String)
 signal stage_chase_completed(gate_id: String)
+signal secret_pipe_entered(course_id: String)
 const ASSETS = preload("res://scripts/art/asset_library.gd")
 const L = preload("res://scripts/levels/farm_layout.gd")
 const SPAWN := L.SPAWN
@@ -96,6 +97,7 @@ func _ready() -> void:
 	for i in range(1,L.path("chase").size()-1):
 		var point: Vector3=L.path("chase")[i]
 		_label(self,"EscapeMarker","◆ 突围 %d" % i,point+Vector3(0,2.4,0),20)
+	_build_secret_mario_pipe()
 	reset_world()
 
 func _install_environment() -> void:
@@ -379,3 +381,77 @@ func _on_gate_passed(body: Node3D, gate_id: String) -> void:
 			# When the player races across the gate during chase, slam it shut!
 			set_named_gate_open(gate_id, false)
 			stage_chase_completed.emit(gate_id)
+
+func _build_secret_mario_pipe() -> void:
+	var pipe_root := Node3D.new()
+	pipe_root.name = "SecretMarioPipe"
+	# Placed off-trail on the scenic northern cliff branch (leaves main trail unobstructed)
+	var pipe_pos := Vector3(-6, 30.2, 64)
+	pipe_root.position = pipe_pos
+	add_child(pipe_root)
+
+	# Branch walkway connecting trail to the scenic pipe overlook
+	_box(pipe_root, "BranchWalkway", Vector3(2.6, 0.35, 7.0), Vector3(-1.5, 0.18, 4.5), Color("8D7B68"), true)
+	# Platform under the pipe
+	_box(pipe_root, "PipePlatform", Vector3(3.6, 0.4, 3.6), Vector3(0, 0.2, 0), Color("8D7B68"), true)
+	_label(self, "BranchSign", "▶ 悬崖支路：神秘绿水管", Vector3(-9.5, 31.6, 73), 18)
+
+	# Green pipe body
+	var body_mesh := MeshInstance3D.new()
+	var body_cyl := CylinderMesh.new()
+	body_cyl.top_radius = 1.05
+	body_cyl.bottom_radius = 1.05
+	body_cyl.height = 1.3
+	body_mesh.mesh = body_cyl
+	body_mesh.position.y = 0.85
+	var pipe_mat := StandardMaterial3D.new()
+	pipe_mat.albedo_color = Color("2E7D32")
+	pipe_mat.roughness = 0.5
+	body_mesh.material_override = pipe_mat
+	pipe_root.add_child(body_mesh)
+
+	# Pipe rim flange
+	var rim_mesh := MeshInstance3D.new()
+	var rim_cyl := CylinderMesh.new()
+	rim_cyl.top_radius = 1.25
+	rim_cyl.bottom_radius = 1.25
+	rim_cyl.height = 0.35
+	rim_mesh.mesh = rim_cyl
+	rim_mesh.position.y = 1.45
+	rim_mesh.material_override = pipe_mat
+	pipe_root.add_child(rim_mesh)
+
+	# Dark interior hole
+	var hole_mesh := MeshInstance3D.new()
+	var hole_cyl := CylinderMesh.new()
+	hole_cyl.top_radius = 0.95
+	hole_cyl.bottom_radius = 0.95
+	hole_cyl.height = 0.05
+	hole_mesh.mesh = hole_cyl
+	hole_mesh.position.y = 1.62
+	var hole_mat := StandardMaterial3D.new()
+	hole_mat.albedo_color = Color("0A150A")
+	hole_mesh.material_override = hole_mat
+	pipe_root.add_child(hole_mesh)
+
+	# Floating sign & labels
+	_label(pipe_root, "PipeSign", "★ 神秘绿水管 · 隐藏捷径 ★", Vector3(0, 3.2, 0), 24)
+	_label(pipe_root, "PipeHint", "（按空格跳入 · 糖豆人试炼）", Vector3(0, 2.5, 0), 18)
+
+	# Pipe Trigger Area
+	var pipe_area := Area3D.new()
+	pipe_area.name = "SecretPipeArea"
+	pipe_area.collision_layer = 0
+	pipe_area.collision_mask = 2
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(2.4, 2.2, 2.4)
+	shape.shape = box
+	shape.position.y = 1.6
+	pipe_area.add_child(shape)
+	pipe_area.body_entered.connect(_on_secret_pipe_body_entered)
+	pipe_root.add_child(pipe_area)
+
+func _on_secret_pipe_body_entered(body: Node3D) -> void:
+	if body.is_in_group("player"):
+		secret_pipe_entered.emit("course_1")

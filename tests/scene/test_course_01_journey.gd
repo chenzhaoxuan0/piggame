@@ -1,5 +1,7 @@
 extends SceneTree
 
+const L = preload("res://scripts/levels/farm_layout.gd")
+
 var office: Node
 var failures := 0
 var game: Node
@@ -23,10 +25,11 @@ func _run() -> void:
 	office.farm.set_pigpen_open(true)
 	await process_frame
 
-	# 1. Enter course (replaces chase_1)
-	office.start_stage_chase("chase_1")
+	# 1. Trigger Secret Mario Pipe on the farm downhill branch
+	_check(office.farm.has_node("SecretMarioPipe"), "Farm has SecretMarioPipe branch")
+	office.farm._on_secret_pipe_body_entered(office.player)
 	await process_frame
-	_check(is_instance_valid(office.active_course), "Course scene loaded for chase_1")
+	_check(is_instance_valid(office.active_course), "Secret pipe trigger loaded course_1")
 	_check(office.farm.get_parent() == null, "Farm removed from tree during course")
 	_check(office.player.control_mode == "explore", "Entrance is explore mode so ox dialogue works")
 	var runner: CourseRunner = office.active_course.runner
@@ -86,7 +89,7 @@ func _run() -> void:
 	_check(office.active_course == null, "Course scene unloaded")
 	_check(office.farm.get_parent() == office, "Farm restored to tree")
 	_check(game.stage == "exploring", "Returned to exploring stage")
-	_check(office.player.global_position.distance_to(Vector3(72, 24.5, 20)) < 3.0, "Pig returned to creek entrance")
+	_check(office.player.global_position.distance_to(L.NPCS["ox"]) < 6.0, "Pig emerged at Ox's terrace next to Ox")
 
 	print("\nALL COURSE JOURNEY TESTS DONE: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

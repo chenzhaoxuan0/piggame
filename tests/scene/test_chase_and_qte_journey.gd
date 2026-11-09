@@ -46,8 +46,8 @@ func _run() -> void:
 	_check(game.has_pin, "Pig acquired the brass pin")
 	_check(game.get_to_do_items()[0]["done"], "First task is completed and marked with strikethrough")
 
-	# Enter Course 1 (Fall Guys-style obstacle course replaces chase_1)
-	office.start_stage_chase("chase_1")
+	# Enter Course 1 via secret pipe
+	office.enter_secret_course("course_1")
 	await process_frame
 	_check(is_instance_valid(office.active_course), "Course 1 scene loaded")
 	var runner: CourseRunner = office.active_course.runner
