@@ -171,6 +171,20 @@ func _rubber_band() -> void:
 func can_dog_grapple() -> bool:
 	return started and not completed and not in_qte
 
+func set_dogs_active(enabled: bool) -> void:
+	for dog in _dogs:
+		if is_instance_valid(dog):
+			dog.set_active(enabled)
+
+func reject_qte(dog: ChaseDog) -> void:
+	# The level refused the qte_requested signal (pause, dialogue, cinematic...):
+	# roll back so in_qte cannot stick (it would disable grappling and the
+	# watchdog's kill_y rescue for the rest of the course) and free the dog.
+	in_qte = false
+	if is_instance_valid(dog) and dog.phase == "grapple":
+		dog._captured = false
+		dog.phase = "seek"
+
 func respawn_yaw() -> float:
 	# Third-person camera yaw (0 = looking -Z) aimed along the course from the
 	# current checkpoint toward the next one (or the exit), so respawns and course

@@ -512,7 +512,12 @@ func _build_qte_panel() -> void:
 	qte_panel.visible = false
 
 func _on_qte_requested(dog: ChaseDog) -> void:
-	if in_qte or dialogue_open or cinematic or paused: return
+	if in_qte or dialogue_open or cinematic or paused:
+		# Roll the course runner back: it sets in_qte before emitting, and a refused
+		# request would otherwise wedge its grapple system until a fatal respawn.
+		if is_instance_valid(active_course) and active_course.runner.in_qte:
+			active_course.runner.reject_qte(dog)
+		return
 	in_qte = true
 	current_qte_dog = dog
 	qte_hits = 0
@@ -1183,6 +1188,8 @@ func _resume() -> void:
 	if is_instance_valid(settings_menu): settings_menu.visible = false
 	overlay.visible = false
 	chase.set_active(GameManager.is_in_chase())
+	if is_instance_valid(active_course) and active_course.runner.started and not active_course.runner.completed:
+		active_course.runner.set_dogs_active(true)
 	_restore_control()
 
 func _process(delta: float) -> void:
@@ -1245,10 +1252,16 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 		if overlay.visible and not paused: return
+		if in_qte:
+			# Pausing mid-QTE would keep its real-time countdown running while the
+			# player's input is blocked, silently failing the struggle.
+			return
 		paused = not paused
 		if paused:
 			player.set_control_mode("paused")
 			chase.set_active(false)
+			if is_instance_valid(active_course):
+				active_course.runner.set_dogs_active(false)
 			_show_pause_menu()
 		else:
 			_resume()
