@@ -420,7 +420,9 @@ func _physics_process(delta: float) -> void:
 		_coyote_time=0
 		jumps+=1
 	else:
-		velocity.y = -0.2 if is_on_floor() else velocity.y - GRAVITY * delta
+		# Mirror the knockback-branch guard: an upward impulse written by a trap
+		# (slime block, launch ramp) on an on-floor frame must not be zeroed.
+		velocity.y = -0.2 if is_on_floor() and velocity.y <= 0.0 else velocity.y - GRAVITY * delta
 	var previous_position: Vector3 = global_position
 	move_and_slide()
 	if is_moving:
