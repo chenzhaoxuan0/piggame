@@ -151,35 +151,6 @@ func set_language(lang: String) -> void:
 		current_language = lang
 		language_changed.emit(lang)
 
-func get_current_main_objective() -> String:
-	match stage:
-		"prologue": return "与老岩羊交谈，选择你的路。"
-		"chase_1": return "【牛耕地闯关】顶问号砖、过假地板、识破画中门、跟着大锤节奏走位！"
-		"chase_2": return "【第二段追逐】避开幻影，若被咬住狂按空格挣脱，逃向羊棚！"
-		"chase_3": return "【第三段追逐】看穿幻影虚影，跨过障碍冲向追风马场！"
-		"chase_final", "chase": return "【最终突围】按 Shift 爆发冲刺，甩开犬队冲向大铁门！"
-		"exploring":
-			if not chase_completed.get("chase_1", false):
-				return "穿过猪圈破损木门，准备向牛耕地下山突围！"
-			elif not npc_completed.get("ox", false):
-				return "与老牛交谈，帮助他卸下沉重的犁头枷锁。"
-			elif not chase_completed.get("chase_2", false):
-				return "耕地出口已开，沿溪流山道向羊矮棚进发！"
-			elif not npc_completed.get("sheep", false):
-				return "与小羊绵绵交谈，帮助她看破不合宜的世俗规尺。"
-			elif not chase_completed.get("chase_3", false):
-				return "羊棚出口已开，穿越林间山路奔向马场！"
-			elif not npc_completed.get("horse", false):
-				return "查看 35 秒纪录板，告诉追风不必追赶过去的影子。"
-			elif not chase_completed.get("chase_final", false):
-				return "马场出口已开，穿过大院发起最终突围！"
-			else:
-				return "接近铁门，打破束缚！"
-		"showdown": return "靠近农场主，完成意志对决，撞开铁门！"
-		"cablecar_ready": return "铁门已开：带着铜插销登上后山索道，奔向旷野！"
-		"ending": return "旅程已达彼岸，风中没有栏杆与食槽。"
-	return ""
-
 func get_to_do_items() -> Array[Dictionary]:
 	return [
 		{

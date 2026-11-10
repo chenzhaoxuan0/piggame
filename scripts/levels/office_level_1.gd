@@ -26,7 +26,7 @@ var chase: SimpleChase
 var active_course: Node3D = null
 var _farm_removed := false
 var hud: Control
-var objective: Label
+var objective: Label # removed with the top title bar; guidance lives in the todo notebook
 var status: Label
 var prompt: Label
 var dialogue_panel: PanelContainer
@@ -1268,11 +1268,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _refresh_hud() -> void:
-	if is_instance_valid(objective):
-		objective.text = GameManager.get_current_main_objective()
-	if is_instance_valid(status):
-		var dash: String = "Shift 长按加速已解锁" if GameManager.npc_completed.get("horse", false) else "伙伴可自由探索"
-		status.text = ("铜插销：已取得  /  " if GameManager.has_pin else "铜插销：未取得  /  ") + dash
 	player.set_dash_enabled(GameManager.npc_completed.get("horse", false))
 	if is_instance_valid(pin_visual): pin_visual.visible = GameManager.has_pin
 	if is_instance_valid(todo_notebook):
@@ -1551,6 +1546,9 @@ func _enter_course(stage_id: String) -> void:
 	active_course.runner.course_started.connect(_on_course_started)
 	active_course.runner.course_completed.connect(_on_course_completed)
 	active_course.runner.qte_requested.connect(_on_qte_requested)
+	# Course dogs report pressure through the runner, not the farm SimpleChase;
+	# without this the chase prompt kept showing the last farm value (999.0 m).
+	active_course.runner.pressure_changed.connect(func(value: float): pressure = value)
 	active_course.runner.player_respawned.connect(func(_pos: Vector3): camera.snap_to_target(active_course.runner.respawn_yaw()))
 	_show_toast(active_course.runner.config.title, active_course.runner.config.desc)
 	_refresh_hud()
