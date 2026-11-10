@@ -104,12 +104,7 @@ func _set_illusory_state(active: bool) -> void:
 func _on_touch_entered(body: Node3D) -> void:
 	if is_shattered:
 		return
-	var game_manager := get_tree().root.get_node_or_null("GameManager")
-	var has_discern: bool = false
-	if game_manager != null and "has_discern_skill" in game_manager:
-		has_discern = game_manager.has_discern_skill
-
-	if has_discern and (body.is_in_group("player") or body.name.to_lower().contains("pig")):
+	if body.is_in_group("player") or body.name.to_lower().contains("pig"):
 		shatter()
 
 func shatter() -> void:

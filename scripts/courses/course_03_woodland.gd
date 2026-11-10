@@ -53,6 +53,13 @@ func _ready() -> void:
 
 func setup(player: Node3D) -> void:
 	player.reset_at(SPAWN)
+	player.set_meta("in_stealth_box", false)
+	for child in player.find_children("*", "CardboardBoxProp", true, false):
+		child.queue_free()
+	var gm := _gm()
+	if gm:
+		gm.set("has_struggle_skill", true)
+		gm.set("has_discern_skill", true)
 	runner.setup(player, SPAWN)
 	_update_discern_visuals()
 

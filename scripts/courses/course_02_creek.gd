@@ -53,6 +53,9 @@ func _ready() -> void:
 func setup(player: Node3D) -> void:
 	player.reset_at(SPAWN)
 	runner.setup(player, SPAWN)
+	var gm = get_tree().root.get_node_or_null("GameManager")
+	if gm != null and "has_struggle_skill" in gm:
+		gm.has_struggle_skill = true
 
 func _make_config() -> CourseConfig:
 	var cfg := CONFIG_SCRIPT.new()
@@ -95,12 +98,47 @@ func _build_ground_and_structures() -> void:
 	# 4. Lower Canyon floor (Y = 0.0)
 	_voxel_platform("CanyonFloor", Vector3(12, 1, 36), Vector3(0, -0.5, -50), VOXEL_STONE, VOXEL_DIRT)
 
+	# Waterfall slide descending from HighCliff into Canyon
+	_build_water_slide(Vector3(0, 1.5, -33.5))
+
 	# Canyon walls
 	_solid_box("CanyonWallL", Vector3(2, 6, 36), Vector3(-6, 2.5, -50), VOXEL_STONE)
 	_solid_box("CanyonWallR", Vector3(2, 6, 36), Vector3(6, 2.5, -50), VOXEL_STONE)
 
 	# 5. Exit Plaza (Y = 0.0)
 	_voxel_platform("ExitPlaza", Vector3(14, 1, 18), Vector3(0, -0.5, -80), VOXEL_GREEN, VOXEL_DIRT)
+
+func _build_water_slide(pos: Vector3) -> void:
+	var slide := StaticBody3D.new()
+	slide.name = "WaterfallSlide"
+	slide.position = pos
+	slide.collision_layer = 1
+	slide.collision_mask = 0
+
+	# 3 steps forming a gentle cascading water slide down from Y = 3.0 to Y = 0.0
+	for i in range(3):
+		var col := CollisionShape3D.new()
+		var box := BoxShape3D.new()
+		var step_h := 3.0 - float(i) * 1.0
+		box.size = Vector3(4.0, step_h, 1.2)
+		col.shape = box
+		col.position = Vector3(0, step_h * 0.5 - 1.5, float(i - 1) * 1.0)
+		slide.add_child(col)
+
+		var mesh := MeshInstance3D.new()
+		var mesh_box := BoxMesh.new()
+		mesh_box.size = box.size
+		mesh.mesh = mesh_box
+		mesh.position = col.position
+		var mat := StandardMaterial3D.new()
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mat.albedo_color = Color("38BDF8BB")
+		mat.roughness = 0.1
+		mesh.material_override = mat
+		slide.add_child(mesh)
+
+	add_child(slide)
+	_label("【瀑布滑梯】踩上水流顺滑进入峡谷！", pos + Vector3(0, 2.8, 0), 20)
 
 func _build_creek_puzzle() -> void:
 	# Creek water stream at Z = -2.5, spanning between start bank and mid island
@@ -353,7 +391,7 @@ func _voxel_ramp(node_name: String, size: Vector3, pos: Vector3, height: float) 
 	body.position = pos
 	body.collision_layer = 1
 
-	var steps := 4
+	var steps := 8
 	for i in range(steps):
 		var step_col := CollisionShape3D.new()
 		var box := BoxShape3D.new()
@@ -361,7 +399,9 @@ func _voxel_ramp(node_name: String, size: Vector3, pos: Vector3, height: float) 
 		var step_h := height / float(steps) * float(i + 1)
 		box.size = Vector3(size.x, step_h, step_depth)
 		step_col.shape = box
-		step_col.position = Vector3(0, step_h * 0.5, -size.z * 0.5 + step_depth * (float(i) + 0.5))
+		# FIX: Low step (i = 0) at South (+Z, near player entry); High step (i = 7) at North (-Z, meeting HighCliff flush at Y = 3.0)
+		var z_offset := size.z * 0.5 - step_depth * (float(i) + 0.5)
+		step_col.position = Vector3(0, step_h * 0.5, z_offset)
 		body.add_child(step_col)
 
 		var mesh := MeshInstance3D.new()
@@ -370,9 +410,24 @@ func _voxel_ramp(node_name: String, size: Vector3, pos: Vector3, height: float) 
 		mesh.mesh = mesh_box
 		mesh.position = step_col.position
 		var mat := StandardMaterial3D.new()
-		mat.albedo_color = VOXEL_STONE
+		mat.albedo_color = VOXEL_STONE if i % 2 == 0 else Color("64748B")
 		mesh.material_override = mat
 		body.add_child(mesh)
+
+		# Add glowing pixel sweet potato collectibles along steps to guide player
+		if i % 2 == 1:
+			var potato := MeshInstance3D.new()
+			var p_mesh := BoxMesh.new()
+			p_mesh.size = Vector3(0.4, 0.4, 0.4)
+			potato.mesh = p_mesh
+			potato.position = Vector3(0, step_h + 0.5, z_offset)
+			var p_mat := StandardMaterial3D.new()
+			p_mat.albedo_color = Color("F59E0B")
+			p_mat.emission_enabled = true
+			p_mat.emission = Color("FBBF24")
+			p_mat.emission_energy_multiplier = 1.2
+			potato.material_override = p_mat
+			body.add_child(potato)
 
 	add_child(body)
 	return body

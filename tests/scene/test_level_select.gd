@@ -49,6 +49,14 @@ func _run() -> void:
 	_check(is_instance_valid(office.active_course), "Course 3 loaded via Level Select")
 	_check(office.active_course.runner.config.course_id == "course_3", "Active course is course_3 (Stealth)")
 
+	# Verify Cardboard Box equip and unequip
+	var box: Node3D = office.active_course.stealth_box
+	_check(box != null, "Course 3 has stealth_box")
+	box.equip_box(office.player)
+	_check(office.player.get_meta("in_stealth_box", false), "Cardboard box equipped onto pig")
+	box.unequip_box()
+	_check(not office.player.get_meta("in_stealth_box", false), "Cardboard box unequipped cleanly via unequip_box()")
+
 	# 4. Switch from Course 3 to Course 4 from settings
 	office._open_settings(false)
 	await process_frame

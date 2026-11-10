@@ -1041,6 +1041,10 @@ func _select_level_from_settings(target_id: String) -> void:
 		overlay.visible = false
 
 	if target_id == "farm":
+		if is_instance_valid(player):
+			player.set_meta("in_stealth_box", false)
+			for child in player.find_children("*", "CardboardBoxProp", true, false):
+				child.queue_free()
 		if is_instance_valid(active_course):
 			_exit_course()
 		player.reset_at(Vector3(38.0, 24.1, 52.0))
@@ -1048,14 +1052,29 @@ func _select_level_from_settings(target_id: String) -> void:
 		camera.snap_to_target()
 		_show_toast("已切换到：农场主线世界", "自由探索与老牛/伙伴互动")
 	else:
+		if is_instance_valid(player):
+			player.set_meta("in_stealth_box", false)
+			for child in player.find_children("*", "CardboardBoxProp", true, false):
+				child.queue_free()
 		if is_instance_valid(active_course):
 			_exit_course()
 		match target_id:
-			"course_1": current_chase_id = "chase_1"
-			"course_2": current_chase_id = "chase_2"
-			"course_3": current_chase_id = "chase_3"
-			"course_4": current_chase_id = "chase_final"
-			_: current_chase_id = "chase_1"
+			"course_1":
+				current_chase_id = "chase_1"
+				GameManager.has_struggle_skill = true
+			"course_2":
+				current_chase_id = "chase_2"
+				GameManager.has_struggle_skill = true
+			"course_3":
+				current_chase_id = "chase_3"
+				GameManager.has_struggle_skill = true
+				GameManager.has_discern_skill = true
+			"course_4":
+				current_chase_id = "chase_final"
+				GameManager.has_struggle_skill = true
+				GameManager.has_dash_skill = true
+			_:
+				current_chase_id = "chase_1"
 		_enter_course(target_id)
 		camera.snap_to_target()
 
@@ -1568,6 +1587,10 @@ func _exit_course() -> void:
 		"chase_final":
 			exit_pos = Vector3(-78.0, 2.1, -220.0)
 	player.reset_at(exit_pos)
+	if is_instance_valid(player):
+		player.set_meta("in_stealth_box", false)
+		for child in player.find_children("*", "CardboardBoxProp", true, false):
+			child.queue_free()
 	player.set_control_mode("explore")
 	camera.snap_to_target()
 

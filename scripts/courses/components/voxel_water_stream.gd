@@ -88,13 +88,20 @@ func _handle_block_drop(block: Node3D) -> void:
 		block.has_bridged = true
 		block.can_be_pushed = false
 
-		# Snap block into bridge slot flush with grass bank (Y = 0.0)
+		# Disable block body collision so it doesn't act as a 1.8m barrier on top of the bridge
+		block.set_collision_layer_value(1, false)
+		block.set_collision_mask_value(1, false)
+		var prompt: Node = block.find_child("PushPromptLabel", true, false)
+		if prompt:
+			prompt.visible = false
+
+		# Snap block into bridge slot foundation below water level
 		var target_slot := get_slot_position(closest_idx)
-		target_slot.y = 0.0
+		target_slot.y = -1.4
 		var tween := block.create_tween()
 		tween.tween_property(block, "global_position", target_slot, 0.25).set_trans(Tween.TRANS_BOUNCE)
 		tween.tween_callback(func():
-			# Turn into permanent bridge platform
+			# Turn into permanent wide bridge platform spanning the full river
 			_create_bridge_platform(target_slot, block.block_size)
 			bridge_completed.emit(self, closest_idx)
 		)
@@ -102,22 +109,27 @@ func _handle_block_drop(block: Node3D) -> void:
 func _create_bridge_platform(pos: Vector3, size: float) -> void:
 	var bridge_body := StaticBody3D.new()
 	bridge_body.name = "BridgePlatform"
-	bridge_body.global_position = pos
+	# Center the bridge platform at Y = 0.0, Z = -2.5 (center of 5m wide stream)
+	bridge_body.global_position = Vector3(pos.x, 0.0, -2.5)
+	bridge_body.collision_layer = 1
+	bridge_body.collision_mask = 0
 
 	var col := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = Vector3(size * 1.3, 0.6, stream_size.z + 0.8)
+	# Entire stream is 5.0m long (Z = 0.0 to -5.0).
+	# Bridge platform spans Z = +0.5 to -5.5 (length 6.0m) to overlap both banks seamlessly!
+	box.size = Vector3(size * 1.5, 0.4, stream_size.z + 1.0)
 	col.shape = box
-	col.position.y = -0.3
+	col.position.y = -0.2 # Top surface is exactly at Y = 0.0!
 	bridge_body.add_child(col)
 
 	# Visible wooden bridge walkway spanning the creek
 	var bridge_mesh := MeshInstance3D.new()
 	bridge_mesh.name = "BridgeMesh"
 	var mesh_box := BoxMesh.new()
-	mesh_box.size = Vector3(size * 1.25, 0.35, stream_size.z + 0.6)
+	mesh_box.size = Vector3(size * 1.45, 0.25, stream_size.z + 0.8)
 	bridge_mesh.mesh = mesh_box
-	bridge_mesh.position.y = -0.175
+	bridge_mesh.position.y = -0.125
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color("8D6E63") # Sturdy wooden plank
 	mat.roughness = 0.85

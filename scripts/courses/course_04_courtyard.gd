@@ -48,6 +48,15 @@ func _ready() -> void:
 
 func setup(player: Node3D) -> void:
 	player.reset_at(SPAWN)
+	player.set_meta("in_stealth_box", false)
+	for child in player.find_children("*", "CardboardBoxProp", true, false):
+		child.queue_free()
+	var gm := get_tree().root.get_node_or_null("GameManager")
+	if gm != null:
+		if "has_dash_skill" in gm:
+			gm.has_dash_skill = true
+		if "has_struggle_skill" in gm:
+			gm.has_struggle_skill = true
 	runner.setup(player, SPAWN)
 
 func _make_config() -> CourseConfig:
