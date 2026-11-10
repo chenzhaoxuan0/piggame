@@ -83,14 +83,14 @@ func _handle_block_drop(block: Node3D) -> void:
 				min_dist = dist
 				closest_idx = i
 
-	if closest_idx != -1 and min_dist < 3.0:
+	if closest_idx != -1 and min_dist < 4.5:
 		slots_filled[closest_idx] = true
 		block.has_bridged = true
 		block.can_be_pushed = false
 
-		# Snap block into bridge slot
+		# Snap block into bridge slot flush with grass bank (Y = 0.0)
 		var target_slot := get_slot_position(closest_idx)
-		target_slot.y = global_position.y - 0.2
+		target_slot.y = 0.0
 		var tween := block.create_tween()
 		tween.tween_property(block, "global_position", target_slot, 0.25).set_trans(Tween.TRANS_BOUNCE)
 		tween.tween_callback(func():
@@ -106,26 +106,45 @@ func _create_bridge_platform(pos: Vector3, size: float) -> void:
 
 	var col := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = Vector3(size * 1.1, 0.4, stream_size.z + 0.4)
+	box.size = Vector3(size * 1.3, 0.6, stream_size.z + 0.8)
 	col.shape = box
+	col.position.y = -0.3
 	bridge_body.add_child(col)
+
+	# Visible wooden bridge walkway spanning the creek
+	var bridge_mesh := MeshInstance3D.new()
+	bridge_mesh.name = "BridgeMesh"
+	var mesh_box := BoxMesh.new()
+	mesh_box.size = Vector3(size * 1.25, 0.35, stream_size.z + 0.6)
+	bridge_mesh.mesh = mesh_box
+	bridge_mesh.position.y = -0.175
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color("8D6E63") # Sturdy wooden plank
+	mat.roughness = 0.85
+	bridge_mesh.material_override = mat
+	bridge_body.add_child(bridge_mesh)
+
 	add_child(bridge_body)
 	bridge_colliders.append(bridge_body)
 
 func _handle_player_entered(player: Node3D) -> void:
-	# If player is walking across on a valid bridged section, don't sweep
+	# 1. Stepping stones lane check: X around 3.6m
+	if abs(player.global_position.x - 3.6) < 1.6:
+		return
+
+	# 2. If player is walking across on a valid bridged section, safe!
 	for i in range(bridge_slots_count):
 		if slots_filled[i]:
 			var slot_pos := get_slot_position(i)
-			if abs(player.global_position.x - slot_pos.x) < slot_spacing * 0.6:
+			if abs(player.global_position.x - slot_pos.x) < slot_spacing * 0.85:
 				return # Safe on bridge
 
-	# Player fell into rushing water -> sweep back to shore!
+	# 3. Player fell into rushing water -> sweep back to shore!
 	player_swept.emit(self, shore_point)
+	if player.has_method("reset_at"):
+		player.reset_at(shore_point)
 	if player.has_method("apply_knockback"):
 		var sweep_dir := (shore_point - player.global_position).normalized()
-		player.apply_knockback(sweep_dir * 12.0 + Vector3(0, 4.0, 0))
-	elif player.has_method("reset_at"):
-		player.reset_at(shore_point)
+		player.apply_knockback(sweep_dir * 6.0 + Vector3(0, 2.0, 0))
 	else:
 		player.global_position = shore_point

@@ -12,6 +12,7 @@ enum BlockType { DIRT, SAND, TNT, STONE }
 @export var push_distance: float = 2.0
 @export var is_gravity_affected: bool = false
 @export var can_be_pushed: bool = true
+@export var preferred_push_axis: Vector3 = Vector3.ZERO
 
 const COLOR_DIRT := Color("5A3E28")
 const COLOR_GRASS := Color("4ADE80")
@@ -26,11 +27,57 @@ var has_exploded: bool = false
 var has_bridged: bool = false
 var mesh_instance: MeshInstance3D
 var push_area: Area3D
+var prompt_label: Label3D
 
 func _ready() -> void:
 	_setup_collision()
 	_setup_visuals()
 	_setup_push_area()
+	_setup_prompt()
+
+func _setup_prompt() -> void:
+	prompt_label = Label3D.new()
+	prompt_label.name = "PushPromptLabel"
+	prompt_label.text = "[E] 猪拱推进"
+	prompt_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	prompt_label.font_size = 24
+	prompt_label.modulate = Color("FDE047") # Vibrant yellow
+	prompt_label.outline_modulate = Color("1E293B")
+	prompt_label.outline_size = 5
+	prompt_label.position.y = block_size + 0.5
+	prompt_label.visible = false
+	add_child(prompt_label)
+
+func _process(_delta: float) -> void:
+	if not is_inside_tree():
+		return
+	var players := get_tree().get_nodes_in_group("player")
+	if not players.is_empty():
+		var p: Node3D = players[0] as Node3D
+		var dist := global_position.distance_to(p.global_position)
+		var nearby := dist < 3.2 and can_be_pushed and not has_bridged and not has_exploded
+		if is_instance_valid(prompt_label):
+			prompt_label.visible = nearby
+	elif is_instance_valid(prompt_label):
+		prompt_label.visible = false
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not can_be_pushed or is_moving or is_falling or has_exploded or has_bridged:
+		return
+	if event.is_action_pressed("action_interact") or (event is InputEventKey and event.pressed and not event.echo and (event.keycode == KEY_E or event.keycode == KEY_SPACE)):
+		var players := get_tree().get_nodes_in_group("player")
+		if not players.is_empty():
+			var p: Node3D = players[0] as Node3D
+			if global_position.distance_to(p.global_position) < 3.2:
+				var push_dir := preferred_push_axis
+				if push_dir == Vector3.ZERO:
+					var diff := global_position - p.global_position
+					diff.y = 0
+					if abs(diff.x) > abs(diff.z):
+						push_dir = Vector3(sign(diff.x), 0, 0)
+					else:
+						push_dir = Vector3(0, 0, sign(diff.z))
+				push(push_dir)
 
 func _setup_collision() -> void:
 	var col := CollisionShape3D.new()
@@ -105,11 +152,12 @@ func _on_pusher_entered(body: Node3D) -> void:
 	if diff.length_squared() < 0.01:
 		return
 
-	var push_dir := Vector3.ZERO
-	if abs(diff.x) > abs(diff.z):
-		push_dir.x = sign(diff.x)
-	else:
-		push_dir.z = sign(diff.z)
+	var push_dir := preferred_push_axis
+	if push_dir == Vector3.ZERO:
+		if abs(diff.x) > abs(diff.z):
+			push_dir.x = sign(diff.x)
+		else:
+			push_dir.z = sign(diff.z)
 
 	push(push_dir)
 

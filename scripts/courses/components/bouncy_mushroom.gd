@@ -1,6 +1,9 @@
 extends CourseTrap
 class_name BouncyMushroom
 
+signal triggered(trap: Node3D, target: Node3D)
+signal mushroom_bounced(mushroom: Node3D, target: Node3D)
+
 @export var mushroom_radius: float = 1.3
 @export var mushroom_height: float = 1.2
 @export var bounce_direction: Vector3 = Vector3(0, 0, -1)
@@ -117,6 +120,8 @@ func _on_cap_step(body: Node3D) -> void:
 	tween.tween_property(_cap, "scale", Vector3(1.0, 1.0, 1.0), 0.2)
 
 	var dir: Vector3 = bounce_direction.normalized()
+	triggered.emit(self, body)
+	mushroom_bounced.emit(self, body)
 	if _is_player(body):
 		_knock(body, dir * bounce_power + Vector3.UP * bounce_up, 0.75)
 		_meme(meme_id, global_position)

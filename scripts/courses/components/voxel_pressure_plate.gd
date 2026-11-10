@@ -85,6 +85,16 @@ func _on_body_entered(body: Node3D) -> void:
 		if target_wall != null and is_instance_valid(target_wall) and target_wall.has_method("demolish"):
 			target_wall.demolish()
 		body.ignite_and_explode()
+	elif body.is_in_group("player") or body.name.to_lower().contains("pig"):
+		# Redstone pulse: detonate any nearby TNT within 10m
+		var parent_node := get_parent()
+		if is_instance_valid(parent_node):
+			for child in parent_node.find_children("*", "CharacterBody3D", true, false):
+				if child.has_method("ignite_and_explode") and child.global_position.distance_to(global_position) < 10.0:
+					if target_wall != null and is_instance_valid(target_wall) and target_wall.has_method("demolish"):
+						target_wall.demolish()
+					child.ignite_and_explode()
+					break
 
 func _on_body_exited(_body: Node3D) -> void:
 	var overlapping := get_overlapping_bodies()

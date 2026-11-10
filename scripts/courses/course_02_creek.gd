@@ -81,8 +81,8 @@ func _make_config() -> CourseConfig:
 	return cfg
 
 func _build_ground_and_structures() -> void:
-	# 1. Start bank (Grassy voxel terrace)
-	_voxel_platform("StartBank", Vector3(14, 1, 14), Vector3(0, -0.5, 9), VOXEL_GREEN, VOXEL_DIRT)
+	# 1. Start bank (Grassy voxel terrace spanning Z = 0 to 16, flush with water stream)
+	_voxel_platform("StartBank", Vector3(14, 1, 16), Vector3(0, -0.5, 8), VOXEL_GREEN, VOXEL_DIRT)
 
 	# 2. Island between creek and cliff
 	_voxel_platform("MidIsland", Vector3(12, 1, 14), Vector3(0, -0.5, -12), VOXEL_GREEN, VOXEL_DIRT)
@@ -107,7 +107,7 @@ func _build_creek_puzzle() -> void:
 	water_stream = VOXEL_WATER_STREAM.new()
 	water_stream.name = "CreekWaterStream"
 	water_stream.stream_size = Vector3(10.0, 1.2, 5.0)
-	water_stream.shore_point = Vector3(0, 0.6, 3.5)
+	water_stream.shore_point = Vector3(0, 0.6, 2.0)
 	water_stream.position = Vector3(0, -0.1, -2.5)
 	water_stream.bridge_slots_count = 2
 	water_stream.slot_spacing = 2.4
@@ -127,15 +127,33 @@ func _build_creek_puzzle() -> void:
 	dirt_block_1.name = "DirtBlock1"
 	dirt_block_1.block_type = VOXEL_PUSH_BLOCK.BlockType.DIRT
 	dirt_block_1.position = Vector3(-1.2, 0.0, 2.0)
+	dirt_block_1.preferred_push_axis = Vector3(0, 0, -1)
+	dirt_block_1.block_pushed.connect(func(blk, _dir):
+		water_stream._handle_block_drop(blk)
+	)
 	add_child(dirt_block_1)
 
 	dirt_block_2 = VOXEL_PUSH_BLOCK.new()
 	dirt_block_2.name = "DirtBlock2"
 	dirt_block_2.block_type = VOXEL_PUSH_BLOCK.BlockType.DIRT
 	dirt_block_2.position = Vector3(1.2, 0.0, 2.0)
+	dirt_block_2.preferred_push_axis = Vector3(0, 0, -1)
+	dirt_block_2.block_pushed.connect(func(blk, _dir):
+		water_stream._handle_block_drop(blk)
+	)
 	add_child(dirt_block_2)
 
-	_label("【猪拱推箱】向前推泥土方块填河架桥！", Vector3(0, 2.2, 5.0), 22)
+	# Stepping stone alternate path across the creek (石墩跳跃捷径)
+	_solid_box("SteppingStone1", Vector3(1.6, 0.6, 1.3), Vector3(3.6, -0.15, -1.25), VOXEL_STONE)
+	_solid_box("SteppingStone2", Vector3(1.6, 0.6, 1.3), Vector3(3.6, -0.15, -2.5), VOXEL_STONE)
+	_solid_box("SteppingStone3", Vector3(1.6, 0.6, 1.3), Vector3(3.6, -0.15, -3.75), VOXEL_STONE)
+
+	# Mossy top caps for stepping stones
+	_solid_box("StoneMoss1", Vector3(1.62, 0.1, 1.32), Vector3(3.6, 0.16, -1.25), VOXEL_GREEN)
+	_solid_box("StoneMoss2", Vector3(1.62, 0.1, 1.32), Vector3(3.6, 0.16, -2.5), VOXEL_GREEN)
+	_solid_box("StoneMoss3", Vector3(1.62, 0.1, 1.32), Vector3(3.6, 0.16, -3.75), VOXEL_GREEN)
+
+	_label("【体素溪流解谜】\n① 靠近泥土方块按 [E] 猪拱推进填河架桥\n② 或踩右侧绿色苔石墩一路跳跃过河！", Vector3(0, 2.8, 3.5), 24)
 
 func _build_sand_canyon_puzzle() -> void:
 	# Sand block positioned on high cliff edge (Z = -30, Y = 3.0)

@@ -941,15 +941,15 @@ func _build_settings_menu() -> void:
 	settings_menu.add_child(center)
 
 	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(460, 360)
+	card.custom_minimum_size = Vector2(560, 560)
 	card.add_theme_stylebox_override("panel", _style(Color(0.96, 0.94, 0.88, 0.98), Color(0.40, 0.38, 0.30)))
 	center.add_child(card)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 16)
+	vbox.add_theme_constant_override("separation", 12)
 	card.add_child(vbox)
 
-	var title := _label("游戏设置", 28)
+	var title := _label("游戏设置与关卡选择", 26)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_color_override("font_color", Color(0.45, 0.28, 0.14))
 	vbox.add_child(title)
@@ -982,13 +982,82 @@ func _build_settings_menu() -> void:
 	)
 	vbox.add_child(toggle_mute)
 
+	var sep_level := HSeparator.new()
+	vbox.add_child(sep_level)
+
+	var lvl_title := _label("🚩 关卡测试选择 / Level Select", 18)
+	lvl_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lvl_title.add_theme_color_override("font_color", Color(0.55, 0.32, 0.16))
+	vbox.add_child(lvl_title)
+
+	var lvl_sub := _label("点击可直接跳转到对应关卡进行独立玩法与机制测试：", 13)
+	lvl_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lvl_sub.add_theme_color_override("font_color", Color(0.50, 0.45, 0.35))
+	vbox.add_child(lvl_sub)
+
+	var grid := GridContainer.new()
+	grid.name = "LevelSelectGrid"
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 8)
+	vbox.add_child(grid)
+
+	var levels: Array[Dictionary] = [
+		{"id": "course_1", "name": "关卡 1: 牛耕地 (糖豆人跑酷)"},
+		{"id": "course_2", "name": "关卡 2: 溪流 (我的世界体素)"},
+		{"id": "course_3", "name": "关卡 3: 林间 (纸箱潜行破幻)"},
+		{"id": "course_4", "name": "关卡 4: 大院 (马车竞速冲刺)"},
+	]
+
+	for item in levels:
+		var btn := _button(item["name"], _select_level_from_settings.bind(item["id"]))
+		btn.name = "BtnSelect_" + item["id"]
+		btn.custom_minimum_size = Vector2(250, 38)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_child(btn)
+
+	var btn_farm := _button("🏡 返回农场主线世界 (自由探索)", _select_level_from_settings.bind("farm"))
+	btn_farm.name = "BtnSelect_farm"
+	btn_farm.custom_minimum_size.y = 38
+	vbox.add_child(btn_farm)
+
 	var sep2 := HSeparator.new()
 	vbox.add_child(sep2)
 
 	var btn_back := _button("◀  返回", _close_settings)
 	btn_back.name = "BackButton"
-	btn_back.custom_minimum_size.y = 44
+	btn_back.custom_minimum_size.y = 40
 	vbox.add_child(btn_back)
+
+func _select_level_from_settings(target_id: String) -> void:
+	_close_settings()
+	if is_instance_valid(start_menu):
+		start_menu.visible = false
+		in_start_menu = false
+	if is_instance_valid(pause_menu):
+		pause_menu.visible = false
+	paused = false
+	if is_instance_valid(overlay):
+		overlay.visible = false
+
+	if target_id == "farm":
+		if is_instance_valid(active_course):
+			_exit_course()
+		player.reset_at(Vector3(38.0, 24.1, 52.0))
+		_restore_control()
+		camera.snap_to_target()
+		_show_toast("已切换到：农场主线世界", "自由探索与老牛/伙伴互动")
+	else:
+		if is_instance_valid(active_course):
+			_exit_course()
+		match target_id:
+			"course_1": current_chase_id = "chase_1"
+			"course_2": current_chase_id = "chase_2"
+			"course_3": current_chase_id = "chase_3"
+			"course_4": current_chase_id = "chase_final"
+			_: current_chase_id = "chase_1"
+		_enter_course(target_id)
+		camera.snap_to_target()
 
 func start_game() -> void:
 	_start_game()
@@ -1470,8 +1539,11 @@ func _finish_course_deferred() -> void:
 func _exit_course() -> void:
 	var completed_id := current_chase_id
 	if is_instance_valid(active_course):
-		active_course.queue_free()
+		var old_course = active_course
 		active_course = null
+		if old_course.get_parent() == self:
+			remove_child(old_course)
+		old_course.queue_free()
 	if _farm_removed and is_instance_valid(farm):
 		add_child(farm)
 		_farm_removed = false
