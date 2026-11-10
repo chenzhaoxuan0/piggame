@@ -35,7 +35,20 @@ func _scan(node: Node) -> void:
 
 func _run() -> void:
 	var catalog: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/models/aholo/runtime_catalog.json"))
-	_check(catalog.assets.size() == 36, "18 core assets and 18 diverse dressing modules delivered")
+	var core := 0
+	var dressing := 0
+	var course := 0
+	for id in catalog.assets:
+		if id.begins_with("ENV_09_"):
+			dressing += 1
+		elif id.begins_with("PROP_C1_"):
+			course += 1
+		else:
+			core += 1
+	_check(core == 18, "18 core assets delivered (got %d)" % core)
+	_check(dressing == 18, "18 diverse dressing modules delivered (got %d)" % dressing)
+	_check(course == 13, "13 course-1 props delivered (got %d)" % course)
+	_check(catalog.assets.size() == 49, "catalog total 49 (got %d)" % catalog.assets.size())
 	for id in catalog.assets:
 		var visual := ASSETS.make(id)
 		_check(visual != null, "accepted model loads: " + id)

@@ -55,13 +55,16 @@ func _run() -> void:
 		if office.farm.recoveries>0: break
 	_release()
 	_check(office.farm.recoveries==1,"missing bridge planks cause recovery when not jumped")
-	_check(office.player.position.distance_to(start)<.3,"recovery returns to safe point")
+	# The farm checkpoint rolls forward with the pig (farm_grounds re-projects the pig
+	# onto the journey path every physics frame), so recovery lands at the walk-off
+	# point, not at the pre-walk `start` position.
+	_check(office.player.position.distance_to(office.farm._checkpoint)<.5,"recovery returns to the rolling safe point")
 	# Real entry trigger, pause, capture and retry preserve completed companions.
 	game.complete_npc("ox")
 	office.player.reset_at(L.RETRY)
 	office.farm._checkpoint=L.RETRY
 	await _walk_to(L.path("chase")[0]+Vector3.UP*.1)
-	_check(game.stage=="chase" and office.chase._dogs.size()==2,"course trigger starts two dogs")
+	_check(game.stage=="chase_final" and office.chase._dogs.size()==6,"course trigger starts the final chase (3 dogs + 3 phantoms)")
 	_input("ui_cancel")
 	await process_frame
 	var dogs: Array[Vector3]=[]

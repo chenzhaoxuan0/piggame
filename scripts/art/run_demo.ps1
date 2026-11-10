@@ -44,17 +44,12 @@ if ($AllTests -or ($Test -ne "")) {
     $engine = if ($engineConsole) { $engineConsole } else { $engineGui }
     $testScripts = @()
     if ($AllTests) {
-        $testScripts = @(
-            'tests/scene/test_course_components.gd',
-            'tests/scene/test_course_01_journey.gd',
-            'tests/scene/test_chase_and_qte_journey.gd',
-            'tests/scene/test_dodge_and_stamina.gd',
-            'tests/scene/test_pokemon_battle.gd',
-            'tests/scene/test_ui_improvements.gd',
-            'tests/scene/test_farm_grounds.gd',
-            'tests/scene/test_chase_polish.gd',
-            'tests/scene/test_full_journey.gd'
-        )
+        # Enumerate every test under tests/ (skip capture_* / *_demo helpers by name filter).
+        $testsRoot = Join-Path $projectRoot 'tests'
+        $testScripts = @(Get-ChildItem -LiteralPath $testsRoot -Recurse -Filter 'test_*.gd' |
+            Sort-Object FullName |
+            ForEach-Object { 'tests/' + $_.FullName.Substring($testsRoot.Length + 1).Replace('\', '/') })
+        Write-Host "Discovered $($testScripts.Count) test suites." -ForegroundColor Cyan
     } elseif ($Test -eq "journey" -or $Test -eq "full") {
         $testScripts = @('tests/scene/test_full_journey.gd')
     } elseif ($Test -eq "course" -or $Test -eq "courses") {
