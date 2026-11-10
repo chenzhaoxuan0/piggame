@@ -5,6 +5,9 @@ builds/
 artifacts/
 *.translation
 
+# Stray generated icon copy (project icon is icon.svg, see project.godot)
+/icon.png
+
 # Godot-specific exports
 *.pck
 *.apk
