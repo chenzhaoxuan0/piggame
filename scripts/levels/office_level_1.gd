@@ -1531,11 +1531,14 @@ func _enter_course(stage_id: String) -> void:
 	player.set_control_mode("explore")
 	if is_instance_valid(camera):
 		camera.set_camera_mode(IsometricCamera.CameraMode.THIRD_PERSON)
-	camera.snap_to_target()
+		# Linear Fall Guys-style track: camera-relative input feeding yaw auto-follow
+		# spins the camera when strafing or backpedaling, so lock yaw to the track axis.
+		camera.tp_auto_follow_yaw = false
+	camera.snap_to_target(active_course.runner.respawn_yaw())
 	active_course.runner.course_started.connect(_on_course_started)
 	active_course.runner.course_completed.connect(_on_course_completed)
 	active_course.runner.qte_requested.connect(_on_qte_requested)
-	active_course.runner.player_respawned.connect(func(_pos: Vector3): camera.snap_to_target())
+	active_course.runner.player_respawned.connect(func(_pos: Vector3): camera.snap_to_target(active_course.runner.respawn_yaw()))
 	_show_toast(active_course.runner.config.title, active_course.runner.config.desc)
 	_refresh_hud()
 
@@ -1602,6 +1605,7 @@ func _exit_course() -> void:
 			child.queue_free()
 	player.set_control_mode("explore")
 	if is_instance_valid(camera):
+		camera.tp_auto_follow_yaw = true
 		camera.set_camera_mode(IsometricCamera.CameraMode.ISOMETRIC)
 	camera.snap_to_target()
 

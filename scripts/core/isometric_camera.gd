@@ -32,6 +32,7 @@ var _canopy_materials: Array[ShaderMaterial] = []
 @export var tp_smooth_pos_y: float = 4.5 # Gentle vertical tracking (absorbs footstep/stair wobble)
 @export var tp_smooth_yaw: float = 2.4 # Smooth turn follow rate
 @export var tp_yaw_deadzone_deg: float = 24.0 # Angle deadzone: minor steering weaves cause 0 camera rotation
+@export var tp_auto_follow_yaw: bool = true # Auto-turn yaw toward movement; disable on linear courses (strafe/backpedal would spin the camera)
 @export var tp_fov_normal: float = 70.0 # Base FOV
 @export var tp_fov_boost: float = 76.0 # Mild Nitro dynamic FOV
 
@@ -58,6 +59,10 @@ func set_camera_mode(new_mode: CameraMode) -> void:
 	snap_to_target()
 
 func _apply_mode_settings() -> void:
+	# Mode switches can happen mid-drag (e.g. crossing the finish line while
+	# right-dragging); without this reset the stale drag state would keep rotating
+	# the camera on the next THIRD_PERSON session.
+	_rmb_dragging = false
 	if mode == CameraMode.THIRD_PERSON:
 		projection = Camera3D.PROJECTION_PERSPECTIVE
 		fov = tp_fov_normal
@@ -124,7 +129,7 @@ func _process_third_person(delta: float) -> void:
 		_tp_pivot.y = lerpf(_tp_pivot.y, raw_pivot.y, 1.0 - exp(-tp_smooth_pos_y * delta))
 
 	# 2. Smooth yaw auto-follow with angular deadzone (eliminates swaying during minor steering)
-	if speed > 1.0 and not _rmb_dragging and _manual_look_timer <= 0.0:
+	if tp_auto_follow_yaw and speed > 1.0 and not _rmb_dragging and _manual_look_timer <= 0.0:
 		var move_angle := atan2(-horiz_vel.x, -horiz_vel.z)
 		var angle_diff := wrapf(move_angle - _tp_yaw, -PI, PI)
 		var deadzone_rad := deg_to_rad(tp_yaw_deadzone_deg)
@@ -163,11 +168,13 @@ func _process_third_person(delta: float) -> void:
 	global_basis = cam_rot
 	global_position = _tp_pivot + cam_rot * Vector3(0.0, 0.0, _tp_current_dist)
 
-func snap_to_target() -> void:
+func snap_to_target(yaw: float = NAN) -> void:
 	_acquire_target()
 	if not is_instance_valid(target):
 		return
 	if mode == CameraMode.THIRD_PERSON:
+		if not is_nan(yaw):
+			_tp_yaw = yaw
 		_tp_pivot = target.global_position + Vector3(0.0, tp_target_height, 0.0)
 		_tp_current_pitch = tp_pitch
 		_tp_current_dist = tp_distance

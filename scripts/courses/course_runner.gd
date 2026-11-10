@@ -29,6 +29,7 @@ var _last_pos: Vector3 = Vector3.INF
 func _ready() -> void:
 	if config == null:
 		config = CourseConfig.new()
+	var collected: Array = []
 	for node in get_tree().get_nodes_in_group("course_checkpoint"):
 		if not get_parent().is_ancestor_of(node):
 			continue
@@ -37,9 +38,14 @@ func _ready() -> void:
 			continue
 		var index: int = int(area.get_meta("checkpoint_index", checkpoints.size()))
 		var pos: Vector3 = area.get_meta("respawn_pos", area.global_position)
-		checkpoints.append(pos)
+		collected.append([index, pos])
 		area.body_entered.connect(_on_checkpoint.bind(index, pos))
-	checkpoints.sort()
+	# Order by checkpoint index: dog routes and respawn_yaw() must follow the course's
+	# travel direction (a plain Array[Vector3].sort() is lexicographic x/y/z and
+	# reverses these tracks, which all run toward -Z).
+	collected.sort()
+	for entry in collected:
+		checkpoints.append(entry[1])
 	for node in get_tree().get_nodes_in_group("course_exit"):
 		if get_parent().is_ancestor_of(node) and node is Area3D:
 			exit_position = node.global_position
@@ -164,6 +170,22 @@ func _rubber_band() -> void:
 
 func can_dog_grapple() -> bool:
 	return started and not completed and not in_qte
+
+func respawn_yaw() -> float:
+	# Third-person camera yaw (0 = looking -Z) aimed along the course from the
+	# current checkpoint toward the next one (or the exit), so respawns and course
+	# entries face down the track instead of wherever the last chase happened to end.
+	var target := exit_position
+	for i in checkpoints.size():
+		if checkpoints[i].distance_to(last_checkpoint) < 0.01:
+			if i + 1 < checkpoints.size():
+				target = checkpoints[i + 1]
+			break
+	var dir := target - last_checkpoint
+	dir.y = 0.0
+	if dir.length_squared() < 0.01:
+		dir = Vector3.FORWARD
+	return atan2(-dir.x, -dir.z)
 
 func _on_dog_grapple(dog: ChaseDog) -> void:
 	if not started or completed:
