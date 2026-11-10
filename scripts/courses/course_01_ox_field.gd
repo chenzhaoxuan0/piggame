@@ -526,7 +526,7 @@ func _build_exit() -> void:
 	_label("（冲入水管直达牛耕地大门入口！）", Vector3(0, 2.6, -98), 18)
 
 func _build_markers() -> void:
-	_area("CourseStart", "course_start", Vector3(0, 1, -2), Vector3(8, 3, 2))
+	_area("CourseStart", "course_start", Vector3(0, 1, -2), Vector3(16, 3, 2)) # Full platform width: no side bypass
 	_checkpoint("Checkpoint1", 1, Vector3(0, 1, -50), Vector3(0, 0.6, -50))
 	_checkpoint("Checkpoint2", 2, Vector3(0, 1, -68), Vector3(0, 0.6, -68))
 	_area("CourseExit", "course_exit", Vector3(0, 1, -98), Vector3(8, 3, 3))

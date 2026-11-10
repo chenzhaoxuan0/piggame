@@ -316,10 +316,10 @@ func _build_exit() -> void:
 	_label("（穿过树洞光幕，前往野马牧场！）", portal_pos + Vector3(0, 6.6, 0), 18)
 
 func _build_markers() -> void:
-	_area("CourseStart", "course_start", Vector3(0, 1, 10), Vector3(8, 3, 2))
+	_area("CourseStart", "course_start", Vector3(0, 1, 10), Vector3(16, 3, 2)) # Full platform width: no side bypass
 	_checkpoint("Checkpoint1", 1, Vector3(0, 1, -18), Vector3(0, 0.6, -18))
 	_checkpoint("Checkpoint2", 2, Vector3(0, 1, -50), Vector3(0, 0.6, -50))
-	_area("CourseExit", "course_exit", Vector3(0, 2, -88), Vector3(4, 5, 3))
+	_area("CourseExit", "course_exit", Vector3(0, 2, -88), Vector3(8, 5, 3))
 
 func _checkpoint(node_name: String, index: int, pos: Vector3, respawn: Vector3) -> void:
 	var area := _area(node_name, "course_checkpoint", pos, Vector3(8, 3, 3))

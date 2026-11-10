@@ -383,10 +383,10 @@ func _voxel_tree(pos: Vector3) -> void:
 	_solid_box("Leaves", Vector3(3.2, 3.2, 3.2), pos + Vector3(0, 4.8, 0), Color("16A34A"))
 
 func _build_markers() -> void:
-	_area("CourseStart", "course_start", Vector3(0, 1, 10), Vector3(8, 3, 2))
+	_area("CourseStart", "course_start", Vector3(0, 1, 10), Vector3(16, 3, 2)) # Full platform width: no side bypass
 	_checkpoint("Checkpoint1", 1, Vector3(0, 1, -9.5), Vector3(0, 0.6, -9.5))
 	_checkpoint("Checkpoint2", 2, Vector3(0, 1, -45), Vector3(0, 0.6, -45))
-	_area("CourseExit", "course_exit", Vector3(0, 2, -82), Vector3(4, 5, 3))
+	_area("CourseExit", "course_exit", Vector3(0, 2, -82), Vector3(8, 5, 3))
 
 func _checkpoint(node_name: String, index: int, pos: Vector3, respawn: Vector3) -> void:
 	var area := _area(node_name, "course_checkpoint", pos, Vector3(8, 3, 3))
