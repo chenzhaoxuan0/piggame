@@ -2,6 +2,7 @@ param(
     [switch]$Packed,
     [string]$Test = "",
     [switch]$AllTests,
+    [switch]$PackCheck,
     [switch]$Console
 )
 $ErrorActionPreference = 'Stop'
@@ -84,6 +85,99 @@ if ($AllTests -or ($Test -ne "")) {
     if ($totalFailures -gt 0) {
         exit 1
     }
+    exit 0
+}
+
+# Pack verification: export the .pck, byte-scan it, and boot it standalone.
+# GDScript preload dependencies are NOT auto-collected by the "resources" export
+# filter, so anything missing from export_files only shows up here.
+if ($PackCheck) {
+    $engine = if ($engineConsole) { $engineConsole } else { $engineGui }
+    $pack = Join-Path $projectRoot 'builds/windows/PigGoldenFarm.pck'
+    New-Item -ItemType Directory -Path (Split-Path $pack -Parent) -Force | Out-Null
+
+    # Native stderr must not trip $ErrorActionPreference='Stop' (the headless dummy
+    # renderer prints harmless ERROR lines), so capture both streams as plain text.
+    function Invoke-EngineLogged([string[]]$EngineArgs, [string]$LogPath, [string]$WorkDir = '') {
+        $previous = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        try {
+            if ($WorkDir -ne '') { Push-Location $WorkDir }
+            & $engine @EngineArgs 2>&1 | ForEach-Object { "$_" } | Out-File -FilePath $LogPath -Encoding utf8
+            return $LASTEXITCODE
+        } finally {
+            if ($WorkDir -ne '') { Pop-Location }
+            $ErrorActionPreference = $previous
+        }
+    }
+
+    Write-Host "Exporting pack..." -ForegroundColor Cyan
+    $exportLog = Join-Path $buildsDir 'export_pack.log'
+    $exportExit = Invoke-EngineLogged @('--headless', '--path', $projectRoot, '--export-pack', 'Windows Art Demo', $pack) $exportLog
+    if ($exportExit -ne 0 -or -not (Test-Path -LiteralPath $pack)) {
+        Get-Content $exportLog -Tail 30
+        throw "Export failed (exit $exportExit). See $exportLog"
+    }
+    if (Select-String -Path $exportLog -Pattern 'SCRIPT ERROR' -Quiet) {
+        Select-String -Path $exportLog -Pattern 'SCRIPT ERROR' | Select-Object -First 10
+        throw "Export log contains script errors. See $exportLog"
+    }
+    Write-Host ("Exported {0:N1} MB" -f ((Get-Item -LiteralPath $pack).Length / 1MB)) -ForegroundColor Green
+
+    Write-Host "Scanning pack contents..." -ForegroundColor Cyan
+    $bytes = [System.IO.File]::ReadAllBytes($pack)
+    $text = [System.Text.Encoding]::GetEncoding(28591).GetString($bytes)
+    $mustContain = @(
+        'res://scripts/battle/pokemon_showdown.gd.remap',
+        'res://scripts/courses/course_02_creek.gd.remap',
+        'res://scripts/courses/course_03_woodland.gd.remap',
+        'res://scripts/courses/course_04_courtyard.gd.remap',
+        'res://scenes/courses/course_02_creek.tscn.remap',
+        'res://scenes/courses/course_03_woodland.tscn.remap',
+        'res://scenes/courses/course_04_courtyard.tscn.remap',
+        'voxel_push_block.gd.remap', 'voxel_slime_block.gd.remap', 'voxel_water_stream.gd.remap',
+        'voxel_pressure_plate.gd.remap', 'voxel_obsidian_wall.gd.remap',
+        'cardboard_box_prop.gd.remap', 'pinecone_prop.gd.remap', 'patrol_vision_cone.gd.remap',
+        'illusory_wall.gd.remap', 'mimic_chest.gd.remap', 'bouncy_mushroom.gd.remap',
+        'boost_pad.gd.remap', 'watermelon_peel.gd.remap', 'racing_finish_gate.gd.remap',
+        'mystery_item_box.gd.remap', 'stunt_jump_ramp.gd.remap', 'neon_bumper.gd.remap',
+        'pastoral_farm.scn', 'runtime_catalog.json'
+    )
+    # Absent checks target real pack entries (.remap/.gdc/.import), because plain path
+    # strings also appear inside the packed .godot/uid_cache.bin for every project resource.
+    $mustAbsent = @(
+        'res://.env', '_lux3d.zip', 'res://tests/', 'res://scenes/tests/',
+        'farm_greybox.tscn.remap', 'farm_greybox.gd.remap', 'test_greybox.gd.remap',
+        'character_selection.tscn.remap', 'character_selection.gd.remap', 'character_selection.gdc',
+        'produce_assets.py', 'production.json'
+    )
+    $mustAbsentRegex = @(
+        'res://assets/art_references/[\w\-./]{1,150}\.import'
+    )
+    $bad = $false
+    foreach ($needle in $mustContain) {
+        if (-not $text.Contains($needle)) { Write-Host "PACK MISSING: $needle" -ForegroundColor Red; $bad = $true }
+    }
+    foreach ($needle in $mustAbsent) {
+        if ($text.Contains($needle)) { Write-Host "PACK LEAKED: $needle" -ForegroundColor Red; $bad = $true }
+    }
+    foreach ($re in $mustAbsentRegex) {
+        if ([regex]::IsMatch($text, $re)) { Write-Host "PACK LEAKED (regex): $re" -ForegroundColor Red; $bad = $true }
+    }
+    if ($bad) { throw 'Pack content check failed.' }
+    Write-Host "Pack contents OK." -ForegroundColor Green
+
+    Write-Host "Booting pack standalone from an empty folder..." -ForegroundColor Cyan
+    $probeDir = New-Item -ItemType Directory -Path (Join-Path $env:TEMP ("packprobe_" + [guid]::NewGuid().ToString('N'))) -Force
+    $probeLog = Join-Path $probeDir 'probe.log'
+    [void](Invoke-EngineLogged @('--headless', '--main-pack', $pack, '--quit-after', '300') $probeLog $probeDir.FullName)
+    $errors = Select-String -Path $probeLog -Pattern 'SCRIPT ERROR', 'Failed to load script', 'Parse Error'
+    if ($errors) {
+        $errors | Select-Object -First 10 | ForEach-Object { Write-Host $_.Line -ForegroundColor Red }
+        throw "Exported pack fails to boot. See $probeLog"
+    }
+    Remove-Item -Recurse -Force $probeDir.FullName -ErrorAction SilentlyContinue
+    Write-Host "PACK CHECK PASSED" -ForegroundColor Green
     exit 0
 }
 

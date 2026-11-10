@@ -7,12 +7,29 @@ func _initialize() -> void:
 func _check(value: bool, message: String) -> void:
 	if not value:
 		failures += 1
-		push_error(message)
+		push_error("EXPORT_PACK_FAIL: " + message)
 
 func _run() -> void:
+	# Catalog must stay grouped: 18 core + 18 ENV_09 dressing + 13 course-1 props = 49.
+	# NOTE: "production-only file excluded" checks moved to scripts/art/run_demo.ps1 -PackCheck,
+	# which byte-scans the exported .pck (running this script against the source tree can
+	# never prove pack exclusions because res:// falls back to the project directory).
 	var assets = load("res://scripts/art/asset_library.gd")
 	var catalog: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/models/aholo/runtime_catalog.json"))
-	_check(catalog.assets.size() == 36, "all runtime models packaged")
+	var core := 0
+	var dressing := 0
+	var course := 0
+	for id in catalog.assets:
+		if id.begins_with("ENV_09_"):
+			dressing += 1
+		elif id.begins_with("PROP_C1_"):
+			course += 1
+		else:
+			core += 1
+	_check(core == 18, "18 core assets delivered (got %d)" % core)
+	_check(dressing == 18, "18 diverse dressing modules delivered (got %d)" % dressing)
+	_check(course == 13, "13 course-1 props delivered (got %d)" % course)
+	_check(catalog.assets.size() == 49, "catalog holds 49 runtime models (got %d)" % catalog.assets.size())
 	for id in catalog.assets:
 		var visual: Node3D = assets.make(id)
 		_check(visual != null, "packed model loads: " + id)
@@ -20,10 +37,9 @@ func _run() -> void:
 	var art = load("res://scripts/art/art_2d.gd")
 	for portrait in art.PORTRAITS.values(): _check(portrait != null and portrait.get_width() > 0, "packed portrait loads")
 	for ending in art.ENDINGS.values(): _check(ending != null and ending.get_width() > 0, "packed ending loads")
-	for private_path in ["res://.env", "res://assets/models/aholo/production.json", "res://scripts/art/produce_assets.py", "res://assets/models/aholo/CHAR_01/CHAR_01_lux3d.zip", "res://assets/models/aholo/_input/CHAR_01/subject.png"]:
-		_check(not FileAccess.file_exists(private_path), "production-only file excluded: " + private_path)
-	for private_path in ["res://assets/models/aholo/dressing_production.json","res://assets/models/aholo/ENV_09_BARREL/ENV_09_BARREL_lux3d.zip","res://assets/models/aholo/ENV_09_BARREL/ENV_09_BARREL.glb","res://assets/models/aholo/ENV_09_BARREL/source/ENV_09_BARREL.blend","res://assets/models/aholo/_input/ENV_09_BARREL/subject.png"]:
-		_check(not FileAccess.file_exists(private_path),"dressing source excluded: "+private_path)
+	for course_scene in ["course_01_ox_field", "course_02_creek", "course_03_woodland", "course_04_courtyard"]:
+		var packed = load("res://scenes/courses/%s.tscn" % course_scene)
+		_check(packed != null, "course scene loads: " + course_scene)
 	var game: Node3D = load("res://scenes/levels/office_level_1.tscn").instantiate()
 	root.add_child(game)
 	await create_timer(0.7).timeout
