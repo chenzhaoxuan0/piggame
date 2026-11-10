@@ -47,8 +47,9 @@ description: "用 Aholo Lux3D 把 2D 概念图或文本变成 3D 模型（GLB/gl
 调用 `lux3d_text_to_3d`，必填 `prompt` 与 `style`，`style` 取值：
 `photorealistic` / `cartoon` / `anime` / `hand_painted` / `cyberpunk` / `fantasy` / `glass`。
 
-本项目风格统一是《无题大鹅模拟》式的极简低多边形平涂，最接近的是 `cartoon`；
-但**首选还是图生 3D** —— 已有 2D 概念图做基准，风格一致性远高于纯文本生成。
+本项目是**分区画风制**（2026-11-09 起，见 `docs/art/01_ART_STYLE_GUIDE_AND_PROMPT_SYSTEM.md` v3.0.0 的分区子规范）：
+**角色资产恒定《无题大鹅模拟》式极简低多边形平涂**（最接近 `cartoon`）；**赛道区域资产**（体素溪流、童话林间、荧光竞速大院等）
+必须按所属分区的画风子规范生成，不得把区域资产也压成大鹅平涂。但**首选还是图生 3D** —— 已有 2D 概念图做基准，风格一致性远高于纯文本生成。
 可直接复用的文生 3D 提示词在 `docs/art/02_CHARACTER_PROMPTS.md`（各角色 §X.4）与
 `docs/art/03_CORE_PROP_AND_3D_ASSET_PROMPTS.md`（各道具 §X.3）的「Aholo Lux3D 专用生成提示词」小节。
 
@@ -70,9 +71,10 @@ description: "用 Aholo Lux3D 把 2D 概念图或文本变成 3D 模型（GLB/gl
 
 ## 本项目风格约束（生成前先对齐）
 
-Lux3D 出来的模型必须回到《无题大鹅模拟》的质感，否则合不进 Godot 主场景：
+**角色资产**（猪、伙伴、恶犬等）必须回到《无题大鹅模拟》的质感；**赛道区域资产**按 `docs/art/01` 的分区子规范（溪流=体素、林间=童话手绘、大院=霓虹竞速）对齐，否则合不进 Godot 主场景：
 
-- 极简低多边形、平涂纯色块，零高频噪点贴图，圆润倒角，不要写实毛发/金属锈迹。
+- 角色与牛耕地（基准世界）：极简低多边形、平涂纯色块，零高频噪点贴图，圆润倒角，不要写实毛发/金属锈迹。
+- 区域资产：先读 `docs/art/01_ART_STYLE_GUIDE_AND_PROMPT_SYSTEM.md` 对应分区的画风条目再写提示词。
 - 材质用纯色为主，引擎侧用 `StandardMaterial3D` + `diffuse_mode = Toon` 统一赋色。
 - 主体配色以 `docs/art/01_ART_STYLE_GUIDE_AND_PROMPT_SYSTEM.md` 的色板为准
   （猪 `#F7C5C8`、耳标 `#FCD34D`、插销 `#52B788` + `#B85D3D`、黑土 `#3E2723`、草地 `#74A87C`、麦浪 `#F59E0B`）。

@@ -1,4 +1,8 @@
 # 《特立独行的猪》技术对接规范
+
+> ⚠️ **已废弃（2026-11-01 起题材切换为农场，AHOLO/GPT6 Astra 在线叙事方案不再适用）**，仅留档。
+> 现行 3D 管线事实源：`docs/art/06_AHOLO_LUX3D_PIPELINE_AND_QUICKSTART.md` 与 `.agent/skill/aholo-lux3d/`。
+
 ## 群核科技 AHOLO (3D空间/场景资产) + GPT6 Astra 智能叙事
 
 ---

@@ -2,6 +2,10 @@
 
 > 所有 AI Agent（Codex / Cursor / Claude Code / OpenCode / MCode 等）进入本仓库的第一入口。
 > `docs/art/` 负责定义「要什么」（风格与提示词），本文件负责定义「怎么干、产物放哪、哪些不能做」。
+>
+> **先确认你在哪个工作区**：本文件描述的是**美术线**（`piggame-art` 目录 / `art-concept` 分支的约定，master 上保留同一份规范）。
+> 若你在**玩法线仓库**（`piggame` 目录 / `master` 分支——玩法、赛道、测试都在这里）：上手看 `README.md` 与 `docs/DEMO_AGENT_CONTRACT.md`，
+> 跑测试用根目录 `run_tests.bat`（等价 `scripts/art/run_demo.ps1 -AllTests`，导出包校验用 `-PackCheck`），提交纪律同 §3.3。
 
 ## 1. 仓库定位
 

@@ -7,6 +7,7 @@ artifacts/
 
 # Stray generated icon copy (project icon is icon.svg, see project.godot)
 /icon.png
+/icon.png.import
 
 # Godot-specific exports
 *.pck

@@ -1,10 +1,10 @@
 # 一口猪在金牌农场
 
-Godot 4.3，版本 `0.6.0-enriched-farm`。36 件运行模型、七个角色骨骼动画、头像和结局插画已接入可玩流程。从海拔 32 米猪圈逐级下行，途经折返山路、断桥、耕地、羊棚、50 米直道马场、弯道追逐和索道路。本轮新增 18 件 Lux3D 植物与农牧器具，以 1,684 个批量实例丰富场地，并用连续山坡承接道路和台地边缘。
+Godot 4.3，版本 `0.6.0-enriched-farm`。49 件运行模型（36 件农牧场景 + 13 件牛耕地赛道道具）、七个角色骨骼动画、头像和结局插画已接入可玩流程。从海拔 32 米猪圈逐级下行，途经折返山路、断桥、耕地、羊棚、50 米直道马场、弯道追逐和索道路；另有四条隐藏赛道（水管进入）：糖豆人式牛耕地、《我的世界》体素溪流、潜行林间与马车竞速大院。本轮新增 18 件 Lux3D 植物与农牧器具，以 1,684 个批量实例丰富场地，并用连续山坡承接道路和台地边缘。
 
 ## 运行
 
-用 Godot 4.3 打开 `project.godot` 后运行，或在仓库根目录执行：
+用 Godot 4.3 打开 `project.godot` 后运行，或在仓库根目录执行 `run_demo.bat`（等价 `powershell -File scripts/art/run_demo.ps1`）：
 
 ```powershell
 powershell -File scripts/art/run_demo.ps1
@@ -12,11 +12,13 @@ powershell -File scripts/art/run_demo.ps1
 
 WASD / 方向键移动，鼠标点击地面沿路前往，空格跳跃，F 交互，Shift 冲刺，Esc 暂停及设置。默认镜头高度和正交视野均为旧版一半；设置中的「测试用高视角」仅在本次运行启用。跟随序幕选择进入蓝结局或沿农场前往铁门与索道。
 
-本机的 `builds/windows/PigGoldenFarm.pck` 是经过验证的运行资源包，可用 `powershell -File scripts/art/run_demo.ps1 -Packed` 运行。它需要项目自带 Godot 引擎，不是独立安装包。`builds/` 不入库，可通过导出配置重建：
+本机的 `builds/windows/PigGoldenFarm.pck` 是经过验证的运行资源包，可用 `powershell -File scripts/art/run_demo.ps1 -Packed` 运行。它需要项目自带 Godot 引擎，不是独立安装包。`builds/` 不入库，可重建并一并校验（导出 + 包内容扫描 + 空目录启动探测）：
 
 ```powershell
-godot --headless --path . --export-pack "Windows Art Demo" builds/windows/PigGoldenFarm.pck
+powershell -File scripts/art/run_demo.ps1 -PackCheck
 ```
+
+跑全部回归测试用根目录 `run_tests.bat`（等价 `scripts/art/run_demo.ps1 -AllTests`，会自动枚举 `tests/` 下全部 `test_*.gd`，约 12 分钟）。
 
 ## 资产与验证
 
@@ -27,7 +29,7 @@ godot --headless --path . --export-pack "Windows Art Demo" builds/windows/PigGol
 - `assets/models/aholo/`：原始模型、运行时模型、预览、输入和 Blender 源文件。
 - `assets/art_references/enriched_farm/`：当前 54 张默认近景截图和新增 18 件模型的预览目录。
 - `assets/art_references/delivery/`：既有角色资产验收图。
-- `tests/scene/test_art_assets.gd`：36 件资产、骨骼运动、道具和门的状态回归。
+- `tests/scene/test_art_assets.gd`：49 件资产、骨骼运动、道具和门的状态回归。
 - `tests/scene/test_full_journey.gd`：真实渲染、正常移动、追逐、对决与双结局回归。
 - `tests/scene/test_export_pack.gd`：独立运行包的资源完整性检查。
 - `tests/scene/test_pastoral_environment.gd`：沿正常道路走访牛、羊、马并完成故事，验证新建筑碰撞与烘焙场景接入。

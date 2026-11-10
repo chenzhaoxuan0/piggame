@@ -1,4 +1,8 @@
 # 《特立独行的猪：逃离牛马大厦》
+
+> ⚠️ **已废弃（2026-11-01 起题材切换为农场《一口猪在金牌农场》）**：本文的办公室/"牛马大厦"设定与现行实现完全不符，仅留档。
+> 现行角色与故事事实源：`docs/GDD_GAME_DESIGN.md`、`docs/PIG_STORY_LINE_FULL.md`、`docs/DIALOGUE_SCRIPT_AND_EVENT_MAPPING.md`。
+
 ## 角色设计规范、故事剧本与职场融梗体系
 
 ---
