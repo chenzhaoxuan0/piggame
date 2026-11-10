@@ -14,6 +14,11 @@ const VOXEL_STREAM = preload("res://scripts/courses/components/voxel_water_strea
 const CARDBOARD_BOX = preload("res://scripts/courses/components/cardboard_box_prop.gd")
 const ILLUSORY_WALL = preload("res://scripts/courses/components/illusory_wall.gd")
 const MIMIC_CHEST = preload("res://scripts/courses/components/mimic_chest.gd")
+const VOXEL_SLIME = preload("res://scripts/courses/components/voxel_slime_block.gd")
+const PINECONE_PROP = preload("res://scripts/courses/components/pinecone_prop.gd")
+const MYSTERY_BOX = preload("res://scripts/courses/components/mystery_item_box.gd")
+const STUNT_RAMP = preload("res://scripts/courses/components/stunt_jump_ramp.gd")
+const NEON_BUMPER = preload("res://scripts/courses/components/neon_bumper.gd")
 
 var failures := 0
 
@@ -236,6 +241,51 @@ func _run() -> void:
 	f_gate._on_finish_entered(pig)
 	_check(f_gate.is_finished and f_gate.banner_label.visible, "RacingFinishGate drops record broken victory banner")
 	f_gate.queue_free()
+
+	# VoxelSlimeBlock
+	var slime = VOXEL_SLIME.new()
+	root.add_child(slime)
+	await process_frame
+	pig.reset_at(Vector3(0, 1.2, 0))
+	slime._on_body_entered(pig)
+	_check(pig.velocity.y > 0.0, "VoxelSlimeBlock launches pig upwards")
+	slime.queue_free()
+
+	# PineconeProp
+	var cone = PINECONE_PROP.new()
+	root.add_child(cone)
+	await process_frame
+	cone.pickup(pig)
+	_check(cone.is_held, "PineconeProp can be picked up by player")
+	cone.throw_cone()
+	_check(cone.is_spent, "PineconeProp can be thrown to distract dog")
+	cone.queue_free()
+
+	# MysteryItemBox
+	var m_box = MYSTERY_BOX.new()
+	root.add_child(m_box)
+	await process_frame
+	m_box._collect(pig)
+	_check(not m_box.is_active, "MysteryItemBox collects and activates roulette power-up")
+	m_box.queue_free()
+
+	# StuntJumpRamp
+	var ramp = STUNT_RAMP.new()
+	root.add_child(ramp)
+	await process_frame
+	pig.reset_at(Vector3(0, 2.0, 0))
+	ramp._on_player_crest(pig)
+	_check(pig.velocity.y > 0.0, "StuntJumpRamp launches pig for 360 aerial stunt")
+	ramp.queue_free()
+
+	# NeonBumper
+	var n_bumper = NEON_BUMPER.new()
+	root.add_child(n_bumper)
+	await process_frame
+	pig.reset_at(Vector3(0, 0.5, 2.0))
+	n_bumper._on_body_entered(pig)
+	_check(pig.velocity.length() > 0.0, "NeonBumper repels target with pinball bounce")
+	n_bumper.queue_free()
 
 	await process_frame
 	print("\nALL COURSE COMPONENT TESTS DONE: %d failures" % failures)

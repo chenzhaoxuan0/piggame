@@ -74,19 +74,30 @@ func _process(_delta: float) -> void:
 	if game_manager != null and "has_discern_skill" in game_manager:
 		has_discern = game_manager.has_discern_skill
 
-	if has_discern:
-		hint_label.visible = true
-		if is_mimic:
+	var t := Time.get_ticks_msec() * 0.003
+	if is_mimic:
+		# Subtle Souls-like breathing tell: lid slowly rises and drops
+		lid_mesh.position.y = 0.9 + sin(t) * 0.04
+		if has_discern:
+			hint_label.visible = true
 			hint_label.text = "【⚠ 宝箱怪】\n在诡异地呼吸，切勿触碰！"
 			hint_label.modulate = Color("F43F5E")
-			# Breathing animation
-			var t := Time.get_ticks_msec() / 300.0
-			lid_mesh.position.y = 0.9 + sin(t) * 0.08
 		else:
+			hint_label.visible = true
+			hint_label.text = "zZz..."
+			hint_label.font_size = 16
+			hint_label.modulate = Color("A855F788")
+	else:
+		lid_mesh.position.y = 0.9
+		if has_discern:
+			hint_label.visible = true
 			hint_label.text = "【★ 真实秘宝】\n散发着诱人的红薯香气！"
 			hint_label.modulate = COLOR_GOLD
-	else:
-		hint_label.visible = false
+		else:
+			hint_label.visible = true
+			hint_label.text = "✨ 秘宝箱 ✨"
+			hint_label.font_size = 16
+			hint_label.modulate = Color("FDE047AA")
 
 func _on_player_entered(player: Node3D) -> void:
 	if is_triggered:
@@ -113,7 +124,30 @@ func _trigger_mimic_bite(player: Node3D) -> void:
 
 	chest_opened.emit(self, true)
 
-func _trigger_real_treasure(_player: Node3D) -> void:
+func _trigger_real_treasure(player: Node3D) -> void:
 	var tween := create_tween()
 	tween.tween_property(lid_mesh, "rotation:x", -deg_to_rad(90.0), 0.3)
+
+	# Pop up golden sweet potato speed buff
+	if player is CharacterBody3D and "move_speed" in player:
+		var orig_speed: float = player.move_speed
+		player.move_speed = orig_speed * 1.45
+		var buff_lbl := Label3D.new()
+		buff_lbl.text = "🍠 获得黄金红薯！\n【移动速度 +45%！】"
+		buff_lbl.font_size = 24
+		buff_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		buff_lbl.modulate = Color("FACC15")
+		buff_lbl.outline_modulate = Color("78350F")
+		buff_lbl.outline_size = 6
+		buff_lbl.position = Vector3(0, 2.2, 0)
+		player.add_child(buff_lbl)
+
+		var timer := player.get_tree().create_timer(6.0)
+		timer.timeout.connect(func():
+			if is_instance_valid(player) and "move_speed" in player:
+				player.move_speed = orig_speed
+			if is_instance_valid(buff_lbl):
+				buff_lbl.queue_free()
+		)
+
 	chest_opened.emit(self, false)

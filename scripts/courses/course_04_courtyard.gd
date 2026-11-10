@@ -8,6 +8,9 @@ const CONFIG_SCRIPT = preload("res://scripts/courses/course_config.gd")
 const BOOST_PAD = preload("res://scripts/courses/components/boost_pad.gd")
 const WATERMELON_PEEL = preload("res://scripts/courses/components/watermelon_peel.gd")
 const RACING_FINISH_GATE = preload("res://scripts/courses/components/racing_finish_gate.gd")
+const MYSTERY_ITEM_BOX = preload("res://scripts/courses/components/mystery_item_box.gd")
+const STUNT_JUMP_RAMP = preload("res://scripts/courses/components/stunt_jump_ramp.gd")
+const NEON_BUMPER = preload("res://scripts/courses/components/neon_bumper.gd")
 
 const SPAWN := Vector3(0, 0.6, 12)
 const RACING_ASPHALT := Color("1E293B") # Dark asphalt
@@ -33,6 +36,9 @@ func _ready() -> void:
 	_build_start_grid()
 	_build_boost_pads()
 	_build_watermelon_trap()
+	_build_mystery_item_boxes()
+	_build_stunt_ramp()
+	_build_neon_bumpers()
 	_build_finish_gate()
 	_build_decorations()
 	_build_markers()
@@ -72,6 +78,9 @@ func _make_config() -> CourseConfig:
 	cfg.memes = {
 		"course_start": {"title": "3... 2... 1... 起跑！", "text": "切换极速街机赛道！踩加速带漂移过弯，冲刺打破世界纪录！", "duration": 3.0},
 		"boost_pad": {"title": "屁股喷火！极速加速！", "text": "踩中加速带！氮气爆发，瞬间拉开身后恶犬十个身位！", "duration": 2.2},
+		"mystery_box": {"title": "❓ 撞碎问号道具箱！", "text": "道具抽取成功！火箭喷射/后置西瓜皮/无敌金猪！", "duration": 2.2},
+		"stunt_jump": {"title": "🏁 360° 空中特技！", "text": "一口猪飞跃霓虹大跳台！完美落地获得迷你涡轮加速！", "duration": 2.5},
+		"neon_bumper": {"title": "🎯 霓虹弹珠台反弹！", "text": "BOING！撞击霓虹缓冲柱，极限折线弹射过弯！", "duration": 2.0},
 		"watermelon_slip": {"title": "恶犬踩中西瓜皮！", "text": "汪汪汪？！恶犬原地狂转3圈！摔了个狗吃屎！", "duration": 2.5},
 		"horse_dash": {"title": "野马【疾风之步】全开！", "text": "终点直道极速冲刺！打破 35 秒世界纪录的唯一机会！", "duration": 2.5},
 		"record_broken": {"title": "🏁 00:34.88！新世界纪录！ 🏁", "text": "一口猪成功打破农场纪录！欢呼声中一头撞破办公室大门！", "duration": 3.5},
@@ -202,6 +211,67 @@ func _build_watermelon_trap() -> void:
 	)
 
 	_label("【西瓜皮陷阱】身后恶犬踩中会原地打转3圈！", Vector3(0, 2.5, -34.0), 20)
+
+func _build_mystery_item_boxes() -> void:
+	# Item box 1 on Straight A (Z = -6.0)
+	var box_1 = MYSTERY_ITEM_BOX.new()
+	box_1.name = "MysteryItemBox1"
+	box_1.position = Vector3(-2.0, 0, -6.0)
+	add_child(box_1)
+	box_1.item_collected.connect(func(_item, _p):
+		if meme_layer:
+			meme_layer.play("mystery_box")
+	)
+
+	# Item box 2 on Hairpin curve B (Z = -30.0)
+	var box_2 = MYSTERY_ITEM_BOX.new()
+	box_2.name = "MysteryItemBox2"
+	box_2.position = Vector3(2.2, 0, -30.0)
+	add_child(box_2)
+	box_2.item_collected.connect(func(_item, _p):
+		if meme_layer:
+			meme_layer.play("mystery_box")
+	)
+
+	_label("【马车问号道具箱】撞碎抽取火箭推进、后置西瓜皮或无敌金猪！", Vector3(0, 2.8, -6.0), 22)
+
+func _build_stunt_ramp() -> void:
+	# Stunt Jump Ramp leading into the final sprint straightaway (Z = -50.0)
+	var ramp = STUNT_JUMP_RAMP.new()
+	ramp.name = "StuntMegaRamp"
+	ramp.position = Vector3(0, 0, -50.0)
+	ramp.launch_vertical = 10.0
+	ramp.launch_forward = 24.0
+	add_child(ramp)
+
+	ramp.ramp_jumped.connect(func(_r, _p):
+		if meme_layer:
+			meme_layer.play("stunt_jump")
+	)
+
+	_label("【特技大跳台】极速冲刺飞天360度翻滚特技！", Vector3(0, 3.6, -48.0), 22)
+
+func _build_neon_bumpers() -> void:
+	# Pinball bumpers at curve apexes to ricochet around corners
+	var bumper_1 = NEON_BUMPER.new()
+	bumper_1.name = "NeonBumper1"
+	bumper_1.position = Vector3(-4.0, 0, -28.0)
+	add_child(bumper_1)
+	bumper_1.bumper_hit.connect(func(_b, _target):
+		if meme_layer:
+			meme_layer.play("neon_bumper")
+	)
+
+	var bumper_2 = NEON_BUMPER.new()
+	bumper_2.name = "NeonBumper2"
+	bumper_2.position = Vector3(4.0, 0, -42.0)
+	add_child(bumper_2)
+	bumper_2.bumper_hit.connect(func(_b, _target):
+		if meme_layer:
+			meme_layer.play("neon_bumper")
+	)
+
+	_label("【霓虹弹力缓冲柱】精准反弹实现极致折线漂移！", Vector3(-4.0, 2.4, -28.0), 18)
 
 func _build_finish_gate() -> void:
 	# Racing finish gantry at Z = -85.0

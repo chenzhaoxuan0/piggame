@@ -6,6 +6,7 @@ const MEME_SCRIPT = preload("res://scripts/courses/meme_layer.gd")
 const CONFIG_SCRIPT = preload("res://scripts/courses/course_config.gd")
 
 const CARDBOARD_BOX = preload("res://scripts/courses/components/cardboard_box_prop.gd")
+const PINECONE_PROP = preload("res://scripts/courses/components/pinecone_prop.gd")
 const PATROL_VISION_CONE = preload("res://scripts/courses/components/patrol_vision_cone.gd")
 const ILLUSORY_WALL = preload("res://scripts/courses/components/illusory_wall.gd")
 const MIMIC_CHEST = preload("res://scripts/courses/components/mimic_chest.gd")
@@ -87,7 +88,8 @@ func _make_config() -> CourseConfig:
 	cfg.dog_speed_max = 5.2
 	cfg.memes = {
 		"course_start": {"title": "步入迷雾古林！", "text": "童话森林雾气氤氲，恶犬在小径巡逻！请寻找掩护！", "duration": 3.0},
-		"box_equip": {"title": "纸箱潜行模式！", "text": "【！】装备纸箱！静止不动时巡逻恶犬直接无视！", "duration": 2.5},
+		"box_equip": {"title": "纸箱潜行模式！", "text": "【！】装备纸箱！静止不动时巡逻恶犬直接无视！按Shift可俯冲保龄撞狗！", "duration": 2.5},
+		"pinecone_thrown": {"title": "声东击西！", "text": "金松果啪嗒落地！恶犬循声四处张望，视线被完全引开！", "duration": 2.5},
 		"dog_alert": {"title": "【！】警报拉响！", "text": "恶犬察觉到了异动！快原地呆住或逃出视线！", "duration": 2.2},
 		"dog_confused": {"title": "恶犬疑惑：？", "text": "……只是个普通的纸箱，好像是我看花眼了。", "duration": 2.2},
 		"mimic_bite": {"title": "《魂系》经典宝箱怪！", "text": "嗷呜！小猪屁股被咬了一大口！开启洞察之眸才能看穿呼吸！", "duration": 2.5},
@@ -124,7 +126,7 @@ func _build_surroundings() -> void:
 		_storybook_tree(Vector3(7, 0, z))
 
 func _build_stealth_zone() -> void:
-	# 1. Cardboard Box placed at the trail entrance
+	# 1. Cardboard Box placed at the trail entrance (Left)
 	stealth_box = CARDBOARD_BOX.new()
 	stealth_box.name = "StealthCardboardBox"
 	stealth_box.position = Vector3(-1.8, 0, 5.0)
@@ -135,12 +137,24 @@ func _build_stealth_zone() -> void:
 			meme_layer.play("box_equip")
 	)
 
-	_label("【纸箱潜行】按E套上纸箱，在恶犬视锥前静止隐匿！", Vector3(0, 2.2, 5.0), 20)
+	# 2. Golden Pinecone placed at trail entrance (Right)
+	var pinecone = PINECONE_PROP.new()
+	pinecone.name = "GoldenPinecone"
+	pinecone.position = Vector3(1.8, 0, 5.0)
+	add_child(pinecone)
 
-	# 2. Patrol Guard Dog with Vision Cone patrolling between Z = 0 and Z = -18
+	pinecone.pinecone_thrown.connect(func(_pos):
+		if meme_layer:
+			meme_layer.play("pinecone_thrown")
+	)
+
+	_label("【林间潜行双路线】\n左：[E] 穿上纸箱隐匿与 [Shift] 俯冲保龄撞狗！\n右：[F] 拾取金松果投掷，声东击西引开恶犬视线！", Vector3(0, 2.5, 5.0), 22)
+
+	# 3. Patrol Guard Dog with Vision Cone patrolling between Z = 0 and Z = -18
 	patrol_dog = Node3D.new()
 	patrol_dog.name = "PatrolDogGuard"
 	patrol_dog.position = Vector3(0, 0.5, -6.0)
+	patrol_dog.add_to_group("chase_dogs")
 
 	var dog_mesh := MeshInstance3D.new()
 	dog_mesh.name = "DogMesh"

@@ -17,8 +17,11 @@ var current_patrol_idx: int = 0
 var alert_billboard: Label3D
 var cone_mesh: MeshInstance3D
 var target_player: Node3D
+var _distract_timer: float = 0.0
+var _distract_target: Vector3 = Vector3.ZERO
 
 func _ready() -> void:
+	add_to_group("patrol_vision_cones")
 	_setup_cone_visual()
 	_setup_alert_billboard()
 
@@ -53,7 +56,28 @@ func _setup_alert_billboard() -> void:
 	alert_billboard.visible = false
 	add_child(alert_billboard)
 
+func distract_towards(pos: Vector3, duration: float = 4.5) -> void:
+	_distract_timer = duration
+	_distract_target = pos
+	_set_alert(false)
+	if alert_billboard:
+		alert_billboard.text = "？"
+		alert_billboard.modulate = Color("FACC15")
+		alert_billboard.visible = true
+	var dir := (pos - global_position)
+	dir.y = 0.0
+	if dir.length_squared() > 0.01:
+		look_at(global_position + dir.normalized(), Vector3.UP)
+
 func _physics_process(delta: float) -> void:
+	if _distract_timer > 0.0:
+		_distract_timer -= delta
+		if _distract_timer <= 0.0 and alert_billboard:
+			alert_billboard.visible = false
+			alert_billboard.text = "！"
+			alert_billboard.modulate = Color("EF4444")
+		return
+
 	_patrol_movement(delta)
 	_scan_for_player()
 

@@ -6,6 +6,7 @@ const MEME_SCRIPT = preload("res://scripts/courses/meme_layer.gd")
 const CONFIG_SCRIPT = preload("res://scripts/courses/course_config.gd")
 
 const VOXEL_PUSH_BLOCK = preload("res://scripts/courses/components/voxel_push_block.gd")
+const VOXEL_SLIME_BLOCK = preload("res://scripts/courses/components/voxel_slime_block.gd")
 const VOXEL_WATER_STREAM = preload("res://scripts/courses/components/voxel_water_stream.gd")
 const VOXEL_PRESSURE_PLATE = preload("res://scripts/courses/components/voxel_pressure_plate.gd")
 const VOXEL_OBSIDIAN_WALL = preload("res://scripts/courses/components/voxel_obsidian_wall.gd")
@@ -35,6 +36,7 @@ var canyon_dog: Node3D
 func _ready() -> void:
 	_build_ground_and_structures()
 	_build_creek_puzzle()
+	_build_slime_blocks()
 	_build_sand_canyon_puzzle()
 	_build_tnt_obsidian_puzzle()
 	_build_nether_portal_exit()
@@ -70,6 +72,8 @@ func _make_config() -> CourseConfig:
 	cfg.memes = {
 		"course_start": {"title": "进入《我的世界》体素次元！", "text": "画风与玩法突变！小猪化身体素工匠，前方水流急促！", "duration": 3.0},
 		"water_splash": {"title": "小猪落水！", "text": "湍急的体素溪流！被冲回岸边狗刨中……", "duration": 2.2},
+		"water_slide": {"title": "🌊 瀑布急流滑梯！", "text": "咻——！一口猪顺着瀑布急流飞速滑入峡谷！", "duration": 2.2},
+		"slime_bounce": {"title": "🟩 史莱姆超级弹跳！", "text": "BOING！踩上粘液块，一口猪高高弹射过峡谷！", "duration": 2.2},
 		"bridge_built": {"title": "方块架桥成功！", "text": "《我的世界》基础技巧：把方块垫入急流铺路！", "duration": 2.5},
 		"sand_drop": {"title": "重力沙下坠！", "text": "物理定律生效！沙子方块垂直砸落！", "duration": 2.2},
 		"dog_buried": {"title": "恶犬被活埋！", "text": "重力沙盖顶！恶犬懵逼打喷嚏，峡谷道路畅通！", "duration": 3.0},
@@ -137,8 +141,28 @@ func _build_water_slide(pos: Vector3) -> void:
 		mesh.material_override = mat
 		slide.add_child(mesh)
 
+	# Chute acceleration area
+	var chute := Area3D.new()
+	chute.name = "SlideChuteArea"
+	chute.collision_layer = 0
+	chute.collision_mask = 2 # Player
+	var chute_shape := CollisionShape3D.new()
+	var chute_box := BoxShape3D.new()
+	chute_box.size = Vector3(4.2, 3.6, 4.2)
+	chute_shape.shape = chute_box
+	chute_shape.position = Vector3(0, 1.2, 0)
+	chute.add_child(chute_shape)
+	chute.body_entered.connect(func(body: Node3D):
+		if body is CharacterBody3D:
+			var cb := body as CharacterBody3D
+			cb.velocity = Vector3(cb.velocity.x * 0.5, -3.0, -13.5)
+			if meme_layer:
+				meme_layer.play("water_slide")
+	)
+	slide.add_child(chute)
+
 	add_child(slide)
-	_label("【瀑布滑梯】踩上水流顺滑进入峡谷！", pos + Vector3(0, 2.8, 0), 20)
+	_label("【瀑布急流滑梯】踩上水流极速俯冲峡谷！", pos + Vector3(0, 2.8, 0), 20)
 
 func _build_creek_puzzle() -> void:
 	# Creek water stream at Z = -2.5, spanning between start bank and mid island
@@ -192,6 +216,31 @@ func _build_creek_puzzle() -> void:
 	_solid_box("StoneMoss3", Vector3(1.62, 0.1, 1.32), Vector3(3.6, 0.16, -3.75), VOXEL_GREEN)
 
 	_label("【体素溪流解谜】\n① 靠近泥土方块按 [E] 猪拱推进填河架桥\n② 或踩右侧绿色苔石墩一路跳跃过河！", Vector3(0, 2.8, 3.5), 24)
+
+func _build_slime_blocks() -> void:
+	# 1. Slime block on MidIsland: launches player over rocks towards HighCliff
+	var slime_1 = VOXEL_SLIME_BLOCK.new()
+	slime_1.name = "SlimeBlockIsland"
+	slime_1.position = Vector3(-3.2, 0.0, -14.0)
+	slime_1.bounce_velocity = 11.5
+	slime_1.forward_boost = 7.0
+	add_child(slime_1)
+	slime_1.slime_bounced.connect(func(_b, _p):
+		if meme_layer:
+			meme_layer.play("slime_bounce")
+	)
+
+	# 2. Slime block in Canyon: launches player over canyon dog directly to pressure plate
+	var slime_2 = VOXEL_SLIME_BLOCK.new()
+	slime_2.name = "SlimeBlockCanyon"
+	slime_2.position = Vector3(3.2, 0.0, -42.0)
+	slime_2.bounce_velocity = 10.5
+	slime_2.forward_boost = 8.5
+	add_child(slime_2)
+	slime_2.slime_bounced.connect(func(_b, _p):
+		if meme_layer:
+			meme_layer.play("slime_bounce")
+	)
 
 func _build_sand_canyon_puzzle() -> void:
 	# Sand block positioned on high cliff edge (Z = -30, Y = 3.0)
