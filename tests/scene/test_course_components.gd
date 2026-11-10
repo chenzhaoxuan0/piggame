@@ -6,6 +6,14 @@ const PENDULUM_BALL = preload("res://scripts/courses/components/pendulum_ball.gd
 const VOXEL_TNT = preload("res://scripts/courses/components/voxel_tnt.gd")
 const BOUNCY_MUSHROOM = preload("res://scripts/courses/components/bouncy_mushroom.gd")
 const SEESAW = preload("res://scripts/courses/components/seesaw_platform.gd")
+const BOOST_PAD = preload("res://scripts/courses/components/boost_pad.gd")
+const WATERMELON_PEEL = preload("res://scripts/courses/components/watermelon_peel.gd")
+const RACING_FINISH = preload("res://scripts/courses/components/racing_finish_gate.gd")
+const VOXEL_PUSH_BLOCK = preload("res://scripts/courses/components/voxel_push_block.gd")
+const VOXEL_STREAM = preload("res://scripts/courses/components/voxel_water_stream.gd")
+const CARDBOARD_BOX = preload("res://scripts/courses/components/cardboard_box_prop.gd")
+const ILLUSORY_WALL = preload("res://scripts/courses/components/illusory_wall.gd")
+const MIMIC_CHEST = preload("res://scripts/courses/components/mimic_chest.gd")
 
 var failures := 0
 
@@ -157,6 +165,77 @@ func _run() -> void:
 	seesaw._physics_process(0.2)
 	_check(absf(seesaw._target_tilt) > 0.01, "SeesawPlatform responds to player weight with tilt")
 	seesaw.queue_free()
+
+	# VoxelPushBlock
+	var v_block = VOXEL_PUSH_BLOCK.new()
+	root.add_child(v_block)
+	await process_frame
+	_check(v_block.push(Vector3(0, 0, -1)), "VoxelPushBlock can be pushed forward")
+	v_block.queue_free()
+
+	# VoxelWaterStream
+	var stream = VOXEL_STREAM.new()
+	stream.shore_point = Vector3(0, 0.5, 4.0)
+	root.add_child(stream)
+	await process_frame
+	pig.reset_at(Vector3(0, 0, 0))
+	stream._handle_player_entered(pig)
+	_check(pig.is_knocked_back() or pig.global_position.distance_to(stream.shore_point) < 2.0, "VoxelWaterStream sweeps player towards shore")
+	stream.queue_free()
+
+	# CardboardBoxProp
+	var box_prop = CARDBOARD_BOX.new()
+	root.add_child(box_prop)
+	await process_frame
+	box_prop.equip_box(pig)
+	_check(pig.get_meta("in_stealth_box", false), "CardboardBoxProp equips onto player")
+	box_prop.unequip_box()
+	_check(not pig.get_meta("in_stealth_box", false), "CardboardBoxProp unequips cleanly")
+
+	# IllusoryWall
+	var ill_wall = ILLUSORY_WALL.new()
+	root.add_child(ill_wall)
+	await process_frame
+	ill_wall.shatter()
+	_check(ill_wall.is_shattered, "IllusoryWall shatters into hidden passage")
+	ill_wall.queue_free()
+
+	# MimicChest
+	var chest = MIMIC_CHEST.new()
+	chest.is_mimic = true
+	root.add_child(chest)
+	await process_frame
+	pig.reset_at(Vector3(0, 0.5, 1.0))
+	chest._on_player_entered(pig)
+	_check(chest.is_triggered, "MimicChest snaps open and bites player")
+	chest.queue_free()
+
+	# BoostPad
+	var b_pad = BOOST_PAD.new()
+	root.add_child(b_pad)
+	await process_frame
+	var init_vel: Vector3 = pig.velocity
+	b_pad._on_body_entered(pig)
+	_check(pig.velocity.length() > init_vel.length() or b_pad.is_active, "BoostPad activates racing speed boost")
+	b_pad.queue_free()
+
+	# WatermelonPeel
+	var peel = WATERMELON_PEEL.new()
+	root.add_child(peel)
+	await process_frame
+	var dummy_dog := Node3D.new()
+	root.add_child(dummy_dog)
+	peel.trigger_slip(dummy_dog)
+	_check(peel.is_slipping, "WatermelonPeel causes target to slip and spin")
+	dummy_dog.queue_free()
+
+	# RacingFinishGate
+	var f_gate = RACING_FINISH.new()
+	root.add_child(f_gate)
+	await process_frame
+	f_gate._on_finish_entered(pig)
+	_check(f_gate.is_finished and f_gate.banner_label.visible, "RacingFinishGate drops record broken victory banner")
+	f_gate.queue_free()
 
 	await process_frame
 	print("\nALL COURSE COMPONENT TESTS DONE: %d failures" % failures)

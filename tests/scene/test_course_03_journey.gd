@@ -73,6 +73,32 @@ func _run() -> void:
 	_check(runner.respawn_count >= 1, "Watchdog respawned pig after falling out of bounds")
 	_check(office.player.global_position.y > -12.0, "Pig respawned above kill_y (not dead)")
 
+	# 4.1 Stealth & Souls Illusory Mechanics
+	var course = office.active_course
+	_check(course.stealth_box != null, "Course 3 has CardboardBoxProp")
+	course.stealth_box.equip_box(office.player)
+	_check(office.player.get_meta("in_stealth_box", false), "Player successfully equipped stealth cardboard box")
+
+	# Vision cone stealth check
+	_check(course.patrol_cone != null, "Course 3 has PatrolVisionCone")
+	course.patrol_cone.target_player = office.player
+	course.patrol_cone._scan_for_player()
+	# Stationary in box should not alert
+	_check(not course.patrol_cone.is_alert, "Stationary box successfully fooled patrol dog vision cone")
+
+	# Mimic chest vs Real chest
+	_check(course.mimic_chest_fake != null and course.mimic_chest_real != null, "Course 3 has Mimic chests")
+	course.mimic_chest_fake._on_player_entered(office.player)
+	_check(course.mimic_chest_fake.is_triggered, "Mimic chest triggered bite on pig")
+	course.mimic_chest_real._on_player_entered(office.player)
+	_check(course.mimic_chest_real.is_triggered, "Real chest opened to award sweet potato")
+
+	# Illusory wall shattering with Discern skill
+	_check(course.illusory_wall != null, "Course 3 has IllusoryWall")
+	course.illusory_wall.shatter()
+	await create_timer(0.3).timeout
+	_check(course.illusory_wall == null or course.illusory_wall.is_shattered, "Illusory wall shattered into hidden fairy passage")
+
 	# 5. QTE struggle in course
 	var test_dog: ChaseDog = runner._dogs[0]
 	runner._on_dog_grapple(test_dog)

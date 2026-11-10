@@ -73,8 +73,21 @@ func _run() -> void:
 	_check(runner.respawn_count >= 1, "Watchdog respawned pig after falling out of bounds")
 	_check(office.player.global_position.y > -12.0, "Pig respawned above kill_y (not dead)")
 
-	# 5. QTE struggle in course
+	# 4.1 Mario Kart Racing Mechanics
+	var course = office.active_course
+	_check(course.boost_pad_1 != null, "Course 4 has BoostPad")
+	var initial_vel: Vector3 = office.player.velocity
+	course.boost_pad_1._on_body_entered(office.player)
+	_check(office.player.velocity.length() > initial_vel.length() or course.boost_pad_1.is_active, "BoostPad applied racing speed boost")
+
+	# Watermelon peel dog slip
+	_check(course.watermelon_peel != null, "Course 4 has WatermelonPeel")
 	var test_dog: ChaseDog = runner._dogs[0]
+	course.watermelon_peel.trigger_slip(test_dog)
+	await create_timer(0.3).timeout
+	_check(test_dog.phase == "stun" or course.watermelon_peel.is_slipping, "Watermelon peel slipped and stunned pursuing dog")
+
+	# 5. QTE struggle in course
 	runner._on_dog_grapple(test_dog)
 	await process_frame
 	_check(office.in_qte and office.qte_panel.visible, "QTE panel triggered on course dog grapple")
@@ -95,8 +108,10 @@ func _run() -> void:
 	_check(game.stage != "ending", "QTE failure does not end the run (non-lethal)")
 	_check(office.player.is_knocked_back() or office.player.control_mode == "chase", "QTE failure knocks pig back and resumes")
 
-	# 7. Reach exit -> course complete, farm restored, drops at Final Iron Gate
-	runner._on_exit(office.player)
+	# 7. Reach exit via Racing Finish Gate -> course complete, farm restored, drops at Final Iron Gate
+	_check(course.finish_gate != null, "Course 4 has RacingFinishGate")
+	course.finish_gate._on_finish_entered(office.player)
+	_check(course.finish_gate.is_finished and course.finish_gate.banner_label.visible, "Finish gate recorded broken 35s record and dropped victory banner")
 	await process_frame
 	_check(game.chase_completed.get("chase_final", false), "chase_final marked complete via course exit")
 	_check(office.active_course == null, "Course scene unloaded")

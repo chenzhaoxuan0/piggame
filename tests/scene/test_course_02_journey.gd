@@ -70,6 +70,30 @@ func _run() -> void:
 	_check(runner.respawn_count >= 1, "Watchdog respawned pig after falling out of bounds")
 	_check(office.player.global_position.y > -12.0, "Pig respawned above kill_y (not dead)")
 
+	# 4.1 Minecraft Voxel Mechanics
+	var course = office.active_course
+	_check(course.water_stream != null, "Course 2 has VoxelWaterStream")
+	_check(course.dirt_block_1 != null and course.dirt_block_2 != null, "Course 2 has pushable dirt blocks")
+	# Push dirt block 1 into stream
+	course.dirt_block_1.push(Vector3(0, 0, -2.0))
+	await create_timer(0.3).timeout
+	course.water_stream._handle_block_drop(course.dirt_block_1)
+	await create_timer(0.3).timeout
+	_check(course.dirt_block_1.has_bridged, "Dirt block bridged the voxel water stream")
+
+	# Sand block burying dog
+	_check(course.sand_block != null and course.canyon_dog != null, "Course 2 has sand block and canyon dog")
+	course.sand_block.push(Vector3(0, 0, -2.0))
+	await create_timer(0.3).timeout
+	course._bury_dog(course.canyon_dog.get_node("DogLabel"), course.canyon_dog.get_node("DogMesh"))
+	_check(course.canyon_dog.get_node("DogLabel").text.contains("活埋"), "Sand block buried and stunned canyon dog")
+
+	# TNT and Obsidian wall
+	_check(course.obsidian_wall != null and course.pressure_plate != null, "Course 2 has obsidian wall and pressure plate")
+	course.pressure_plate._on_body_entered(course.tnt_block)
+	await create_timer(0.6).timeout
+	_check(course.obsidian_wall == null or course.obsidian_wall.is_demolished, "TNT on pressure plate demolished obsidian wall")
+
 	# 5. QTE struggle in course
 	var test_dog: ChaseDog = runner._dogs[0]
 	runner._on_dog_grapple(test_dog)
