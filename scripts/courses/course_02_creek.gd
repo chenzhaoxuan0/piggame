@@ -126,7 +126,7 @@ func _build_water_slide(pos: Vector3) -> void:
 		var step_h := 3.0 - float(i) * 1.0
 		box.size = Vector3(4.0, step_h, 1.2)
 		col.shape = box
-		col.position = Vector3(0, step_h * 0.5 - 1.5, float(i - 1) * 1.0)
+		col.position = Vector3(0, step_h * 0.5 - 1.5, float(1 - i) * 1.0)
 		slide.add_child(col)
 
 		var mesh := MeshInstance3D.new()
@@ -310,7 +310,7 @@ func _build_tnt_obsidian_puzzle() -> void:
 	# Obsidian Wall sealing the canyon at Z = -66
 	obsidian_wall = VOXEL_OBSIDIAN_WALL.new()
 	obsidian_wall.name = "VoxelObsidianWall"
-	obsidian_wall.wall_width = 8.0
+	obsidian_wall.wall_width = 10.0 # Canyon inner walls sit at x = ±5: seal the full gap so the wall cannot be squeezed past
 	obsidian_wall.wall_height = 4.0
 	obsidian_wall.position = Vector3(0, 0, -66.0)
 	add_child(obsidian_wall)
@@ -336,7 +336,7 @@ func _build_tnt_obsidian_puzzle() -> void:
 	tnt_block = VOXEL_PUSH_BLOCK.new()
 	tnt_block.name = "VoxelTNTBlock"
 	tnt_block.block_type = VOXEL_PUSH_BLOCK.BlockType.TNT
-	tnt_block.position = Vector3(-2.2, 0, -54.0)
+	tnt_block.position = Vector3(0, 0, -54.0) # Aligned with the plate (z = -56): one straight -Z push lands it
 	add_child(tnt_block)
 
 	_label("【黑曜石之壁】将 TNT 方块推上压力板引爆！", Vector3(0, 4.5, -64.0), 22)

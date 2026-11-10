@@ -109,8 +109,12 @@ func _handle_block_drop(block: Node3D) -> void:
 func _create_bridge_platform(pos: Vector3, size: float) -> void:
 	var bridge_body := StaticBody3D.new()
 	bridge_body.name = "BridgePlatform"
-	# Center the bridge platform at Y = 0.0, Z = -2.5 (center of 5m wide stream)
-	bridge_body.global_position = Vector3(pos.x, 0.0, -2.5)
+	add_child(bridge_body)
+	# Center the platform on the stream in WORLD space. global_position set before
+	# add_child is silently treated as local, which shifted the bridge one stream-width
+	# downstream and left a 2m hole at the near bank. Y = 0 puts the walkway top flush
+	# with both banks.
+	bridge_body.global_position = Vector3(global_position.x + pos.x, 0.0, global_position.z)
 	bridge_body.collision_layer = 1
 	bridge_body.collision_mask = 0
 
@@ -136,7 +140,6 @@ func _create_bridge_platform(pos: Vector3, size: float) -> void:
 	bridge_mesh.material_override = mat
 	bridge_body.add_child(bridge_mesh)
 
-	add_child(bridge_body)
 	bridge_colliders.append(bridge_body)
 
 func _handle_player_entered(player: Node3D) -> void:

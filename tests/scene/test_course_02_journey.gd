@@ -81,6 +81,20 @@ func _run() -> void:
 	await create_timer(0.3).timeout
 	_check(course.dirt_block_1.has_bridged, "Dirt block bridged the voxel water stream")
 
+	# Bridge platform must span the stream in WORLD space: setting global_position
+	# before add_child shifted it one stream-width downstream and left a 2m hole at
+	# the near bank (z in [-2, 0]) that swallowed midline walkers.
+	var bridge = course.water_stream.get_node_or_null("BridgePlatform")
+	_check(bridge != null, "Bridge platform created after block drop")
+	if bridge != null:
+		_check(absf(bridge.global_position.z - course.water_stream.global_position.z) < 0.05, "Bridge centered on the stream, not offset downstream")
+		var bridge_cols: Array = bridge.find_children("*", "CollisionShape3D", true, false)
+		_check(not bridge_cols.is_empty(), "Bridge has a collision box")
+		if not bridge_cols.is_empty():
+			var bridge_box: BoxShape3D = bridge_cols[0].shape
+			var half_z: float = bridge_box.size.z * 0.5
+			_check(bridge.global_position.z - half_z <= course.water_stream.global_position.z - 2.4 and bridge.global_position.z + half_z >= course.water_stream.global_position.z + 2.4, "Bridge spans the full stream with overlap onto both banks")
+
 	# Sand block burying dog
 	_check(course.sand_block != null and course.canyon_dog != null, "Course 2 has sand block and canyon dog")
 	course.sand_block.push(Vector3(0, 0, -2.0))
@@ -90,6 +104,9 @@ func _run() -> void:
 
 	# TNT and Obsidian wall
 	_check(course.obsidian_wall != null and course.pressure_plate != null, "Course 2 has obsidian wall and pressure plate")
+	_check(course.obsidian_wall.wall_width >= 10.0, "Obsidian wall seals the full 10m canyon gap (no side squeeze)")
+	_check((course.pressure_plate.collision_mask & 1) != 0, "Pressure plate can detect push blocks on layer 1")
+	_check(absf(course.tnt_block.position.x) < 0.05, "TNT starts aligned with the pressure plate for one straight push")
 	course.pressure_plate._on_body_entered(course.tnt_block)
 	await create_timer(0.6).timeout
 	_check(course.obsidian_wall == null or course.obsidian_wall.is_demolished, "TNT on pressure plate demolished obsidian wall")
@@ -105,6 +122,24 @@ func _run() -> void:
 			_check(is_equal_approx(top_y, 3.0), "CliffRamp top step is flush at Y = 3.0 matching HighCliff")
 			var step7_north_z: float = ramp.position.z + step7.position.z - (step7.shape as BoxShape3D).size.z * 0.5
 			_check(step7_north_z <= -20.0, "CliffRamp step 7 meets HighCliff south face without embedded steps")
+
+	# Waterfall slide steps must DESCEND along the travel direction (-Z): from the
+	# cliff edge the pig meets the 3m step first, the 1m step last (each rise was
+	# 1.0m > jump height 0.934m when reversed, stranding the pig mid-slide).
+	var slide = course.get_node_or_null("WaterfallSlide")
+	_check(slide != null, "Course 2 has waterfall slide")
+	if slide != null:
+		var step_tops: Array = []
+		for step_col in slide.find_children("*", "CollisionShape3D", true, false):
+			if step_col.get_parent() != slide:
+				continue # skip the chute trigger box
+			var step_box: BoxShape3D = step_col.shape
+			step_tops.append([step_col.global_position.z, slide.global_position.y + step_col.position.y + step_box.size.y * 0.5])
+		step_tops.sort()
+		_check(step_tops.size() == 3, "Slide has three cascade steps")
+		if step_tops.size() == 3:
+			_check(step_tops[0][1] < step_tops[1][1] and step_tops[1][1] < step_tops[2][1], "Slide steps descend from cliff toward canyon")
+			_check(is_equal_approx(step_tops[0][1], 1.0) and is_equal_approx(step_tops[2][1], 3.0), "Slide runs from Y=3 at the cliff down to Y=1 at the canyon")
 
 	# 5. QTE struggle in course
 	var test_dog: ChaseDog = runner._dogs[0]

@@ -130,10 +130,12 @@ func _apply_item(item: String, player: Node3D) -> void:
 			var peel_script := load("res://scripts/courses/components/watermelon_peel.gd")
 			if peel_script:
 				var peel: Node3D = peel_script.new()
+				get_parent().add_child(peel)
+				# Set the world position only after entering the tree (a pre-add_child
+				# global_position assignment is treated as local coordinates).
 				var back_pos := player.global_position + player.global_transform.basis.z * 2.5
 				back_pos.y = 0.05
 				peel.global_position = back_pos
-				get_parent().add_child(peel)
 
 		"GOLDEN_STAR":
 			popup_lbl.text = "⭐【无敌金星小猪！】\n全速横冲直撞！"
