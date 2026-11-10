@@ -1047,6 +1047,8 @@ func _select_level_from_settings(target_id: String) -> void:
 				child.queue_free()
 		if is_instance_valid(active_course):
 			_exit_course()
+		if is_instance_valid(camera):
+			camera.set_camera_mode(IsometricCamera.CameraMode.ISOMETRIC)
 		player.reset_at(Vector3(38.0, 24.1, 52.0))
 		_restore_control()
 		camera.snap_to_target()
@@ -1522,6 +1524,8 @@ func _enter_course(stage_id: String) -> void:
 		_farm_removed = true
 	active_course.setup(player)
 	player.set_control_mode("explore")
+	if is_instance_valid(camera):
+		camera.set_camera_mode(IsometricCamera.CameraMode.THIRD_PERSON)
 	camera.snap_to_target()
 	active_course.runner.course_started.connect(_on_course_started)
 	active_course.runner.course_completed.connect(_on_course_completed)
@@ -1592,6 +1596,8 @@ func _exit_course() -> void:
 		for child in player.find_children("*", "CardboardBoxProp", true, false):
 			child.queue_free()
 	player.set_control_mode("explore")
+	if is_instance_valid(camera):
+		camera.set_camera_mode(IsometricCamera.CameraMode.ISOMETRIC)
 	camera.snap_to_target()
 
 func _on_farm_gate_passed(gate_id: String) -> void:
