@@ -1077,6 +1077,11 @@ func _select_level_from_settings(target_id: String) -> void:
 				GameManager.has_dash_skill = true
 			_:
 				current_chase_id = "chase_1"
+		if target_id != "course_1":
+			# Demo shortcut must satisfy start_stage_chase's pin requirement for chase_2+,
+			# otherwise completing the course jumps stage to exploring without the pin
+			# and the ending becomes unreachable.
+			GameManager.has_pin = true
 		_enter_course(target_id)
 		camera.snap_to_target()
 

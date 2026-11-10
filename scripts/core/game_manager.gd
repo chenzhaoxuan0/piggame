@@ -23,13 +23,18 @@ var npc_met: Dictionary = {"ox": false, "sheep": false, "horse": false}
 var has_read_record: bool = false
 var ending: String = ""
 
-# Companions' granted powers (meaningful forward momentum)
+# Companions' granted powers (meaningful forward momentum).
+# Setters write npc_completed: assignments from level select / course setup must be
+# visible to every reader (getter-only properties silently swallow writes).
 var has_struggle_skill: bool:
 	get: return npc_completed.get("ox", false)
+	set(value): npc_completed["ox"] = value
 var has_discern_skill: bool:
 	get: return npc_completed.get("sheep", false)
+	set(value): npc_completed["sheep"] = value
 var has_dash_skill: bool:
 	get: return npc_completed.get("horse", false)
+	set(value): npc_completed["horse"] = value
 
 func reset_run() -> void:
 	stage = "prologue"
