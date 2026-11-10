@@ -11,6 +11,7 @@ const RACING_FINISH_GATE = preload("res://scripts/courses/components/racing_fini
 const MYSTERY_ITEM_BOX = preload("res://scripts/courses/components/mystery_item_box.gd")
 const STUNT_JUMP_RAMP = preload("res://scripts/courses/components/stunt_jump_ramp.gd")
 const NEON_BUMPER = preload("res://scripts/courses/components/neon_bumper.gd")
+const ZONE_ENVIRONMENT = preload("res://scripts/courses/components/zone_environment.gd")
 
 const SPAWN := Vector3(0, 0.6, 12)
 const RACING_ASPHALT := Color("1E293B") # Dark asphalt
@@ -32,6 +33,7 @@ var finish_gate: Node3D
 var traffic_lights: Node3D
 
 func _ready() -> void:
+	ZONE_ENVIRONMENT.apply(self, "neon_courtyard")
 	_build_track_ground()
 	_build_start_grid()
 	_build_boost_pads()
@@ -58,11 +60,10 @@ func setup(player: Node3D) -> void:
 	for child in player.find_children("*", "CardboardBoxProp", true, false):
 		child.queue_free()
 	var gm := get_tree().root.get_node_or_null("GameManager")
-	if gm != null:
-		if "has_dash_skill" in gm:
-			gm.has_dash_skill = true
-		if "has_struggle_skill" in gm:
-			gm.has_struggle_skill = true
+	if gm != null and gm.has_method("grant_course_skills"):
+		# Course-scoped loans (dash for the final straight, struggle for grapples):
+		# the farm story's horse/ox quests stay unfinished until really done.
+		gm.grant_course_skills(["struggle", "dash"])
 	runner.setup(player, SPAWN)
 
 func _make_config() -> CourseConfig:

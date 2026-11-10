@@ -10,6 +10,7 @@ const VOXEL_SLIME_BLOCK = preload("res://scripts/courses/components/voxel_slime_
 const VOXEL_WATER_STREAM = preload("res://scripts/courses/components/voxel_water_stream.gd")
 const VOXEL_PRESSURE_PLATE = preload("res://scripts/courses/components/voxel_pressure_plate.gd")
 const VOXEL_OBSIDIAN_WALL = preload("res://scripts/courses/components/voxel_obsidian_wall.gd")
+const ZONE_ENVIRONMENT = preload("res://scripts/courses/components/zone_environment.gd")
 
 const SPAWN := Vector3(0, 0.6, 12)
 const VOXEL_BLUE := Color("38BDF8") # Water cyan
@@ -34,6 +35,7 @@ var obsidian_wall: Node3D
 var canyon_dog: Node3D
 
 func _ready() -> void:
+	ZONE_ENVIRONMENT.apply(self, "voxel_creek")
 	_build_ground_and_structures()
 	_build_creek_puzzle()
 	_build_slime_blocks()
@@ -55,9 +57,11 @@ func _ready() -> void:
 func setup(player: Node3D) -> void:
 	player.reset_at(SPAWN)
 	runner.setup(player, SPAWN)
+	# Lend the Ox struggle skill for this course only: the farm story's ox quest
+	# must not tick itself just because the pig jumped into a hidden pipe.
 	var gm = get_tree().root.get_node_or_null("GameManager")
-	if gm != null and "has_struggle_skill" in gm:
-		gm.has_struggle_skill = true
+	if gm != null and gm.has_method("grant_course_skills"):
+		gm.grant_course_skills(["struggle"])
 
 func _make_config() -> CourseConfig:
 	var cfg := CONFIG_SCRIPT.new()

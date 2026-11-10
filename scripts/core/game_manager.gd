@@ -24,17 +24,31 @@ var has_read_record: bool = false
 var ending: String = ""
 
 # Companions' granted powers (meaningful forward momentum).
-# Setters write npc_completed: assignments from level select / course setup must be
-# visible to every reader (getter-only properties silently swallow writes).
+# Setters write npc_completed: assignments from level select must be visible to
+# every reader (getter-only properties silently swallow writes).
+# Hidden courses lend their skills through course_skill_bonuses instead, so
+# entering a course never ticks the farm story's companion quests.
 var has_struggle_skill: bool:
-	get: return npc_completed.get("ox", false)
+	get: return npc_completed.get("ox", false) or course_skill_bonuses.get("struggle", false)
 	set(value): npc_completed["ox"] = value
 var has_discern_skill: bool:
-	get: return npc_completed.get("sheep", false)
+	get: return npc_completed.get("sheep", false) or course_skill_bonuses.get("discern", false)
 	set(value): npc_completed["sheep"] = value
 var has_dash_skill: bool:
-	get: return npc_completed.get("horse", false)
+	get: return npc_completed.get("horse", false) or course_skill_bonuses.get("dash", false)
 	set(value): npc_completed["horse"] = value
+
+# Course-scoped skill loans: granted on course setup(), cleared on course exit.
+var course_skill_bonuses: Dictionary = {"struggle": false, "discern": false, "dash": false}
+
+func grant_course_skills(ids: Array) -> void:
+	for id in ids:
+		if course_skill_bonuses.has(id):
+			course_skill_bonuses[id] = true
+
+func clear_course_skills() -> void:
+	for id in course_skill_bonuses:
+		course_skill_bonuses[id] = false
 
 func reset_run() -> void:
 	stage = "prologue"
@@ -45,6 +59,7 @@ func reset_run() -> void:
 	npc_met = {"ox": false, "sheep": false, "horse": false}
 	has_read_record = false
 	ending = ""
+	clear_course_skills()
 	state_changed.emit()
 
 func is_in_chase() -> bool:

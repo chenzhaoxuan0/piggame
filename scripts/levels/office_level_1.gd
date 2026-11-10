@@ -418,18 +418,12 @@ func _select_level_from_settings(target_id: String) -> void:
 		match target_id:
 			"course_1":
 				current_chase_id = "chase_1"
-				GameManager.has_struggle_skill = true
 			"course_2":
 				current_chase_id = "chase_2"
-				GameManager.has_struggle_skill = true
 			"course_3":
 				current_chase_id = "chase_3"
-				GameManager.has_struggle_skill = true
-				GameManager.has_discern_skill = true
 			"course_4":
 				current_chase_id = "chase_final"
-				GameManager.has_struggle_skill = true
-				GameManager.has_dash_skill = true
 			_:
 				current_chase_id = "chase_1"
 		if target_id != "course_1":
@@ -437,7 +431,13 @@ func _select_level_from_settings(target_id: String) -> void:
 			# otherwise completing the course jumps stage to exploring without the pin
 			# and the ending becomes unreachable.
 			GameManager.has_pin = true
+		# Companion skills come from the course's own setup() as course-scoped loans;
+		# writing them here used to tick the farm story's companion quests for free.
 		_enter_course(target_id)
+		if target_id == "course_1":
+			# Course 1 sits before the Ox quest in story order, so its setup() lends
+			# nothing; the demo shortcut keeps the struggle QTE available there.
+			GameManager.grant_course_skills(["struggle"])
 		camera.snap_to_target()
 
 func start_game() -> void:
@@ -930,6 +930,7 @@ func _finish_course_deferred() -> void:
 
 func _exit_course() -> void:
 	var completed_id := current_chase_id
+	GameManager.clear_course_skills()
 	if is_instance_valid(active_course):
 		var old_course = active_course
 		active_course = null

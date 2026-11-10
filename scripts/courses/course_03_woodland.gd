@@ -11,6 +11,7 @@ const PATROL_VISION_CONE = preload("res://scripts/courses/components/patrol_visi
 const ILLUSORY_WALL = preload("res://scripts/courses/components/illusory_wall.gd")
 const MIMIC_CHEST = preload("res://scripts/courses/components/mimic_chest.gd")
 const BOUNCY_MUSHROOM = preload("res://scripts/courses/components/bouncy_mushroom.gd")
+const ZONE_ENVIRONMENT = preload("res://scripts/courses/components/zone_environment.gd")
 
 const SPAWN := Vector3(0, 0.6, 12)
 const STORYBOOK_GREEN := Color("86A873") # Fairy green
@@ -34,6 +35,7 @@ var mimic_chest_real: Node3D
 var illusory_wall: Node3D
 
 func _ready() -> void:
+	ZONE_ENVIRONMENT.apply(self, "fairy_woodland")
 	_build_ground()
 	_build_surroundings()
 	_build_stealth_zone()
@@ -58,9 +60,10 @@ func setup(player: Node3D) -> void:
 	for child in player.find_children("*", "CardboardBoxProp", true, false):
 		child.queue_free()
 	var gm := _gm()
-	if gm:
-		gm.set("has_struggle_skill", true)
-		gm.set("has_discern_skill", true)
+	if gm and gm.has_method("grant_course_skills"):
+		# Course-scoped loans: discern/struggle work inside the woodland, while
+		# the farm story's sheep/ox quests stay unfinished until really done.
+		gm.grant_course_skills(["struggle", "discern"])
 	runner.setup(player, SPAWN)
 	_update_discern_visuals()
 

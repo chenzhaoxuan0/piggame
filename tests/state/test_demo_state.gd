@@ -79,6 +79,25 @@ func _run() -> void:
 	_check(not state.select_character(state.CharacterType.OX), "Locked playable characters remain locked")
 	_check(state.select_character(state.CharacterType.PIG), "Pig selection remains compatible")
 
+	# Course-scoped skill loans never touch the farm story's companion progress.
+	state.reset_run()
+	state.choose_red()
+	_check(not state.has_struggle_skill and not state.has_discern_skill and not state.has_dash_skill, "No skills before any grant")
+	state.grant_course_skills(["struggle", "discern"])
+	_check(state.has_struggle_skill and state.has_discern_skill and not state.has_dash_skill, "Course loan grants only the requested skills")
+	_check(not state.npc_completed["ox"] and not state.npc_completed["sheep"], "Course loan does not complete companion quests")
+	var todo_done := {}
+	for item in state.get_to_do_items():
+		todo_done[item["id"]] = item["done"]
+	_check(not todo_done["ox_skill"] and not todo_done["sheep_skill"], "Course loan does not tick the to-do list")
+	_check(state.complete_npc("ox"), "Companion quest still completable while a loan is active")
+	state.clear_course_skills()
+	_check(state.has_struggle_skill and not state.has_discern_skill, "Clearing loans keeps earned skills and drops borrowed ones")
+	state.grant_course_skills(["dash", "bogus"])
+	_check(state.has_dash_skill and not state.course_skill_bonuses.has("bogus"), "Unknown loan ids are ignored")
+	state.reset_run()
+	_check(not state.has_dash_skill and not state.has_struggle_skill, "Reset clears course loans and earned skills")
+
 	var events: Array[String] = ["choose_red", "choose_blue", "complete_ox", "complete_sheep", "complete_horse", "read_record", "complete_showdown", "launch_cablecar"]
 	for key in dialogue.dialogue_tree:
 		var node: Dictionary = dialogue.get_dialogue_node(key)
