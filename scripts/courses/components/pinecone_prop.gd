@@ -131,13 +131,23 @@ func throw_cone() -> void:
 	get_tree().root.add_child(_cone_mesh)
 	_cone_mesh.global_position = throw_origin
 
-	var tween := _cone_mesh.create_tween()
+	# The tween is bound to this prop, not to the cone mesh: the mesh now lives on
+	# the scene root and would outlive us, and its landing callback captures self.
+	# Freeing the prop mid-flight (course exit) used to fire that callback on a
+	# freed object whose memory had already been reused by another node.
+	var tween := create_tween()
 	var mid_point := (throw_origin + landing_target) * 0.5 + Vector3(0, 3.2, 0)
 	tween.tween_property(_cone_mesh, "global_position", mid_point, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(_cone_mesh, "global_position", landing_target, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_callback(func():
 		_on_cone_landed(landing_target)
 	)
+
+func _exit_tree() -> void:
+	# A held cone hangs off the pig and a thrown one off the scene root; neither
+	# is our descendant, so take it with us instead of leaving it in the world.
+	if is_instance_valid(_cone_mesh) and not is_ancestor_of(_cone_mesh):
+		_cone_mesh.queue_free()
 
 func _on_cone_landed(pos: Vector3) -> void:
 	pinecone_thrown.emit(pos)
