@@ -67,7 +67,7 @@ func distract_towards(pos: Vector3, duration: float = 4.5) -> void:
 	var dir := (pos - global_position)
 	dir.y = 0.0
 	if dir.length_squared() > 0.01:
-		look_at(global_position + dir.normalized(), Vector3.UP)
+		_driven_root().look_at(global_position + dir.normalized(), Vector3.UP)
 
 func _physics_process(delta: float) -> void:
 	if _distract_timer > 0.0:
@@ -90,8 +90,17 @@ func _patrol_movement(delta: float) -> void:
 	if dir.length() < 0.6:
 		current_patrol_idx = (current_patrol_idx + 1) % patrol_points.size()
 	else:
-		global_position += dir.normalized() * patrol_speed * delta
-		look_at(global_position + dir.normalized(), Vector3.UP)
+		# Move the driven root (the guard dog when opted in via meta, else self):
+		# moving only the cone used to leave the dog standing while its vision
+		# wandered off on its own.
+		_driven_root().global_position += dir.normalized() * patrol_speed * delta
+		_driven_root().look_at(global_position + dir.normalized(), Vector3.UP)
+
+func _driven_root() -> Node3D:
+	var parent := get_parent()
+	if parent is Node3D and parent.has_meta("drive_with_vision_cone"):
+		return parent as Node3D
+	return self
 
 func _scan_for_player() -> void:
 	if target_player == null:
@@ -127,9 +136,11 @@ func _scan_for_player() -> void:
 		_set_alert(false)
 		return
 
-	# Detected!
-	_set_alert(true)
-	player_detected.emit(target_player)
+	# Detected! Emit only on the rising edge so listeners get an alarm event,
+	# not an every-frame ping while the pig stands in the cone.
+	if not is_alert:
+		_set_alert(true)
+		player_detected.emit(target_player)
 
 func _set_alert(alert: bool) -> void:
 	if is_alert == alert:

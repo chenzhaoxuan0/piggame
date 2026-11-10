@@ -155,6 +155,7 @@ func _build_stealth_zone() -> void:
 	patrol_dog.name = "PatrolDogGuard"
 	patrol_dog.position = Vector3(0, 0.5, -6.0)
 	patrol_dog.add_to_group("chase_dogs")
+	patrol_dog.set_meta("drive_with_vision_cone", true) # The vision cone patrols the dog, not just itself
 
 	var dog_mesh := MeshInstance3D.new()
 	dog_mesh.name = "DogMesh"
@@ -185,7 +186,10 @@ func _build_stealth_zone() -> void:
 	patrol_dog.add_child(patrol_cone)
 	add_child(patrol_dog)
 
-	patrol_cone.player_detected.connect(func(_p):
+	patrol_cone.player_detected.connect(func(p):
+		# Stealth now has teeth: being spotted enlists the rubber-band dog.
+		if runner != null:
+			runner.alert_dogs(4.0)
 		if meme_layer:
 			meme_layer.play("dog_alert")
 	)

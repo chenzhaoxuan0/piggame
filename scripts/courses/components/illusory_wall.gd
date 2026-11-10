@@ -15,6 +15,7 @@ var mesh_instance: MeshInstance3D
 var collision_shape: CollisionShape3D
 var touch_area: Area3D
 var hint_label: Label3D
+var _resist_timer: Timer
 
 func _ready() -> void:
 	_setup_collision()
@@ -46,7 +47,7 @@ func _setup_visual() -> void:
 
 	hint_label = Label3D.new()
 	hint_label.name = "IllusoryHint"
-	hint_label.text = "【洞察之眸已看破假象】\n前方需要滚动撞击"
+	hint_label.text = "【洞察之眸已看破假象】\n一撞即穿！"
 	hint_label.font_size = 22
 	hint_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	hint_label.modulate = Color("C4B5FD")
@@ -70,20 +71,26 @@ func _setup_touch_area() -> void:
 	touch_area.add_child(area_col)
 
 	touch_area.body_entered.connect(_on_touch_entered)
+	touch_area.body_exited.connect(_on_touch_exited)
 	add_child(touch_area)
+
+	# Without the sheep's insight the illusion resists briefly; lean on the wall
+	# for this long and it gives way. With the skill it shatters on contact.
+	_resist_timer = Timer.new()
+	_resist_timer.name = "ResistTimer"
+	_resist_timer.one_shot = true
+	_resist_timer.wait_time = 1.2
+	_resist_timer.timeout.connect(shatter)
+	add_child(_resist_timer)
 
 func _process(_delta: float) -> void:
 	if is_shattered:
 		return
-	var game_manager := get_tree().root.get_node_or_null("GameManager")
-	var has_discern: bool = false
-	if game_manager != null and "has_discern_skill" in game_manager:
-		has_discern = game_manager.has_discern_skill
+	_set_illusory_state(_has_discern_skill())
 
-	if has_discern:
-		_set_illusory_state(true)
-	else:
-		_set_illusory_state(false)
+func _has_discern_skill() -> bool:
+	var game_manager := get_tree().root.get_node_or_null("GameManager")
+	return game_manager != null and bool(game_manager.get("has_discern_skill"))
 
 func _set_illusory_state(active: bool) -> void:
 	if hint_label:
@@ -104,8 +111,24 @@ func _set_illusory_state(active: bool) -> void:
 func _on_touch_entered(body: Node3D) -> void:
 	if is_shattered:
 		return
+	if not (body.is_in_group("player") or body.name.to_lower().contains("pig")):
+		return
+	if _has_discern_skill():
+		shatter() # 【洞察之眸】看破假象：一撞即穿
+		return
+	# No insight yet: the illusion holds for a moment, then gives way. This keeps
+	# the skill meaningful without soft-locking players who entered the pipe early.
+	if hint_label:
+		hint_label.text = "幻影在抵御小猪……\n顶着它坚持一下！"
+		hint_label.visible = true
+	if _resist_timer and _resist_timer.is_stopped():
+		_resist_timer.start()
+
+func _on_touch_exited(body: Node3D) -> void:
+	if is_shattered or _resist_timer == null:
+		return
 	if body.is_in_group("player") or body.name.to_lower().contains("pig"):
-		shatter()
+		_resist_timer.stop()
 
 func shatter() -> void:
 	if is_shattered:

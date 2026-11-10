@@ -25,6 +25,7 @@ var _dogs: Array[ChaseDog] = []
 var _meme_layer: Node = null
 var _stuck_time := 0.0
 var _last_pos: Vector3 = Vector3.INF
+var _alert_time := 0.0 # Stealth alarm: dogs sprint at boosted max speed while active
 
 func _ready() -> void:
 	if config == null:
@@ -110,9 +111,16 @@ func _on_exit(body: Node3D) -> void:
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(player):
 		return
+	_alert_time = maxf(0.0, _alert_time - delta)
 	_watchdog(delta)
 	if started and not completed:
 		_rubber_band()
+
+func alert_dogs(duration: float = 4.0) -> void:
+	# Stealth alarm (course 3 vision cones): the rubber-band dogs sprint at a
+	# boosted max speed for a while, so being spotted has real consequences
+	# while staying non-lethal (grapples still resolve via QTE/slapstick).
+	_alert_time = maxf(_alert_time, duration)
 
 func _watchdog(delta: float) -> void:
 	var pos: Vector3 = player.global_position
@@ -161,7 +169,8 @@ func _rubber_band() -> void:
 		var dist: float = offset.length()
 		nearest = minf(nearest, dist)
 		var t: float = clampf((dist - config.dog_close_distance) / maxf(0.01, config.dog_far_distance - config.dog_close_distance), 0.0, 1.0)
-		dog.chase_speed = lerpf(config.dog_speed_min, config.dog_speed_max, t)
+		var speed_max: float = config.dog_speed_max * (1.35 if _alert_time > 0.0 else 1.0)
+		dog.chase_speed = lerpf(config.dog_speed_min, speed_max, t)
 		if dist > config.dog_catchup_distance:
 			var dir: Vector3 = offset.normalized() if dist > 0.01 else Vector3.BACK
 			dog.global_position = player.global_position + dir * (config.dog_far_distance + 2.0)
