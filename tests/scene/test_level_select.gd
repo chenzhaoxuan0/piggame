@@ -79,6 +79,7 @@ func _run() -> void:
 	_check(office.active_course.runner.config.course_id == "course_4", "Active course is course_4 (Racing)")
 	_check(game.has_dash_skill and not game.has_discern_skill, "Course 4 lends dash and drops the previous course's discern loan")
 	_check(not game.npc_completed["horse"], "Course 4 skill loan leaves the Horse quest unfinished")
+	_check(office.player.dash_enabled, "Course 4 dash loan actually enables the sprint")
 	_check(sun.light_energy < hub_sun_energy, "Course 4 neon night dims the hub sun")
 
 	# 5. Return to Farm world
@@ -90,6 +91,7 @@ func _run() -> void:
 	_check(office.active_course == null, "Course unloaded when returning to farm")
 	_check(office.farm.get_parent() == office, "Main farm world restored")
 	_check(not game.has_struggle_skill and not game.has_discern_skill and not game.has_dash_skill, "Skill loans cleared on course exit")
+	_check(not office.player.dash_enabled, "Borrowed sprint is switched off again on course exit")
 	_check(hub_world.environment == hub_environment, "Hub environment restored after leaving the courses")
 	_check(is_equal_approx(sun.light_energy, hub_sun_energy), "Hub sun restored after leaving the courses")
 

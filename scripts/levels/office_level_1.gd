@@ -618,7 +618,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _refresh_hud() -> void:
-	player.set_dash_enabled(GameManager.npc_completed.get("horse", false))
+	# The skill getter (not npc_completed) so a course-scoped dash loan also enables sprint.
+	player.set_dash_enabled(GameManager.has_dash_skill)
 	if is_instance_valid(pin_visual): pin_visual.visible = GameManager.has_pin
 	if is_instance_valid(todo_notebook):
 		var battle_on: bool = is_instance_valid(pokemon_battle) and pokemon_battle.battle_active
@@ -931,6 +932,9 @@ func _finish_course_deferred() -> void:
 func _exit_course() -> void:
 	var completed_id := current_chase_id
 	GameManager.clear_course_skills()
+	if is_instance_valid(player):
+		# Drop a borrowed dash right away: not every exit path refreshes the HUD.
+		player.set_dash_enabled(GameManager.has_dash_skill)
 	if is_instance_valid(active_course):
 		var old_course = active_course
 		active_course = null
