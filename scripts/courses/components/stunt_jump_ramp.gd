@@ -2,19 +2,62 @@ class_name StuntJumpRamp
 extends Node3D
 
 signal ramp_jumped(ramp: StuntJumpRamp, player: Node3D)
+signal landing_turbo(player: Node3D)
 
 @export var ramp_size: Vector3 = Vector3(4.5, 1.8, 4.0)
 @export var launch_vertical: float = 9.5
 @export var launch_forward: float = 22.0
+@export var landing_turbo_speed: float = 8.0 # Forward kick on touchdown ("落地迷你涡轮")
 
 const COLOR_NEON_CYAN := Color("06B6D4")
 const COLOR_NEON_YELLOW := Color("FACC15")
+const LANDING_WATCH_TIMEOUT := 4.0
 
 var _trigger_area: Area3D
+var _airborne_body: CharacterBody3D = null # Launched pig we owe a landing turbo
+var _airborne_time: float = 0.0
+var _left_floor: bool = false
 
 func _ready() -> void:
 	_setup_ramp_structure()
 	_setup_launch_trigger()
+
+func _physics_process(delta: float) -> void:
+	if _airborne_body == null:
+		return
+	if not is_instance_valid(_airborne_body):
+		_airborne_body = null
+		return
+	_airborne_time += delta
+	if not _airborne_body.is_on_floor():
+		_left_floor = true
+	elif _left_floor:
+		_grant_landing_turbo(_airborne_body)
+		_airborne_body = null
+		return
+	if _airborne_time >= LANDING_WATCH_TIMEOUT:
+		_airborne_body = null
+
+func _grant_landing_turbo(cb: CharacterBody3D) -> void:
+	var forward_dir := -global_transform.basis.z.normalized()
+	if forward_dir.length_squared() < 0.001:
+		forward_dir = Vector3(0, 0, -1)
+	cb.velocity += forward_dir * landing_turbo_speed
+
+	var turbo_lbl := Label3D.new()
+	turbo_lbl.text = "🔥 落地迷你涡轮！"
+	turbo_lbl.font_size = 26
+	turbo_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	turbo_lbl.modulate = Color("FB923C")
+	turbo_lbl.outline_modulate = Color("0F172A")
+	turbo_lbl.outline_size = 6
+	turbo_lbl.position = Vector3(0, 2.4, 0)
+	cb.add_child(turbo_lbl)
+	var lbl_tween := turbo_lbl.create_tween()
+	lbl_tween.tween_property(turbo_lbl, "position:y", turbo_lbl.position.y + 1.0, 1.0)
+	lbl_tween.tween_callback(turbo_lbl.queue_free)
+
+	landing_turbo.emit(cb)
 
 func _setup_ramp_structure() -> void:
 	# Static angled ramp body
@@ -91,6 +134,11 @@ func _on_player_crest(body: Node3D) -> void:
 		forward_dir = Vector3(0, 0, -1)
 
 	cb.velocity = Vector3(forward_dir.x * launch_forward, launch_vertical, forward_dir.z * launch_forward)
+
+	# Owe this pig a mini-turbo the moment it touches down again.
+	_airborne_body = cb
+	_airborne_time = 0.0
+	_left_floor = false
 
 	# 360-degree aerial stunt flip
 	var v_mesh: Node3D = null

@@ -12,6 +12,14 @@ const ASSETS = preload("res://scripts/art/asset_library.gd")
 @export var phase_offset: float = 0.0
 @export var hit_cooldown: float = 0.6
 @export var ball_color: Color = Color("34495E")
+# Zone art styles must not mix: the Lux3D pendulum is the ox-field (course 1)
+# look, so other zones opt out and dress the procedural fallback instead.
+@export var use_lux_model: bool = true
+@export var gantry_color: Color = Color("795548")
+# Post offset from the centre line. On a walled lane set it to the wall offset:
+# posts standing inside the lane leave a pocket between post and wall that is
+# narrower than the pig, and a pig knocked in there by the ball is stuck.
+@export var gantry_half_width: float = 3.8
 
 var _pivot: Node3D
 var _ball_mesh: Node3D
@@ -28,12 +36,12 @@ func _build_gantry() -> void:
 	gantry.collision_mask = 0
 
 	var beam_mat := StandardMaterial3D.new()
-	beam_mat.albedo_color = Color("795548")
+	beam_mat.albedo_color = gantry_color
 	beam_mat.roughness = 0.9
 
-	_add_beam(gantry, Vector3(0.4, arm_length + 1.2, 0.4), Vector3(-3.8, (arm_length + 1.2) * 0.5, 0), beam_mat)
-	_add_beam(gantry, Vector3(0.4, arm_length + 1.2, 0.4), Vector3(3.8, (arm_length + 1.2) * 0.5, 0), beam_mat)
-	_add_beam(gantry, Vector3(8.0, 0.45, 0.45), Vector3(0, arm_length + 1.0, 0), beam_mat)
+	_add_beam(gantry, Vector3(0.4, arm_length + 1.2, 0.4), Vector3(-gantry_half_width, (arm_length + 1.2) * 0.5, 0), beam_mat)
+	_add_beam(gantry, Vector3(0.4, arm_length + 1.2, 0.4), Vector3(gantry_half_width, (arm_length + 1.2) * 0.5, 0), beam_mat)
+	_add_beam(gantry, Vector3(gantry_half_width * 2.0 + 0.4, 0.45, 0.45), Vector3(0, arm_length + 1.0, 0), beam_mat)
 	add_child(gantry)
 
 func _build_pendulum() -> void:
@@ -53,7 +61,7 @@ func _build_pendulum() -> void:
 	_pivot.add_child(chain)
 
 	# Wrecking ball at bottom (Lux3D model or procedural sphere fallback)
-	var lux_ball := ASSETS.make("PROP_C1_PENDULUM")
+	var lux_ball: Node3D = ASSETS.make("PROP_C1_PENDULUM") if use_lux_model else null
 	if lux_ball:
 		lux_ball.position.y = -arm_length
 		_ball_mesh = lux_ball

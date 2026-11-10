@@ -19,6 +19,9 @@ const PINECONE_PROP = preload("res://scripts/courses/components/pinecone_prop.gd
 const MYSTERY_BOX = preload("res://scripts/courses/components/mystery_item_box.gd")
 const STUNT_RAMP = preload("res://scripts/courses/components/stunt_jump_ramp.gd")
 const NEON_BUMPER = preload("res://scripts/courses/components/neon_bumper.gd")
+const RACE_TIMER = preload("res://scripts/courses/components/race_timer.gd")
+const MUD_PATCH = preload("res://scripts/courses/components/mud_patch.gd")
+const DOG_SCRIPT = preload("res://scripts/chase/chase_dog.gd")
 
 var failures := 0
 
@@ -219,28 +222,61 @@ func _run() -> void:
 	var b_pad = BOOST_PAD.new()
 	root.add_child(b_pad)
 	await process_frame
-	var init_vel: Vector3 = pig.velocity
+	pig.velocity = Vector3.ZERO
 	b_pad._on_body_entered(pig)
-	_check(pig.velocity.length() > init_vel.length() or b_pad.is_active, "BoostPad activates racing speed boost")
+	_check(pig.velocity.length() > 10.0, "BoostPad activates racing speed boost")
 	b_pad.queue_free()
 
 	# WatermelonPeel
 	var peel = WATERMELON_PEEL.new()
 	root.add_child(peel)
 	await process_frame
+	_check(peel.collision_mask & 4 != 0, "WatermelonPeel mask includes the dog layer (4)")
 	var dummy_dog := Node3D.new()
 	root.add_child(dummy_dog)
 	peel.trigger_slip(dummy_dog)
 	_check(peel.is_slipping, "WatermelonPeel causes target to slip and spin")
 	dummy_dog.queue_free()
 
-	# RacingFinishGate
+	# WatermelonPeel vs a real dog: stun() must arm the dog's own stun timer
+	var peel_2 = WATERMELON_PEEL.new()
+	root.add_child(peel_2)
+	var real_dog: ChaseDog = DOG_SCRIPT.new()
+	root.add_child(real_dog)
+	await process_frame
+	real_dog.phase = "seek"
+	real_dog.phase_time = 0.0
+	peel_2.trigger_slip(real_dog)
+	_check(real_dog.phase == "stun" and real_dog.phase_time > 2.0, "WatermelonPeel stuns a real dog for a lasting duration")
+	real_dog.queue_free()
+
+	# RacingFinishGate: a faster-than-record run earns the RECORD BROKEN banner
 	var f_gate = RACING_FINISH.new()
 	root.add_child(f_gate)
 	await process_frame
+	f_gate.time_provider = func() -> float: return 20.0
 	f_gate._on_finish_entered(pig)
 	_check(f_gate.is_finished and f_gate.banner_label.visible, "RacingFinishGate drops record broken victory banner")
+	_check(f_gate.record_broken and f_gate.banner_label.text.contains("RECORD BROKEN") and f_gate.banner_label.text.contains("00:20.00"), "RacingFinishGate banner reports a real record-breaking time")
 	f_gate.queue_free()
+
+	# RacingFinishGate: a slower run finishes without a free record
+	var slow_gate = RACING_FINISH.new()
+	root.add_child(slow_gate)
+	await process_frame
+	slow_gate.time_provider = func() -> float: return 40.0
+	slow_gate._on_finish_entered(pig)
+	_check(slow_gate.banner_label.visible and not slow_gate.record_broken, "RacingFinishGate does not award the record to a slow run")
+	_check(slow_gate.banner_label.text.contains("00:40.00") and not slow_gate.banner_label.text.contains("RECORD BROKEN"), "RacingFinishGate shows the slow run's real time instead")
+	slow_gate.queue_free()
+
+	# RacingFinishGate without a clock keeps a plain finish banner
+	var plain_gate = RACING_FINISH.new()
+	root.add_child(plain_gate)
+	await process_frame
+	plain_gate._on_finish_entered(pig)
+	_check(plain_gate.banner_label.visible and plain_gate.final_time < 0.0 and not plain_gate.record_broken, "RacingFinishGate without a clock claims no record")
+	plain_gate.queue_free()
 
 	# VoxelSlimeBlock
 	var slime = VOXEL_SLIME.new()
@@ -259,7 +295,13 @@ func _run() -> void:
 	_check(cone.is_held, "PineconeProp can be picked up by player")
 	cone.throw_cone()
 	_check(cone.is_spent, "PineconeProp can be thrown to distract dog")
+	# Freed mid-flight (e.g. course exit): the thrown cone must not be orphaned on
+	# the scene root with a landing callback pointing at the freed prop.
+	var thrown_mesh: Node = cone._cone_mesh
 	cone.queue_free()
+	await process_frame
+	await process_frame
+	_check(not is_instance_valid(thrown_mesh), "PineconeProp freed mid-flight takes its thrown cone along")
 
 	# MysteryItemBox
 	var m_box = MYSTERY_BOX.new()
@@ -267,16 +309,86 @@ func _run() -> void:
 	await process_frame
 	m_box._collect(pig)
 	_check(not m_box.is_active, "MysteryItemBox collects and activates roulette power-up")
+	# Golden star lifecycle. _collect() rolls a random item, so the star may
+	# already be running; the boost must not stack, and it must fully expire.
+	var star_base: float = pig.move_speed / (m_box.STAR_SPEED_FACTOR if pig.get_meta("star_invincible", false) else 1.0)
+	m_box._apply_item("GOLDEN_STAR", pig)
+	_check(pig.get_meta("star_invincible", false), "GOLDEN_STAR makes the pig invincible")
+	_check(is_equal_approx(pig.move_speed, star_base * m_box.STAR_SPEED_FACTOR), "GOLDEN_STAR speed boost applies once and does not stack")
+	await create_timer(m_box.STAR_DURATION + 0.3).timeout
+	_check(not pig.get_meta("star_invincible", false), "GOLDEN_STAR invincibility expires")
+	_check(is_equal_approx(pig.move_speed, star_base), "GOLDEN_STAR hands the pig's speed back on expiry")
 	m_box.queue_free()
 
-	# StuntJumpRamp
+	# StuntJumpRamp (+ the landing mini-turbo it promises)
+	var landing_floor := StaticBody3D.new()
+	landing_floor.collision_layer = 1
+	landing_floor.collision_mask = 0
+	var floor_shape := CollisionShape3D.new()
+	var floor_box := BoxShape3D.new()
+	floor_box.size = Vector3(60, 1, 80)
+	floor_shape.shape = floor_box
+	floor_shape.position = Vector3(0, -0.5, -20)
+	landing_floor.add_child(floor_shape)
+	root.add_child(landing_floor)
 	var ramp = STUNT_RAMP.new()
 	root.add_child(ramp)
 	await process_frame
 	pig.reset_at(Vector3(0, 2.0, 0))
 	ramp._on_player_crest(pig)
 	_check(pig.velocity.y > 0.0, "StuntJumpRamp launches pig for 360 aerial stunt")
+	var turbo_fired := [false]
+	ramp.landing_turbo.connect(func(_p): turbo_fired[0] = true)
+	var turbo_wait := 0
+	while not turbo_fired[0] and turbo_wait < 40:
+		await create_timer(0.1).timeout
+		turbo_wait += 1
+	_check(turbo_fired[0], "StuntJumpRamp pays out the landing mini-turbo on touchdown")
 	ramp.queue_free()
+	landing_floor.queue_free()
+
+	# RaceTimer
+	var r_timer = RACE_TIMER.new()
+	r_timer.countdown_duration = 0.3
+	root.add_child(r_timer)
+	await process_frame
+	r_timer.start_countdown()
+	_check(r_timer.state == "countdown", "RaceTimer starts in countdown")
+	await create_timer(0.7).timeout
+	_check(r_timer.state == "running" and r_timer.elapsed > 0.0, "RaceTimer runs after the countdown")
+	var stopped_at: float = r_timer.stop()
+	_check(stopped_at > 0.0 and r_timer.state == "stopped" and is_equal_approx(stopped_at, r_timer.final_time), "RaceTimer freezes the final time")
+	var frozen_elapsed: float = r_timer.elapsed
+	await create_timer(0.2).timeout
+	_check(is_equal_approx(r_timer.elapsed, frozen_elapsed), "Stopped RaceTimer no longer advances")
+	_check(r_timer.format_time(75.5) == "01:15.50", "RaceTimer formats mm:ss.cc")
+	r_timer.queue_free()
+	var early_timer = RACE_TIMER.new()
+	root.add_child(early_timer)
+	await process_frame
+	early_timer.start_countdown()
+	_check(early_timer.stop() < 0.0, "RaceTimer stopped before GO reports no valid time")
+	early_timer.queue_free()
+
+	# MudPatch
+	var mud = MUD_PATCH.new()
+	root.add_child(mud)
+	await process_frame
+	var mud_base: float = pig.move_speed
+	mud._on_body_entered(pig)
+	_check(is_equal_approx(pig.move_speed, mud_base * 0.5), "MudPatch slows the pig")
+	mud._on_body_entered(pig)
+	_check(is_equal_approx(pig.move_speed, mud_base * 0.5), "MudPatch slowdown does not stack on re-entry")
+	mud._on_body_exited(pig)
+	_check(is_equal_approx(pig.move_speed, mud_base), "MudPatch restores speed on exit")
+	pig.set_meta("star_invincible", true)
+	mud._on_body_entered(pig)
+	_check(is_equal_approx(pig.move_speed, mud_base), "Star pig ignores mud")
+	pig.set_meta("star_invincible", false)
+	mud._on_body_entered(pig)
+	mud.queue_free()
+	await process_frame
+	_check(is_equal_approx(pig.move_speed, mud_base), "MudPatch freed mid-slow hands the speed back")
 
 	# NeonBumper
 	var n_bumper = NEON_BUMPER.new()

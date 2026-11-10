@@ -94,6 +94,8 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	if not (body is CharacterBody3D):
 		return
+	if body.has_meta("star_invincible") and body.get_meta("star_invincible", false):
+		return # Golden-star pig smashes through instead of bouncing off
 
 	_cooldown_timer = cooldown
 	var cb := body as CharacterBody3D

@@ -11,6 +11,9 @@ func _is_dog(body: Node3D) -> bool:
 	return body is ChaseDog or body.has_method("stun")
 
 func _knock(body: Node3D, impulse: Vector3, duration: float = 0.65) -> void:
+	# A golden-star pig (mystery item box) plows straight through trap knockbacks.
+	if body.has_meta("star_invincible") and body.get_meta("star_invincible", false):
+		return
 	if body.has_method("apply_knockback"):
 		body.apply_knockback(impulse, duration)
 

@@ -12,7 +12,9 @@ var is_slipping: bool = false
 var peel_mesh: MeshInstance3D
 
 func _ready() -> void:
-	collision_mask = 2 | 1 # Player and Dogs
+	# Layer 2 = player, layer 4 = chase dogs (chase_dog.gd sets collision_layer=4).
+	# The old mask 2|1 could never see a dog, so the peel only ever worked on the pig.
+	collision_mask = 2 | 4
 	_setup_collision()
 	_setup_visual()
 	body_entered.connect(_on_body_entered)
@@ -71,14 +73,19 @@ func trigger_slip(victim: Node3D) -> void:
 	# Spin 3 full rotations
 	var tween := victim.create_tween()
 	tween.tween_property(victim, "rotation:y", victim.rotation.y + TAU * 3.0, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	if victim.has_method("set_stunned"):
+	# stun() drives the dog's own phase machine (phase + phase_time); writing
+	# phase directly used to wear off on the very next physics frame.
+	if victim.has_method("stun"):
+		victim.stun(2.5)
+	elif victim.has_method("set_stunned"):
 		victim.set_stunned(2.5)
 	elif "phase" in victim:
 		victim.phase = "stun"
 
 	peel_slipped.emit(victim)
 
-	# Peel vanishes with pop
+	# Peel vanishes with pop (not all the way to zero: a zero scale makes the
+	# basis singular and the engine logs "det == 0" while inverting it).
 	var peel_tween := create_tween()
-	peel_tween.tween_property(self, "scale", Vector3.ZERO, 0.2)
+	peel_tween.tween_property(self, "scale", Vector3.ONE * 0.01, 0.2)
 	peel_tween.tween_callback(queue_free)

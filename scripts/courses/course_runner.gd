@@ -26,6 +26,7 @@ var _meme_layer: Node = null
 var _stuck_time := 0.0
 var _last_pos: Vector3 = Vector3.INF
 var _alert_time := 0.0 # Stealth alarm: dogs sprint at boosted max speed while active
+var _checkpoint_yaws: Dictionary = {} # respawn pos -> camera yaw pinned via "respawn_yaw" meta
 
 func _ready() -> void:
 	if config == null:
@@ -40,6 +41,10 @@ func _ready() -> void:
 		var index: int = int(area.get_meta("checkpoint_index", checkpoints.size()))
 		var pos: Vector3 = area.get_meta("respawn_pos", area.global_position)
 		collected.append([index, pos])
+		if area.has_meta("respawn_yaw"):
+			# Optional camera yaw pin: on tracks that bend, the direction toward the
+			# next checkpoint can point sideways, but the camera stays track-locked.
+			_checkpoint_yaws[pos] = float(area.get_meta("respawn_yaw"))
 		area.body_entered.connect(_on_checkpoint.bind(index, pos))
 	# Order by checkpoint index: dog routes and respawn_yaw() must follow the course's
 	# travel direction (a plain Array[Vector3].sort() is lexicographic x/y/z and
@@ -198,6 +203,8 @@ func respawn_yaw() -> float:
 	# Third-person camera yaw (0 = looking -Z) aimed along the course from the
 	# current checkpoint toward the next one (or the exit), so respawns and course
 	# entries face down the track instead of wherever the last chase happened to end.
+	if _checkpoint_yaws.has(last_checkpoint):
+		return _checkpoint_yaws[last_checkpoint]
 	var target := exit_position
 	for i in checkpoints.size():
 		if checkpoints[i].distance_to(last_checkpoint) < 0.01:

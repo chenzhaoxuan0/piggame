@@ -14,6 +14,8 @@ enum ItemType {
 
 const COLOR_NEON_YELLOW := Color("FACC15")
 const COLOR_NEON_ORANGE := Color("FB923C")
+const STAR_DURATION := 5.0
+const STAR_SPEED_FACTOR := 1.6
 
 var is_active: bool = true
 var _respawn_timer: float = 0.0
@@ -141,13 +143,21 @@ func _apply_item(item: String, player: Node3D) -> void:
 			popup_lbl.text = "⭐【无敌金星小猪！】\n全速横冲直撞！"
 			popup_lbl.modulate = Color("FDE047")
 			popup_lbl.outline_modulate = Color("78350F")
-			if player is CharacterBody3D and "move_speed" in player:
-				var orig_speed: float = player.move_speed
-				player.move_speed = orig_speed * 1.6
-				var timer := player.get_tree().create_timer(5.0)
+			# Real invincibility: traps, bumpers and mud check this meta and let the
+			# star pig plow straight through for the duration.
+			var already_star: bool = player.has_meta("star_invincible") and player.get_meta("star_invincible", false)
+			if not already_star:
+				player.set_meta("star_invincible", true)
+				if player is CharacterBody3D and "move_speed" in player:
+					# Scale by a factor (not save/restore of an absolute value) so the
+					# boost stays correct if it overlaps a mud patch's slowdown.
+					player.move_speed = player.move_speed * STAR_SPEED_FACTOR
+				var timer := player.get_tree().create_timer(STAR_DURATION)
 				timer.timeout.connect(func():
-					if is_instance_valid(player) and "move_speed" in player:
-						player.move_speed = orig_speed
+					if is_instance_valid(player):
+						player.set_meta("star_invincible", false)
+						if "move_speed" in player:
+							player.move_speed = player.move_speed / STAR_SPEED_FACTOR
 				)
 
 	player.add_child(popup_lbl)

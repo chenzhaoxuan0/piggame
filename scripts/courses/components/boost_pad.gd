@@ -69,9 +69,6 @@ func _on_body_entered(body: Node3D) -> void:
 	if body is CharacterBody3D:
 		var cb := body as CharacterBody3D
 		cb.velocity += forward_dir * boost_speed
-		if cb.has_method("apply_knockback"):
-			# Or if pig controller has custom dash speed
-			pass
 
 	# Visual pulse
 	var tween := create_tween()
