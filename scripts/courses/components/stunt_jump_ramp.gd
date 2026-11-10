@@ -27,8 +27,12 @@ func _setup_ramp_structure() -> void:
 	var box := BoxShape3D.new()
 	box.size = ramp_size
 	col.shape = box
-	col.rotation.x = deg_to_rad(20.0)
-	col.position.y = ramp_size.y * 0.4
+	var tilt := deg_to_rad(20.0)
+	col.rotation.x = tilt
+	# Sink the box so the front lip sits ~5cm above the ground and the ramp is
+	# walkable without a jump. The old y*0.4 offset left a 0.88m step at the front
+	# edge — nearly the pig's full jump height (0.934m).
+	col.position.y = 0.05 - (ramp_size.y * 0.5) * cos(tilt) + (ramp_size.z * 0.5) * sin(tilt)
 	body.add_child(col)
 	add_child(body)
 

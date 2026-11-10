@@ -109,8 +109,9 @@ func _build_ground_and_structures() -> void:
 	_solid_box("CanyonWallL", Vector3(2, 6, 36), Vector3(-6, 2.5, -50), VOXEL_STONE)
 	_solid_box("CanyonWallR", Vector3(2, 6, 36), Vector3(6, 2.5, -50), VOXEL_STONE)
 
-	# 5. Exit Plaza (Y = 0.0)
-	_voxel_platform("ExitPlaza", Vector3(14, 1, 18), Vector3(0, -0.5, -80), VOXEL_GREEN, VOXEL_DIRT)
+	# 5. Exit Plaza (Y = 0.0) — pulled 0.5m closer so the canyon gap is 2.5m:
+	# a flat 3m gap left a ~0.1s takeoff window (max running jump = 2.9m).
+	_voxel_platform("ExitPlaza", Vector3(14, 1, 18), Vector3(0, -0.5, -79.5), VOXEL_GREEN, VOXEL_DIRT)
 
 func _build_water_slide(pos: Vector3) -> void:
 	var slide := StaticBody3D.new()
@@ -223,7 +224,7 @@ func _build_slime_blocks() -> void:
 	slime_1.name = "SlimeBlockIsland"
 	slime_1.position = Vector3(-3.2, 0.0, -14.0)
 	slime_1.bounce_velocity = 11.5
-	slime_1.forward_boost = 7.0
+	slime_1.forward_boost = 9.5 # 7.0 fell ~2m short of the HighCliff ledge (horizontal speed decays at 20 m/s^2)
 	add_child(slime_1)
 	slime_1.slime_bounced.connect(func(_b, _p):
 		if meme_layer:
