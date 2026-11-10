@@ -26,13 +26,21 @@ var _canopy_materials: Array[ShaderMaterial] = []
 
 # Third-person chase camera parameters (Fall Guys / Mario Kart perspective)
 @export var tp_distance: float = 5.2 # Follow distance behind the pig
-@export var tp_height: float = 2.4 # Height above the pig
-@export var tp_smooth_pos: float = 8.0 # Position follow responsiveness
-@export var tp_smooth_yaw: float = 4.0 # Turn tracking responsiveness
+@export var tp_pitch: float = 14.5 # Pitch down angle in degrees (constant, zero vertical jitter)
+@export var tp_target_height: float = 0.65 # Height of pivot above the pig base
+@export var tp_smooth_pos_xz: float = 12.0 # Responsive horizontal tracking
+@export var tp_smooth_pos_y: float = 4.5 # Gentle vertical tracking (absorbs footstep/stair wobble)
+@export var tp_smooth_yaw: float = 2.4 # Smooth turn follow rate
+@export var tp_yaw_deadzone_deg: float = 24.0 # Angle deadzone: minor steering weaves cause 0 camera rotation
 @export var tp_fov_normal: float = 70.0 # Base FOV
-@export var tp_fov_boost: float = 82.0 # Nitro boost dynamic FOV
-var _tp_yaw: float = 0.0 # Yaw angle in radians (0.0 = looking North -Z)
+@export var tp_fov_boost: float = 76.0 # Mild Nitro dynamic FOV
+
+var _tp_yaw: float = 0.0 # Current camera yaw in radians (0.0 = looking North -Z)
+var _tp_current_pitch: float = 14.5
+var _tp_pivot: Vector3 = Vector3.ZERO # Smoothed center of focus
+var _tp_current_dist: float = 5.2 # Smoothed collision spring-arm distance
 var _rmb_dragging: bool = false
+var _manual_look_timer: float = 0.0 # Grace period after mouse dragging before auto-follow resumes
 
 func _ready() -> void:
 	if not target_path.is_empty():
@@ -55,6 +63,11 @@ func _apply_mode_settings() -> void:
 		fov = tp_fov_normal
 		far = 350.0
 		_tp_yaw = 0.0
+		_tp_current_pitch = tp_pitch
+		_tp_current_dist = tp_distance
+		_manual_look_timer = 0.0
+		if is_instance_valid(target):
+			_tp_pivot = target.global_position + Vector3(0.0, tp_target_height, 0.0)
 	else:
 		projection = Camera3D.PROJECTION_ORTHOGONAL
 		size = TEST_SIZE if test_high_view else NORMAL_SIZE
@@ -91,56 +104,76 @@ func _process_isometric(delta: float) -> void:
 	_update_foliage_cutout()
 
 func _process_third_person(delta: float) -> void:
-	# 1. Update yaw to track pig's horizontal movement direction
+	if _manual_look_timer > 0.0:
+		_manual_look_timer = maxf(0.0, _manual_look_timer - delta)
+
 	var target_cb := target as CharacterBody3D
 	var speed := 0.0
+	var horiz_vel := Vector3.ZERO
 	if target_cb != null:
-		var horiz_vel := Vector3(target_cb.velocity.x, 0.0, target_cb.velocity.z)
+		horiz_vel = Vector3(target_cb.velocity.x, 0.0, target_cb.velocity.z)
 		speed = horiz_vel.length()
-		if speed > 0.4:
-			# Direction from target to camera should be opposite of movement
-			var target_yaw := atan2(-horiz_vel.x, -horiz_vel.z)
-			_tp_yaw = lerp_angle(_tp_yaw, target_yaw, tp_smooth_yaw * delta)
 
-	# 2. Dynamic Nitro FOV
+	# 1. Update smooth target pivot (separate horizontal tracking from vertical footstep damping)
+	var raw_pivot := target.global_position + Vector3(0.0, tp_target_height, 0.0)
+	if _tp_pivot == Vector3.ZERO:
+		_tp_pivot = raw_pivot
+	else:
+		_tp_pivot.x = lerpf(_tp_pivot.x, raw_pivot.x, 1.0 - exp(-tp_smooth_pos_xz * delta))
+		_tp_pivot.z = lerpf(_tp_pivot.z, raw_pivot.z, 1.0 - exp(-tp_smooth_pos_xz * delta))
+		_tp_pivot.y = lerpf(_tp_pivot.y, raw_pivot.y, 1.0 - exp(-tp_smooth_pos_y * delta))
+
+	# 2. Smooth yaw auto-follow with angular deadzone (eliminates swaying during minor steering)
+	if speed > 1.0 and not _rmb_dragging and _manual_look_timer <= 0.0:
+		var move_angle := atan2(-horiz_vel.x, -horiz_vel.z)
+		var angle_diff := wrapf(move_angle - _tp_yaw, -PI, PI)
+		var deadzone_rad := deg_to_rad(tp_yaw_deadzone_deg)
+		if absf(angle_diff) > deadzone_rad:
+			var excess := angle_diff - signf(angle_diff) * deadzone_rad
+			_tp_yaw = lerp_angle(_tp_yaw, _tp_yaw + excess, 1.0 - exp(-tp_smooth_yaw * delta))
+
+	# 3. Dynamic Nitro FOV (gentle transition, max 76 deg)
 	var target_fov := tp_fov_normal
 	if speed > 7.0:
-		target_fov = lerpf(tp_fov_normal, tp_fov_boost, clampf((speed - 7.0) / 12.0, 0.0, 1.0))
-	fov = lerpf(fov, target_fov, 4.0 * delta)
+		target_fov = lerpf(tp_fov_normal, tp_fov_boost, clampf((speed - 7.0) / 10.0, 0.0, 1.0))
+	fov = lerpf(fov, target_fov, 1.0 - exp(-3.0 * delta))
 
-	# 3. Position camera behind target along _tp_yaw
-	var cam_dir := Vector3(sin(_tp_yaw), 0.0, cos(_tp_yaw))
-	var target_pos := target.global_position
-	var desired_cam_pos := target_pos + cam_dir * tp_distance + Vector3(0.0, tp_height, 0.0)
+	# 4. Construct rock-solid orientation from (pitch, yaw) - strictly 0 roll, stable horizon
+	var cam_rot := Basis.from_euler(Vector3(deg_to_rad(-_tp_current_pitch), _tp_yaw, 0.0), EULER_ORDER_YXZ)
 
-	# Simple obstacle/ground clearance raycast
+	# 5. Spring-arm obstacle detection
+	var desired_offset := cam_rot * Vector3(0.0, 0.0, tp_distance)
+	var desired_cam_pos := _tp_pivot + desired_offset
+	var target_dist := tp_distance
+
 	var space := get_world_3d().direct_space_state
 	if space != null:
-		var ray_from := target_pos + Vector3(0.0, 1.0, 0.0)
-		var query := PhysicsRayQueryParameters3D.create(ray_from, desired_cam_pos, 1)
+		var query := PhysicsRayQueryParameters3D.create(_tp_pivot, desired_cam_pos, 1)
 		if target_cb != null:
 			query.exclude = [target_cb.get_rid()]
 		var hit := space.intersect_ray(query)
 		if not hit.is_empty():
 			var hit_pos: Vector3 = hit.get("position", desired_cam_pos)
-			var hit_norm: Vector3 = hit.get("normal", Vector3.UP)
-			desired_cam_pos = hit_pos + hit_norm * 0.25
+			var hit_dist := _tp_pivot.distance_to(hit_pos)
+			target_dist = clampf(hit_dist - 0.25, 1.2, tp_distance)
 
-	global_position = global_position.lerp(desired_cam_pos, 1.0 - exp(-tp_smooth_pos * delta))
+	_tp_current_dist = lerpf(_tp_current_dist, target_dist, 1.0 - exp(-10.0 * delta))
 
-	# 4. Aim camera at target upper body and forward sightline
-	var look_target := target_pos + Vector3(0.0, 0.9, 0.0) - cam_dir * 1.5
-	look_at(look_target, Vector3.UP)
+	# 6. Apply final position and basis directly without shaky look_at()
+	global_basis = cam_rot
+	global_position = _tp_pivot + cam_rot * Vector3(0.0, 0.0, _tp_current_dist)
 
 func snap_to_target() -> void:
 	_acquire_target()
 	if not is_instance_valid(target):
 		return
 	if mode == CameraMode.THIRD_PERSON:
-		var cam_dir := Vector3(sin(_tp_yaw), 0.0, cos(_tp_yaw))
-		global_position = target.global_position + cam_dir * tp_distance + Vector3(0.0, tp_height, 0.0)
-		var look_target := target.global_position + Vector3(0.0, 0.9, 0.0) - cam_dir * 1.5
-		look_at(look_target, Vector3.UP)
+		_tp_pivot = target.global_position + Vector3(0.0, tp_target_height, 0.0)
+		_tp_current_pitch = tp_pitch
+		_tp_current_dist = tp_distance
+		var cam_rot := Basis.from_euler(Vector3(deg_to_rad(-_tp_current_pitch), _tp_yaw, 0.0), EULER_ORDER_YXZ)
+		global_basis = cam_rot
+		global_position = _tp_pivot + cam_rot * Vector3(0.0, 0.0, _tp_current_dist)
 		_initialized = true
 		return
 
@@ -155,8 +188,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		_rmb_dragging = event.pressed
+		if not _rmb_dragging:
+			_manual_look_timer = 1.0
 	elif _rmb_dragging and event is InputEventMouseMotion:
-		_tp_yaw -= event.relative.x * 0.005
+		_tp_yaw -= event.relative.x * 0.004
+		_tp_current_pitch = clampf(_tp_current_pitch - event.relative.y * 0.2, 5.0, 45.0)
+		_manual_look_timer = 1.0
 
 func _update_foliage_cutout() -> void:
 	if _canopy_materials.is_empty():
