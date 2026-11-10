@@ -94,6 +94,18 @@ func _run() -> void:
 	await create_timer(0.6).timeout
 	_check(course.obsidian_wall == null or course.obsidian_wall.is_demolished, "TNT on pressure plate demolished obsidian wall")
 
+	# CliffRamp steps flush with HighCliff (no buried or embedded steps)
+	var ramp = course.get_node_or_null("CliffRamp")
+	_check(ramp != null, "Course 2 has CliffRamp")
+	if ramp != null:
+		var step7 = ramp.get_node_or_null("StepCol7")
+		_check(step7 != null, "CliffRamp has step 7")
+		if step7 != null:
+			var top_y: float = ramp.position.y + step7.position.y + (step7.shape as BoxShape3D).size.y * 0.5
+			_check(is_equal_approx(top_y, 3.0), "CliffRamp top step is flush at Y = 3.0 matching HighCliff")
+			var step7_north_z: float = ramp.position.z + step7.position.z - (step7.shape as BoxShape3D).size.z * 0.5
+			_check(step7_north_z <= -20.0, "CliffRamp step 7 meets HighCliff south face without embedded steps")
+
 	# 5. QTE struggle in course
 	var test_dog: ChaseDog = runner._dogs[0]
 	runner._on_dog_grapple(test_dog)

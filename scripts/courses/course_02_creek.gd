@@ -96,8 +96,8 @@ func _build_ground_and_structures() -> void:
 
 	# 3. High cliff ledge overlooking canyon (Y = 3.0)
 	_voxel_platform("HighCliff", Vector3(10, 4, 12), Vector3(0, 1.0, -26), VOXEL_STONE, VOXEL_DIRT)
-	# Ramp up to high cliff
-	_voxel_ramp("CliffRamp", Vector3(6, 4, 8), Vector3(0, -0.5, -18), 3.0)
+	# Ramp up to high cliff (flush at Y = 3.0, North edge at Z = -20.1 meeting HighCliff south face without embedded steps)
+	_voxel_ramp("CliffRamp", Vector3(6, 4, 8.2), Vector3(0, 0.0, -16.0), 3.0)
 
 	# 4. Lower Canyon floor (Y = 0.0)
 	_voxel_platform("CanyonFloor", Vector3(12, 1, 36), Vector3(0, -0.5, -50), VOXEL_STONE, VOXEL_DIRT)
@@ -384,7 +384,7 @@ func _voxel_tree(pos: Vector3) -> void:
 
 func _build_markers() -> void:
 	_area("CourseStart", "course_start", Vector3(0, 1, 10), Vector3(8, 3, 2))
-	_checkpoint("Checkpoint1", 1, Vector3(0, 1, -12), Vector3(0, 0.6, -12))
+	_checkpoint("Checkpoint1", 1, Vector3(0, 1, -9.5), Vector3(0, 0.6, -9.5))
 	_checkpoint("Checkpoint2", 2, Vector3(0, 1, -45), Vector3(0, 0.6, -45))
 	_area("CourseExit", "course_exit", Vector3(0, 2, -82), Vector3(4, 5, 3))
 
@@ -443,23 +443,25 @@ func _voxel_ramp(node_name: String, size: Vector3, pos: Vector3, height: float) 
 	var steps := 8
 	for i in range(steps):
 		var step_col := CollisionShape3D.new()
+		step_col.name = "StepCol%d" % i
 		var box := BoxShape3D.new()
 		var step_depth := size.z / float(steps)
 		var step_h := height / float(steps) * float(i + 1)
 		box.size = Vector3(size.x, step_h, step_depth)
 		step_col.shape = box
-		# FIX: Low step (i = 0) at South (+Z, near player entry); High step (i = 7) at North (-Z, meeting HighCliff flush at Y = 3.0)
+		# Low step (i = 0) at South (+Z); High step (i = 7) at North (-Z), meeting HighCliff flush at Y = 3.0 without embedded steps
 		var z_offset := size.z * 0.5 - step_depth * (float(i) + 0.5)
 		step_col.position = Vector3(0, step_h * 0.5, z_offset)
 		body.add_child(step_col)
 
 		var mesh := MeshInstance3D.new()
+		mesh.name = "StepMesh%d" % i
 		var mesh_box := BoxMesh.new()
 		mesh_box.size = box.size
 		mesh.mesh = mesh_box
 		mesh.position = step_col.position
 		var mat := StandardMaterial3D.new()
-		mat.albedo_color = VOXEL_STONE if i % 2 == 0 else Color("64748B")
+		mat.albedo_color = VOXEL_STONE if (i % 2 == 0 or i == steps - 1) else Color("64748B")
 		mesh.material_override = mat
 		body.add_child(mesh)
 
