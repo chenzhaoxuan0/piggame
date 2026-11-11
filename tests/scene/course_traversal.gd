@@ -42,6 +42,12 @@ static func walk(tree: SceneTree, player: Node3D, waypoints: Array[Vector3], is_
 	# player would steer. Without it, one knock into a wall face wedges the walk.
 	var anchor: Vector3 = Vector3.INF
 	var frames_since_probe := 0
+	# Waypoint-level stall clock: a knockback loop (e.g. a pendulum re-hitting
+	# the pig on every approach) never stands still, so the standstill probe
+	# below never fires; if the SAME waypoint stays the target this long, force
+	# a sidestep to break the resonance.
+	var index_age := 0.0
+	var last_index := -1
 	var sidestep := 0 # 0 = none, +1 = +x, -1 = -x
 	var sidestep_until := 0.0
 	var sidestep_flip := false
@@ -91,6 +97,11 @@ static func walk(tree: SceneTree, player: Node3D, waypoints: Array[Vector3], is_
 		# diagonally and land short.
 		var grounded: bool = not player.has_method("is_on_floor") or player.is_on_floor()
 		frames_since_probe += 1
+		if index != last_index:
+			last_index = index
+			index_age = 0.0
+		else:
+			index_age += 1.0 / 60.0
 		if knocked or not grounded or sidestep != 0 and seconds > sidestep_until:
 			if knocked or not grounded:
 				anchor = Vector3.INF
@@ -104,6 +115,13 @@ static func walk(tree: SceneTree, player: Node3D, waypoints: Array[Vector3], is_
 				sidestep_until = seconds + 0.8
 			anchor = flat
 			frames_since_probe = 0
+		if grounded and not knocked and sidestep == 0 and index_age > 30.0:
+			# Knockback resonance: same target for half a minute without a
+			# standstill - strafe wide and retime the approach.
+			sidestep_flip = not sidestep_flip
+			sidestep = 1 if sidestep_flip else -1
+			sidestep_until = seconds + 1.2
+			index_age = 15.0 # Re-arm: another 15 s on the same target retries the other side
 
 		var target := waypoints[index]
 		if sidestep != 0:
