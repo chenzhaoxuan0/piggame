@@ -571,6 +571,375 @@
       "zone": "C0",
       "triangles": -1,
       "validation": "Zone-style asset (C0); processed via process_zone_models.py"
+    },
+    "ENV_C2_GRASS_BLOCK": {
+      "path": "res://assets/models/aholo/ENV_C2_GRASS_BLOCK/ENV_C2_GRASS_BLOCK_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C2",
+      "triangles": -1,
+      "validation": "Zone-style asset (C2); processed via process_zone_models.py"
+    },
+    "ENV_C2_STONE_BLOCK": {
+      "path": "res://assets/models/aholo/ENV_C2_STONE_BLOCK/ENV_C2_STONE_BLOCK_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C2",
+      "triangles": -1,
+      "validation": "Zone-style asset (C2); processed via process_zone_models.py"
+    },
+    "ENV_C2_CANYON_WALL": {
+      "path": "res://assets/models/aholo/ENV_C2_CANYON_WALL/ENV_C2_CANYON_WALL_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C2",
+      "triangles": -1,
+      "validation": "Zone-style asset (C2); processed via process_zone_models.py"
+    },
+    "PROP_C2_MOSSY_STONE": {
+      "path": "res://assets/models/aholo/PROP_C2_MOSSY_STONE/PROP_C2_MOSSY_STONE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C2",
+      "triangles": -1,
+      "validation": "Zone-style asset (C2); processed via process_zone_models.py"
+    },
+    "ENV_C2_OAK_TREE": {
+      "path": "res://assets/models/aholo/ENV_C2_OAK_TREE/ENV_C2_OAK_TREE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C2",
+      "triangles": -1,
+      "validation": "Zone-style asset (C2); processed via process_zone_models.py"
+    },
+    "PROP_C2_NETHER_PORTAL": {
+      "path": "res://assets/models/aholo/PROP_C2_NETHER_PORTAL/PROP_C2_NETHER_PORTAL_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C2",
+      "triangles": -1,
+      "validation": "Zone-style asset (C2); processed via process_zone_models.py"
+    },
+    "PROP_C2_TNT": {
+      "path": "res://assets/models/aholo/PROP_C2_TNT/PROP_C2_TNT_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C2",
+      "triangles": -1,
+      "validation": "Zone-style asset (C2); processed via process_zone_models.py"
+    },
+    "PROP_C2_DIRT_BLOCK": {
+      "path": "res://assets/models/aholo/PROP_C2_DIRT_BLOCK/PROP_C2_DIRT_BLOCK_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C2",
+      "triangles": -1,
+      "validation": "Zone-style asset (C2); processed via process_zone_models.py"
+    },
+    "PROP_C2_SAND_BLOCK": {
+      "path": "res://assets/models/aholo/PROP_C2_SAND_BLOCK/PROP_C2_SAND_BLOCK_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C2",
+      "triangles": -1,
+      "validation": "Zone-style asset (C2); processed via process_zone_models.py"
+    },
+    "PROP_C2_SLIME_BLOCK": {
+      "path": "res://assets/models/aholo/PROP_C2_SLIME_BLOCK/PROP_C2_SLIME_BLOCK_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C2",
+      "triangles": -1,
+      "validation": "Zone-style asset (C2); processed via process_zone_models.py"
+    },
+    "PROP_C2_PRESSURE_PLATE": {
+      "path": "res://assets/models/aholo/PROP_C2_PRESSURE_PLATE/PROP_C2_PRESSURE_PLATE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C2",
+      "triangles": -1,
+      "validation": "Zone-style asset (C2); processed via process_zone_models.py"
+    },
+    "PROP_C2_SWEET_POTATO": {
+      "path": "res://assets/models/aholo/PROP_C2_SWEET_POTATO/PROP_C2_SWEET_POTATO_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C2",
+      "triangles": -1,
+      "validation": "Zone-style asset (C2); processed via process_zone_models.py"
+    },
+    "PROP_C2_OBSIDIAN_WALL": {
+      "path": "res://assets/models/aholo/PROP_C2_OBSIDIAN_WALL/PROP_C2_OBSIDIAN_WALL_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C2",
+      "triangles": -1,
+      "validation": "Zone-style asset (C2); processed via process_zone_models.py"
+    },
+    "ENV_C3_MEADOW_TILE": {
+      "path": "res://assets/models/aholo/ENV_C3_MEADOW_TILE/ENV_C3_MEADOW_TILE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C3",
+      "triangles": -1,
+      "validation": "Zone-style asset (C3); processed via process_zone_models.py"
+    },
+    "ENV_C3_GOLD_TILE": {
+      "path": "res://assets/models/aholo/ENV_C3_GOLD_TILE/ENV_C3_GOLD_TILE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C3",
+      "triangles": -1,
+      "validation": "Zone-style asset (C3); processed via process_zone_models.py"
+    },
+    "ENV_C3_PURPLE_TILE": {
+      "path": "res://assets/models/aholo/ENV_C3_PURPLE_TILE/ENV_C3_PURPLE_TILE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C3",
+      "triangles": -1,
+      "validation": "Zone-style asset (C3); processed via process_zone_models.py"
+    },
+    "ENV_C3_TREE": {
+      "path": "res://assets/models/aholo/ENV_C3_TREE/ENV_C3_TREE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C3",
+      "triangles": -1,
+      "validation": "Zone-style asset (C3); processed via process_zone_models.py"
+    },
+    "PROP_C3_TOADSTOOL": {
+      "path": "res://assets/models/aholo/PROP_C3_TOADSTOOL/PROP_C3_TOADSTOOL_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C3",
+      "triangles": -1,
+      "validation": "Zone-style asset (C3); processed via process_zone_models.py"
+    },
+    "PROP_C3_CHEST": {
+      "path": "res://assets/models/aholo/PROP_C3_CHEST/PROP_C3_CHEST_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C3",
+      "triangles": -1,
+      "validation": "Zone-style asset (C3); processed via process_zone_models.py"
+    },
+    "PROP_C3_MAZE_WALL": {
+      "path": "res://assets/models/aholo/PROP_C3_MAZE_WALL/PROP_C3_MAZE_WALL_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C3",
+      "triangles": -1,
+      "validation": "Zone-style asset (C3); processed via process_zone_models.py"
+    },
+    "PROP_C3_HOLLOW_TREE": {
+      "path": "res://assets/models/aholo/PROP_C3_HOLLOW_TREE/PROP_C3_HOLLOW_TREE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C3",
+      "triangles": -1,
+      "validation": "Zone-style asset (C3); processed via process_zone_models.py"
+    },
+    "PROP_C3_CARDBOARD_BOX": {
+      "path": "res://assets/models/aholo/PROP_C3_CARDBOARD_BOX/PROP_C3_CARDBOARD_BOX_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C3",
+      "triangles": -1,
+      "validation": "Zone-style asset (C3); processed via process_zone_models.py"
+    },
+    "PROP_C3_GOLDEN_PINECONE": {
+      "path": "res://assets/models/aholo/PROP_C3_GOLDEN_PINECONE/PROP_C3_GOLDEN_PINECONE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C3",
+      "triangles": -1,
+      "validation": "Zone-style asset (C3); processed via process_zone_models.py"
+    },
+    "PROP_C3_ILLUSORY_WALL": {
+      "path": "res://assets/models/aholo/PROP_C3_ILLUSORY_WALL/PROP_C3_ILLUSORY_WALL_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C3",
+      "triangles": -1,
+      "validation": "Zone-style asset (C3); processed via process_zone_models.py"
+    },
+    "PROP_C3_BOUNCY_MUSHROOM": {
+      "path": "res://assets/models/aholo/PROP_C3_BOUNCY_MUSHROOM/PROP_C3_BOUNCY_MUSHROOM_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C3",
+      "triangles": -1,
+      "validation": "Zone-style asset (C3); processed via process_zone_models.py"
+    },
+    "ENV_C3_BUSH": {
+      "path": "res://assets/models/aholo/ENV_C3_BUSH/ENV_C3_BUSH_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "flat",
+      "zone": "C3",
+      "triangles": -1,
+      "validation": "Zone-style asset (C3); processed via process_zone_models.py"
+    },
+    "ENV_C4_ASPHALT": {
+      "path": "res://assets/models/aholo/ENV_C4_ASPHALT/ENV_C4_ASPHALT_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "neon",
+      "zone": "C4",
+      "triangles": -1,
+      "validation": "Zone-style asset (C4); processed via process_zone_models.py"
+    },
+    "ENV_C4_GRAVEL": {
+      "path": "res://assets/models/aholo/ENV_C4_GRAVEL/ENV_C4_GRAVEL_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "neon",
+      "zone": "C4",
+      "triangles": -1,
+      "validation": "Zone-style asset (C4); processed via process_zone_models.py"
+    },
+    "PROP_C4_GUARDRAIL": {
+      "path": "res://assets/models/aholo/PROP_C4_GUARDRAIL/PROP_C4_GUARDRAIL_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "neon",
+      "zone": "C4",
+      "triangles": -1,
+      "validation": "Zone-style asset (C4); processed via process_zone_models.py"
+    },
+    "PROP_C4_BOOST_PAD": {
+      "path": "res://assets/models/aholo/PROP_C4_BOOST_PAD/PROP_C4_BOOST_PAD_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "neon",
+      "zone": "C4",
+      "triangles": -1,
+      "validation": "Zone-style asset (C4); processed via process_zone_models.py"
+    },
+    "PROP_C4_TIRE": {
+      "path": "res://assets/models/aholo/PROP_C4_TIRE/PROP_C4_TIRE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "neon",
+      "zone": "C4",
+      "triangles": -1,
+      "validation": "Zone-style asset (C4); processed via process_zone_models.py"
+    },
+    "PROP_C4_TRAFFIC_CONE": {
+      "path": "res://assets/models/aholo/PROP_C4_TRAFFIC_CONE/PROP_C4_TRAFFIC_CONE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "neon",
+      "zone": "C4",
+      "triangles": -1,
+      "validation": "Zone-style asset (C4); processed via process_zone_models.py"
+    },
+    "PROP_C4_SWEEPER": {
+      "path": "res://assets/models/aholo/PROP_C4_SWEEPER/PROP_C4_SWEEPER_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "neon",
+      "zone": "C4",
+      "triangles": -1,
+      "validation": "Zone-style asset (C4); processed via process_zone_models.py"
+    },
+    "PROP_C4_NEON_SIGN": {
+      "path": "res://assets/models/aholo/PROP_C4_NEON_SIGN/PROP_C4_NEON_SIGN_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "neon",
+      "zone": "C4",
+      "triangles": -1,
+      "validation": "Zone-style asset (C4); processed via process_zone_models.py"
+    },
+    "PROP_C4_ITEM_BOX": {
+      "path": "res://assets/models/aholo/PROP_C4_ITEM_BOX/PROP_C4_ITEM_BOX_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "neon",
+      "zone": "C4",
+      "triangles": -1,
+      "validation": "Zone-style asset (C4); processed via process_zone_models.py"
+    },
+    "PROP_C4_STUNT_RAMP": {
+      "path": "res://assets/models/aholo/PROP_C4_STUNT_RAMP/PROP_C4_STUNT_RAMP_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "neon",
+      "zone": "C4",
+      "triangles": -1,
+      "validation": "Zone-style asset (C4); processed via process_zone_models.py"
+    },
+    "PROP_C4_BUMPER": {
+      "path": "res://assets/models/aholo/PROP_C4_BUMPER/PROP_C4_BUMPER_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "neon",
+      "zone": "C4",
+      "triangles": -1,
+      "validation": "Zone-style asset (C4); processed via process_zone_models.py"
+    },
+    "PROP_C4_FINISH_GATE": {
+      "path": "res://assets/models/aholo/PROP_C4_FINISH_GATE/PROP_C4_FINISH_GATE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "neon",
+      "zone": "C4",
+      "triangles": -1,
+      "validation": "Zone-style asset (C4); processed via process_zone_models.py"
+    },
+    "PROP_C4_START_GANTRY": {
+      "path": "res://assets/models/aholo/PROP_C4_START_GANTRY/PROP_C4_START_GANTRY_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "neon",
+      "zone": "C4",
+      "triangles": -1,
+      "validation": "Zone-style asset (C4); processed via process_zone_models.py"
+    },
+    "PROP_C4_STADIUM_LIGHT": {
+      "path": "res://assets/models/aholo/PROP_C4_STADIUM_LIGHT/PROP_C4_STADIUM_LIGHT_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "neon",
+      "zone": "C4",
+      "triangles": -1,
+      "validation": "Zone-style asset (C4); processed via process_zone_models.py"
+    },
+    "PROP_C4_TIRE_STACK": {
+      "path": "res://assets/models/aholo/PROP_C4_TIRE_STACK/PROP_C4_TIRE_STACK_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "neon",
+      "zone": "C4",
+      "triangles": -1,
+      "validation": "Zone-style asset (C4); processed via process_zone_models.py"
     }
   }
 }

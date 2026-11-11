@@ -7,6 +7,11 @@ signal plate_released(plate: Node3D)
 @export var plate_size: Vector3 = Vector3(1.4, 0.12, 1.4)
 @export var is_stone: bool = false
 @export var target_wall: Node3D
+# Optional zone dressing (creek voxel): the Lux3D pressure plate replaces the
+# flat slab; the press/release tween keeps working on the plate node.
+@export var lux_asset_id: String = ""
+
+const ASSETS = preload("res://scripts/art/asset_library.gd")
 
 const COLOR_WOOD := Color("A16207") # Oak wood plate
 const COLOR_STONE := Color("64748B") # Stone plate
@@ -46,6 +51,14 @@ func _setup_visual() -> void:
 	mat.albedo_color = COLOR_STONE if is_stone else COLOR_WOOD
 	plate_mesh.material_override = mat
 	add_child(plate_mesh)
+
+	# Zone dressing: the voxel plate replaces the flat slab.
+	if not lux_asset_id.is_empty():
+		var lux := ASSETS.make(lux_asset_id)
+		if lux != null:
+			plate_mesh.mesh = null
+			lux.position.y = -plate_size.y * 0.5
+			plate_mesh.add_child(lux)
 
 	# Redstone wire trail connecting to target
 	redstone_wire = MeshInstance3D.new()

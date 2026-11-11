@@ -502,9 +502,12 @@
       "style": "hand_painted",
       "zone": "C3",
       "faceCount": 10000,
-      "status": "submitted",
+      "status": "downloaded",
       "submitted_at": "2026-11-11T18:22:44.829721+00:00",
-      "remote_status": 1
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C3_BOUNCY_MUSHROOM/PROP_C3_BOUNCY_MUSHROOM.glb",
+      "sha256": "07bc4efdd012191086be0664a6587b62a8e90b54c261ce8770c78b87217ed91a",
+      "downloaded_at": "2026-11-11T18:31:38.477750+00:00"
     },
     "ENV_C3_BUSH": {
       "task_id": 6522392,
@@ -603,9 +606,12 @@
       "style": "cartoon",
       "zone": "C4",
       "faceCount": 10000,
-      "status": "submitted",
+      "status": "downloaded",
       "submitted_at": "2026-11-11T18:27:23.576284+00:00",
-      "remote_status": 1
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C4_SWEEPER/PROP_C4_SWEEPER.glb",
+      "sha256": "a8b20d881464aa597a82270d545d06a482923e8e82f9653a5e1b53e3cccc2086",
+      "downloaded_at": "2026-11-11T18:32:38.105915+00:00"
     },
     "PROP_C4_NEON_SIGN": {
       "task_id": 6523539,
@@ -613,9 +619,12 @@
       "style": "cartoon",
       "zone": "C4",
       "faceCount": 10000,
-      "status": "submitted",
+      "status": "downloaded",
       "submitted_at": "2026-11-11T18:28:12.154260+00:00",
-      "remote_status": 1
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C4_NEON_SIGN/PROP_C4_NEON_SIGN.glb",
+      "sha256": "ab1f506101db46cc4b62d938a82562e0cd226a0787bb153f6098532ad15189e0",
+      "downloaded_at": "2026-11-11T18:30:20.156210+00:00"
     },
     "PROP_C4_ITEM_BOX": {
       "task_id": 6523969,
@@ -623,7 +632,90 @@
       "style": "cartoon",
       "zone": "C4",
       "faceCount": 10000,
-      "status": "submitted",
-      "submitted_at": "2026-11-11T18:29:41.509423+00:00"
+      "status": "downloaded",
+      "submitted_at": "2026-11-11T18:29:41.509423+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C4_ITEM_BOX/PROP_C4_ITEM_BOX.glb",
+      "sha256": "c7e577a7f77b0b0a9db2f9b45ce2124bff259c078a62d5787e3e4ad0ea409504",
+      "downloaded_at": "2026-11-11T18:31:49.231617+00:00"
     },
-    "PR
+    "PROP_C4_STUNT_RAMP": {
+      "task_id": 6523998,
+      "prompt": "A single isolated freestanding game asset in the style of a Fall Guys neon variety-show arena mixed with Mario Kart arcade racing. Glossy saturated candy colors, chunky toy-like shapes, bold glowing neon accents, playful TV-game-show look. One giant arcade stunt jump ramp, wide upward sloping wedge in glossy dark navy with glowing yellow-orange chevron stripes up the slope face and chunky side rails, toy-like arena look. No floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. Single object only.",
+      "style": "cartoon",
+      "zone": "C4",
+      "faceCount": 10000,
+      "status": "downloaded",
+      "submitted_at": "2026-11-11T18:29:44.977000+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C4_STUNT_RAMP/PROP_C4_STUNT_RAMP.glb",
+      "sha256": "2306c53744ccc3362bd6364bb1af1b32727eb17d00b90d9c8e82e42a60b3409d",
+      "downloaded_at": "2026-11-11T18:31:57.941507+00:00"
+    },
+    "PROP_C4_BUMPER": {
+      "task_id": 6524245,
+      "prompt": "A single isolated freestanding game asset in the style of a Fall Guys neon variety-show arena mixed with Mario Kart arcade racing. Glossy saturated candy colors, chunky toy-like shapes, bold glowing neon accents, playful TV-game-show look. One neon pinball bumper pillar, glossy white cylindrical base with a glowing hot pink dome cap and a bright cyan ring band under the cap, chunky toy proportions. No floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. Single object only.",
+      "style": "cartoon",
+      "zone": "C4",
+      "faceCount": 10000,
+      "status": "downloaded",
+      "submitted_at": "2026-11-11T18:30:29.221431+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C4_BUMPER/PROP_C4_BUMPER.glb",
+      "sha256": "ca1f1efacc620063b6a347cbb1613a6f3ee854d11933d515ed1da2c8c5e16032",
+      "downloaded_at": "2026-11-11T18:33:06.547453+00:00"
+    },
+    "PROP_C4_FINISH_GATE": {
+      "task_id": 6524650,
+      "prompt": "A single isolated freestanding game asset in the style of a Fall Guys neon variety-show arena mixed with Mario Kart arcade racing. Glossy saturated candy colors, chunky toy-like shapes, bold glowing neon accents, playful TV-game-show look. One festive neon finish gate arch, two glossy chunky posts in deep navy with glowing cyan strips, joined by a wide top beam carrying a bright white and black checkered flag banner, glowing pink accent bulbs, ten metres wide, freestanding arch structure. No floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. Single object only.",
+      "style": "cartoon",
+      "zone": "C4",
+      "faceCount": 20000,
+      "status": "downloaded",
+      "submitted_at": "2026-11-11T18:32:03.910347+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C4_FINISH_GATE/PROP_C4_FINISH_GATE.glb",
+      "sha256": "90f2fdecae6323b6d4b8da56d2b4968fdbf22020d79819eb98678ac0b49db1ca",
+      "downloaded_at": "2026-11-11T18:34:18.129416+00:00"
+    },
+    "PROP_C4_START_GANTRY": {
+      "task_id": 6524672,
+      "prompt": "A single isolated freestanding game asset in the style of a Fall Guys neon variety-show arena mixed with Mario Kart arcade racing. Glossy saturated candy colors, chunky toy-like shapes, bold glowing neon accents, playful TV-game-show look. One racing start line gantry, wide flat beam across two chunky posts with three round traffic lamp housings in red amber green on the beam face, glossy toy arena style, ten metres wide, freestanding. No floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. Single object only.",
+      "style": "cartoon",
+      "zone": "C4",
+      "faceCount": 10000,
+      "status": "downloaded",
+      "submitted_at": "2026-11-11T18:32:06.916781+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C4_START_GANTRY/PROP_C4_START_GANTRY.glb",
+      "sha256": "5b3956825d8a03814c9a969e77e3436c48e3ced94a9b774a400510e7bcdfa697",
+      "downloaded_at": "2026-11-11T18:34:31.734890+00:00"
+    },
+    "PROP_C4_STADIUM_LIGHT": {
+      "task_id": 6524699,
+      "prompt": "A single isolated freestanding game asset in the style of a Fall Guys neon variety-show arena mixed with Mario Kart arcade racing. Glossy saturated candy colors, chunky toy-like shapes, bold glowing neon accents, playful TV-game-show look. One stadium floodlight tower, tall slim dark pole with a wide rounded lamp head of four bright glowing bulbs behind a frame on top, chunky toy look. No floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. Single object only.",
+      "style": "cartoon",
+      "zone": "C4",
+      "faceCount": 10000,
+      "status": "downloaded",
+      "submitted_at": "2026-11-11T18:32:09.890643+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C4_STADIUM_LIGHT/PROP_C4_STADIUM_LIGHT.glb",
+      "sha256": "7b94479516a465b78a7e5dfca5d1b8f5c0449c867cf82bdfa883b38441580ec5",
+      "downloaded_at": "2026-11-11T18:33:49.450490+00:00"
+    },
+    "PROP_C4_TIRE_STACK": {
+      "task_id": 6524720,
+      "prompt": "A single isolated freestanding game asset in the style of a Fall Guys neon variety-show arena mixed with Mario Kart arcade racing. Glossy saturated candy colors, chunky toy-like shapes, bold glowing neon accents, playful TV-game-show look. One stack of three black racing tires, chunky glossy tires stacked with slight offsets, a small white painted stripe on the top tire sidewall, toy-like arcade look. No floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. Single object only.",
+      "style": "cartoon",
+      "zone": "C4",
+      "faceCount": 10000,
+      "status": "downloaded",
+      "submitted_at": "2026-11-11T18:32:12.883420+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C4_TIRE_STACK/PROP_C4_TIRE_STACK.glb",
+      "sha256": "93e18d680d25812da71b4f0cf03aebe98e14faea8909f79bf681212b0e3ec587",
+      "downloaded_at": "2026-11-11T18:35:09.364696+00:00"
+    }
+  }
+}

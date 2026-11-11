@@ -3,10 +3,15 @@ extends Node3D
 
 signal slime_bounced(block: VoxelSlimeBlock, body: Node3D)
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 @export var block_size: Vector3 = Vector3(2.0, 1.0, 2.0)
 @export var bounce_velocity: float = 12.0
 @export var forward_boost: float = 6.0
 @export var cooldown: float = 0.4
+# Optional zone dressing (creek voxel): the Lux3D slime cube replaces the
+# translucent jelly pair; squash & stretch keeps working on the mesh root.
+@export var lux_asset_id: String = ""
 
 const COLOR_SLIME_GREEN := Color("22C55E")
 const COLOR_SLIME_INNER := Color("15803D")
@@ -57,6 +62,14 @@ func _setup_visual() -> void:
 	inner_mat.roughness = 0.4
 	_inner_mesh.material_override = inner_mat
 	_mesh_root.add_child(_inner_mesh)
+
+	# Zone dressing: the voxel slime cube replaces the jelly pair.
+	if not lux_asset_id.is_empty():
+		var lux := ASSETS.make(lux_asset_id)
+		if lux != null:
+			_outer_mesh.visible = false
+			_inner_mesh.visible = false
+			_mesh_root.add_child(lux)
 
 	# Label above block
 	var lbl := Label3D.new()

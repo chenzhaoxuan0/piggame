@@ -10,7 +10,13 @@ extends Area3D
 
 signal potato_collected(potato: Node3D, player: Node3D)
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 const COLOR_GOLD := Color("F59E0B")
+
+# Optional zone dressing (creek voxel): replaces the golden cube with the
+# zone's Lux3D potato model; the spin and pop tweens keep working on the node.
+@export var lux_asset_id: String = ""
 
 var is_collected: bool = false
 
@@ -39,6 +45,13 @@ func _ready() -> void:
 	mat.emission_energy_multiplier = 1.2
 	mesh.material_override = mat
 	add_child(mesh)
+
+	# Zone dressing: swap the golden cube for the voxel potato model.
+	if not lux_asset_id.is_empty():
+		var lux := ASSETS.make(lux_asset_id)
+		if lux != null:
+			mesh.mesh = null
+			mesh.add_child(lux)
 
 	var spin := create_tween()
 	spin.set_loops()

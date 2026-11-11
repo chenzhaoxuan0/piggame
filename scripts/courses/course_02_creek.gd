@@ -135,30 +135,32 @@ func _make_config() -> CourseConfig:
 
 func _build_ground_and_structures() -> void:
 	# 1. Start bank (Grassy voxel terrace spanning Z = 0 to 16, flush with water stream)
-	_voxel_platform("StartBank", Vector3(14, 1, 16), Vector3(0, -0.5, 8), VOXEL_GREEN, VOXEL_DIRT)
+	_voxel_platform("StartBank", Vector3(14, 1, 16), Vector3(0, -0.5, 8), VOXEL_GREEN, VOXEL_DIRT, "ENV_C2_GRASS_BLOCK")
 
 	# 2. Island between creek and cliff
-	_voxel_platform("MidIsland", Vector3(12, 1, 14), Vector3(0, -0.5, -12), VOXEL_GREEN, VOXEL_DIRT)
+	_voxel_platform("MidIsland", Vector3(12, 1, 14), Vector3(0, -0.5, -12), VOXEL_GREEN, VOXEL_DIRT, "ENV_C2_GRASS_BLOCK")
 
 	# 3. High cliff ledge overlooking canyon (Y = 3.0)
-	_voxel_platform("HighCliff", Vector3(10, 4, 12), Vector3(0, 1.0, -26), VOXEL_STONE, VOXEL_DIRT)
+	_voxel_platform("HighCliff", Vector3(10, 4, 12), Vector3(0, 1.0, -26), VOXEL_STONE, VOXEL_DIRT, "ENV_C2_STONE_BLOCK", 4)
 	# Ramp up to high cliff (flush at Y = 3.0, North edge at Z = -20.1 meeting HighCliff south face without embedded steps)
 	_voxel_ramp("CliffRamp", Vector3(6, 4, 8.2), Vector3(0, 0.0, -16.0), 3.0)
 	_build_potato_pickups()
 
 	# 4. Lower Canyon floor (Y = 0.0)
-	_voxel_platform("CanyonFloor", Vector3(12, 1, 36), Vector3(0, -0.5, -50), VOXEL_STONE, VOXEL_DIRT)
+	_voxel_platform("CanyonFloor", Vector3(12, 1, 36), Vector3(0, -0.5, -50), VOXEL_STONE, VOXEL_DIRT, "ENV_C2_STONE_BLOCK")
 
 	# Waterfall slide descending from HighCliff into Canyon
 	_build_water_slide(Vector3(0, 1.5, -33.5))
 
 	# Canyon walls
-	_solid_box("CanyonWallL", Vector3(2, 6, 36), Vector3(-6, 2.5, -50), VOXEL_STONE)
-	_solid_box("CanyonWallR", Vector3(2, 6, 36), Vector3(6, 2.5, -50), VOXEL_STONE)
+	var canyon_l := _solid_box("CanyonWallL", Vector3(2, 6, 36), Vector3(-6, 2.5, -50), VOXEL_STONE)
+	ASSETS.tile_run(canyon_l, "ENV_C2_CANYON_WALL", Vector3(2, 6, 36), Vector3(4, 2, 6), 0.0, -2.5)
+	var canyon_r := _solid_box("CanyonWallR", Vector3(2, 6, 36), Vector3(6, 2.5, -50), VOXEL_STONE)
+	ASSETS.tile_run(canyon_r, "ENV_C2_CANYON_WALL", Vector3(2, 6, 36), Vector3(4, 2, 6), 0.0, -2.5)
 
 	# 5. Exit Plaza (Y = 0.0) — pulled 0.5m closer so the canyon gap is 2.5m:
 	# a flat 3m gap left a ~0.1s takeoff window (max running jump = 2.9m).
-	_voxel_platform("ExitPlaza", Vector3(14, 1, 18), Vector3(0, -0.5, -79.5), VOXEL_GREEN, VOXEL_DIRT)
+	_voxel_platform("ExitPlaza", Vector3(14, 1, 18), Vector3(0, -0.5, -79.5), VOXEL_GREEN, VOXEL_DIRT, "ENV_C2_GRASS_BLOCK")
 
 func _build_water_slide(pos: Vector3) -> void:
 	var slide := StaticBody3D.new()
@@ -236,6 +238,7 @@ func _build_creek_puzzle() -> void:
 	dirt_block_1 = VOXEL_PUSH_BLOCK.new()
 	dirt_block_1.name = "DirtBlock1"
 	dirt_block_1.block_type = VOXEL_PUSH_BLOCK.BlockType.DIRT
+	dirt_block_1.lux_asset_id = "PROP_C2_DIRT_BLOCK"
 	dirt_block_1.position = Vector3(-1.2, 0.0, 2.0)
 	dirt_block_1.preferred_push_axis = Vector3(0, 0, -1)
 	dirt_block_1.block_pushed.connect(func(blk, _dir):
@@ -246,6 +249,7 @@ func _build_creek_puzzle() -> void:
 	dirt_block_2 = VOXEL_PUSH_BLOCK.new()
 	dirt_block_2.name = "DirtBlock2"
 	dirt_block_2.block_type = VOXEL_PUSH_BLOCK.BlockType.DIRT
+	dirt_block_2.lux_asset_id = "PROP_C2_DIRT_BLOCK"
 	dirt_block_2.position = Vector3(1.2, 0.0, 2.0)
 	dirt_block_2.preferred_push_axis = Vector3(0, 0, -1)
 	dirt_block_2.block_pushed.connect(func(blk, _dir):
@@ -254,14 +258,21 @@ func _build_creek_puzzle() -> void:
 	add_child(dirt_block_2)
 
 	# Stepping stone alternate path across the creek (石墩跳跃捷径)
-	_solid_box("SteppingStone1", Vector3(1.6, 0.6, 1.3), Vector3(3.6, -0.15, -1.25), VOXEL_STONE)
-	_solid_box("SteppingStone2", Vector3(1.6, 0.6, 1.3), Vector3(3.6, -0.15, -2.5), VOXEL_STONE)
-	_solid_box("SteppingStone3", Vector3(1.6, 0.6, 1.3), Vector3(3.6, -0.15, -3.75), VOXEL_STONE)
+	var stone_1 := _solid_box("SteppingStone1", Vector3(1.6, 0.6, 1.3), Vector3(3.6, -0.15, -1.25), VOXEL_STONE)
+	var stone_2 := _solid_box("SteppingStone2", Vector3(1.6, 0.6, 1.3), Vector3(3.6, -0.15, -2.5), VOXEL_STONE)
+	var stone_3 := _solid_box("SteppingStone3", Vector3(1.6, 0.6, 1.3), Vector3(3.6, -0.15, -3.75), VOXEL_STONE)
+	for stone in [stone_1, stone_2, stone_3]:
+		# Mossy voxel stone (model carries its own moss top; base sunk to the
+		# collision box bottom).
+		ASSETS.replace_visuals(stone, "PROP_C2_MOSSY_STONE", Vector3(0, -0.4, 0))
 
-	# Mossy top caps for stepping stones
-	_solid_box("StoneMoss1", Vector3(1.62, 0.1, 1.32), Vector3(3.6, 0.16, -1.25), VOXEL_GREEN)
-	_solid_box("StoneMoss2", Vector3(1.62, 0.1, 1.32), Vector3(3.6, 0.16, -2.5), VOXEL_GREEN)
-	_solid_box("StoneMoss3", Vector3(1.62, 0.1, 1.32), Vector3(3.6, 0.16, -3.75), VOXEL_GREEN)
+	# Mossy top caps for stepping stones (visuals hidden: the model carries the
+	# moss; the 0.1 m collision cap stays for the jump feel)
+	var moss_1 := _solid_box("StoneMoss1", Vector3(1.62, 0.1, 1.32), Vector3(3.6, 0.16, -1.25), VOXEL_GREEN)
+	var moss_2 := _solid_box("StoneMoss2", Vector3(1.62, 0.1, 1.32), Vector3(3.6, 0.16, -2.5), VOXEL_GREEN)
+	var moss_3 := _solid_box("StoneMoss3", Vector3(1.62, 0.1, 1.32), Vector3(3.6, 0.16, -3.75), VOXEL_GREEN)
+	for moss in [moss_1, moss_2, moss_3]:
+		ASSETS.hide_procedural_visuals(moss)
 
 	_label("【体素溪流解谜】\n① 靠近泥土方块按 [E] 猪拱推进填河架桥\n② 或踩右侧绿色苔石墩一路跳跃过河！", Vector3(0, 2.8, 3.5), 24)
 
@@ -269,6 +280,7 @@ func _build_slime_blocks() -> void:
 	# 1. Slime block on MidIsland: launches player over rocks towards HighCliff
 	var slime_1 = VOXEL_SLIME_BLOCK.new()
 	slime_1.name = "SlimeBlockIsland"
+	slime_1.lux_asset_id = "PROP_C2_SLIME_BLOCK"
 	slime_1.position = Vector3(-3.2, 0.0, -14.0)
 	slime_1.bounce_velocity = 11.5
 	slime_1.forward_boost = 9.5 # 7.0 fell ~2m short of the HighCliff ledge (horizontal speed decays at 20 m/s^2)
@@ -282,6 +294,7 @@ func _build_slime_blocks() -> void:
 	# big leap over the rocks and the guard instead of burying it with sand.
 	var slime_2 = VOXEL_SLIME_BLOCK.new()
 	slime_2.name = "SlimeBlockCanyon"
+	slime_2.lux_asset_id = "PROP_C2_SLIME_BLOCK"
 	slime_2.position = Vector3(3.1, 0.0, -34.0)
 	slime_2.bounce_velocity = 10.5
 	slime_2.forward_boost = 8.5
@@ -313,6 +326,7 @@ func _build_sand_canyon_puzzle() -> void:
 	sand_block = VOXEL_PUSH_BLOCK.new()
 	sand_block.name = "GravitySandBlock"
 	sand_block.block_type = VOXEL_PUSH_BLOCK.BlockType.SAND
+	sand_block.lux_asset_id = "PROP_C2_SAND_BLOCK"
 	sand_block.position = Vector3(0, 3.0, -30.5)
 	add_child(sand_block)
 
@@ -358,6 +372,7 @@ func _build_tnt_obsidian_puzzle() -> void:
 	# Obsidian Wall sealing the canyon at Z = -66
 	obsidian_wall = VOXEL_OBSIDIAN_WALL.new()
 	obsidian_wall.name = "VoxelObsidianWall"
+	obsidian_wall.lux_asset_id = "PROP_C2_OBSIDIAN_WALL"
 	obsidian_wall.wall_width = 10.0 # Canyon inner walls sit at x = ±5: seal the full gap so the wall cannot be squeezed past
 	obsidian_wall.wall_height = 4.0
 	obsidian_wall.position = Vector3(0, 0, -66.0)
@@ -371,6 +386,7 @@ func _build_tnt_obsidian_puzzle() -> void:
 	# Pressure plate at Z = -56
 	pressure_plate = VOXEL_PRESSURE_PLATE.new()
 	pressure_plate.name = "VoxelPressurePlate"
+	pressure_plate.lux_asset_id = "PROP_C2_PRESSURE_PLATE"
 	pressure_plate.target_wall = obsidian_wall
 	pressure_plate.position = Vector3(0, 0, -56.0)
 	add_child(pressure_plate)
@@ -386,6 +402,7 @@ func _build_tnt_obsidian_puzzle() -> void:
 	tnt_block = VOXEL_PUSH_BLOCK.new()
 	tnt_block.name = "VoxelTNTBlock"
 	tnt_block.block_type = VOXEL_PUSH_BLOCK.BlockType.TNT
+	tnt_block.lux_asset_id = "PROP_C2_TNT"
 	tnt_block.position = Vector3(0, 0, -50.0) # Plate at z = -56: three straight -Z pushes land it on top
 	add_child(tnt_block)
 
@@ -394,11 +411,18 @@ func _build_tnt_obsidian_puzzle() -> void:
 func _build_nether_portal_exit() -> void:
 	var portal_pos := Vector3(0, 0, -82.0)
 
-	# Obsidian frame
-	_solid_box("PortalFrameL", Vector3(1.2, 6.0, 1.2), portal_pos + Vector3(-2.4, 3.0, 0), Color("1E1B4B"))
-	_solid_box("PortalFrameR", Vector3(1.2, 6.0, 1.2), portal_pos + Vector3(2.4, 3.0, 0), Color("1E1B4B"))
-	_solid_box("PortalFrameTop", Vector3(6.0, 1.2, 1.2), portal_pos + Vector3(0, 6.6, 0), Color("1E1B4B"))
-	_solid_box("PortalFrameBottom", Vector3(6.0, 0.6, 1.2), portal_pos + Vector3(0, 0.3, 0), Color("1E1B4B"))
+	# Obsidian frame (collision stays; visuals replaced by the voxel portal
+	# model whose frame wraps its own swirling violet interior)
+	var frame_l := _solid_box("PortalFrameL", Vector3(1.2, 6.0, 1.2), portal_pos + Vector3(-2.4, 3.0, 0), Color("1E1B4B"))
+	var frame_r := _solid_box("PortalFrameR", Vector3(1.2, 6.0, 1.2), portal_pos + Vector3(2.4, 3.0, 0), Color("1E1B4B"))
+	var frame_top := _solid_box("PortalFrameTop", Vector3(6.0, 1.2, 1.2), portal_pos + Vector3(0, 6.6, 0), Color("1E1B4B"))
+	var frame_bottom := _solid_box("PortalFrameBottom", Vector3(6.0, 0.6, 1.2), portal_pos + Vector3(0, 0.3, 0), Color("1E1B4B"))
+	for frame in [frame_l, frame_r, frame_top, frame_bottom]:
+		ASSETS.hide_procedural_visuals(frame)
+	var portal_model := ASSETS.make("PROP_C2_NETHER_PORTAL")
+	if portal_model != null:
+		portal_model.position = portal_pos
+		add_child(portal_model)
 
 	# Swirling purple portal curtain
 	var portal_mesh := MeshInstance3D.new()
@@ -429,8 +453,12 @@ func _build_decorations() -> void:
 	_voxel_tree(Vector3(7, 0, -78))
 
 func _voxel_tree(pos: Vector3) -> void:
-	_solid_box("Trunk", Vector3(1.0, 4.0, 1.0), pos + Vector3(0, 2.0, 0), Color("795548"))
-	_solid_box("Leaves", Vector3(3.2, 3.2, 3.2), pos + Vector3(0, 4.8, 0), Color("16A34A"))
+	var trunk := _solid_box("Trunk", Vector3(1.0, 4.0, 1.0), pos + Vector3(0, 2.0, 0), Color("795548"))
+	var leaves := _solid_box("Leaves", Vector3(3.2, 3.2, 3.2), pos + Vector3(0, 4.8, 0), Color("16A34A"))
+	# Whole-tree voxel model dressed on the trunk body (origin at trunk mid
+	# height); the trunk + leaf box meshes hide, collisions stay.
+	ASSETS.replace_visuals(trunk, "ENV_C2_OAK_TREE", Vector3(0, -2.0, 0))
+	ASSETS.hide_procedural_visuals(leaves)
 
 func _build_markers() -> void:
 	_area("CourseStart", "course_start", Vector3(0, 1, 10), Vector3(16, 3, 2)) # Full platform width: no side bypass
@@ -444,7 +472,7 @@ func _checkpoint(node_name: String, index: int, pos: Vector3, respawn: Vector3) 
 	area.set_meta("respawn_pos", respawn)
 	_label("◆ 像素重生点", pos + Vector3(0, 1.6, 0), 18)
 
-func _voxel_platform(node_name: String, size: Vector3, pos: Vector3, top_color: Color, side_color: Color) -> StaticBody3D:
+func _voxel_platform(node_name: String, size: Vector3, pos: Vector3, top_color: Color, side_color: Color, dress_id := "", dress_layers := 1) -> StaticBody3D:
 	var body := StaticBody3D.new()
 	body.name = node_name
 	body.position = pos
@@ -482,6 +510,12 @@ func _voxel_platform(node_name: String, size: Vector3, pos: Vector3, top_color: 
 	body.add_child(base_mesh)
 
 	add_child(body)
+	# Voxel block dressing: one 4x1x4 block grid per layer stacked down the
+	# platform height (collision unchanged).
+	if not dress_id.is_empty():
+		var tile_h := 1.0
+		for layer in dress_layers:
+			ASSETS.tile_slab_top(body, dress_id, size, Vector3(4, tile_h, 4), size.y * 0.5 - tile_h * float(layer))
 	return body
 
 func _voxel_ramp(node_name: String, size: Vector3, pos: Vector3, height: float) -> StaticBody3D:
@@ -525,6 +559,7 @@ func _build_potato_pickups() -> void:
 	for potato_pos in [Vector3(0, 1.25, -13.4), Vector3(0, 2.0, -15.5), Vector3(0, 2.75, -17.5)]:
 		var potato: Node3D = SWEET_POTATO.new()
 		potato.name = "SweetPotato%d" % potato_idx
+		potato.lux_asset_id = "PROP_C2_SWEET_POTATO"
 		potato_idx += 1
 		potato.position = potato_pos
 		add_child(potato)
