@@ -139,8 +139,10 @@ func _run() -> void:
 	_check(course.mimic_chest_fake != null and course.mimic_chest_real != null, "Course 3 has Mimic chests")
 	course.mimic_chest_fake._on_player_entered(office.player)
 	_check(course.mimic_chest_fake.is_triggered, "Mimic chest triggered bite on pig")
+	var chest_base: float = office.player.move_speed
 	course.mimic_chest_real._on_player_entered(office.player)
 	_check(course.mimic_chest_real.is_triggered, "Real chest opened to award sweet potato")
+	_check(is_equal_approx(office.player.move_speed, chest_base * course.CHEST_SPEED_FACTOR), "Real chest grants its course-scoped speed boost")
 
 	# Illusory wall shattering with Discern skill
 	_check(course.illusory_wall != null, "Course 3 has IllusoryWall")
@@ -179,6 +181,7 @@ func _run() -> void:
 	_check(game.stage == "exploring", "Returned to exploring stage")
 	_check(office.player.global_position.distance_to(Vector3(16.0, 8.1, -88.0)) < 1.5, "Pig emerged at Horse pasture entrance")
 	_check(office.player.global_position.distance_to(L.GATE_HORSE) < 10.0, "Pig emerged near Horse gate")
+	_check(is_equal_approx(office.player.move_speed, chest_base), "Chest boost is settled at course exit, not carried into the farm")
 
 	print("\nALL COURSE 03 JOURNEY TESTS DONE: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

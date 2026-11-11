@@ -15,6 +15,12 @@ const SWEET_POTATO = preload("res://scripts/courses/components/sweet_potato_pick
 const ZONE_ENVIRONMENT = preload("res://scripts/courses/components/zone_environment.gd")
 
 const SPAWN := Vector3(0, 0.6, 12)
+# Potato speed boost: course-owned and course-scoped. A wall-clock timer on the
+# pig used to outlive the course and carry the boost into the farm, and three
+# potatoes eaten in quick succession stacked to 2.2x - now one non-stacking
+# boost, refreshed per potato, handed back the moment the course ends.
+const POTATO_SPEED_FACTOR := 1.2
+const POTATO_DURATION := 4.0
 const VOXEL_BLUE := Color("38BDF8") # Water cyan
 const VOXEL_GREEN := Color("4ADE80") # Pixel grass
 const VOXEL_DIRT := Color("5A3E28") # Pixel dirt
@@ -37,6 +43,32 @@ var obsidian_wall: Node3D
 var canyon_dog: Node3D
 var canyon_dog_buried: bool = false
 var potatoes_collected: int = 0
+var _potato_boost_active: bool = false
+var _potato_boost_until_msec: int = 0
+
+func _process(_delta: float) -> void:
+	if _potato_boost_active and Time.get_ticks_msec() >= _potato_boost_until_msec:
+		_end_potato_boost()
+
+func _exit_tree() -> void:
+	# Leaving the course (finish, settings jump, world switch) settles the boost
+	# immediately: nothing speed-related may leak into the farm.
+	_end_potato_boost()
+
+func _apply_potato_boost(player: Node3D) -> void:
+	if not _potato_boost_active:
+		_potato_boost_active = true
+		if is_instance_valid(player) and "move_speed" in player:
+			player.move_speed = player.move_speed * POTATO_SPEED_FACTOR
+	_potato_boost_until_msec = Time.get_ticks_msec() + int(POTATO_DURATION * 1000.0)
+
+func _end_potato_boost() -> void:
+	if not _potato_boost_active:
+		return
+	_potato_boost_active = false
+	var player := runner.player if runner != null else null
+	if is_instance_valid(player) and "move_speed" in player:
+		player.move_speed = player.move_speed / POTATO_SPEED_FACTOR
 
 func _ready() -> void:
 	ZONE_ENVIRONMENT.apply(self, "voxel_creek")
@@ -496,8 +528,9 @@ func _build_potato_pickups() -> void:
 		potato_idx += 1
 		potato.position = potato_pos
 		add_child(potato)
-		potato.potato_collected.connect(func(_p, _player):
+		potato.potato_collected.connect(func(_p, player):
 			potatoes_collected += 1
+			_apply_potato_boost(player)
 			if potatoes_collected >= 3 and meme_layer:
 				meme_layer.play("potato_power")
 		)

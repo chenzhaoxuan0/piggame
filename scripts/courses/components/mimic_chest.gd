@@ -128,26 +128,20 @@ func _trigger_real_treasure(player: Node3D) -> void:
 	var tween := create_tween()
 	tween.tween_property(lid_mesh, "rotation:x", -deg_to_rad(90.0), 0.3)
 
-	# Pop up golden sweet potato speed buff
-	if player is CharacterBody3D and "move_speed" in player:
-		var orig_speed: float = player.move_speed
-		player.move_speed = orig_speed * 1.45
-		var buff_lbl := Label3D.new()
-		buff_lbl.text = "🍠 获得黄金红薯！\n【移动速度 +45%！】"
-		buff_lbl.font_size = 24
-		buff_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		buff_lbl.modulate = Color("FACC15")
-		buff_lbl.outline_modulate = Color("78350F")
-		buff_lbl.outline_size = 6
-		buff_lbl.position = Vector3(0, 2.2, 0)
-		player.add_child(buff_lbl)
-
-		var timer := player.get_tree().create_timer(6.0)
-		timer.timeout.connect(func():
-			if is_instance_valid(player) and "move_speed" in player:
-				player.move_speed = orig_speed
-			if is_instance_valid(buff_lbl):
-				buff_lbl.queue_free()
-		)
+	# Pop the golden sweet-potato toast; the COURSE owns the speed buff from
+	# here (a wall-clock timer here could outlive the course into the farm, and
+	# its save/restore could strand a stacked multiplier for good).
+	var buff_lbl := Label3D.new()
+	buff_lbl.text = "🍠 获得黄金红薯！\n【移动速度提升！】"
+	buff_lbl.font_size = 24
+	buff_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	buff_lbl.modulate = Color("FACC15")
+	buff_lbl.outline_modulate = Color("78350F")
+	buff_lbl.outline_size = 6
+	buff_lbl.position = Vector3(0, 2.2, 0)
+	player.add_child(buff_lbl)
+	var lbl_tween := buff_lbl.create_tween()
+	lbl_tween.tween_property(buff_lbl, "position:y", buff_lbl.position.y + 1.0, 1.8)
+	lbl_tween.tween_callback(buff_lbl.queue_free)
 
 	chest_opened.emit(self, false)

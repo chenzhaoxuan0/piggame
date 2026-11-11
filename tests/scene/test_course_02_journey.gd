@@ -139,14 +139,20 @@ func _run() -> void:
 	_check(fx_seen, "TNT explosion pays an on-screen FX burst")
 	_check(not is_instance_valid(course.tnt_block), "Ignited TNT is gone after the blast")
 
-	# Sweet potatoes on the cliff stairs are real pickups now
+	# Sweet potatoes on the cliff stairs are real pickups now: one modest,
+	# non-stacking, course-scoped boost (three used to stack to 2.2x and the
+	# boost leaked into the farm via a wall-clock timer).
 	var potato = course.get_node_or_null("SweetPotato2")
+	var potato_base: float = office.player.move_speed
 	_check(potato != null, "Cliff stairs have collectible sweet potatoes")
 	if potato != null:
-		var speed_before: float = office.player.move_speed
 		potato._on_body_entered(office.player)
 		_check(potato.is_collected, "Sweet potato collected on contact")
-		_check(is_equal_approx(office.player.move_speed, speed_before * 1.3), "Sweet potato grants its speed boost")
+		_check(is_equal_approx(office.player.move_speed, potato_base * course.POTATO_SPEED_FACTOR), "Sweet potato grants its speed boost")
+		var second_potato = course.get_node_or_null("SweetPotato3")
+		if second_potato != null:
+			second_potato._on_body_entered(office.player)
+			_check(is_equal_approx(office.player.move_speed, potato_base * course.POTATO_SPEED_FACTOR), "A second potato refreshes the boost without stacking")
 
 	# CliffRamp steps flush with HighCliff (no buried or embedded steps)
 	var ramp = course.get_node_or_null("CliffRamp")
@@ -212,6 +218,7 @@ func _run() -> void:
 	_check(game.stage == "exploring", "Returned to exploring stage")
 	_check(office.player.global_position.distance_to(Vector3(-38.0, 16.1, -20.0)) < 1.5, "Pig emerged at Sheep meadow entrance")
 	_check(office.player.global_position.distance_to(L.GATE_SHEEP) < 10.0, "Pig emerged near Sheep gate")
+	_check(is_equal_approx(office.player.move_speed, potato_base), "Potato boost is settled at course exit, not carried into the farm")
 
 	print("\nALL COURSE 02 JOURNEY TESTS DONE: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

@@ -85,15 +85,19 @@ static func walk(tree: SceneTree, player: Node3D, waypoints: Array[Vector3], is_
 
 		# Stuck probe (skipped while knocked back: that stall is expected).
 		# 0.06 m over 0.6 s: sliding along a wall at a crawl still counts as
-		# progress; only a true standstill triggers the sidestep.
+		# progress; only a true standstill triggers the sidestep. Airborne pigs
+		# are skipped too - falling into a pit moves ~0 horizontally, which used
+		# to arm a sideways offset that made the respawned pig leap gaps
+		# diagonally and land short.
+		var grounded: bool = not player.has_method("is_on_floor") or player.is_on_floor()
 		frames_since_probe += 1
-		if knocked or sidestep != 0 and seconds > sidestep_until:
-			if knocked:
+		if knocked or not grounded or sidestep != 0 and seconds > sidestep_until:
+			if knocked or not grounded:
 				anchor = Vector3.INF
 			if sidestep != 0 and seconds > sidestep_until:
 				sidestep = 0
 				anchor = Vector3.INF
-		if not knocked and sidestep == 0 and frames_since_probe >= 36:
+		if grounded and not knocked and sidestep == 0 and frames_since_probe >= 36:
 			if anchor == Vector3.INF or flat.distance_to(anchor) < 0.06:
 				sidestep_flip = not sidestep_flip
 				sidestep = 1 if sidestep_flip else -1

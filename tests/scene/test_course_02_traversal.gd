@@ -42,9 +42,11 @@ func _all_ticks() -> void:
 	_exit_tick()
 
 func _exit_tick() -> void:
-	# Auto-jump for the 2.5 m canyon gap: leave the floor running.
+	# Auto-jump for the 2.5 m canyon gap. The window is deliberately tight and
+	# close to the lip: a running jump covers ~2.9 m, so leaping from further
+	# back lands short in the gap and the watchdog loop eats the timeout.
 	var pig: Node3D = office.player
-	if pig.is_on_floor() and pig.global_position.z > -68.8 and pig.global_position.z < -66.5 and pig.velocity.z < -1.0:
+	if pig.is_on_floor() and pig.global_position.z > -68.1 and pig.global_position.z < -67.7 and pig.velocity.z < -1.0:
 		_tap_jump()
 
 func _walk(course: Node, waypoints: Array[Vector3], done: Callable, tick: Callable) -> bool:
@@ -118,7 +120,7 @@ func _run() -> void:
 	_check(course.obsidian_wall == null or course.obsidian_wall.is_demolished, "TNT push chain demolished the obsidian wall")
 
 	# Phase 7: the 2.5 m canyon gap (jump) and through the nether portal
-	if not await _walk(course, [Vector3(0, 0.6, -66.0), Vector3(0, 0.6, -70.5), Vector3(0, 0.6, -74.0), Vector3(0, 0.6, -84.0)],
+	if not await _walk(course, [Vector3(0, 0.6, -67.8), Vector3(0, 0.6, -72.0), Vector3(0, 0.6, -84.0)],
 			func(): return runner.completed, _all_ticks):
 		quit(1)
 		return

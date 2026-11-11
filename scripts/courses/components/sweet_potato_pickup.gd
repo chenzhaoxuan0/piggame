@@ -2,14 +2,13 @@ extends Area3D
 
 # Collectible golden sweet potato for the creek's cliff stairs. The stairs used
 # to show identical potatoes as pure decoration; now they are a real optional
-# pickup: a short speed boost plus a counter the course can reward.
+# pickup. The node itself is a dumb pickup: popup + signal, and the COURSE owns
+# the speed buff - a wall-clock SceneTreeTimer here used to outlive the course
+# and carried the boost into the farm, and stacking three potatoes hit 2.2x.
 # (No class_name self-references: fresh class names are invisible to headless
 # runs until the editor rescans the global class cache - see race_timer.gd.)
 
 signal potato_collected(potato: Node3D, player: Node3D)
-
-@export var boost_factor: float = 1.3
-@export var boost_duration: float = 4.0
 
 const COLOR_GOLD := Color("F59E0B")
 
@@ -52,18 +51,7 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	if not body.is_in_group("player") and not body.name.to_lower().contains("pig"):
 		return
-	if not (body is CharacterBody3D and "move_speed" in body):
-		return
 	is_collected = true
-
-	# Scale by a factor (not save/restore) so the buff stays correct if it
-	# overlaps the golden star or a mud patch.
-	body.move_speed = body.move_speed * boost_factor
-	var timer := body.get_tree().create_timer(boost_duration)
-	timer.timeout.connect(func():
-		if is_instance_valid(body) and "move_speed" in body:
-			body.move_speed = body.move_speed / boost_factor
-	)
 
 	var popup := Label3D.new()
 	popup.text = "🍠 +1"

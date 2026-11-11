@@ -23,6 +23,10 @@ const RECORD_TIME := 35.0 # The farm's standing record (the horse's 35 s): beati
 # let even a clumsy dash lap beat the record by ~9 s; see the lap-time note in
 # _build_track_ground for the measured tuning.
 const BOOST_SPEED := 13.0
+# Golden star: the invincibility meta and the speed boost are course-owned and
+# course-scoped (same rule as the creek's potatoes - see course_02_creek.gd).
+const STAR_SPEED_FACTOR := 1.6
+const STAR_DURATION := 5.0
 const RACING_ASPHALT := Color("1E293B") # Dark asphalt
 const RACING_CURB_RED := Color("DC2626") # Red curb
 const RACING_CURB_WHITE := Color("F8FAFC") # White curb
@@ -58,6 +62,36 @@ var guardrails: Array[StaticBody3D] = []
 var _curb_red_mat: StandardMaterial3D
 var _curb_white_mat: StandardMaterial3D
 var _final_straight_triggered := false
+var _star_active: bool = false
+var _star_until_msec: int = 0
+
+func _process(_delta: float) -> void:
+	if _star_active and Time.get_ticks_msec() >= _star_until_msec:
+		_end_golden_star()
+
+func _exit_tree() -> void:
+	# Leaving the race settles the star on the spot: no invincibility and no
+	# speed boost may leak into the farm.
+	_end_golden_star()
+
+func _grant_golden_star(player: Node3D) -> void:
+	if not _star_active:
+		_star_active = true
+		if is_instance_valid(player):
+			player.set_meta("star_invincible", true)
+			if "move_speed" in player:
+				player.move_speed = player.move_speed * STAR_SPEED_FACTOR
+	_star_until_msec = Time.get_ticks_msec() + int(STAR_DURATION * 1000.0)
+
+func _end_golden_star() -> void:
+	if not _star_active:
+		return
+	_star_active = false
+	var player := runner.player if runner != null else null
+	if is_instance_valid(player):
+		player.set_meta("star_invincible", false)
+		if "move_speed" in player:
+			player.move_speed = player.move_speed / STAR_SPEED_FACTOR
 
 func _ready() -> void:
 	ZONE_ENVIRONMENT.apply(self, "neon_courtyard")
@@ -528,7 +562,9 @@ func _mystery_box(node_name: String, pos: Vector3) -> void:
 	item_box.name = node_name
 	item_box.position = pos
 	add_child(item_box)
-	item_box.item_collected.connect(func(_item, _p):
+	item_box.item_collected.connect(func(item, star_player):
+		if item == "GOLDEN_STAR":
+			_grant_golden_star(star_player)
 		if meme_layer:
 			meme_layer.play("mystery_box")
 	)

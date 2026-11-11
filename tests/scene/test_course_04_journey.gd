@@ -126,13 +126,19 @@ func _run() -> void:
 	course.gravel_traps[0]._on_body_exited(office.player)
 	_check(is_equal_approx(office.player.move_speed, base_speed), "Leaving the gravel restores full speed")
 
-	# Golden star: real invincibility against trap knockbacks
+	# Golden star: real invincibility against trap knockbacks, granted by the
+	# course (course-scoped: it cannot leak into the farm).
 	office.player.knockback_timer = 0.0
-	course.get_node("MysteryItemBox1")._apply_item("GOLDEN_STAR", office.player)
+	var star_base_speed: float = office.player.move_speed
+	course.get_node("MysteryItemBox1").item_collected.emit("GOLDEN_STAR", office.player)
 	_check(office.player.get_meta("star_invincible", false), "Golden star flags the pig invincible")
+	_check(is_equal_approx(office.player.move_speed, star_base_speed * 1.6), "Golden star grants its course-scoped speed boost")
+	course.get_node("MysteryItemBox1").item_collected.emit("GOLDEN_STAR", office.player)
+	_check(is_equal_approx(office.player.move_speed, star_base_speed * 1.6), "A second star refreshes the boost without stacking")
 	course.sign_pendulum._knock(office.player, Vector3(6, 4, 0))
 	_check(not office.player.is_knocked_back(), "Star pig plows through trap knockback")
-	office.player.set_meta("star_invincible", false)
+	course._end_golden_star()
+	_check(not office.player.get_meta("star_invincible", false) and is_equal_approx(office.player.move_speed, star_base_speed), "Star ends cleanly on demand")
 	course.sign_pendulum._knock(office.player, Vector3(6, 4, 0))
 	_check(office.player.is_knocked_back(), "Without the star the same trap knocks the pig")
 	office.player.reset_at(checkpoint_3)
@@ -228,9 +234,7 @@ func _run() -> void:
 	_check(office.player.global_position.distance_to(Vector3(-78.0, 2.1, -220.0)) < 1.5, "Pig emerged at final iron gate")
 	_check(office.player.global_position.distance_to(L.GATE_FINAL) < 10.0, "Pig emerged right before Final gate")
 	_check(office.player.move_speed >= base_speed - 0.001, "No course slowdown leaks back into the farm")
-	# The golden-star timer outlives the course; it must still hand the speed back.
-	await create_timer(5.2).timeout
-	_check(is_equal_approx(office.player.move_speed, base_speed), "Golden-star speed boost expires cleanly after the course is gone")
+	_check(is_equal_approx(office.player.move_speed, base_speed), "The star boost is settled at course exit, not carried into the farm")
 
 	print("\nALL COURSE 04 JOURNEY TESTS DONE: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

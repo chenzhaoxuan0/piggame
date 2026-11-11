@@ -15,6 +15,10 @@ const PATROL_GUARD_DOG = preload("res://scripts/courses/components/patrol_guard_
 const ZONE_ENVIRONMENT = preload("res://scripts/courses/components/zone_environment.gd")
 
 const SPAWN := Vector3(0, 0.6, 12)
+# Real-chest speed buff: course-owned and course-scoped (same rule as the
+# creek's potatoes - see course_02_creek.gd). No wall-clock timer on the pig.
+const CHEST_SPEED_FACTOR := 1.45
+const CHEST_DURATION := 6.0
 const STORYBOOK_GREEN := Color("86A873") # Fairy green
 const STORYBOOK_GOLD := Color("FDE68A") # Pastel cream gold
 const STORYBOOK_CORAL := Color("E74C3C") # Mushroom red
@@ -41,6 +45,32 @@ var maze_illusory_wall: Node3D
 var maze_chest_real: Node3D
 var maze_chest_mimic: Node3D
 var zigzag_dog: Node3D
+var _chest_boost_active: bool = false
+var _chest_boost_until_msec: int = 0
+
+func _process(_delta: float) -> void:
+	if _chest_boost_active and Time.get_ticks_msec() >= _chest_boost_until_msec:
+		_end_chest_boost()
+
+func _exit_tree() -> void:
+	# Leaving the woodland settles the chest buff on the spot.
+	_end_chest_boost()
+
+func _apply_chest_boost() -> void:
+	if not _chest_boost_active:
+		_chest_boost_active = true
+		var p := runner.player if runner != null else null
+		if is_instance_valid(p) and "move_speed" in p:
+			p.move_speed = p.move_speed * CHEST_SPEED_FACTOR
+	_chest_boost_until_msec = Time.get_ticks_msec() + int(CHEST_DURATION * 1000.0)
+
+func _end_chest_boost() -> void:
+	if not _chest_boost_active:
+		return
+	_chest_boost_active = false
+	var p := runner.player if runner != null else null
+	if is_instance_valid(p) and "move_speed" in p:
+		p.move_speed = p.move_speed / CHEST_SPEED_FACTOR
 
 func _ready() -> void:
 	ZONE_ENVIRONMENT.apply(self, "fairy_woodland")
@@ -237,8 +267,10 @@ func _build_mimic_grove() -> void:
 	add_child(mimic_chest_real)
 
 	mimic_chest_real.chest_opened.connect(func(_c, is_m):
-		if not is_m and meme_layer:
-			meme_layer.play("sweet_potato")
+		if not is_m:
+			_apply_chest_boost()
+			if meme_layer:
+				meme_layer.play("sweet_potato")
 	)
 
 	_label("【童话秘宝岔路】开启【洞察之眸】可分辨呼吸的宝箱怪！", Vector3(0, 2.8, -32.0), 22)
@@ -326,8 +358,10 @@ func _build_illusion_maze() -> void:
 	maze_chest_real.position = Vector3(-2.8, 0, -63.0)
 	add_child(maze_chest_real)
 	maze_chest_real.chest_opened.connect(func(_c, is_m):
-		if not is_m and meme_layer:
-			meme_layer.play("sweet_potato")
+		if not is_m:
+			_apply_chest_boost()
+			if meme_layer:
+				meme_layer.play("sweet_potato")
 	)
 	_label("…石壁之后，红薯微香…", Vector3(-2.8, 3.2, -63.0), 16)
 

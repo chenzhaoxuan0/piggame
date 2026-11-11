@@ -312,15 +312,16 @@ func _run() -> void:
 	await process_frame
 	m_box._collect(pig)
 	_check(not m_box.is_active, "MysteryItemBox collects and activates roulette power-up")
-	# Golden star lifecycle. _collect() rolls a random item, so the star may
-	# already be running; the boost must not stack, and it must fully expire.
-	var star_base: float = pig.move_speed / (m_box.STAR_SPEED_FACTOR if pig.get_meta("star_invincible", false) else 1.0)
+	# Golden star effects are granted by the COURSE (they must be course-scoped);
+	# the box itself only pops the toast and reports the item.
+	var granted_items: Array = []
+	m_box.item_collected.connect(func(item, _p): granted_items.append(item))
+	var star_speed_before: float = pig.move_speed
 	m_box._apply_item("GOLDEN_STAR", pig)
-	_check(pig.get_meta("star_invincible", false), "GOLDEN_STAR makes the pig invincible")
-	_check(is_equal_approx(pig.move_speed, star_base * m_box.STAR_SPEED_FACTOR), "GOLDEN_STAR speed boost applies once and does not stack")
-	await create_timer(m_box.STAR_DURATION + 0.3).timeout
-	_check(not pig.get_meta("star_invincible", false), "GOLDEN_STAR invincibility expires")
-	_check(is_equal_approx(pig.move_speed, star_base), "GOLDEN_STAR hands the pig's speed back on expiry")
+	_check(not pig.get_meta("star_invincible", false), "GOLDEN_STAR alone no longer flips invincibility (the course owns that)")
+	_check(is_equal_approx(pig.move_speed, star_speed_before), "GOLDEN_STAR alone no longer touches speed (the course owns that)")
+	m_box.item_collected.emit("GOLDEN_STAR", pig)
+	_check(granted_items.has("GOLDEN_STAR"), "GOLDEN_STAR is reported through item_collected for the course to grant")
 	m_box.queue_free()
 
 	# StuntJumpRamp (+ the landing mini-turbo it promises)
