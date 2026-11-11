@@ -203,16 +203,16 @@ func _build_track_ground() -> void:
 	# A player who avoids the sweepers and pendulum keeps the dash payoff and
 	# lands well under 35 s - 疾风之步 is how the record falls, as the design
 	# doc intends. BOOST_SPEED is the tuning knob (18 gave free wins).
-	_track_segment("StraightA", Vector3(10, 1, 36), Vector3(0, -0.5, 2), "ENV_C4_ASPHALT")      # x -5..5,   z -16..20
-	_track_segment("CurveB", Vector3(20, 1, 10), Vector3(5, -0.5, -21), "ENV_C4_ASPHALT")       # x -5..15,  z -26..-16
-	_track_segment("OuterB", Vector3(10, 1, 30), Vector3(10, -0.5, -41), "ENV_C4_ASPHALT")      # x 5..15,   z -56..-26
-	_track_segment("HairpinC", Vector3(20, 1, 10), Vector3(5, -0.5, -61), "ENV_C4_ASPHALT")     # x -5..15,  z -66..-56
-	_track_segment("MidC", Vector3(10, 1, 14), Vector3(0, -0.5, -73), "ENV_C4_ASPHALT")         # x -5..5,   z -80..-66
-	_track_segment("CurveD", Vector3(20, 1, 10), Vector3(-5, -0.5, -85), "ENV_C4_ASPHALT")      # x -15..5,  z -90..-80
-	_track_segment("OuterD", Vector3(10, 1, 30), Vector3(-10, -0.5, -105), "ENV_C4_ASPHALT")    # x -15..-5, z -120..-90
-	_track_segment("HairpinE", Vector3(20, 1, 10), Vector3(-5, -0.5, -125), "ENV_C4_ASPHALT")   # x -15..5,  z -130..-120
-	_track_segment("StraightC", Vector3(10, 1, 30), Vector3(0, -0.5, -145), "ENV_C4_ASPHALT")   # x -5..5,   z -160..-130
-	_track_segment("ExitArena", Vector3(14, 1, 14), Vector3(0, -0.5, -167), "ENV_C4_ASPHALT")   # x -7..7,   z -174..-160
+	_track_segment("StraightA", Vector3(10, 1, 36), Vector3(0, -0.5, 2), RACING_ASPHALT, "ENV_C4_ASPHALT")      # x -5..5,   z -16..20
+	_track_segment("CurveB", Vector3(20, 1, 10), Vector3(5, -0.5, -21), RACING_ASPHALT, "ENV_C4_ASPHALT")       # x -5..15,  z -26..-16
+	_track_segment("OuterB", Vector3(10, 1, 30), Vector3(10, -0.5, -41), RACING_ASPHALT, "ENV_C4_ASPHALT")      # x 5..15,   z -56..-26
+	_track_segment("HairpinC", Vector3(20, 1, 10), Vector3(5, -0.5, -61), RACING_ASPHALT, "ENV_C4_ASPHALT")     # x -5..15,  z -66..-56
+	_track_segment("MidC", Vector3(10, 1, 14), Vector3(0, -0.5, -73), RACING_ASPHALT, "ENV_C4_ASPHALT")         # x -5..5,   z -80..-66
+	_track_segment("CurveD", Vector3(20, 1, 10), Vector3(-5, -0.5, -85), RACING_ASPHALT, "ENV_C4_ASPHALT")      # x -15..5,  z -90..-80
+	_track_segment("OuterD", Vector3(10, 1, 30), Vector3(-10, -0.5, -105), RACING_ASPHALT, "ENV_C4_ASPHALT")    # x -15..-5, z -120..-90
+	_track_segment("HairpinE", Vector3(20, 1, 10), Vector3(-5, -0.5, -125), RACING_ASPHALT, "ENV_C4_ASPHALT")   # x -15..5,  z -130..-120
+	_track_segment("StraightC", Vector3(10, 1, 30), Vector3(0, -0.5, -145), RACING_ASPHALT, "ENV_C4_ASPHALT")   # x -5..5,   z -160..-130
+	_track_segment("ExitArena", Vector3(14, 1, 14), Vector3(0, -0.5, -167), RACING_ASPHALT, "ENV_C4_ASPHALT")   # x -7..7,   z -174..-160
 	_gravel_infield("InfieldGravel", Vector3(0, -0.5, -41))                   # x -5..5,   z -56..-26
 	_gravel_infield("InfieldGravel2", Vector3(0, -0.5, -105))                 # x -5..5,   z -120..-90
 
@@ -354,8 +354,10 @@ func _guardrail(node_name: String, size: Vector3, pos: Vector3, color: Color) ->
 
 	add_child(body)
 	# Glowing rail segment run along the barrier (base sunk to the body's
-	# half-height origin); collision unchanged.
+	# half-height origin); collision unchanged. The procedural beam hides - it
+	# occupies the exact same footprint and would z-fight with the model.
 	ASSETS.tile_run(body, "PROP_C4_GUARDRAIL", size, Vector3(4, 0.4, 1.2), 0.0, -0.6)
+	mesh.visible = false
 	guardrails.append(body)
 
 func _build_start_grid() -> void:

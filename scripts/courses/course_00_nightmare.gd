@@ -205,11 +205,14 @@ func _wall_z(node_name: String, x: float, z_from: float, z_to: float) -> void:
 	var body := _solid_box(node_name, Vector3(0.4, 4.2, absf(z_to - z_from)), Vector3(x, 2.1, (z_from + z_to) * 0.5), WALL_STEEL)
 	# Wall panel segments run along Z: yaw the X-long panel 90 degrees. The
 	# body origin sits at mid-height, so the segment base goes to local -2.1.
+	# The procedural box hides: same footprint as the model run, z-fight risk.
 	ASSETS.tile_run(body, "ENV_C0_WALL", Vector3(0.4, 4.2, absf(z_to - z_from)), Vector3(4, 0.4, 4.2), 90.0, -2.1)
+	ASSETS.hide_procedural_visuals(body)
 
 func _wall_x(node_name: String, z: float, x_from: float, x_to: float) -> void:
 	var body := _solid_box(node_name, Vector3(absf(x_to - x_from), 4.2, 0.4), Vector3((x_from + x_to) * 0.5, 2.1, z), WALL_STEEL)
 	ASSETS.tile_run(body, "ENV_C0_WALL", Vector3(absf(x_to - x_from), 4.2, 0.4), Vector3(4, 0.4, 4.2), 0.0, -2.1)
+	ASSETS.hide_procedural_visuals(body)
 
 func _solid_box(node_name: String, size: Vector3, pos: Vector3, color: Color) -> StaticBody3D:
 	var body := StaticBody3D.new()

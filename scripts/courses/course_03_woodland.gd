@@ -456,7 +456,9 @@ func _mushroom_prop(pos: Vector3, scale_f: float) -> void:
 
 func _maze_wall(node_name: String, size: Vector3, pos: Vector3) -> StaticBody3D:
 	# Mossy stone maze wall with the model run along its length; the body
-	# origin sits at mid-height so the segment base sinks to local -1.2.
+	# origin sits at mid-height so the segment base sinks to local -1.2. The
+	# procedural box hides: it sits at the exact same footprint and would
+	# z-fight with the model segments otherwise.
 	var body := _solid_box(node_name, size, pos, STORYBOOK_STONE)
 	ASSETS.tile_run(body, "PROP_C3_MAZE_WALL", size, Vector3(6, 0.8, 2.4), 0.0, -MAZE_WALL_H * 0.5)
 	return body
