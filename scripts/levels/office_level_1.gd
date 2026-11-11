@@ -553,6 +553,7 @@ func _resume() -> void:
 	if is_instance_valid(active_course) and active_course.runner.started and not active_course.runner.completed:
 		active_course.runner.set_dogs_active(true)
 	_restore_control()
+	_refresh_hud()
 
 func _process(delta: float) -> void:
 	if in_qte:
