@@ -23,6 +23,7 @@ const RACE_TIMER = preload("res://scripts/courses/components/race_timer.gd")
 const MUD_PATCH = preload("res://scripts/courses/components/mud_patch.gd")
 const PATROL_VISION_CONE = preload("res://scripts/courses/components/patrol_vision_cone.gd")
 const PATROL_GUARD_DOG = preload("res://scripts/courses/components/patrol_guard_dog.gd")
+const CONVEYOR_BELT = preload("res://scripts/courses/components/conveyor_belt.gd")
 const DOG_SCRIPT = preload("res://scripts/chase/chase_dog.gd")
 
 var failures := 0
@@ -176,8 +177,10 @@ func _run() -> void:
 	_check(absf(seesaw._target_tilt) > 0.01, "SeesawPlatform responds to player weight with tilt")
 	seesaw.queue_free()
 
-	# VoxelPushBlock
+	# VoxelPushBlock (spawned away from the pig: its push area overlapping the
+	# pig used to auto-push it first, flaking this assertion on frame timing)
 	var v_block = VOXEL_PUSH_BLOCK.new()
+	v_block.position = Vector3(100, 0, 100)
 	root.add_child(v_block)
 	await process_frame
 	_check(v_block.push(Vector3(0, 0, -1)), "VoxelPushBlock can be pushed forward")
@@ -430,6 +433,42 @@ func _run() -> void:
 	_check(not vision_cone.is_alert, "Vision cone loses the pig behind solid cover")
 	screen.queue_free()
 	vision_cone.queue_free()
+
+	# ConveyorBelt: carries whoever stands on it, wading against it is slow
+	var belt_floor := StaticBody3D.new()
+	belt_floor.collision_layer = 1
+	belt_floor.collision_mask = 0
+	var belt_floor_col := CollisionShape3D.new()
+	var belt_floor_box := BoxShape3D.new()
+	belt_floor_box.size = Vector3(60, 1, 60)
+	belt_floor_col.shape = belt_floor_box
+	belt_floor_col.position = Vector3(0, -0.5, 500)
+	belt_floor.add_child(belt_floor_col)
+	root.add_child(belt_floor)
+	var belt = CONVEYOR_BELT.new()
+	belt.name = "TestBelt"
+	belt.position = Vector3(0, 0, 500.0)
+	belt.belt_direction = Vector3(0, 0, 1) # Carries the pig north (+Z)
+	belt.belt_speed = 2.5
+	root.add_child(belt)
+	await process_frame
+	pig.reset_at(Vector3(0, 0.6, 500.0))
+	pig.velocity = Vector3.ZERO
+	await create_timer(1.0).timeout
+	_check(pig.global_position.z > 500.0 + belt.belt_speed * 0.6, "ConveyorBelt carries a standing pig along its direction (z=%.2f)" % pig.global_position.z)
+	# Wading against the belt: net (walk - belt) = -2.0 m/s, so after 1.8 s the
+	# pig has progressed well into the belt but NOT reached a target free
+	# walking covers in 1.3 s
+	pig.reset_at(Vector3(0, 0.6, 500.0))
+	pig.interact_target = null
+	pig._click_route.clear()
+	pig.target_destination = Vector3(0, 0.6, 494.0)
+	pig.is_moving = true
+	await create_timer(1.8).timeout
+	_check(494.5 < pig.global_position.z and pig.global_position.z < 498.8, "Wading against the belt: slow progress, target not yet reached (z=%.2f)" % pig.global_position.z)
+	belt.queue_free()
+	belt_floor.queue_free()
+	await process_frame
 
 	# PatrolGuardDog: solid body with a chase-dog-compatible stun contract
 	var guard = PATROL_GUARD_DOG.new()

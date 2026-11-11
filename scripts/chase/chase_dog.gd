@@ -9,6 +9,10 @@ signal grapple_started(dog: ChaseDog)
 @export var windup_duration: float = 0.42
 @export var recovery_duration: float = 0.50
 @export var capture_radius: float = 1.45
+# Which catalog model dresses the chaser. "CHAR_06" is the farm dog (default,
+# every existing use); the nightmare prologue passes "CHAR_07" to play the
+# dream-farmer with the stun prod - the chase behavior is identical.
+@export var visual_asset_id: String = "CHAR_06"
 
 var target: Node3D = null
 var active: bool = false
@@ -81,7 +85,7 @@ func _ready() -> void:
 	_warning.visible = false
 	_warning.top_level = true
 	add_child(_warning)
-	preload("res://scripts/art/asset_library.gd").replace_visuals(_visual, "CHAR_06")
+	preload("res://scripts/art/asset_library.gd").replace_visuals(_visual, visual_asset_id)
 
 func _add_box(size: Vector3, offset: Vector3, material: Material) -> void:
 	var mesh_node: MeshInstance3D = MeshInstance3D.new()
