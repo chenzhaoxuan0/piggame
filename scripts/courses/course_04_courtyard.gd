@@ -157,12 +157,12 @@ func _build_track_ground() -> void:
 	# The two rectangles between lanes are open gravel infields, not voids, and
 	# cutting across them costs 60% speed (the dog is not slowed).
 	# Lap-time tuning, measured by test_course_04_traversal (a bot that takes a
-	# clean line but dodges nothing, eating 3-4 knockbacks per lap):
-	#   plain running        ~39.7 s  -> misses the 35 s record
-	#   managing the dash bar ~27-30 s -> breaks it
-	# So the record needs 疾风之步, as the design doc intends. First-time players
-	# hesitate and mismanage stamina, which puts them near the 35 s line.
-	# BOOST_SPEED is the tuning knob (18 gave ~25-27 s dash laps: a free win).
+	# clean line but dodges nothing, eating 3-5 knockbacks per lap):
+	#   plain running  ~37-43 s  -> misses the 35 s record
+	#   dash-managed   ~36-41 s  -> the bot wastes its dash eating sweepers
+	# A player who avoids the sweepers and pendulum keeps the dash payoff and
+	# lands well under 35 s - 疾风之步 is how the record falls, as the design
+	# doc intends. BOOST_SPEED is the tuning knob (18 gave free wins).
 	_track_segment("StraightA", Vector3(10, 1, 36), Vector3(0, -0.5, 2))      # x -5..5,   z -16..20
 	_track_segment("CurveB", Vector3(20, 1, 10), Vector3(5, -0.5, -21))       # x -5..15,  z -26..-16
 	_track_segment("OuterB", Vector3(10, 1, 30), Vector3(10, -0.5, -41))      # x 5..15,   z -56..-26
