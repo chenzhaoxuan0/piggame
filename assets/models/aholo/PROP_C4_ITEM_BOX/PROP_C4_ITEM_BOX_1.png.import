@@ -1,0 +1,37 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://c2n7dud7jspib"
+path="res://.godot/imported/PROP_C4_ITEM_BOX_1.png-af8889d37a73e983f8f5f8c5d4c939b1.ctex"
+metadata={
+"vram_texture": false
+}
+generator_parameters={
+"md5": "2c75d37ee6d7f15bf5c0c3c137d1b5f1"
+}
+
+[deps]
+
+source_file="res://assets/models/aholo/PROP_C4_ITEM_BOX/PROP_C4_ITEM_BOX_1.png"
+dest_files=["res://.godot/imported/PROP_C4_ITEM_BOX_1.png-af8889d37a73e983f8f5f8c5d4c939b1.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal_map=0
+compress/channel_pack=0
+mipmaps/generate=true
+mipmaps/limit=-1
+roughness/mode=0
+roughness/src_normal=""
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/normal_map_invert_y=false
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
+process/size_limit=0
+detect_3d/compress_to=1
