@@ -44,6 +44,12 @@ func retreat(distance: float = 6.0) -> void:
 	global_position.z += distance
 	_touch_cooldown_left = touch_cooldown
 
+func retreat_to_behind(z_pos: float) -> void:
+	# Checkpoint reset: park the fog a fixed lead behind the respawn point so
+	# the chase restarts with breathing room (and the cooldown re-arms).
+	global_position.z = z_pos + 14.0
+	_touch_cooldown_left = touch_cooldown
+
 func stop_and_fade() -> void:
 	if stopped:
 		return
