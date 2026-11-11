@@ -83,12 +83,16 @@ func _setup_push_area() -> void:
 
 func _setup_stripes() -> void:
 	# Moving hazard stripes: a looping tween slides them along the belt so the
-	# direction is readable at a glance (which way it carries you).
+	# direction is readable at a glance (which way it carries you). Stripes lay
+	# out along the belt's LONG axis, whichever that is - lateral transfer
+	# belts (dir +-X) get bars across their run instead of along it.
 	_stripes_root = Node3D.new()
 	_stripes_root.name = "Stripes"
 	add_child(_stripes_root)
 
-	var stripe_gap: float = belt_size.z / float(stripe_count)
+	var lateral := absf(_dir.x) > absf(_dir.z)
+	var long_size: float = belt_size.x if lateral else belt_size.z
+	var stripe_gap: float = long_size / float(stripe_count)
 	var stripe_mat := StandardMaterial3D.new()
 	stripe_mat.albedo_color = COLOR_STRIPE
 	stripe_mat.emission_enabled = true
@@ -97,15 +101,26 @@ func _setup_stripes() -> void:
 	for i in stripe_count:
 		var stripe := MeshInstance3D.new()
 		var box := BoxMesh.new()
-		box.size = Vector3(belt_size.x * 0.92, 0.03, stripe_gap * 0.45)
+		if lateral:
+			box.size = Vector3(stripe_gap * 0.45, 0.03, belt_size.z * 0.92)
+		else:
+			box.size = Vector3(belt_size.x * 0.92, 0.03, stripe_gap * 0.45)
 		stripe.mesh = box
-		stripe.position = Vector3(0, belt_size.y + 0.02, -belt_size.z * 0.5 + stripe_gap * (float(i) + 0.5))
+		var along: float = -long_size * 0.5 + stripe_gap * (float(i) + 0.5)
+		stripe.position = Vector3(along, belt_size.y + 0.02, 0) if lateral else Vector3(0, belt_size.y + 0.02, along)
 		stripe.material_override = stripe_mat
 		_stripes_root.add_child(stripe)
 
+	var axis := "x" if lateral else "z"
+	var axis_dir: float = _dir.x if lateral else _dir.z
 	var scroll := _stripes_root.create_tween()
 	scroll.set_loops()
-	scroll.tween_property(_stripes_root, "position:z", _dir.z * stripe_gap, stripe_gap / maxf(0.1, belt_speed))
+	scroll.tween_property(_stripes_root, "position:" + axis, axis_dir * stripe_gap, stripe_gap / maxf(0.1, belt_speed))
 	scroll.tween_callback(func():
-		_stripes_root.position = Vector3(_stripes_root.position.x, _stripes_root.position.y, _stripes_root.position.z - _dir.z * stripe_gap)
+		var pos: Vector3 = _stripes_root.position
+		if lateral:
+			pos.x -= axis_dir * stripe_gap
+		else:
+			pos.z -= axis_dir * stripe_gap
+		_stripes_root.position = pos
 	)

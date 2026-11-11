@@ -37,7 +37,10 @@ var meme_layer: MemeLayer
 
 var drowsy_fog: Node3D
 var sleeping_dog: Node3D
-var main_belt: Node3D
+var belt_a: Node3D
+var belt_b: Node3D
+var belt_c: Node3D
+var belt_d: Node3D
 var fake_sun_door: Node3D
 var exit_hint_label: Label3D
 var _dock_chase_triggered := false
@@ -121,7 +124,8 @@ func _make_config() -> CourseConfig:
 		"fog_caught": {"title": "一个激灵！", "text": "你在梦里的梦里差点睡着——猛地惊醒，弹了出去！", "duration": 2.2},
 		"door_slam": {"title": "砰！", "text": "你甩上铁门。困意在门外撞了两下，没跟进来。", "duration": 2.5},
 		"sleeping_dog": {"title": "Zzz……", "text": "别碰睡着的狗。碰了你就会知道为什么。", "duration": 2.0},
-		"belt_ride": {"title": "传送带在往回送你！", "text": "带子把你送回来时的路！逆着跑，或者从右侧通道绕！", "duration": 2.5},
+		"belt_ride": {"title": "流水线全速运转！", "text": "整条路都是传送带！逆流冲刺，别被送回起点！", "duration": 2.5},
+		"belt_side": {"title": "横移转移带！", "text": "带子往墙边甩！稳住——斜着冲向南边出口！", "duration": 2.5},
 		"hook_wham": {"title": "哐！铁钩摆荡！", "text": "挂肉的钩子把你当成了货……看准摆动节奏再过！", "duration": 2.0},
 		"steam_pop": {"title": "嘶——！蒸汽喷口！", "text": "白色蒸汽把你顶上天！落地记得继续跑！", "duration": 2.0},
 		"prod_zap": {"title": "滋啦！电击棍！", "text": "浑身酥麻原地跳了一段舞……离黄色立柱远点！", "duration": 2.2},
@@ -288,44 +292,42 @@ func _on_pens_door_entered(body: Node3D) -> void:
 		meme_layer.play("door_slam")
 
 # ------------------------------------------------------------------
-# S2: 加工车间 - hazard gauntlet (conveyor wade vs hook lane)
+# S2: 加工车间 - the conveyor escape. The OLD layout kept side floor open
+# between the belt and the hook lane (a free middle bypass around both); now
+# the belts ARE the road: three full-width lines to wade against, hooks
+# hanging over the belts themselves, steam vents guarding the wall lanes, and
+# a lateral transfer belt at the end that flings you at the painted-sun wall.
 # ------------------------------------------------------------------
 func _build_processing_floor() -> void:
-	_label("【加工车间】左：逆流传送带（慢而稳）。右：铁钩通道（快而痛）。\n小心蒸汽喷口与黄色电击棍立柱！", Vector3(0, 3.0, -24.5), 18)
+	_label("【流水线车间】脚下的路全是传送带！\n逆流冲刺 · 躲头顶铁钩 · 防蒸汽——终点是横移转移带！", Vector3(0, 3.0, -23.5), 19)
 
-	# The belt carries you BACK the way you came (+Z): wading costs belt speed.
-	# Sunk 0.35 m so its deck top sits flush with the floor - a proud lip would
-	# be an unjumpable step for walking pigs.
-	main_belt = CONVEYOR_BELT.new()
-	main_belt.name = "MainBelt"
-	main_belt.position = Vector3(-2.6, -0.35, -42.0)
-	main_belt.belt_size = Vector3(4.2, 0.35, 24.0)
-	main_belt.belt_direction = Vector3(0, 0, 1)
-	main_belt.belt_speed = 2.2
-	add_child(main_belt)
-	main_belt.belt_entered.connect(func(_b):
-		if meme_layer:
-			meme_layer.play("belt_ride")
-	)
+	# Three full-width (11.2 m) northbound lines with rest strips between.
+	belt_a = _build_line_belt("BeltA", -30.0, 2.2)   # z -26..-34
+	belt_b = _build_line_belt("BeltB", -39.0, 2.6)   # z -35..-43
+	belt_c = _build_line_belt("BeltC", -48.0, 3.0)   # z -44..-52
+	for belt in [belt_a, belt_b, belt_c]:
+		belt.belt_entered.connect(func(_b):
+			if meme_layer:
+				meme_layer.play("belt_ride")
+		)
 
-	# Steam vents ON the belt: riding it is slow AND occasionally airborne.
-	for vent_pos in [Vector3(-2.6, 0, -36.0), Vector3(-2.6, 0, -48.0)]:
-		var vent: Node3D = LAUNCH_PAD.new()
-		vent.name = "SteamVent"
-		vent.position = vent_pos
-		vent.use_lux_model = false # Nightmare zone: no ox-field props here
-		vent.pad_color = WAKE_LIGHT
-		vent.launch_direction = Vector3(0, 0, 0.45)
-		vent.launch_power = 5.0
-		vent.launch_up = 6.5
-		vent.meme_id = "steam_pop"
-		add_child(vent)
+	# Rest strips get a stun-prod each so they are crossings, not camp sites.
+	for prod in [{"pos": Vector3(2.0, 0, -34.5), "name": "StunProdStrip1"}, {"pos": Vector3(-2.0, 0, -43.5), "name": "StunProdStrip2"}]:
+		var pillar: Node3D = BUMPER_PILLAR.new()
+		pillar.name = prod["name"]
+		pillar.position = prod["pos"]
+		pillar.bumper_color = HAZARD_AMBER
+		pillar.cap_color = Color("FFF59D")
+		pillar.star_color = Color("00E5FF")
+		add_child(pillar)
 
-	# Hook lane on the right: three swinging meathooks across the walkway.
+	# Meathooks hang OVER the belts (posts flush with the walls - no pockets
+	# and nothing for the belt drift to pin the pig against mid-line).
 	for hook_cfg in [
-		{"pos": Vector3(3.0, 0, -34.0), "speed": 2.2, "phase": 0.0, "name": "MeatHook1"},
-		{"pos": Vector3(3.0, 0, -41.0), "speed": 2.5, "phase": PI * 0.5, "name": "MeatHook2"},
-		{"pos": Vector3(3.0, 0, -48.0), "speed": 2.8, "phase": PI, "name": "MeatHook3"},
+		{"pos": Vector3(0, 0, -28.5), "speed": 2.2, "phase": 0.0, "name": "MeatHook1"},
+		{"pos": Vector3(0, 0, -37.5), "speed": 2.5, "phase": PI * 0.55, "name": "MeatHook2"},
+		{"pos": Vector3(0, 0, -41.0), "speed": 2.7, "phase": PI * 1.1, "name": "MeatHook3"},
+		{"pos": Vector3(0, 0, -47.5), "speed": 2.9, "phase": PI * 0.3, "name": "MeatHook4"},
 	]:
 		var hook: Node3D = PENDULUM_BALL.new()
 		hook.name = hook_cfg["name"]
@@ -333,29 +335,57 @@ func _build_processing_floor() -> void:
 		hook.use_lux_model = false
 		hook.ball_color = STEEL
 		hook.gantry_color = Color("3A3230")
-		hook.gantry_half_width = 1.2 # Posts stay clear of the walls: no pockets
+		hook.gantry_half_width = 6.0 # Posts land flush in the walls
 		hook.swing_speed = hook_cfg["speed"]
 		hook.phase_offset = hook_cfg["phase"]
+		# Dream hooks are gentler than the courtyard's sign: shorter arm and
+		# swing (sweep +-3.1 m leaves 2.9 m safe wall lanes) and half-strength
+		# knockback, so a hit bounces you beside the hook instead of flinging
+		# you across the belt into the next swing.
+		hook.arm_length = 3.6
+		hook.max_angle_deg = 38.0
+		hook.knockback_power = 4.5
+		hook.knockback_up = 3.2
 		hook.meme_id = "hook_wham"
 		add_child(hook)
 
-	# Stun-prod pillars along the right edge.
-	for prod_pos in [Vector3(5.0, 0, -38.0), Vector3(5.0, 0, -52.0)]:
-		var prod: Node3D = BUMPER_PILLAR.new()
-		prod.name = "StunProdPillar"
-		prod.position = prod_pos
-		prod.bumper_color = HAZARD_AMBER
-		prod.cap_color = Color("FFF59D")
-		prod.star_color = Color("00E5FF")
-		add_child(prod)
+	# Steam vents ON the lines, alternating wall lanes: riding the edges is
+	# slower traffic but not free of consequences.
+	for vent in [Vector3(-2.5, 0, -46.5), Vector3(2.5, 0, -50.5)]:
+		var steam: Node3D = LAUNCH_PAD.new()
+		steam.name = "SteamVent"
+		steam.position = vent
+		steam.use_lux_model = false # Nightmare zone: no ox-field props here
+		steam.pad_color = WAKE_LIGHT
+		steam.launch_direction = Vector3(0, 0, 0.45)
+		steam.launch_power = 5.0
+		steam.launch_up = 6.5
+		steam.meme_id = "steam_pop"
+		add_child(steam)
 
-	# The painted-on sun door: a dream bait. First bounce reveals the real exit.
-	var door_frame := _solid_box("FakeSunDoorFrame", Vector3(0.4, 3.2, 2.4), Vector3(5.7, 1.6, -45.0), EMBER)
+	# The lateral transfer belt: runs +X toward the east wall, flinging the
+	# pig at the painted-sun door. It stops short of the wall (Area ends at
+	# x = 3.6, wall at 6.0) so the drift can never shove the pig through
+	# geometry; the east ledge is a trap, not a bypass.
+	belt_d = CONVEYOR_BELT.new()
+	belt_d.name = "BeltD"
+	belt_d.position = Vector3(-1.0, -0.35, -55.0)
+	belt_d.belt_size = Vector3(9.2, 0.35, 4.0)   # x -5.6..3.6, z -53..-57
+	belt_d.belt_direction = Vector3(1, 0, 0)
+	belt_d.belt_speed = 2.6
+	add_child(belt_d)
+	belt_d.belt_entered.connect(func(_b):
+		if meme_layer:
+			meme_layer.play("belt_side")
+	)
+
+	# The painted-sun door now sits exactly where the transfer belt throws you.
+	var door_frame := _solid_box("FakeSunDoorFrame", Vector3(0.4, 3.2, 2.4), Vector3(5.7, 1.6, -55.0), EMBER)
 	var sun_label := _label("☀\n（出口？）", Vector3(-0.35, 0.6, 0), 40, door_frame)
 	sun_label.rotation.y = -PI * 0.5
 	fake_sun_door = DECOY_GOAL.new()
 	fake_sun_door.name = "FakeSunDoor"
-	fake_sun_door.position = Vector3(4.9, 0, -45.0)
+	fake_sun_door.position = Vector3(4.9, 0, -55.0)
 	fake_sun_door.meme_id = "fake_sun"
 	fake_sun_door.telegraph_meme_id = "fake_sun_again"
 	add_child(fake_sun_door)
@@ -363,6 +393,90 @@ func _build_processing_floor() -> void:
 	exit_hint_label.visible = false
 	exit_hint_label.name = "RealExitHint"
 	fake_sun_door.real_exit_hint_path = fake_sun_door.get_path_to(exit_hint_label)
+
+	_build_plant_dressing()
+
+func _build_line_belt(node_name: String, z_center: float, speed: float) -> Node3D:
+	# One full-corridor northbound line, deck flush with the floor (a proud
+	# lip would be an unjumpable step) - there is NO side floor to bypass on.
+	var belt: Node3D = CONVEYOR_BELT.new()
+	belt.name = node_name
+	belt.position = Vector3(0, -0.35, z_center)
+	belt.belt_size = Vector3(11.2, 0.35, 8.0)
+	belt.belt_direction = Vector3(0, 0, 1)
+	belt.belt_speed = speed
+	add_child(belt)
+	return belt
+
+func _build_plant_dressing() -> void:
+	# Overhead hook rail: a running beam with empty hooks - the line feels
+	# alive without adding a single new collider.
+	var rail_mat := StandardMaterial3D.new()
+	rail_mat.albedo_color = STEEL
+	rail_mat.metallic = 0.4
+	var rail := MeshInstance3D.new()
+	rail.name = "HookRail"
+	var rail_box := BoxMesh.new()
+	rail_box.size = Vector3(0.25, 0.25, 30.0)
+	rail.mesh = rail_box
+	rail.position = Vector3(0, 4.1, -39.0)
+	rail.material_override = rail_mat
+	add_child(rail)
+	for i in range(10):
+		var chain := MeshInstance3D.new()
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = 0.03
+		cyl.bottom_radius = 0.03
+		cyl.height = 0.7
+		chain.mesh = cyl
+		chain.position = Vector3(0, 3.62, -53.0 + 2.6 * float(i))
+		chain.material_override = rail_mat
+		add_child(chain)
+		var hook_glyph := _label("J", Vector3(0, 3.15, -53.0 + 2.6 * float(i)), 26)
+		hook_glyph.modulate = Color("9AA7B5")
+
+	# Hazard checker strips on the three rest strips (crossing marks).
+	for strip_z in [-34.5, -43.5, -52.5]:
+		for i in 8:
+			var checker := MeshInstance3D.new()
+			var box := BoxMesh.new()
+			box.size = Vector3(1.3, 0.02, 0.55)
+			checker.mesh = box
+			checker.position = Vector3(-4.9 + 1.4 * float(i), 0.015, strip_z + (0.3 if i % 2 == 0 else -0.3))
+			var mat := StandardMaterial3D.new()
+			mat.albedo_color = HAZARD_AMBER if i % 2 == 0 else Color("ECEFF1")
+			checker.material_override = mat
+			add_child(checker)
+
+	# Wall machinery: visual-only blocks in the belt-free margin (x 5.7..6.0).
+	var machine_mat := StandardMaterial3D.new()
+	machine_mat.albedo_color = Color("2E2724")
+	for machine in [
+		Vector3(-5.82, 0.9, -28.0), Vector3(5.82, 0.9, -33.0), Vector3(-5.82, 0.9, -40.0),
+		Vector3(5.82, 0.9, -46.0), Vector3(-5.82, 0.9, -51.0),
+	]:
+		var block := MeshInstance3D.new()
+		var box := BoxMesh.new()
+		box.size = Vector3(0.35, 1.8, 2.6)
+		block.mesh = box
+		block.position = machine
+		block.material_override = machine_mat
+		add_child(block)
+		var stripe := MeshInstance3D.new()
+		var stripe_box := BoxMesh.new()
+		stripe_box.size = Vector3(0.37, 0.25, 2.62)
+		stripe.mesh = stripe_box
+		stripe.position = machine + Vector3(0, 0.75, 0)
+		var stripe_mat := StandardMaterial3D.new()
+		stripe_mat.albedo_color = HAZARD_AMBER
+		stripe_mat.emission_enabled = true
+		stripe_mat.emission = HAZARD_AMBER
+		stripe_mat.emission_energy_multiplier = 0.5
+		stripe.material_override = stripe_mat
+		add_child(stripe)
+
+	_label("流水线 03 · 运行中", Vector3(-5.7, 2.6, -36.0), 18)
+	_label("注意：上方挂钩区域", Vector3(5.7, 2.6, -45.0), 18)
 
 # ------------------------------------------------------------------
 # S3: 装卸月台 - the dream butcher chase
@@ -419,7 +533,7 @@ func _build_exit() -> void:
 func _build_markers() -> void:
 	_area("CourseStart", "course_start", Vector3(0, 1, 10), Vector3(12, 3, 2))
 	_checkpoint("Checkpoint1", 1, Vector3(0, 1, -18), Vector3(0, 0.6, -18))
-	_checkpoint("Checkpoint2", 2, Vector3(0, 1, -56), Vector3(0, 0.6, -56))
+	_checkpoint("Checkpoint2", 2, Vector3(0, 1, -52.5), Vector3(0, 0.6, -52.5))
 	_area("CourseExit", "course_exit", Vector3(0, 2, -85.5), Vector3(8, 5, 3))
 
 func _checkpoint(node_name: String, index: int, pos: Vector3, respawn: Vector3) -> void:

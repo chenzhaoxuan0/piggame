@@ -109,7 +109,11 @@ static func walk(tree: SceneTree, player: Node3D, waypoints: Array[Vector3], is_
 				sidestep = 0
 				anchor = Vector3.INF
 		if grounded and not knocked and sidestep == 0 and frames_since_probe >= 36:
-			if anchor == Vector3.INF or flat.distance_to(anchor) < 0.06:
+			# anchor == INF means "no baseline yet" (start of walk, or a jump/
+			# fall reset it): record the baseline and keep walking. Arming a
+			# sidestep on it used to veer a full-speed pig into the wall after
+			# every landing.
+			if anchor != Vector3.INF and flat.distance_to(anchor) < 0.06:
 				sidestep_flip = not sidestep_flip
 				sidestep = 1 if sidestep_flip else -1
 				sidestep_until = seconds + 0.8

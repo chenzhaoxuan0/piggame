@@ -40,14 +40,25 @@ func _run() -> void:
 		Vector3(0.0, 0.6, 9.0),    # cross the start line into the dream
 		Vector3(0.0, 0.6, -6.0),   # pens: between the patrol rectangles
 		Vector3(0.0, 0.6, -18.0),  # checkpoint 1
-		Vector3(2.5, 0.6, -26.0),  # hook lane entry (belt wade is x = -2.6)
-		Vector3(2.5, 0.6, -40.0),  # through the meathooks
-		Vector3(2.5, 0.6, -54.0),  # checkpoint 2 approach
+		Vector3(4.6, 0.6, -23.0),  # enter the east lane BEFORE the belts (a
+		# diagonal from the checkpoint grazes hook 1's sweep at z -28.5 and
+		# knock-resonates; straight south in the lane stays outside it)
+		Vector3(4.6, 0.6, -30.0),  # belt A east lane: outside the hook sweep
+		Vector3(4.6, 0.6, -39.0),  # belt B east lane (the hook-free wade - the
+		Vector3(4.6, 0.6, -48.0),  # center line is faster but demands hook timing)
+		Vector3(0.0, 0.6, -52.5),  # checkpoint 2 on the rest strip
+		Vector3(-1.5, 0.6, -56.0), # lateral transfer belt (pre-compensate the east drift)
 		Vector3(0.0, 0.6, -58.0),  # onto the dock (butcher alarm)
 		Vector3(0.0, 0.6, -70.0),  # weave the crates
 		Vector3(0.0, 0.6, -84.0),  # into the waking light
 	], func(): return runner.completed, 110.0)
 	_check(result["ok"], "Pig physically walked the whole nightmare to the door (waypoint %d at %s, reason: %s)" % [result["index"], result["position"], result["reason"]])
+	if not result["ok"]:
+		# Leave the course before quitting: tearing the engine down with a live
+		# course leaks bodies and crashes at exit, burying the real failure.
+		if is_instance_valid(office.active_course):
+			office._select_level_from_settings("farm")
+			await process_frame
 	print("COURSE_00_TRAVERSAL_TEST INFO: dream lap = %.1f s, knocks = %d (design target for players: 90-150 s)" % [result["seconds"], result["knocks"]])
 
 	if result["ok"]:
