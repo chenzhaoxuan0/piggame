@@ -8,6 +8,9 @@ const ASSETS = preload("res://scripts/art/asset_library.gd")
 @export var launch_up: float = 7.5
 @export var cooldown: float = 1.0
 @export var pad_color: Color = Color("F59E0B")
+# Zone art styles must not mix: the Lux3D pad is the ox-field (course 1) look,
+# so other zones opt out and recolor the procedural pad instead.
+@export var use_lux_model: bool = true
 
 var _cooldown_timer := 0.0
 var _top: Node3D
@@ -23,7 +26,7 @@ func _ready() -> void:
 	shape.position.y = 0.15
 	base.add_child(shape)
 	add_child(base)
-	var lux_pad := ASSETS.make("PROP_C1_LAUNCHPAD")
+	var lux_pad: Node3D = ASSETS.make("PROP_C1_LAUNCHPAD") if use_lux_model else null
 	if lux_pad:
 		_top = lux_pad
 		add_child(_top)

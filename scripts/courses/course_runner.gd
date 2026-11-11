@@ -79,6 +79,7 @@ func _spawn_dogs() -> void:
 	for i in config.dog_count:
 		var dog: ChaseDog = DOG_SCRIPT.new()
 		dog.name = "CourseDog%d" % i
+		dog.visual_asset_id = config.dog_visual_asset_id
 		add_child(dog)
 		dog.global_position = last_checkpoint + Vector3((i + 1) * 2.0, 0.5, 6.0)
 		dog.course = route

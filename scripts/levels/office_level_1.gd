@@ -7,6 +7,7 @@ const POKEMON_SHOWDOWN = preload("res://scripts/battle/pokemon_showdown.gd")
 const GAME_HUD = preload("res://scripts/ui/game_hud.gd")
 const GAME_MENUS = preload("res://scripts/ui/menus.gd")
 const COURSE_SCENES = {
+	"course_0": preload("res://scenes/courses/course_00_nightmare.tscn"),
 	"course_1": preload("res://scenes/courses/course_01_ox_field.tscn"),
 	"chase_1_course": preload("res://scenes/courses/course_01_ox_field.tscn"),
 	"course_2": preload("res://scenes/courses/course_02_creek.tscn"),
