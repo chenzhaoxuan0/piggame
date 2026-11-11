@@ -3,8 +3,7 @@ class_name MemeLayer
 
 signal meme_played(meme_id: String)
 
-const CREAM := Color("E1DDC5")
-const INK := Color("3A3630")
+const UI = preload("res://scripts/ui/ui_kit.gd")
 
 var _memes: Dictionary = {}
 var _toast: PanelContainer
@@ -19,29 +18,15 @@ func _ready() -> void:
 	var layer := CanvasLayer.new()
 	layer.layer = 10
 	add_child(layer)
-	_toast = PanelContainer.new()
+	_toast = UI.patch_panel(18, UI.PAPER, UI.SAGE, Vector2(22, 12))
 	_toast.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_toast.custom_minimum_size = Vector2(440, 0)
 	_toast.visible = false
-	var style := StyleBoxFlat.new()
-	style.bg_color = CREAM
-	style.border_color = INK
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(12)
-	style.content_margin_left = 18
-	style.content_margin_right = 18
-	style.content_margin_top = 10
-	style.content_margin_bottom = 10
-	_toast.add_theme_stylebox_override("panel", style)
 	var vbox := VBoxContainer.new()
-	_title_label = Label.new()
-	_title_label.add_theme_color_override("font_color", INK)
-	_title_label.add_theme_font_size_override("font_size", 20)
+	_title_label = UI.label("", 20, UI.TEAL_DEEP, true)
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(_title_label)
-	_text_label = Label.new()
-	_text_label.add_theme_color_override("font_color", INK)
-	_text_label.add_theme_font_size_override("font_size", 16)
+	_text_label = UI.label("", 16, UI.INK)
 	_text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_text_label.custom_minimum_size = Vector2(400, 0)
@@ -102,14 +87,7 @@ func _hide_toast() -> void:
 func _world_popup(text: String, world_pos: Vector3) -> void:
 	if text.is_empty():
 		return
-	var label := Label3D.new()
-	label.text = text
-	label.font_size = 48
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.shaded = false
-	label.modulate = Color("FDE047")
-	label.outline_modulate = INK
-	label.outline_size = 8
+	var label := UI.world_label(text, 48, UI.SUNNY, UI.TEAL_DEEP)
 	var parent := get_parent()
 	if parent == null:
 		parent = get_tree().root

@@ -1,73 +1,94 @@
 class_name GameMenus
 extends RefCounted
 
-const HUD = preload("res://scripts/ui/game_hud.gd")
+const UI = preload("res://scripts/ui/ui_kit.gd")
 # Menu CONSTRUCTION ONLY (start / pause / settings + level select) for the farm
 # level. Builders assign the level's existing menu member fields and bind the
 # level's methods; show/hide logic and state stay in the level script.
+# 视觉：UiKit 卡通缝线补丁风——主菜单参考 Piece by Piece：世界透出来、
+# 奶油纸片微微歪斜、胶囊按钮、右下角键位提示。
 
 static func build_all(host: Node) -> void:
 	_build_start_menu(host)
 	_build_pause_menu(host)
 	_build_settings_menu(host)
 
+static func _dim(host: Node, parent: Control, alpha: float) -> void:
+	var bg := ColorRect.new()
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bg.color = Color(0.13, 0.25, 0.23, alpha)
+	bg.mouse_filter = Control.MOUSE_FILTER_STOP
+	parent.add_child(bg)
+
+static func _tilt(node: Control, degrees: float) -> void:
+	node.rotation_degrees = degrees
+	node.resized.connect(func(): node.pivot_offset = node.size * 0.5)
+
 static func _build_start_menu(host: Node) -> void:
 	host.start_menu = Control.new()
 	host.start_menu.name = "StartMenu"
 	host.start_menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	host.hud.add_child(host.start_menu)
+	_dim(host, host.start_menu, 0.30)
 
-	var bg := ColorRect.new()
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.12, 0.14, 0.11, 0.72)
-	host.start_menu.add_child(bg)
+	var column := VBoxContainer.new()
+	column.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	column.offset_left = 84
+	column.offset_top = 56
+	column.offset_right = 560
+	column.offset_bottom = 660
+	column.add_theme_constant_override("separation", 18)
+	host.start_menu.add_child(column)
 
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	host.start_menu.add_child(center)
+	var title := UI.banner("一口猪在金牌农场", 54, UI.WHITE, UI.TEAL_DEEP)
+	column.add_child(title)
+	var subtitle := UI.name_tag("A PIG IN GOLDEN FARM · 今晚就逃离农场", UI.SUNNY, UI.INK, 16)
+	subtitle.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	column.add_child(subtitle)
 
-	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(460, 400)
-	card.add_theme_stylebox_override("panel", HUD.style(Color(0.96, 0.94, 0.88, 0.98), Color(0.40, 0.38, 0.30)))
-	center.add_child(card)
+	var card := UI.patch_panel(22, UI.PAPER, UI.PINK, Vector2(26, 22))
+	card.custom_minimum_size = Vector2(400, 0)
+	card.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_tilt(card, -1.2)
+	column.add_child(card)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 16)
+	vbox.add_theme_constant_override("separation", 8)
 	card.add_child(vbox)
 
-	var title := HUD.label("一口猪在金牌农场", 32)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_color_override("font_color", Color(0.45, 0.28, 0.14))
-	vbox.add_child(title)
-
-	var subtitle := HUD.label("A PIG IN GOLDEN FARM · 逃离农场", 14)
-	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle.add_theme_color_override("font_color", Color(0.52, 0.48, 0.38))
-	vbox.add_child(subtitle)
-
-	var sep := HSeparator.new()
-	vbox.add_child(sep)
-
-	var btn_start := HUD.button("▶  开始游戏", host.start_dream_intro)
+	var btn_start := UI.button("▶  开始游戏", host.start_dream_intro, true)
 	btn_start.name = "StartButton"
-	btn_start.custom_minimum_size.y = 48
+	btn_start.custom_minimum_size.y = 52
 	vbox.add_child(btn_start)
 
 	# The nightmare prologue plays first; this skips straight to the pen escape.
-	var btn_skip := HUD.button("跳过序章，直接出圈", host._start_game)
+	var btn_skip := UI.button("跳过序章，直接出圈", host._start_game)
 	btn_skip.name = "SkipIntroButton"
-	btn_skip.custom_minimum_size.y = 30
+	btn_skip.custom_minimum_size.y = 36
+	btn_skip.add_theme_font_size_override("font_size", 16)
 	vbox.add_child(btn_skip)
 
-	var btn_settings := HUD.button("⚙  游戏设置", host._open_settings.bind(true))
+	var btn_settings := UI.button("⚙  游戏设置", host._open_settings.bind(true))
 	btn_settings.name = "SettingsButton"
 	btn_settings.custom_minimum_size.y = 48
 	vbox.add_child(btn_settings)
 
-	var btn_quit := HUD.button("✕  退出游戏", func(): host.get_tree().quit())
+	var btn_quit := UI.button("✕  退出游戏", func(): host.get_tree().quit())
 	btn_quit.name = "QuitButton"
 	btn_quit.custom_minimum_size.y = 44
 	vbox.add_child(btn_quit)
+
+	var hints := HBoxContainer.new()
+	hints.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	hints.offset_left = -360
+	hints.offset_top = -56
+	hints.offset_right = -24
+	hints.offset_bottom = -16
+	hints.add_theme_constant_override("separation", 10)
+	hints.alignment = BoxContainer.ALIGNMENT_END
+	host.start_menu.add_child(hints)
+	hints.add_child(UI.key_hint("↵", "选择"))
+	hints.add_child(UI.key_hint("↑↓", "移动"))
 
 static func _build_pause_menu(host: Node) -> void:
 	host.pause_menu = Control.new()
@@ -75,78 +96,75 @@ static func _build_pause_menu(host: Node) -> void:
 	host.pause_menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	host.pause_menu.visible = false
 	host.hud.add_child(host.pause_menu)
-
-	var bg := ColorRect.new()
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.12, 0.14, 0.11, 0.75)
-	host.pause_menu.add_child(bg)
+	_dim(host, host.pause_menu, 0.55)
 
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	host.pause_menu.add_child(center)
 
-	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(520, 500)
-	card.add_theme_stylebox_override("panel", HUD.style(Color(0.96, 0.94, 0.88, 0.98), Color(0.40, 0.38, 0.30)))
+	var card := UI.patch_panel(24, UI.PAPER, UI.PINK, Vector2(32, 26))
+	card.custom_minimum_size = Vector2(560, 0)
+	_tilt(card, 0.8)
 	center.add_child(card)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 14)
+	vbox.add_theme_constant_override("separation", 12)
 	card.add_child(vbox)
 
-	var title := HUD.label("游戏暂停", 28)
+	var title := UI.label("游戏暂停", 32, UI.TEAL_DEEP, true)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_color_override("font_color", Color(0.45, 0.28, 0.14))
 	vbox.add_child(title)
 
 	var guide_panel := PanelContainer.new()
 	guide_panel.name = "GuidePanel"
-	guide_panel.add_theme_stylebox_override("panel", HUD.style(Color(0.91, 0.88, 0.80, 0.92), Color(0.65, 0.60, 0.48)))
+	guide_panel.add_theme_stylebox_override("panel", UI.pill(UI.PAPER_DEEP, 16, UI.PAPER_EDGE, 2, Vector2(20, 14)))
 	vbox.add_child(guide_panel)
 
 	var guide_vbox := VBoxContainer.new()
-	guide_vbox.add_theme_constant_override("separation", 6)
+	guide_vbox.add_theme_constant_override("separation", 7)
 	guide_panel.add_child(guide_vbox)
 
-	var guide_title := HUD.label("【 键位与操作指南 】", 15)
+	var guide_title := UI.label("键位与操作指南", 17, UI.CORAL, true)
 	guide_title.name = "GuideTitle"
 	guide_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	guide_title.add_theme_color_override("font_color", Color(0.42, 0.26, 0.12))
 	guide_vbox.add_child(guide_title)
 
 	var guide_items := [
-		"WASD / 方向键   移动角色",
-		"鼠标左键          点击地面寻路 / 对话选项",
-		"空格键 (Space)    跳跃（越过倒木与溪流缺口）",
-		"F 键 / E 键        与动物伙伴、场景道具交互",
-		"连续敲击空格/E     被恶犬咬住时 QTE 挣脱（老牛技能）",
-		"Shift 键          长按加速冲刺（马技能）/ 红圈扑咬时按Shift闪避",
-		"ESC 键           暂停游戏 / 返回"
+		["WASD", "移动角色（方向键也可以）"],
+		["鼠标", "点击地面寻路 / 点选对话选项"],
+		["SPACE", "跳跃：越过倒木与溪流缺口"],
+		["F / E", "与动物伙伴、场景道具交互"],
+		["SHIFT", "长按冲刺 · 红圈扑咬时闪避"],
+		["ESC", "暂停游戏 / 返回"],
 	]
 	for item in guide_items:
-		var lbl := HUD.label(item, 14)
-		lbl.add_theme_color_override("font_color", Color(0.26, 0.28, 0.22))
-		guide_vbox.add_child(lbl)
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 12)
+		guide_vbox.add_child(row)
+		var key := UI.keycap(item[0], 14, UI.TEAL)
+		key.custom_minimum_size.x = 86
+		row.add_child(key)
+		row.add_child(UI.label(item[1], 15, UI.INK))
 
 	var sep := HSeparator.new()
 	vbox.add_child(sep)
 
-	var btn_resume := HUD.button("▶  继续游戏", host._resume)
+	var btn_resume := UI.button("▶  继续游戏", host._resume, true)
 	btn_resume.name = "ResumeButton"
-	btn_resume.custom_minimum_size.y = 44
+	btn_resume.custom_minimum_size.y = 46
 	vbox.add_child(btn_resume)
 
-	var btn_settings := HUD.button("⚙  游戏设置", host._open_settings.bind(false))
+	var btn_settings := UI.button("⚙  游戏设置", host._open_settings.bind(false))
 	btn_settings.name = "SettingsButton"
 	btn_settings.custom_minimum_size.y = 44
 	vbox.add_child(btn_settings)
 
-	var btn_restart := HUD.button("↺  从头开始", host._restart)
+	var btn_restart := UI.button("↺  从头开始", host._restart)
 	btn_restart.name = "RestartButton"
 	btn_restart.custom_minimum_size.y = 44
 	vbox.add_child(btn_restart)
 
-	var btn_main := HUD.button("⌂  返回主菜单", host._return_to_main_menu)
+	var btn_main := UI.button("⌂  返回主菜单", host._return_to_main_menu)
 	btn_main.name = "MainMenuButton"
 	btn_main.custom_minimum_size.y = 44
 	vbox.add_child(btn_main)
@@ -157,29 +175,27 @@ static func _build_settings_menu(host: Node) -> void:
 	host.settings_menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	host.settings_menu.visible = false
 	host.hud.add_child(host.settings_menu)
-
-	var bg := ColorRect.new()
-	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.12, 0.14, 0.11, 0.75)
-	host.settings_menu.add_child(bg)
+	_dim(host, host.settings_menu, 0.55)
 
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	host.settings_menu.add_child(center)
 
-	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(560, 560)
-	card.add_theme_stylebox_override("panel", HUD.style(Color(0.96, 0.94, 0.88, 0.98), Color(0.40, 0.38, 0.30)))
+	var card := UI.patch_panel(24, UI.PAPER, UI.SAGE, Vector2(28, 18))
+	card.custom_minimum_size = Vector2(600, 0)
+	_tilt(card, -0.6)
 	center.add_child(card)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 12)
+	vbox.add_theme_constant_override("separation", 7)
 	card.add_child(vbox)
 
-	var title := HUD.label("游戏设置与关卡选择", 26)
+	var title := UI.label("游戏设置", 28, UI.TEAL_DEEP, true)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_color_override("font_color", Color(0.45, 0.28, 0.14))
 	vbox.add_child(title)
+	var sub := UI.label("画面 · 声音 · 关卡直达", 14, UI.INK_SOFT)
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(sub)
 
 	var sep := HSeparator.new()
 	vbox.add_child(sep)
@@ -187,6 +203,7 @@ static func _build_settings_menu(host: Node) -> void:
 	var toggle_high := CheckButton.new()
 	toggle_high.name = "TestHighCamera"
 	toggle_high.text = "测试用高视角（原高度 / 原视野）"
+	toggle_high.add_theme_font_size_override("font_size", 16)
 	toggle_high.button_pressed = host.camera.test_high_view
 	toggle_high.toggled.connect(host.camera.set_test_high_view)
 	vbox.add_child(toggle_high)
@@ -194,6 +211,7 @@ static func _build_settings_menu(host: Node) -> void:
 	var toggle_fs := CheckButton.new()
 	toggle_fs.name = "FullscreenToggle"
 	toggle_fs.text = "全屏显示模式"
+	toggle_fs.add_theme_font_size_override("font_size", 16)
 	toggle_fs.button_pressed = (DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN)
 	toggle_fs.toggled.connect(func(pressed: bool):
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if pressed else DisplayServer.WINDOW_MODE_WINDOWED)
@@ -203,6 +221,7 @@ static func _build_settings_menu(host: Node) -> void:
 	var toggle_mute := CheckButton.new()
 	toggle_mute.name = "MuteAudioToggle"
 	toggle_mute.text = "静音所有声音"
+	toggle_mute.add_theme_font_size_override("font_size", 16)
 	toggle_mute.button_pressed = AudioServer.is_bus_mute(0)
 	toggle_mute.toggled.connect(func(pressed: bool):
 		AudioServer.set_bus_mute(0, pressed)
@@ -212,21 +231,18 @@ static func _build_settings_menu(host: Node) -> void:
 	var sep_level := HSeparator.new()
 	vbox.add_child(sep_level)
 
-	var lvl_title := HUD.label("🚩 关卡测试选择 / Level Select", 18)
-	lvl_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lvl_title.add_theme_color_override("font_color", Color(0.55, 0.32, 0.16))
-	vbox.add_child(lvl_title)
+	var lvl_tag := UI.name_tag("🚩 关卡直达 · LEVEL SELECT", UI.SUNNY, UI.INK, 15)
+	lvl_tag.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	vbox.add_child(lvl_tag)
 
-	var lvl_sub := HUD.label("点击可直接跳转到对应关卡进行独立玩法与机制测试：", 13)
+	var lvl_sub := UI.label("点击直接跳转到对应关卡，独立测试玩法与机制", 12, UI.INK_SOFT)
 	lvl_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lvl_sub.add_theme_color_override("font_color", Color(0.50, 0.45, 0.35))
 	vbox.add_child(lvl_sub)
 
 	var grid := GridContainer.new()
 	grid.name = "LevelSelectGrid"
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 10)
-	grid.add_theme_constant_override("v_separation", 8)
+	grid.columns = 1
+	grid.add_theme_constant_override("v_separation", 4)
 	vbox.add_child(grid)
 
 	var levels: Array[Dictionary] = [
@@ -238,21 +254,23 @@ static func _build_settings_menu(host: Node) -> void:
 	]
 
 	for item in levels:
-		var btn := HUD.button(item["name"], host._select_level_from_settings.bind(item["id"]))
+		var btn := UI.button(item["name"], host._select_level_from_settings.bind(item["id"]))
 		btn.name = "BtnSelect_" + item["id"]
-		btn.custom_minimum_size = Vector2(250, 38)
+		btn.custom_minimum_size = Vector2(520, 32)
+		btn.add_theme_font_size_override("font_size", 15)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		grid.add_child(btn)
 
-	var btn_farm := HUD.button("🏡 返回农场主线世界 (自由探索)", host._select_level_from_settings.bind("farm"))
+	var btn_farm := UI.button("🏡 返回农场主线世界 (自由探索)", host._select_level_from_settings.bind("farm"), true)
 	btn_farm.name = "BtnSelect_farm"
-	btn_farm.custom_minimum_size.y = 38
+	btn_farm.custom_minimum_size.y = 36
+	btn_farm.add_theme_font_size_override("font_size", 15)
 	vbox.add_child(btn_farm)
 
 	var sep2 := HSeparator.new()
 	vbox.add_child(sep2)
 
-	var btn_back := HUD.button("◀  返回", host._close_settings)
+	var btn_back := UI.button("◀  返回", host._close_settings)
 	btn_back.name = "BackButton"
-	btn_back.custom_minimum_size.y = 40
+	btn_back.custom_minimum_size.y = 38
 	vbox.add_child(btn_back)

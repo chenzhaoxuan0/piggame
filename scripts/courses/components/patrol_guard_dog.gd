@@ -58,6 +58,7 @@ func _ready() -> void:
 	add_child(mesh)
 
 	var label := Label3D.new()
+	label.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	label.name = "DogLabel"
 	label.text = display_name
 	label.font_size = 18
@@ -102,6 +103,7 @@ func stun(duration: float = 4.0, _knockback: Vector3 = Vector3.ZERO) -> void:
 	# Dizzy spin + stars
 	if _stars_label == null:
 		_stars_label = Label3D.new()
+		_stars_label.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 		_stars_label.name = "StunStars"
 		_stars_label.text = "💫 眼冒金星…"
 		_stars_label.font_size = 22

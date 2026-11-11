@@ -41,6 +41,7 @@ func _setup_visual() -> void:
 	add_child(_cone_mesh)
 
 	_prompt_lbl = Label3D.new()
+	_prompt_lbl.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	_prompt_lbl.name = "PromptLabel"
 	_prompt_lbl.text = prompt_text
 	_prompt_lbl.font_size = 20
@@ -154,6 +155,7 @@ func _on_cone_landed(pos: Vector3) -> void:
 
 	# Clatter impact label
 	var impact_lbl := Label3D.new()
+	impact_lbl.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	impact_lbl.text = "💥 啪嗒！\n【恶犬被声音引开了！】"
 	impact_lbl.font_size = 24
 	impact_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED

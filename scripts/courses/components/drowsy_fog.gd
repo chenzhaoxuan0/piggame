@@ -84,6 +84,7 @@ func _build_wall() -> void:
 		_layers.append(layer)
 
 	var label := Label3D.new()
+	label.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	label.name = "DrowsyLabel"
 	label.text = "困……\n困……"
 	label.font_size = 48

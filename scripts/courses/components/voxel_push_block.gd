@@ -37,6 +37,7 @@ func _ready() -> void:
 
 func _setup_prompt() -> void:
 	prompt_label = Label3D.new()
+	prompt_label.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	prompt_label.name = "PushPromptLabel"
 	prompt_label.text = "[E] 猪拱推进"
 	prompt_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED

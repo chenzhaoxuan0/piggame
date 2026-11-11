@@ -41,6 +41,7 @@ func _setup_visual() -> void:
 
 	# Label on the box
 	var lbl := Label3D.new()
+	lbl.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	lbl.name = "BoxLogo"
 	lbl.text = "THE ORANGE\n一口猪专属纸箱"
 	lbl.font_size = 20
@@ -50,6 +51,7 @@ func _setup_visual() -> void:
 	add_child(lbl)
 
 	prompt_label = Label3D.new()
+	prompt_label.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	prompt_label.name = "BoxPrompt"
 	prompt_label.text = "[E] 穿上纸箱伪装潜行"
 	prompt_label.font_size = 22
@@ -156,6 +158,7 @@ func _bowl_over_dog(dog: Node3D) -> void:
 	if dog.has_method("stun"):
 		dog.stun(4.5)
 	var strike_lbl := Label3D.new()
+	strike_lbl.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	strike_lbl.text = "🎳 STRIKE! 全中！\n【恶犬被纸箱保龄球撞飞！】"
 	strike_lbl.font_size = 26
 	strike_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED

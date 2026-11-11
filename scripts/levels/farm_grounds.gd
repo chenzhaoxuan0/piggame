@@ -293,6 +293,7 @@ func _box(parent: Node3D, node_name: String, size: Vector3, pos: Vector3, color:
 
 func _label(parent: Node3D, node_name: String, text: String, pos: Vector3, font_size: int) -> Label3D:
 	var label := Label3D.new()
+	label.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	label.name = node_name
 	label.text = text
 	label.position = pos

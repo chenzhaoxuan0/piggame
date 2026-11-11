@@ -68,6 +68,7 @@ func _ready() -> void:
 		_mesh_root.add_child(cap)
 
 		var label_f := Label3D.new()
+		label_f.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 		label_f.text = "★"
 		label_f.font_size = 36
 		label_f.position = Vector3(0, bumper_height * 0.55, bumper_radius * 1.05)
@@ -75,6 +76,7 @@ func _ready() -> void:
 		_mesh_root.add_child(label_f)
 
 		var label_b := Label3D.new()
+		label_b.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 		label_b.text = "★"
 		label_b.font_size = 36
 		label_b.position = Vector3(0, bumper_height * 0.55, -bumper_radius * 1.05)

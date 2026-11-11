@@ -6,6 +6,7 @@ const L = preload("res://scripts/levels/farm_layout.gd")
 const POKEMON_SHOWDOWN = preload("res://scripts/battle/pokemon_showdown.gd")
 const GAME_HUD = preload("res://scripts/ui/game_hud.gd")
 const GAME_MENUS = preload("res://scripts/ui/menus.gd")
+const UI = preload("res://scripts/ui/ui_kit.gd")
 const COURSE_SCENES = {
 	"course_0": preload("res://scenes/courses/course_00_nightmare.tscn"),
 	"course_1": preload("res://scenes/courses/course_01_ox_field.tscn"),
@@ -145,35 +146,17 @@ func _build_fallback_pin(mesh_node: MeshInstance3D) -> void:
 	mesh_node.material_override = material
 
 func _style(bg: Color, border: Color = Color(0.40, 0.38, 0.30), radius: int = 12) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = bg
-	style.border_color = border
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(radius)
-	style.content_margin_left = 22
-	style.content_margin_right = 22
-	style.content_margin_top = 15
-	style.content_margin_bottom = 15
-	return style
+	return UI.patch(radius, bg)
 
 func _label(text_value: String, font_size: int = 18) -> Label:
-	var node := Label.new()
-	node.text = text_value
-	node.add_theme_font_size_override("font_size", font_size)
-	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return node
+	return UI.label(text_value, font_size)
 
 func _button(text_value: String, callback: Callable, align_left: bool = false) -> Button:
-	var button := Button.new()
-	button.text = text_value
-	button.custom_minimum_size.y = 44
-	button.alignment = HORIZONTAL_ALIGNMENT_LEFT if align_left else HORIZONTAL_ALIGNMENT_CENTER
+	var button := UI.button(text_value, callback)
 	button.clip_text = true
 	button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	button.pressed.connect(callback)
-	button.add_theme_color_override("font_color", Color("343b30"))
-	button.add_theme_color_override("font_hover_color", Color("343b30"))
-	button.add_theme_color_override("font_focus_color", Color("343b30"))
+	if align_left:
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	return button
 
 func _build_hud() -> void:
@@ -215,28 +198,22 @@ func _refresh_todo_list() -> void:
 		if not is_done and shown_count >= 3:
 			continue
 			
-		var item_label := Label.new()
-		item_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var item_label := UI.label("", 15)
 		item_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		item_label.add_theme_font_size_override("font_size", 14)
-		
+
 		if is_done:
-			# Strikethrough completed items in handwriting style!
 			item_label.text = "✓  " + text
-			item_label.add_theme_color_override("font_color", Color(0.55, 0.52, 0.45, 0.75))
-			# Visual strike line can be represented with decoration or Unicode/strikethrough font
-			# In Godot 4, we can draw line or strike text
+			item_label.add_theme_color_override("font_color", Color(UI.INK_SOFT, 0.75))
 		else:
 			item_label.text = "●  " + text
-			item_label.add_theme_color_override("font_color", Color(0.25, 0.22, 0.16))
+			item_label.add_theme_color_override("font_color", UI.INK)
 			shown_count += 1
-		
+
 		todo_vbox.add_child(item_label)
-		
-		# If completed, add strike line across it
+
 		if is_done:
 			var strike_rect := ColorRect.new()
-			strike_rect.color = Color(0.72, 0.28, 0.22, 0.75) # Goose red strike line
+			strike_rect.color = Color(UI.CORAL, 0.8)
 			strike_rect.custom_minimum_size = Vector2(0, 2)
 			item_label.add_child(strike_rect)
 			strike_rect.set_anchors_preset(Control.PRESET_CENTER_LEFT)
@@ -272,6 +249,7 @@ func _on_qte_requested(dog: ChaseDog) -> void:
 		qte_desc_label.text = "被过往阴影缠住！拼命按空格尝试挣脱！"
 		
 	qte_panel.visible = true
+	if is_instance_valid(prompt): prompt.visible = false
 	player.set_control_mode("qte")
 	
 	# Bounce punch animation on QTE pop
@@ -370,10 +348,21 @@ func _on_player_dodge_succeeded(_dog: Node3D) -> void:
 # -------------------------------------------------------------
 # Ambient Toast Banner (Goose Game Subtitle)
 # -------------------------------------------------------------
+func _place_toast() -> void:
+	if not is_instance_valid(toast_panel): return
+	# 对话打开时横幅上移到对话面板上方，避免盖住台词与选项。
+	if is_instance_valid(dialogue_panel) and dialogue_panel.visible:
+		toast_panel.offset_top = -386
+		toast_panel.offset_bottom = -322
+	else:
+		toast_panel.offset_top = -142
+		toast_panel.offset_bottom = -78
+
 func _show_toast(title_text: String, desc_text: String) -> void:
 	if not is_instance_valid(toast_panel): return
 	toast_title.text = title_text
 	toast_desc.text = desc_text
+	_place_toast()
 	toast_panel.visible = true
 	toast_panel.modulate.a = 0.0
 	var tween := create_tween()
@@ -506,6 +495,11 @@ func _show_pause_menu() -> void:
 	toggle.button_pressed = camera.test_high_view
 	toggle.toggled.connect(camera.set_test_high_view)
 	overlay_buttons.add_child(toggle)
+	# 暂停时覆盖层只当暗色背景：藏起结算卡片，收掉待办与体力条。
+	overlay.color = Color(0, 0, 0, 0)
+	overlay.get_child(0).visible = false
+	if is_instance_valid(todo_notebook): todo_notebook.visible = false
+	if is_instance_valid(dash_gauge): dash_gauge.visible = false
 	overlay.visible = true
 
 func _show_pause_settings() -> void:
@@ -576,10 +570,8 @@ func _process(delta: float) -> void:
 	if in_start_menu or paused or in_settings or dialogue_open or (overlay.visible and not paused) or cinematic or in_skill_card:
 		prompt.visible = false
 		return
-	prompt.visible = true
-	
 	if GameManager.is_in_chase():
-		prompt.text = "奔跑避障突围！犬队逼近 %.1f m  [红圈扑咬时按Shift闪避 / 遇障碍按空格跃过 / 被咬时狂按空格挣脱]" % pressure
+		prompt.text = "犬队逼近 %.1f m ｜ Shift 闪避 · 空格 跳跃 · 被咬狂按空格" % pressure
 	else:
 		var target := player.get_nearest_interactable()
 		if is_instance_valid(target):
@@ -588,6 +580,7 @@ func _process(delta: float) -> void:
 			prompt.text = "[ F ]  " + str(names.get(id, "调查"))
 		else:
 			prompt.text = ""
+	prompt.visible = not prompt.text.is_empty()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if in_skill_card:
@@ -680,6 +673,7 @@ func open_dialogue(key: String) -> void:
 	dialogue_open = true
 	player.set_control_mode("dialogue")
 	dialogue_panel.visible = true
+	if is_instance_valid(toast_panel) and toast_panel.visible: _place_toast()
 	speaker_label.text = str(data.get("speaker", "")) + "  /  " + str(data.get("title", ""))
 	portrait.texture = ART_2D.PORTRAITS.get(str(data.get("speaker", "")))
 	portrait.visible = portrait.texture != null
@@ -829,6 +823,7 @@ func close_dialogue() -> void:
 			start_menu.visible = false
 	dialogue_open = false
 	dialogue_panel.visible = false
+	if is_instance_valid(toast_panel) and toast_panel.visible: _place_toast()
 	_restore_control()
 	_refresh_hud()
 
@@ -1078,6 +1073,10 @@ func _show_ending() -> void:
 
 func _show_overlay(title: String, body: String, buttons: Array) -> void:
 	ending_art.hide()
+	overlay.color = Color(UI.PAPER, 0.96)
+	overlay.get_child(0).visible = true
+	if is_instance_valid(todo_notebook): todo_notebook.visible = false
+	if is_instance_valid(dash_gauge): dash_gauge.visible = false
 	overlay_title.text = title
 	overlay_text.text = body
 	_clear_children(overlay_buttons)

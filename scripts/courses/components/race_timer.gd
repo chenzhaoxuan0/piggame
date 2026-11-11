@@ -10,6 +10,8 @@ extends CanvasLayer
 
 signal countdown_finished
 
+const UI = preload("res://scripts/ui/ui_kit.gd")
+
 @export var countdown_duration: float = 3.0
 
 var elapsed: float = 0.0
@@ -17,22 +19,25 @@ var final_time: float = -1.0
 var state: String = "idle" # idle | countdown | running | stopped
 
 var _label: Label
+var _badge: PanelContainer
 var _gantry_label: Label3D = null
 var _countdown_left: float = 0.0
 var _last_shown_int: int = -1
 
 func _ready() -> void:
 	layer = 10
-	_label = Label.new()
+	_badge = PanelContainer.new()
+	_badge.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_badge.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_badge.offset_top = 14.0
+	_badge.offset_bottom = 14.0
+	_badge.add_theme_stylebox_override("panel", UI.pill(Color(UI.PAPER, 0.95), 22, UI.PAPER_EDGE, 2, Vector2(24, 8), true))
+	_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_badge)
+	_label = UI.label("", 36, UI.TEAL_DEEP, true)
 	_label.name = "RaceTimerLabel"
-	_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	_label.position.y = 14.0
-	_label.add_theme_font_size_override("font_size", 36)
-	_label.add_theme_color_override("font_color", Color("FACC15"))
-	_label.add_theme_color_override("font_outline_color", Color("0F172A"))
-	_label.add_theme_constant_override("outline_size", 10)
-	_label.text = ""
-	add_child(_label)
+	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_badge.add_child(_label)
 	set_process(false)
 
 func start_countdown(gantry_label: Label3D = null) -> void:
@@ -53,12 +58,14 @@ func _process(delta: float) -> void:
 			var txt := "🏁 GO！🏁" if shown <= 0 else str(shown)
 			_label.text = txt
 			_label.add_theme_font_size_override("font_size", 48 if shown <= 0 else 56)
+			_label.add_theme_color_override("font_color", UI.CORAL if shown <= 0 else UI.TEAL_DEEP)
 			if _gantry_label != null:
 				_gantry_label.text = txt
 		if _countdown_left <= 0.0:
 			state = "running"
 			elapsed = 0.0
-			_label.add_theme_font_size_override("font_size", 36)
+			_label.add_theme_font_size_override("font_size", 32)
+			_label.add_theme_color_override("font_color", UI.TEAL_DEEP)
 			_label.text = "TIME 00:00.00"
 			countdown_finished.emit()
 	elif state == "running":
@@ -74,6 +81,7 @@ func stop() -> float:
 		state = "stopped"
 		if final_time >= 0.0:
 			_label.text = "🏁 " + format_time(final_time) + " 🏁"
+			_label.add_theme_color_override("font_color", UI.CORAL)
 		else:
 			_label.text = ""
 	return final_time

@@ -45,6 +45,7 @@ func _grant_landing_turbo(cb: CharacterBody3D) -> void:
 	cb.velocity += forward_dir * landing_turbo_speed
 
 	var turbo_lbl := Label3D.new()
+	turbo_lbl.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	turbo_lbl.text = "🔥 落地迷你涡轮！"
 	turbo_lbl.font_size = 26
 	turbo_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -97,6 +98,7 @@ func _setup_ramp_structure() -> void:
 
 	# Neon chevron arrows
 	var chevron := Label3D.new()
+	chevron.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	chevron.text = "▲ ▲ ▲\nSTUNT JUMP"
 	chevron.font_size = 32
 	chevron.rotation.x = deg_to_rad(-70.0)
@@ -157,6 +159,7 @@ func _on_player_crest(body: Node3D) -> void:
 
 	# Celebratory Stunt Popup
 	var stunt_lbl := Label3D.new()
+	stunt_lbl.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	stunt_lbl.text = "🏁 360° 空中特技！\n【落地迷你涡轮加速！】"
 	stunt_lbl.font_size = 28
 	stunt_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
