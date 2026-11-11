@@ -171,3 +171,7 @@ scripts/courses/
 - `tests/scene/course_traversal.gd`：共用实走器（路点推进、卡墙侧移、击飞回卷、分段计时、击飞计数）。
 - 三关各一个 traversal 测试 + 旅程/组件测试同步扩充；修掉两处恒真断言（4 关加速带/西瓜皮）。
 - 新组件（zone_environment/race_timer/mud_patch/patrol_guard_dog/sweet_potato_pickup）已登记 `export_presets.cfg` 显式导出清单与 PackCheck 必含项（该清单不自动收集 preload 依赖，漏登记只会倒在 PackCheck）。
+
+### 7.5 序章噩梦（course_0，2026-11-11）
+
+设计文档五大关之外的叙事前置关：猪的噩梦屠宰场。三段式——圈栏潜行（双巡逻犬+笼架掩体+视锥遮挡）、加工车间（逆流传送带[新组件 conveyor_belt，位置直移制]+铁钩+蒸汽+电击柱+画太阳假门）、装卸月台（农场主形象的橡皮筋追逐，CourseConfig.dog_visual_asset_id=CHAR_07）。零技能教学：全程滑稽逃脱。实走机器人 34.3s 硬闯（6 次击飞不躲避），玩家潜行+等钩节奏预计 90-150s。启动链：开始菜单主按钮入梦、可跳过、通关惊醒回猪圈不动主线状态。
