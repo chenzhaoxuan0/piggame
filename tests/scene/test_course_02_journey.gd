@@ -95,21 +95,58 @@ func _run() -> void:
 			var half_z: float = bridge_box.size.z * 0.5
 			_check(bridge.global_position.z - half_z <= course.water_stream.global_position.z - 2.4 and bridge.global_position.z + half_z >= course.water_stream.global_position.z + 2.4, "Bridge spans the full stream with overlap onto both banks")
 
-	# Sand block burying dog
+	# Canyon throat: a real sentry plugs the gap until the sand buries it
 	_check(course.sand_block != null and course.canyon_dog != null, "Course 2 has sand block and canyon dog")
-	course.sand_block.push(Vector3(0, 0, -2.0))
-	await create_timer(0.3).timeout
-	course._bury_dog(course.canyon_dog.get_node("DogLabel"), course.canyon_dog.get_node("DogMesh"))
-	_check(course.canyon_dog.get_node("DogLabel").text.contains("活埋"), "Sand block buried and stunned canyon dog")
+	_check(course.canyon_dog.is_in_group("chase_dogs") and course.canyon_dog.has_node("GuardShape"), "Canyon guard is a solid body (plugs the throat)")
+	_check(course.canyon_dog.collision_layer != 0, "Canyon guard blocks the passage while awake")
+	_check(course.has_node("CanyonThroatRockW") and course.has_node("CanyonThroatRockE"), "Canyon throat is pinched by rock shoulders")
+	_check(course.canyon_dog.global_position.distance_to(course.sand_block.global_position) > 4.0, "Sand spawns clear of the guard (the burial must be earned)")
 
-	# TNT and Obsidian wall
+	# The sand toboggans down the waterfall steps, then one east push buries him
+	for i in 3:
+		course.sand_block.push(Vector3(0, 0, -1.0))
+		await create_timer(0.45).timeout
+	course.sand_block.push(Vector3(1, 0, 0))
+	await create_timer(0.45).timeout
+	_check(course.canyon_dog_buried, "Sand push chain buried the canyon guard")
+	_check(course.canyon_dog.get_node("DogLabel").text.contains("活埋"), "Buried guard label says so")
+	_check(course.canyon_dog.is_stunned and course.canyon_dog.collision_layer == 0, "Buried guard stops blocking the throat")
+
+	# TNT and Obsidian wall - the puzzle can no longer be skipped
 	_check(course.obsidian_wall != null and course.pressure_plate != null, "Course 2 has obsidian wall and pressure plate")
 	_check(course.obsidian_wall.wall_width >= 10.0, "Obsidian wall seals the full 10m canyon gap (no side squeeze)")
 	_check((course.pressure_plate.collision_mask & 1) != 0, "Pressure plate can detect push blocks on layer 1")
-	_check(absf(course.tnt_block.position.x) < 0.05, "TNT starts aligned with the pressure plate for one straight push")
-	course.pressure_plate._on_body_entered(course.tnt_block)
-	await create_timer(0.6).timeout
-	_check(course.obsidian_wall == null or course.obsidian_wall.is_demolished, "TNT on pressure plate demolished obsidian wall")
+	_check(absf(course.tnt_block.position.x) < 0.05, "TNT starts aligned with the pressure plate for straight pushes")
+	_check(course.tnt_block.position.distance_to(course.pressure_plate.position) >= 5.5, "TNT spawns well clear of the plate (anti-bypass)")
+	# Pig stepping on the plate with the TNT still on its spawn pad: nothing happens
+	course.pressure_plate._on_body_entered(office.player)
+	await create_timer(0.4).timeout
+	_check(course.obsidian_wall != null and not course.obsidian_wall.is_demolished, "Pig on the plate alone does NOT detonate distant TNT (old 2.2 m bypass)")
+	# Physically the pig was never on the plate, so nothing fired body_exited;
+	# release it manually or the plate stays "pressed" and swallows the TNT step.
+	course.pressure_plate._on_body_exited(office.player)
+	# Three pushes land the TNT on the plate; the plate's own body_entered
+	# catches it mid-push, ignites it, and the explosion pays an FX burst.
+	for i in 3:
+		course.tnt_block.push(Vector3(0, 0, -1.0))
+		await create_timer(0.4).timeout
+	var fx_seen := false
+	for i in 12:
+		await create_timer(0.1).timeout
+		if is_instance_valid(course) and course.find_children("ExplosionFX", "Node3D", true, false).size() > 0:
+			fx_seen = true
+	_check(course.obsidian_wall == null or course.obsidian_wall.is_demolished, "TNT pushed onto the plate demolished the obsidian wall")
+	_check(fx_seen, "TNT explosion pays an on-screen FX burst")
+	_check(not is_instance_valid(course.tnt_block), "Ignited TNT is gone after the blast")
+
+	# Sweet potatoes on the cliff stairs are real pickups now
+	var potato = course.get_node_or_null("SweetPotato2")
+	_check(potato != null, "Cliff stairs have collectible sweet potatoes")
+	if potato != null:
+		var speed_before: float = office.player.move_speed
+		potato._on_body_entered(office.player)
+		_check(potato.is_collected, "Sweet potato collected on contact")
+		_check(is_equal_approx(office.player.move_speed, speed_before * 1.3), "Sweet potato grants its speed boost")
 
 	# CliffRamp steps flush with HighCliff (no buried or embedded steps)
 	var ramp = course.get_node_or_null("CliffRamp")
@@ -164,8 +201,11 @@ func _run() -> void:
 	_check(office.player.is_knocked_back() or office.player.control_mode == "chase", "QTE failure knocks pig back and resumes")
 
 	# 7. Reach exit -> course complete, farm restored, drops at Sheep meadow entrance
+	var memes_played: Array = []
+	course.meme_layer.meme_played.connect(func(id): memes_played.append(id))
 	runner._on_exit(office.player)
 	await process_frame
+	_check(memes_played.has("portal_enter"), "Crossing the exit plays the nether-portal toast (defined but never played before)")
 	_check(game.chase_completed.get("chase_2", false), "chase_2 marked complete via course exit")
 	_check(office.active_course == null, "Course scene unloaded")
 	_check(office.farm.get_parent() == office, "Farm restored to tree")

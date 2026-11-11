@@ -86,25 +86,33 @@ func _on_body_entered(body: Node3D) -> void:
 			target_wall.demolish()
 		body.ignite_and_explode()
 	elif body.is_in_group("player") or body.name.to_lower().contains("pig"):
-		# Redstone pulse: the pig stepping on the plate may only set off TNT that has
-		# actually been pushed onto it (2.2m = block width + slack), not any TNT nearby.
+		# Redstone pulse: the pig stepping on the plate may only set off TNT that
+		# has actually been pushed ONTO it. 1.2 m = half a block plus slack: the
+		# old 2.2 m radius let the pig detonate a TNT still sitting on its spawn
+		# pad two metres away, skipping the puzzle with one step.
 		var parent_node := get_parent()
 		if is_instance_valid(parent_node):
 			for child in parent_node.find_children("*", "CharacterBody3D", true, false):
-				if child.has_method("ignite_and_explode") and child.global_position.distance_to(global_position) < 2.2:
+				if child.has_method("ignite_and_explode") and child.global_position.distance_to(global_position) < 1.2:
 					if target_wall != null and is_instance_valid(target_wall) and target_wall.has_method("demolish"):
 						target_wall.demolish()
 					child.ignite_and_explode()
 					break
 
 func _on_body_exited(_body: Node3D) -> void:
-	var overlapping := get_overlapping_bodies()
-	if overlapping.is_empty():
-		is_pressed = false
-		var tween := create_tween()
-		tween.tween_property(plate_mesh, "position:y", initial_y, 0.1)
+	# Only bodies the plate reacts to keep it pressed. The world floor sits
+	# flush beneath the plate and reports as "overlapping" forever; counting it
+	# pinned is_pressed after the first press and swallowed every later trigger
+	# (pushing the TNT onto the plate stopped demolishing the wall).
+	for overlapping in get_overlapping_bodies():
+		if overlapping.has_method("push") or overlapping.is_in_group("player") \
+			or overlapping.name.to_lower().contains("pig") or overlapping.name.to_lower().contains("tnt"):
+			return
+	is_pressed = false
+	var tween := create_tween()
+	tween.tween_property(plate_mesh, "position:y", initial_y, 0.1)
 
-		var dim_mat := StandardMaterial3D.new()
-		dim_mat.albedo_color = Color("7F1D1D")
-		redstone_wire.material_override = dim_mat
-		plate_released.emit(self)
+	var dim_mat := StandardMaterial3D.new()
+	dim_mat.albedo_color = Color("7F1D1D")
+	redstone_wire.material_override = dim_mat
+	plate_released.emit(self)

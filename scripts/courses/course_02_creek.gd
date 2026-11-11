@@ -10,6 +10,8 @@ const VOXEL_SLIME_BLOCK = preload("res://scripts/courses/components/voxel_slime_
 const VOXEL_WATER_STREAM = preload("res://scripts/courses/components/voxel_water_stream.gd")
 const VOXEL_PRESSURE_PLATE = preload("res://scripts/courses/components/voxel_pressure_plate.gd")
 const VOXEL_OBSIDIAN_WALL = preload("res://scripts/courses/components/voxel_obsidian_wall.gd")
+const PATROL_GUARD_DOG = preload("res://scripts/courses/components/patrol_guard_dog.gd")
+const SWEET_POTATO = preload("res://scripts/courses/components/sweet_potato_pickup.gd")
 const ZONE_ENVIRONMENT = preload("res://scripts/courses/components/zone_environment.gd")
 
 const SPAWN := Vector3(0, 0.6, 12)
@@ -33,6 +35,8 @@ var tnt_block: Node3D
 var pressure_plate: Node3D
 var obsidian_wall: Node3D
 var canyon_dog: Node3D
+var canyon_dog_buried: bool = false
+var potatoes_collected: int = 0
 
 func _ready() -> void:
 	ZONE_ENVIRONMENT.apply(self, "voxel_creek")
@@ -53,6 +57,11 @@ func _ready() -> void:
 	runner.name = "CourseRunner"
 	runner.config = _make_config()
 	add_child(runner)
+	# The exit toast used to be defined but never played.
+	runner.course_completed.connect(func():
+		if meme_layer:
+			meme_layer.play("portal_enter")
+	)
 
 func setup(player: Node3D) -> void:
 	player.reset_at(SPAWN)
@@ -84,6 +93,7 @@ func _make_config() -> CourseConfig:
 		"plate_click": {"title": "红石信号触发！", "text": "压力板咔哒一响！TNT开始急促膨胀！", "duration": 2.2},
 		"tnt_blast": {"title": "艺术就是爆炸！", "text": "轰！黑曜石碎裂！通向下界传送门的道路打开了！", "duration": 3.0},
 		"portal_enter": {"title": "穿过下界之门！", "text": "嗡……紫光闪烁，小猪成功打破次元离开溪流！", "duration": 2.5},
+		"potato_power": {"title": "红薯能量全满！", "text": "三块黄金红薯下肚！小猪浑身冒热气，跑出了残影！", "duration": 2.5},
 		"dog_bonk": {"title": "恶犬扑空", "text": "像素狗咬到了方块空气！", "duration": 2.0},
 		"qte_success": {"title": "黑曜石挣脱！", "text": "老牛力量：硬如黑曜石，震退恶犬！", "duration": 2.2},
 		"qte_fail": {"title": "挣脱失败", "text": "被甩飞了……下次狂按空格！", "duration": 2.2},
@@ -102,6 +112,7 @@ func _build_ground_and_structures() -> void:
 	_voxel_platform("HighCliff", Vector3(10, 4, 12), Vector3(0, 1.0, -26), VOXEL_STONE, VOXEL_DIRT)
 	# Ramp up to high cliff (flush at Y = 3.0, North edge at Z = -20.1 meeting HighCliff south face without embedded steps)
 	_voxel_ramp("CliffRamp", Vector3(6, 4, 8.2), Vector3(0, 0.0, -16.0), 3.0)
+	_build_potato_pickups()
 
 	# 4. Lower Canyon floor (Y = 0.0)
 	_voxel_platform("CanyonFloor", Vector3(12, 1, 36), Vector3(0, -0.5, -50), VOXEL_STONE, VOXEL_DIRT)
@@ -235,10 +246,11 @@ func _build_slime_blocks() -> void:
 			meme_layer.play("slime_bounce")
 	)
 
-	# 2. Slime block in Canyon: launches player over canyon dog directly to pressure plate
+	# 2. Slime block before the canyon throat: the risky alternate route - one
+	# big leap over the rocks and the guard instead of burying it with sand.
 	var slime_2 = VOXEL_SLIME_BLOCK.new()
 	slime_2.name = "SlimeBlockCanyon"
-	slime_2.position = Vector3(3.2, 0.0, -42.0)
+	slime_2.position = Vector3(3.1, 0.0, -34.0)
 	slime_2.bounce_velocity = 10.5
 	slime_2.forward_boost = 8.5
 	add_child(slime_2)
@@ -248,68 +260,67 @@ func _build_slime_blocks() -> void:
 	)
 
 func _build_sand_canyon_puzzle() -> void:
-	# Sand block positioned on high cliff edge (Z = -30, Y = 3.0)
+	# The canyon throat: two rock shoulders pinch the passage behind the
+	# waterfall landing to a 2.4 m gap, and a real sentry body plugs the gap.
+	# The old dummy guard never blocked anything and the sand could never
+	# actually reach it. Now: push the sand off the cliff (it toboggans down
+	# the waterfall steps), nudge it east, and it buries the sentry for good -
+	# or take the slime leap over the whole thing.
+	# The throat sits at z = -38, one stride south of the waterfall steps:
+	# hugging the steps it used to seal the west slot into a trap for pigs
+	# flung off the chute.
+	_solid_box("CanyonThroatRockW", Vector3(6.9, 2.4, 3.0), Vector3(-1.55, 1.2, -38.0), VOXEL_STONE)
+	_solid_box("CanyonThroatRockE", Vector3(0.7, 2.4, 3.0), Vector3(4.65, 1.2, -38.0), VOXEL_STONE)
+
+	canyon_dog = PATROL_GUARD_DOG.new()
+	canyon_dog.name = "CanyonDogGuard"
+	canyon_dog.position = Vector3(3.1, 0.0, -38.0)
+	canyon_dog.display_name = "恶犬守卫"
+	add_child(canyon_dog)
+
 	sand_block = VOXEL_PUSH_BLOCK.new()
 	sand_block.name = "GravitySandBlock"
 	sand_block.block_type = VOXEL_PUSH_BLOCK.BlockType.SAND
-	sand_block.position = Vector3(0, 3.0, -29.0)
-	sand_block.is_gravity_affected = true
+	sand_block.position = Vector3(0, 3.0, -30.5)
 	add_child(sand_block)
 
-	_label("【重力沙】将沙子推下悬崖砸晕下方恶犬！", Vector3(0, 5.2, -26.0), 22)
+	_label("【重力沙】把沙子推下瀑布再往右一推，活埋守卫开路！", Vector3(0, 5.2, -28.0), 20)
+	_label("【峡谷咽喉】恶犬堵门：砸晕它，或踩弹跳黏液块飞过去！", Vector3(3.1, 2.9, -34.5), 18)
 
-	# Patrol dog / dummy guard waiting below in the canyon
-	canyon_dog = Node3D.new()
-	canyon_dog.name = "CanyonDogGuard"
-	canyon_dog.position = Vector3(0, 0.5, -35.0)
-
-	var dog_mesh := MeshInstance3D.new()
-	dog_mesh.name = "DogMesh"
-	var cap := CylinderMesh.new()
-	cap.top_radius = 0.5
-	cap.bottom_radius = 0.5
-	cap.height = 1.0
-	dog_mesh.mesh = cap
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color("991B1B")
-	dog_mesh.material_override = mat
-	canyon_dog.add_child(dog_mesh)
-
-	var dog_col := Area3D.new()
-	dog_col.name = "DogArea"
-	var col_shape := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	box.size = Vector3(1.8, 1.8, 1.8)
-	col_shape.shape = box
-	dog_col.add_child(col_shape)
-	canyon_dog.add_child(dog_col)
-
-	var dog_lbl := _label("恶犬守卫", Vector3(0, 1.5, 0), 18, canyon_dog)
-	dog_lbl.name = "DogLabel"
-	add_child(canyon_dog)
-
-	# Connect sand land on dog
 	sand_block.block_pushed.connect(func(_b, _dir):
-		if meme_layer:
+		if meme_layer and not canyon_dog_buried:
 			meme_layer.play("sand_drop")
+		_check_sand_burial()
 	)
-
+	# A direct drop onto the sentry's head counts too, wherever the sand lands.
 	sand_block.block_landed_on_target.connect(func(_b, _target):
-		_bury_dog(dog_lbl, dog_mesh)
+		_check_sand_burial()
 	)
 
-func _bury_dog(lbl: Label3D, mesh: MeshInstance3D) -> void:
+func _check_sand_burial() -> void:
+	# Bury the sentry once the sand settles on it or right beside it (comedy
+	# mercy radius): pushing it flush against the guard is enough.
+	if canyon_dog_buried or canyon_dog == null or not is_instance_valid(canyon_dog):
+		return
+	if sand_block == null or not is_instance_valid(sand_block):
+		return
+	if sand_block.is_falling or sand_block.is_moving:
+		return
+	if sand_block.global_position.distance_to(canyon_dog.global_position) > 2.0:
+		return
+	canyon_dog_buried = true
+	_bury_dog()
+
+func _bury_dog() -> void:
 	if canyon_dog == null or not is_instance_valid(canyon_dog):
 		return
-	lbl.text = "✖ 已被沙子活埋 (晕厥中)"
-	lbl.modulate = Color("FBBF24")
-
-	var tween := canyon_dog.create_tween()
-	tween.tween_property(mesh, "scale", Vector3(1.4, 0.2, 1.4), 0.2)
-	tween.tween_callback(func():
-		if meme_layer:
-			meme_layer.play("dog_buried")
-	)
+	var lbl: Label3D = canyon_dog.get_node_or_null("DogLabel")
+	if lbl != null:
+		lbl.text = "✖ 已被沙子活埋 (晕厥中)"
+		lbl.modulate = Color("FBBF24")
+	canyon_dog.bury()
+	if meme_layer:
+		meme_layer.play("dog_buried")
 
 func _build_tnt_obsidian_puzzle() -> void:
 	# Obsidian Wall sealing the canyon at Z = -66
@@ -337,14 +348,16 @@ func _build_tnt_obsidian_puzzle() -> void:
 			meme_layer.play("plate_click")
 	)
 
-	# TNT Block ready to be pushed onto plate
+	# TNT Block: starts 6 m north of the plate, so reaching the plate takes
+	# three deliberate pushes. The old 2.0 m spawn + 2.2 m plate radius let the
+	# pig detonate it by just stepping on the plate (puzzle skipped).
 	tnt_block = VOXEL_PUSH_BLOCK.new()
 	tnt_block.name = "VoxelTNTBlock"
 	tnt_block.block_type = VOXEL_PUSH_BLOCK.BlockType.TNT
-	tnt_block.position = Vector3(0, 0, -54.0) # Aligned with the plate (z = -56): one straight -Z push lands it
+	tnt_block.position = Vector3(0, 0, -50.0) # Plate at z = -56: three straight -Z pushes land it on top
 	add_child(tnt_block)
 
-	_label("【黑曜石之壁】将 TNT 方块推上压力板引爆！", Vector3(0, 4.5, -64.0), 22)
+	_label("【黑曜石之壁】把 TNT 一路推上压力板引爆！小心爆炸波及自己！", Vector3(0, 4.5, -64.0), 22)
 
 func _build_nether_portal_exit() -> void:
 	var portal_pos := Vector3(0, 0, -82.0)
@@ -470,23 +483,24 @@ func _voxel_ramp(node_name: String, size: Vector3, pos: Vector3, height: float) 
 		mesh.material_override = mat
 		body.add_child(mesh)
 
-		# Add glowing pixel sweet potato collectibles along steps to guide player
-		if i % 2 == 1:
-			var potato := MeshInstance3D.new()
-			var p_mesh := BoxMesh.new()
-			p_mesh.size = Vector3(0.4, 0.4, 0.4)
-			potato.mesh = p_mesh
-			potato.position = Vector3(0, step_h + 0.5, z_offset)
-			var p_mat := StandardMaterial3D.new()
-			p_mat.albedo_color = Color("F59E0B")
-			p_mat.emission_enabled = true
-			p_mat.emission = Color("FBBF24")
-			p_mat.emission_energy_multiplier = 1.2
-			potato.material_override = p_mat
-			body.add_child(potato)
-
 	add_child(body)
 	return body
+
+func _build_potato_pickups() -> void:
+	# Real collectible sweet potatoes on the cliff stairs (they used to be plain
+	# decoration): a short speed boost each, all three play a bonus meme.
+	var potato_idx := 1
+	for potato_pos in [Vector3(0, 1.25, -13.4), Vector3(0, 2.0, -15.5), Vector3(0, 2.75, -17.5)]:
+		var potato: Node3D = SWEET_POTATO.new()
+		potato.name = "SweetPotato%d" % potato_idx
+		potato_idx += 1
+		potato.position = potato_pos
+		add_child(potato)
+		potato.potato_collected.connect(func(_p, _player):
+			potatoes_collected += 1
+			if potatoes_collected >= 3 and meme_layer:
+				meme_layer.play("potato_power")
+		)
 
 func _solid_box(node_name: String, size: Vector3, pos: Vector3, color: Color) -> StaticBody3D:
 	var body := StaticBody3D.new()

@@ -224,5 +224,52 @@ func ignite_and_explode(callback: Callable = Callable()) -> void:
 	)
 
 func _spawn_explosion_effect() -> void:
-	# Clean explosion visual
-	pass
+	# "艺术就是爆炸!" An expanding emissive core plus a burst of voxel debris
+	# cubes, all tween-driven so it plays headless and needs no particle assets.
+	var parent_node := get_parent()
+	if parent_node == null:
+		return
+	var fx := Node3D.new()
+	fx.name = "ExplosionFX"
+	parent_node.add_child(fx)
+	fx.global_position = global_position + Vector3(0, block_size * 0.5, 0)
+
+	var core := MeshInstance3D.new()
+	core.name = "BlastCore"
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.5
+	sphere.height = 1.0
+	core.mesh = sphere
+	var core_mat := StandardMaterial3D.new()
+	core_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	core_mat.albedo_color = Color("FDE047")
+	core_mat.emission_enabled = true
+	core_mat.emission = Color("FB923C")
+	core_mat.emission_energy_multiplier = 2.5
+	core.material_override = core_mat
+	fx.add_child(core)
+
+	var core_tw := fx.create_tween()
+	core_tw.set_parallel(true)
+	core_tw.tween_property(core, "scale", Vector3(3.4, 3.4, 3.4), 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	core_tw.tween_property(core_mat, "albedo_color:a", 0.0, 0.34)
+
+	for i in 10:
+		var cube := MeshInstance3D.new()
+		var box := BoxMesh.new()
+		var s := 0.22 + randf() * 0.22
+		box.size = Vector3(s, s, s)
+		cube.mesh = box
+		var cube_mat := StandardMaterial3D.new()
+		cube_mat.albedo_color = COLOR_TNT_RED if i % 3 == 0 else (COLOR_TNT_WHITE if i % 3 == 1 else Color("1E293B"))
+		cube.material_override = cube_mat
+		fx.add_child(cube)
+		var dir := Vector3(randf_range(-1.0, 1.0), randf_range(0.45, 1.3), randf_range(-1.0, 1.0)).normalized()
+		var tw := fx.create_tween()
+		tw.set_parallel(true)
+		tw.tween_property(cube, "position", dir * (2.2 + randf() * 1.5), 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(cube, "scale", Vector3.ONE * 0.03, 0.55)
+
+	var cleanup := fx.create_tween()
+	cleanup.tween_interval(0.6)
+	cleanup.tween_callback(fx.queue_free)

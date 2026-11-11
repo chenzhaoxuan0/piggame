@@ -124,6 +124,20 @@ func _wake_up() -> void:
 	if _stars_label != null:
 		_stars_label.visible = false
 
+func bury() -> void:
+	# Gravity-sand burial (creek canyon): squash flat and stop blocking the
+	# corridor for good. The guard never wakes from this one.
+	if is_stunned and _stun_time_left > 100.0:
+		return # Already buried.
+	is_stunned = true
+	_stun_time_left = 999.0
+	collision_layer = 0 # The passage opens once the sand has done its work
+	_set_cone_paused(true)
+	for child in get_children():
+		if child is MeshInstance3D and child.name == "GuardMesh":
+			var squash := create_tween()
+			squash.tween_property(child, "scale", Vector3(1.4, 0.2, 1.4), 0.2)
+
 func _set_cone_paused(paused: bool) -> void:
 	for child in get_children():
 		if child.is_in_group("patrol_vision_cones"):
