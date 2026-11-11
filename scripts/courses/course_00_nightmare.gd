@@ -12,7 +12,7 @@ const MEME_SCRIPT = preload("res://scripts/courses/meme_layer.gd")
 const CONFIG_SCRIPT = preload("res://scripts/courses/course_config.gd")
 
 const PATROL_GUARD_DOG = preload("res://scripts/courses/components/patrol_guard_dog.gd")
-const PATROL_VISION_CONE = preload("res://scripts/courses/components/patrol_vision_cone.gd")
+const DROWSY_FOG = preload("res://scripts/courses/components/drowsy_fog.gd")
 const CONVEYOR_BELT = preload("res://scripts/courses/components/conveyor_belt.gd")
 const PENDULUM_BALL = preload("res://scripts/courses/components/pendulum_ball.gd")
 const LAUNCH_PAD = preload("res://scripts/courses/components/launch_pad.gd")
@@ -35,12 +35,16 @@ const DARK := Color("120C0B")
 var runner: CourseRunner
 var meme_layer: MemeLayer
 
-var guard_dog_1: Node3D
-var guard_dog_2: Node3D
+var drowsy_fog: Node3D
+var sleeping_dog: Node3D
 var main_belt: Node3D
 var fake_sun_door: Node3D
 var exit_hint_label: Label3D
 var _dock_chase_triggered := false
+var _door_slammed := false
+# Drowsy-fog proximity toasts, edge-triggered with hysteresis (reset once the
+# fog has fallen well behind again after a jolt).
+var _fog_warn_stage := 0
 
 func _ready() -> void:
 	ZONE_ENVIRONMENT.apply(self, "nightmare_plant")
@@ -59,6 +63,34 @@ func _ready() -> void:
 	runner.name = "CourseRunner"
 	runner.config = _make_config()
 	add_child(runner)
+
+func _process(_delta: float) -> void:
+	_update_fog_pressure()
+
+func _update_fog_pressure() -> void:
+	# Escalating dream-pressure toasts as the fog closes in; the camera faces
+	# forward, so the wall itself is only visible at the last moment - the
+	# toasts ARE the rear-view mirror.
+	if drowsy_fog == null or not is_instance_valid(drowsy_fog) or meme_layer == null:
+		return
+	if not runner or not is_instance_valid(runner.player):
+		return
+	var dist: float = drowsy_fog.global_position.z - runner.player.global_position.z
+	var stage := 0
+	if dist < 3.0:
+		stage = 3
+	elif dist < 6.0:
+		stage = 2
+	elif dist < 10.0:
+		stage = 1
+	if stage > _fog_warn_stage:
+		match stage:
+			1: meme_layer.play("fog_wake")
+			2: meme_layer.play("fog_closer")
+			3: meme_layer.play("fog_very_close")
+		_fog_warn_stage = stage
+	elif stage == 0 and _fog_warn_stage > 0 and dist > 13.0:
+		_fog_warn_stage = 0
 
 func setup(player: Node3D) -> void:
 	player.reset_at(SPAWN)
@@ -83,8 +115,12 @@ func _make_config() -> CourseConfig:
 	cfg.dog_visual_asset_id = "CHAR_07"
 	cfg.memes = {
 		"course_start": {"title": "……（入梦）", "text": "冰冷的地面，铁锈味，远处有铁链声。这里是——屠宰场？！", "duration": 4.0},
-		"pen_alert": {"title": "【！】看门犬看见你了！", "text": "汪！汪汪！快躲到笼架后面，等它转过头！", "duration": 2.2},
-		"pen_nip": {"title": "被一口咬住耳朵！", "text": "嗷！看门犬把你拖回圈栏……下次贴着笼架走！", "duration": 2.2},
+		"fog_wake": {"title": "困意……", "text": "身后有什么东西漫过来了。别回头，跑。", "duration": 2.0},
+		"fog_closer": {"title": "困意更近了！", "text": "眼皮好沉……不行！这是梦里的困意，被追上会在梦里睡着的！", "duration": 2.2},
+		"fog_very_close": {"title": "快跑！！", "text": "睫毛只剩一条缝了！！", "duration": 1.8},
+		"fog_caught": {"title": "一个激灵！", "text": "你在梦里的梦里差点睡着——猛地惊醒，弹了出去！", "duration": 2.2},
+		"door_slam": {"title": "砰！", "text": "你甩上铁门。困意在门外撞了两下，没跟进来。", "duration": 2.5},
+		"sleeping_dog": {"title": "Zzz……", "text": "别碰睡着的狗。碰了你就会知道为什么。", "duration": 2.0},
 		"belt_ride": {"title": "传送带在往回送你！", "text": "带子把你送回来时的路！逆着跑，或者从右侧通道绕！", "duration": 2.5},
 		"hook_wham": {"title": "哐！铁钩摆荡！", "text": "挂肉的钩子把你当成了货……看准摆动节奏再过！", "duration": 2.0},
 		"steam_pop": {"title": "嘶——！蒸汽喷口！", "text": "白色蒸汽把你顶上天！落地记得继续跑！", "duration": 2.0},
@@ -161,72 +197,95 @@ func _solid_box(node_name: String, size: Vector3, pos: Vector3, color: Color) ->
 	return body
 
 # ------------------------------------------------------------------
-# S1: 圈栏区 - stealth tutorial (vision cones, cage cover)
+# S1: 圈栏区 - drowsy fog chase + cage weave (the old vision-cone stealth
+# section taught nothing the woodland doesn't teach better, and the cones
+# read as searchlights; the dream's own antagonist is falling asleep again)
 # ------------------------------------------------------------------
 func _build_holding_pins() -> void:
-	_label("【噩梦 · 圈栏】贴着笼架走，别让看门犬看见你。\n（静止不动时，犬也会看走眼）", Vector3(0, 2.8, 8.0), 20)
+	_label("【噩梦 · 圈栏】身后有困意在追！绕开笼架、别碰睡着的狗，
+冲进尽头的铁门甩掉它！", Vector3(0, 2.8, 8.0), 20)
 
-	# Cage pens hugging the walls: real cover for the vision-cone raycasts.
+	# Cage pens widened into alternating weave blocks: each leaves one side
+	# open, consecutive pens swap sides, so the natural line is an S-curve.
 	for cage in [
-		{"pos": Vector3(-4.6, 0.8, 4.0), "name": "CagePenA"},
-		{"pos": Vector3(4.6, 0.8, -2.0), "name": "CagePenB"},
-		{"pos": Vector3(-4.6, 0.8, -8.0), "name": "CagePenC"},
-		{"pos": Vector3(4.6, 0.8, -14.0), "name": "CagePenD"},
+		{"pos": Vector3(-2.5, 0.8, 4.0), "name": "CagePenA"},
+		{"pos": Vector3(2.5, 0.8, -2.0), "name": "CagePenB"},
+		{"pos": Vector3(-2.5, 0.8, -8.0), "name": "CagePenC"},
+		{"pos": Vector3(2.5, 0.8, -14.0), "name": "CagePenD"},
 	]:
-		var pen := _solid_box(cage["name"], Vector3(2.4, 1.6, 2.4), cage["pos"], CAGE_STEEL)
+		var pen := _solid_box(cage["name"], Vector3(5.0, 1.6, 2.4), cage["pos"], CAGE_STEEL)
 		# Bars on top so it reads as a pen, not a crate.
-		for bar_idx in 4:
+		for bar_idx in 6:
 			var bar := MeshInstance3D.new()
 			var bar_box := BoxMesh.new()
 			bar_box.size = Vector3(0.08, 0.9, 0.08)
 			bar.mesh = bar_box
-			bar.position = Vector3(-0.9 + 0.6 * float(bar_idx), 1.2, 0)
+			bar.position = Vector3(-2.0 + 0.8 * float(bar_idx), 1.2, 0)
 			var bar_mat := StandardMaterial3D.new()
 			bar_mat.albedo_color = STEEL
 			bar.material_override = bar_mat
 			pen.add_child(bar)
 
-	guard_dog_1 = _make_pen_guard("PenGuardDog1", Vector3(2.6, 0, -2.0), [
-		Vector3(2.6, 0, 2.0),
-		Vector3(2.6, 0, -8.0),
-		Vector3(-2.6, 0, -8.0),
-		Vector3(-2.6, 0, 2.0),
-	])
-	guard_dog_2 = _make_pen_guard("PenGuardDog2", Vector3(2.6, 0, -14.0), [
-		Vector3(2.6, 0, -12.0),
-		Vector3(-2.6, 0, -12.0),
-		Vector3(-2.6, 0, -18.0),
-		Vector3(2.6, 0, -18.0),
-	])
-
-func _make_pen_guard(node_name: String, pos: Vector3, patrol_points: Array[Vector3]) -> Node3D:
-	var guard: Node3D = PATROL_GUARD_DOG.new()
-	guard.name = node_name
-	guard.position = pos
-	guard.body_color = Color("3E2F2C")
-	guard.display_name = "看门犬"
-	guard.set_meta("drive_with_vision_cone", true)
-	add_child(guard)
-
-	var cone = PATROL_VISION_CONE.new()
-	cone.name = "VisionCone"
-	cone.cone_angle_deg = 62.0
-	cone.cone_range = 7.0
-	cone.patrol_speed = 2.4
-	cone.patrol_points = patrol_points
-	guard.add_child(cone)
-
-	cone.player_detected.connect(func(_p):
-		if runner != null:
-			runner.alert_dogs(4.0)
+	# One fat dog asleep across the natural cut-through between pens C and D.
+	# No vision cone, no chase: it only bites if you actually step on it.
+	sleeping_dog = PATROL_GUARD_DOG.new()
+	sleeping_dog.name = "SleepingPenDog"
+	sleeping_dog.position = Vector3(2.2, 0, -11.0)
+	sleeping_dog.body_color = Color("4E4038")
+	sleeping_dog.display_name = "Zzz……"
+	add_child(sleeping_dog)
+	sleeping_dog.guard_nipped.connect(func(_p):
 		if meme_layer:
-			meme_layer.play("pen_alert")
+			meme_layer.play("sleeping_dog")
 	)
-	guard.guard_nipped.connect(func(_p):
-		if meme_layer:
-			meme_layer.play("pen_nip")
-	)
-	return guard
+	var zzz := _label("Zzz……", Vector3(0, 1.9, 0), 24, sleeping_dog)
+	zzz.name = "SleepZzz"
+
+	# The drowsy fog: starts behind the spawn (and behind the rubber-band
+	# dog, so the butcher steps OUT of it) and creeps south at fog_speed.
+	drowsy_fog = DROWSY_FOG.new()
+	drowsy_fog.name = "DrowsyFog"
+	drowsy_fog.position = Vector3(0, 0, 20.0)
+	drowsy_fog.fog_speed = 2.0
+	add_child(drowsy_fog)
+	drowsy_fog.fog_touched.connect(_on_fog_caught)
+
+	# The slam-door at the end of the pens: crossing it stops the fog for
+	# good (dream logic - the door blocks the fog, not the butcher).
+	var door_frame := Node3D.new()
+	door_frame.name = "PensDoorFrame"
+	_solid_box("PensDoorPostL", Vector3(0.5, 4.2, 0.5), Vector3(-5.4, 2.1, -19.5), STEEL)
+	_solid_box("PensDoorPostR", Vector3(0.5, 4.2, 0.5), Vector3(5.4, 2.1, -19.5), STEEL)
+	_solid_box("PensDoorTop", Vector3(11.3, 0.5, 0.5), Vector3(0, 4.45, -19.5), STEEL)
+	add_child(door_frame)
+	_label("铁门就在前面！", Vector3(0, 3.2, -17.0), 20)
+
+	var slam := _area("PensDoorTrigger", "", Vector3(0, 1, -19.5), Vector3(12, 4, 1.2))
+	slam.body_entered.connect(_on_pens_door_entered)
+
+func _on_fog_caught(player: Node3D) -> void:
+	# Non-lethal, non-resetting: a sleeping-jolt lurch FORWARD, and the fog
+	# falls back. Repeated catches keep shoving the pig onward, so the fog can
+	# never trap anyone.
+	if drowsy_fog == null or not is_instance_valid(drowsy_fog):
+		return
+	if player.has_method("apply_knockback"):
+		player.apply_knockback(Vector3(0, 0, -6.0) + Vector3.UP * 3.5, 0.6)
+	drowsy_fog.retreat(6.0)
+	_fog_warn_stage = 0
+	if meme_layer:
+		meme_layer.play("fog_caught")
+
+func _on_pens_door_entered(body: Node3D) -> void:
+	if _door_slammed:
+		return
+	if not body.is_in_group("player") and not body.name.to_lower().contains("pig"):
+		return
+	_door_slammed = true
+	if drowsy_fog != null and is_instance_valid(drowsy_fog):
+		drowsy_fog.stop_and_fade()
+	if meme_layer:
+		meme_layer.play("door_slam")
 
 # ------------------------------------------------------------------
 # S2: 加工车间 - hazard gauntlet (conveyor wade vs hook lane)

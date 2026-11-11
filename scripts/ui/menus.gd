@@ -230,7 +230,7 @@ static func _build_settings_menu(host: Node) -> void:
 	vbox.add_child(grid)
 
 	var levels: Array[Dictionary] = [
-		{"id": "course_0", "name": "序章: 噩梦屠宰场 (潜行/机关/追逐)"},
+		{"id": "course_0", "name": "序章: 噩梦屠宰场 (困雾逃窜/机关/追逐)"},
 		{"id": "course_1", "name": "关卡 1: 牛耕地 (糖豆人跑酷)"},
 		{"id": "course_2", "name": "关卡 2: 溪流 (我的世界体素)"},
 		{"id": "course_3", "name": "关卡 3: 林间 (纸箱潜行破幻)"},

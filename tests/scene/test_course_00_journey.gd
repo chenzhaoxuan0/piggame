@@ -42,60 +42,39 @@ func _run() -> void:
 	_check(not game.has_struggle_skill and not game.has_discern_skill and not game.has_dash_skill, "Course 0 grants no skills (pure slapstick tutorial)")
 	_check(not game.npc_completed["ox"] and not game.npc_completed["sheep"] and not game.npc_completed["horse"], "Course 0 leaves the farm story untouched")
 
-	# Structure: pens cover, plant gauntlet, dock crates, roller door exit.
-	_check(course.has_node("CagePenA") and course.has_node("CagePenD"), "Holding pins have cage cover")
-	_check(course.guard_dog_1.is_in_group("chase_dogs") and course.guard_dog_1.has_node("GuardShape"), "Pen guard 1 is a solid dog")
-	_check(course.guard_dog_2.is_in_group("chase_dogs") and course.guard_dog_2.has_node("GuardShape"), "Pen guard 2 is a solid dog")
+	# Structure: fog-chased pens, plant gauntlet, dock crates, roller door exit.
+	_check(course.has_node("CagePenA") and course.has_node("CagePenD"), "Holding pens have weave blocks")
+	_check(course.drowsy_fog != null and course.drowsy_fog.global_position.z > 12.0, "Drowsy fog starts behind the spawn")
+	_check(course.sleeping_dog.is_in_group("chase_dogs") and course.sleeping_dog.get_node_or_null("VisionCone") == null, "Sleeping dog is a solid obstacle with NO vision cone")
+	_check(course.has_node("PensDoorTrigger"), "The slam-door trigger ends the fog chase")
 	_check(course.main_belt != null, "Processing floor has the conveyor")
 	_check(is_equal_approx(course.main_belt.global_position.y, -0.35), "Belt deck sits flush with the floor (no unjumpable lip)")
 	_check(course.has_node("MeatHook1") and course.has_node("MeatHook3"), "Hook lane has three swinging meathooks")
 	_check(course.has_node("FakeSunDoor") and course.exit_hint_label != null and not course.exit_hint_label.visible, "Painted-sun decoy door exists, real-exit hint hidden until baited")
 	_check(course.has_node("DockCrateA") and course.has_node("RollerDoorTop"), "Loading dock has crates and the roller door")
 
-	# Patrol legs must not glide through cages or walls (guard body excluded).
-	await physics_frame
-	var blocked_legs := 0
-	for guard in [course.guard_dog_1, course.guard_dog_2]:
-		var cone: Node3D = guard.get_node("VisionCone")
-		var pts: Array = cone.patrol_points
-		for i in pts.size():
-			var from := pts[i] as Vector3
-			var to := pts[(i + 1) % pts.size()] as Vector3
-			var query := PhysicsRayQueryParameters3D.create(from + Vector3.UP * 1.0, to + Vector3.UP * 1.0, 1)
-			query.exclude = [guard.get_rid(), course.guard_dog_1.get_rid(), course.guard_dog_2.get_rid()]
-			if not course.get_world_3d().direct_space_state.intersect_ray(query).is_empty():
-				blocked_legs += 1
-	_check(blocked_legs == 0, "Pen guards' patrol legs stay inside the corridor (%d blocked)" % blocked_legs)
+	# The drowsy fog creeps forward until the door slams.
+	var fog_z_start: float = course.drowsy_fog.global_position.z
+	await create_timer(0.5).timeout
+	_check(course.drowsy_fog.global_position.z < fog_z_start - 0.5, "Drowsy fog creeps forward (z %.2f -> %.2f)" % [fog_z_start, course.drowsy_fog.global_position.z])
 
-	# Start + checkpoints + exit are registered along one -Z line.
-	runner._on_start(office.player)
-	await process_frame
-	_check(runner.started, "Course 0 started")
-	_check(office.player.control_mode == "chase", "Player in chase mode inside the dream")
-	_check(runner.checkpoints.size() == 2, "Two checkpoints registered")
-	for dog in runner._dogs:
-		dog.set_active(false)
+	# Catching the pig jolts it onward (no respawn) and the fog falls back.
+	office.player.reset_at(Vector3(0, 0.6, 10.0))
+	office.player.knockback_timer = 0.0
+	course.drowsy_fog.global_position = Vector3(0, 0, 10.6)
+	course.drowsy_fog._touch_cooldown_left = 0.0
+	course.drowsy_fog._on_body_entered(office.player)
+	await physics_frame
+	_check(office.player.is_knocked_back(), "Fog catch jolts the pig forward (non-lethal, no respawn)")
+	var fog_z_before_retreat: float = course.drowsy_fog.global_position.z
+	_check(fog_z_before_retreat > 10.6, "Fog retreated behind the pig after the catch (z=%.2f)" % fog_z_before_retreat)
 
-	# Vision cones: an exposed stationary pig is spotted; the same pig behind a
-	# cage is not (cover occlusion works in the dream too). The cone is paused
-	# and aimed deterministically - its patrol facing varies frame to frame.
-	var cone1: Node3D = course.guard_dog_1.get_node("VisionCone")
-	cone1.target_player = office.player
-	cone1.process_mode = Node.PROCESS_MODE_DISABLED
-	cone1.global_position = Vector3(0, 0, 0)
-	cone1.global_rotation = Vector3.ZERO # Facing -Z, straight down the corridor
-	office.player.reset_at(Vector3(0, 0.6, -4.0))
-	await physics_frame
-	cone1._scan_for_player()
-	_check(cone1.is_alert, "Exposed pig inside the cone raises the alarm")
-	# Cover case: cone north of cage C, pig straight behind it.
-	cone1.global_position = Vector3(-4.6, 0, -6.0)
-	cone1.global_rotation = Vector3.ZERO
-	office.player.reset_at(Vector3(-4.6, 0.6, -10.0))
-	await physics_frame
-	cone1._scan_for_player()
-	_check(not cone1.is_alert, "Pig behind a cage is hidden from the cone (real cover)")
-	cone1.process_mode = Node.PROCESS_MODE_INHERIT
+	# Slamming the door stops and dissolves the fog for good.
+	course.drowsy_fog._touch_cooldown_left = 0.0
+	course._on_pens_door_entered(office.player)
+	_check(course.drowsy_fog.stopped and not course.drowsy_fog.chasing, "The slam-door stops the fog")
+	await create_timer(1.2).timeout
+	_check(not is_instance_valid(course.drowsy_fog), "The fog dissolves after the slam")
 
 	# The belt carries the pig back north (+Z): the wade is the puzzle.
 	office.player.reset_at(course.main_belt.global_position + Vector3(0, 0.95, 2.0))
