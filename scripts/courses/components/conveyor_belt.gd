@@ -1,5 +1,7 @@
 extends Area3D
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 # Slaughterhouse conveyor belt: continuously carries whoever stands on it
 # along belt_direction at belt_speed. The carry is a positional drift each
 # physics frame (the same mechanism the voxel push tweens use), NOT a velocity
@@ -18,6 +20,10 @@ signal belt_entered(body: Node3D)
 @export var belt_direction: Vector3 = Vector3(0, 0, 1) # World direction, normalized on use
 @export var belt_speed: float = 2.5
 @export var stripe_count: int = 8
+# Optional zone dressing: when set (course 0 realistic line), the deck mesh is
+# replaced by the zone's Lux3D conveyor model scaled to the belt footprint -
+# the hazard stripes keep scrolling above it as the direction cue.
+@export var lux_asset_id: String = ""
 
 const COLOR_FRAME := Color("263238") # Dark machine frame
 const COLOR_BELT := Color("37474F") # Belt surface
@@ -69,6 +75,17 @@ func _setup_frame() -> void:
 	frame_mat.metallic = 0.3
 	deck_mesh.material_override = frame_mat
 	deck.add_child(deck_mesh)
+
+	# Zone dressing: scale the Lux3D conveyor model (normalized to 10 x 7.2 x
+	# 0.7, belt surface on top) onto the deck footprint and sink it so its belt
+	# top lands at the collision deck top. The scrolling stripes stay.
+	if not lux_asset_id.is_empty():
+		var lux := ASSETS.make(lux_asset_id)
+		if lux != null:
+			lux.scale = Vector3(belt_size.x / 10.0, 1.0, belt_size.z / 7.2)
+			lux.position = Vector3(0, belt_size.y - 0.7, 0)
+			deck_mesh.visible = false
+			deck.add_child(lux)
 	add_child(deck)
 
 func _setup_push_area() -> void:

@@ -11,6 +11,10 @@ const ASSETS = preload("res://scripts/art/asset_library.gd")
 @export var bumper_color: Color = Color("FF1493") # Deep neon pink
 @export var cap_color: Color = Color("FFD700") # Gold yellow
 @export var star_color: Color = Color("00FFFF") # Cyan
+# Zone art styles must not mix: the Lux3D pillar is the ox-field bumper by
+# default; course 0 points it at its own realistic stun prod, course 4 at the
+# neon pinball bumper. Empty id falls straight to the procedural fallback.
+@export var lux_asset_id: String = "PROP_C1_BUMPER"
 
 var _hit_timer := 0.0
 var _mesh_root: Node3D
@@ -33,8 +37,8 @@ func _ready() -> void:
 	_mesh_root = Node3D.new()
 	add_child(_mesh_root)
 
-	# Try loading Lux3D generated game model first
-	var lux_visual := ASSETS.make("PROP_C1_BUMPER")
+	# Try loading the zone's Lux3D generated game model first
+	var lux_visual := ASSETS.make(lux_asset_id) if not lux_asset_id.is_empty() else null
 	if lux_visual:
 		_mesh_root.add_child(lux_visual)
 	else:

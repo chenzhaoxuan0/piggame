@@ -445,6 +445,132 @@
       "triangles": 3500,
       "mount": "Course/Terrace",
       "validation": "Aholo Lux3D G1-Turbo text_to_3d + Blender decimate & flat toon pipeline, textured QA views reviewed; 2026-11-10"
+    },
+    "ENV_C0_FLOOR": {
+      "path": "res://assets/models/aholo/ENV_C0_FLOOR/ENV_C0_FLOOR_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "pbr",
+      "zone": "C0",
+      "triangles": -1,
+      "validation": "Zone-style asset (C0); processed via process_zone_models.py"
+    },
+    "ENV_C0_WALL": {
+      "path": "res://assets/models/aholo/ENV_C0_WALL/ENV_C0_WALL_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "pbr",
+      "zone": "C0",
+      "triangles": -1,
+      "validation": "Zone-style asset (C0); processed via process_zone_models.py"
+    },
+    "PROP_C0_CAGE": {
+      "path": "res://assets/models/aholo/PROP_C0_CAGE/PROP_C0_CAGE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "pbr",
+      "zone": "C0",
+      "triangles": -1,
+      "validation": "Zone-style asset (C0); processed via process_zone_models.py"
+    },
+    "PROP_C0_CONVEYOR": {
+      "path": "res://assets/models/aholo/PROP_C0_CONVEYOR/PROP_C0_CONVEYOR_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "pbr",
+      "zone": "C0",
+      "triangles": -1,
+      "validation": "Zone-style asset (C0); processed via process_zone_models.py"
+    },
+    "PROP_C0_MEATHOOK": {
+      "path": "res://assets/models/aholo/PROP_C0_MEATHOOK/PROP_C0_MEATHOOK_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "pbr",
+      "zone": "C0",
+      "triangles": -1,
+      "validation": "Zone-style asset (C0); processed via process_zone_models.py"
+    },
+    "PROP_C0_STEAM_VENT": {
+      "path": "res://assets/models/aholo/PROP_C0_STEAM_VENT/PROP_C0_STEAM_VENT_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "pbr",
+      "zone": "C0",
+      "triangles": -1,
+      "validation": "Zone-style asset (C0); processed via process_zone_models.py"
+    },
+    "PROP_C0_STUN_PROD": {
+      "path": "res://assets/models/aholo/PROP_C0_STUN_PROD/PROP_C0_STUN_PROD_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "pbr",
+      "zone": "C0",
+      "triangles": -1,
+      "validation": "Zone-style asset (C0); processed via process_zone_models.py"
+    },
+    "PROP_C0_CRATE": {
+      "path": "res://assets/models/aholo/PROP_C0_CRATE/PROP_C0_CRATE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "pbr",
+      "zone": "C0",
+      "triangles": -1,
+      "validation": "Zone-style asset (C0); processed via process_zone_models.py"
+    },
+    "PROP_C0_ROLLER_DOOR": {
+      "path": "res://assets/models/aholo/PROP_C0_ROLLER_DOOR/PROP_C0_ROLLER_DOOR_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "pbr",
+      "zone": "C0",
+      "triangles": -1,
+      "validation": "Zone-style asset (C0); processed via process_zone_models.py"
+    },
+    "PROP_C0_PAINTED_DOOR": {
+      "path": "res://assets/models/aholo/PROP_C0_PAINTED_DOOR/PROP_C0_PAINTED_DOOR_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "pbr",
+      "zone": "C0",
+      "triangles": -1,
+      "validation": "Zone-style asset (C0); processed via process_zone_models.py"
+    },
+    "ENV_C0_MACHINERY": {
+      "path": "res://assets/models/aholo/ENV_C0_MACHINERY/ENV_C0_MACHINERY_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "pbr",
+      "zone": "C0",
+      "triangles": -1,
+      "validation": "Zone-style asset (C0); processed via process_zone_models.py"
+    },
+    "PROP_C0_HAZARD_SIGN": {
+      "path": "res://assets/models/aholo/PROP_C0_HAZARD_SIGN/PROP_C0_HAZARD_SIGN_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "pbr",
+      "zone": "C0",
+      "triangles": -1,
+      "validation": "Zone-style asset (C0); processed via process_zone_models.py"
+    },
+    "PROP_C0_LIGHT": {
+      "path": "res://assets/models/aholo/PROP_C0_LIGHT/PROP_C0_LIGHT_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "pbr",
+      "zone": "C0",
+      "triangles": -1,
+      "validation": "Zone-style asset (C0); processed via process_zone_models.py"
+    },
+    "PROP_C0_HURDLE": {
+      "path": "res://assets/models/aholo/PROP_C0_HURDLE/PROP_C0_HURDLE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "style": "pbr",
+      "zone": "C0",
+      "triangles": -1,
+      "validation": "Zone-style asset (C0); processed via process_zone_models.py"
     }
   }
 }
