@@ -125,8 +125,8 @@ Blender 加工（`process_zone_models.py`）按风格区分材质处理：
 
 ## 5. 验收标准
 
-- [ ] 五个关卡每个场地要素有对应 3D 模型（清单逐项核对）。
-- [ ] 原始资产已落盘 `assets/models/aholo/<ID>/` 且 manifest 可回溯（task_id/prompt/sha256）。
-- [ ] 渲染风格按区分化：同一角色在不同区环境下的截图风格明显不同（C0 写实 / C2 体素 / C3 手绘 / C4 霓虹 / C1 荧光平涂）。
-- [ ] `run_tests.bat` 全绿（含 5 关 traversal 实走）。
-- [ ] PackCheck 导出包校验通过。
+- [x] 五个关卡每个场地要素有对应 3D 模型（C0 14 件 / C1 13 件基准 / C2 13 件 / C3 13 件 / C4 15 件，共 68 件）。
+- [x] 原始资产已落盘 `assets/models/aholo/<ID>/` 且 manifest 可回溯（task_id/prompt/sha256，`zone_assets_production.json`）。
+- [x] 渲染风格按区分化：实机截图核对（`builds/zone_screens/`，capture_zone_screens.gd 抓帧）——C0 写实锈蚀钢构 / C1 荧光平涂（基准）/ C2 体素方块 / C3 手绘童话 / C4 霓虹街机，同一口猪穿行其间。
+- [x] `run_tests.bat` 全绿（含 5 关 traversal 实走 + journey）。
+- [x] PackCheck 导出包校验通过（407 MB，55 个新 game GLB 已登记 export_files）。
