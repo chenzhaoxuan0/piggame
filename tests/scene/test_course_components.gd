@@ -21,6 +21,8 @@ const STUNT_RAMP = preload("res://scripts/courses/components/stunt_jump_ramp.gd"
 const NEON_BUMPER = preload("res://scripts/courses/components/neon_bumper.gd")
 const RACE_TIMER = preload("res://scripts/courses/components/race_timer.gd")
 const MUD_PATCH = preload("res://scripts/courses/components/mud_patch.gd")
+const PATROL_VISION_CONE = preload("res://scripts/courses/components/patrol_vision_cone.gd")
+const PATROL_GUARD_DOG = preload("res://scripts/courses/components/patrol_guard_dog.gd")
 const DOG_SCRIPT = preload("res://scripts/chase/chase_dog.gd")
 
 var failures := 0
@@ -199,6 +201,7 @@ func _run() -> void:
 	_check(pig.get_meta("in_stealth_box", false), "CardboardBoxProp equips onto player")
 	box_prop.unequip_box()
 	_check(not pig.get_meta("in_stealth_box", false), "CardboardBoxProp unequips cleanly")
+	box_prop.queue_free()
 
 	# IllusoryWall
 	var ill_wall = ILLUSORY_WALL.new()
@@ -398,6 +401,46 @@ func _run() -> void:
 	n_bumper._on_body_entered(pig)
 	_check(pig.velocity.length() > 0.0, "NeonBumper repels target with pinball bounce")
 	n_bumper.queue_free()
+
+	# PatrolVisionCone occlusion: real cover between cone and pig blocks sight
+	var vision_cone = PATROL_VISION_CONE.new()
+	vision_cone.position = Vector3(300, 0, 300)
+	root.add_child(vision_cone)
+	await process_frame
+	vision_cone.target_player = pig
+	pig.reset_at(Vector3(300, 0.6, 296.0))
+	await physics_frame
+	vision_cone._scan_for_player()
+	_check(vision_cone.is_alert, "Vision cone spots an unobstructed pig")
+	var screen := StaticBody3D.new()
+	screen.name = "CoverScreen"
+	screen.collision_layer = 1
+	screen.collision_mask = 0
+	var screen_col := CollisionShape3D.new()
+	var screen_box := BoxShape3D.new()
+	screen_box.size = Vector3(2.0, 2.4, 0.4)
+	screen_col.shape = screen_box
+	screen_col.position = Vector3(0, 1.2, 0)
+	screen.add_child(screen_col)
+	screen.position = Vector3(300, 0, 298.0)
+	root.add_child(screen)
+	await physics_frame
+	vision_cone._scan_for_player()
+	_check(not vision_cone.is_alert, "Vision cone loses the pig behind solid cover")
+	screen.queue_free()
+	vision_cone.queue_free()
+
+	# PatrolGuardDog: solid body with a chase-dog-compatible stun contract
+	var guard = PATROL_GUARD_DOG.new()
+	guard.position = Vector3(200, 0, 200)
+	root.add_child(guard)
+	await process_frame
+	_check(guard.is_in_group("chase_dogs") and guard.has_node("GuardShape"), "PatrolGuardDog is a solid body tagged as a dog")
+	guard.stun(0.1)
+	_check(guard.is_stunned, "PatrolGuardDog stuns like a chase dog (box bowling)")
+	await create_timer(0.3).timeout
+	_check(not guard.is_stunned, "PatrolGuardDog recovers from a stun")
+	guard.queue_free()
 
 	await process_frame
 	print("\nALL COURSE COMPONENT TESTS DONE: %d failures" % failures)

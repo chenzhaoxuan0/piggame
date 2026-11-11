@@ -27,6 +27,24 @@ static func walk(tree: SceneTree, player: Node3D, waypoints: Array[Vector3], is_
 	var splits: Array[float] = []
 	var knocks := 0
 	var was_knocked := false
+	# Arc-length table of the route, for a progress probe: when a knockback
+	# throws the pig BACK past an already-passed waypoint (e.g. nipped into the
+	# previous maze corridor), the target index rewinds so the pig re-routes
+	# through the proper gap instead of pushing into a wall face forever.
+	var arcs: Array[float] = [0.0]
+	for i in range(1, waypoints.size()):
+		var step := waypoints[i] - waypoints[i - 1]
+		step.y = 0.0
+		arcs.append(arcs[i - 1] + step.length())
+	# Unstick logic: a wall-hugging walker needs a sidestep. Every 0.6 s of
+	# standing still, strafe the commanded target sideways (alternating sides)
+	# for 0.8 s, which slides the pig around corner clips and gap edges the way a
+	# player would steer. Without it, one knock into a wall face wedges the walk.
+	var anchor: Vector3 = Vector3.INF
+	var frames_since_probe := 0
+	var sidestep := 0 # 0 = none, +1 = +x, -1 = -x
+	var sidestep_until := 0.0
+	var sidestep_flip := false
 	while true:
 		await tree.physics_frame
 		var seconds := float(Time.get_ticks_msec() - started_ms) / 1000.0
@@ -60,13 +78,56 @@ static func walk(tree: SceneTree, player: Node3D, waypoints: Array[Vector3], is_
 			splits.append(seconds)
 			index += 1
 
+		# Regression rewind: thrown well behind the previous waypoint -> retarget
+		# it (2.5 m slack so small knocks don't cause re-target dithering).
+		while index > 0 and _route_progress(flat, waypoints, arcs) < arcs[index - 1] - 2.5:
+			index -= 1
+
+		# Stuck probe (skipped while knocked back: that stall is expected).
+		# 0.06 m over 0.6 s: sliding along a wall at a crawl still counts as
+		# progress; only a true standstill triggers the sidestep.
+		frames_since_probe += 1
+		if knocked or sidestep != 0 and seconds > sidestep_until:
+			if knocked:
+				anchor = Vector3.INF
+			if sidestep != 0 and seconds > sidestep_until:
+				sidestep = 0
+				anchor = Vector3.INF
+		if not knocked and sidestep == 0 and frames_since_probe >= 36:
+			if anchor == Vector3.INF or flat.distance_to(anchor) < 0.06:
+				sidestep_flip = not sidestep_flip
+				sidestep = 1 if sidestep_flip else -1
+				sidestep_until = seconds + 0.8
+			anchor = flat
+			frames_since_probe = 0
+
 		var target := waypoints[index]
+		if sidestep != 0:
+			target += Vector3(2.6, 0, 0) * sidestep
 		if not player.is_moving or player.target_destination.distance_to(target) > 0.01:
 			player.interact_target = null
 			player._click_route.clear()
 			player.target_destination = target
 			player.is_moving = true
 	return {}
+
+static func _route_progress(flat: Vector3, waypoints: Array[Vector3], arcs: Array[float]) -> float:
+	# Arc length of the route point closest to the pig (full scan: routes are short).
+	var best_arc := 0.0
+	var best_dist := INF
+	for i in range(1, waypoints.size()):
+		var a := waypoints[i - 1]
+		a.y = 0.0
+		var b := waypoints[i]
+		b.y = 0.0
+		var seg := b - a
+		var t: float = clampf((flat - a).dot(seg) / maxf(0.001, seg.length_squared()), 0.0, 1.0)
+		var closest := a + seg * t
+		var d := flat.distance_to(closest)
+		if d < best_dist:
+			best_dist = d
+			best_arc = arcs[i - 1] + seg.length() * t
+	return best_arc
 
 static func _result(ok: bool, index: int, seconds: float, position: Vector3, reason: String, splits: Array[float], knocks: int) -> Dictionary:
 	return {"ok": ok, "index": index, "seconds": seconds, "position": position, "reason": reason, "splits": splits, "knocks": knocks}

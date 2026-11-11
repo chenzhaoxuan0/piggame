@@ -124,6 +124,20 @@ func _scan_for_player() -> void:
 		_set_alert(false)
 		return
 
+	# Occlusion: world geometry (trees, stone, guard bodies) between the cone and
+	# the pig blocks sight, so cover is real cover. Only layer 1 is queried: the
+	# pig (layer 2) and dogs (layer 4) cannot shadow themselves into the result.
+	# The guard this cone drives is itself layer-1 geometry (patrol_guard_dog),
+	# so exclude its body or the cone would be permanently blind.
+	var ray_from := global_position + Vector3.UP * 1.0
+	var ray_to := target_player.global_position + Vector3.UP * 0.5
+	var query := PhysicsRayQueryParameters3D.create(ray_from, ray_to, 1)
+	if get_parent() is CollisionObject3D:
+		query.exclude = [get_parent().get_rid()]
+	if not get_world_3d().direct_space_state.intersect_ray(query).is_empty():
+		_set_alert(false)
+		return
+
 	# Player is inside cone!
 	# Check stealth box
 	var in_box: bool = target_player.get_meta("in_stealth_box", false)

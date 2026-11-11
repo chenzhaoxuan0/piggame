@@ -86,6 +86,55 @@ func _run() -> void:
 	# Stationary in box should not alert
 	_check(not course.patrol_cone.is_alert, "Stationary box successfully fooled patrol dog vision cone")
 
+	# Box unequip drops it as a reusable prop instead of destroying it
+	course.stealth_box.unequip_box()
+	_check(not office.player.get_meta("in_stealth_box", false), "Box unequipped cleanly")
+	_check(is_instance_valid(course.stealth_box) and not course.stealth_box.is_equipped, "Unequipped box survives as a pickup")
+	course.stealth_box.equip_box(office.player)
+	_check(office.player.get_meta("in_stealth_box", false), "Dropped box can be re-equipped")
+	course.stealth_box.unequip_box()
+
+	# Patrol guard is a real body: solid, group-tagged for the box dive, stunnable
+	_check(course.patrol_dog.is_in_group("chase_dogs") and course.patrol_dog.has_method("stun"), "Patrol guard joins the dogs group with a stun() contract")
+	_check(course.patrol_dog.get_node_or_null("GuardShape") != null, "Patrol guard has a solid collision body")
+	course.patrol_dog.stun(0.2)
+	_check(course.patrol_dog.is_stunned, "Cardboard-box-style stun() knocks the guard out")
+	_check(course.patrol_cone.process_mode == Node.PROCESS_MODE_DISABLED, "Stunned guard's vision cone stops scanning")
+	for i in 20: await physics_frame
+	_check(not course.patrol_dog.is_stunned and course.patrol_cone.process_mode == Node.PROCESS_MODE_INHERIT, "Guard wakes up and resumes patrol")
+	office.player.knockback_timer = 0.0
+	office.player.reset_at(course.patrol_dog.global_position + Vector3(0.9, 0.6, 0))
+	course.patrol_dog._on_nip_entered(office.player)
+	_check(office.player.is_knocked_back(), "Touching an awake guard earns a slapstick nip")
+	office.player.reset_at(Vector3(0, 0.6, -50))
+
+	# The illusion maze fills the old empty corridor
+	for wall_name in ["MazeWallA", "MazeWallB", "MazeWallCSolid", "MazeWallD", "MazeWallE", "MazeWallF"]:
+		_check(course.has_node(wall_name), "Maze row exists: " + wall_name)
+	_check(course.maze_illusory_wall != null, "Maze row C hides an illusory wall as the true passage")
+	course.maze_illusory_wall.shatter()
+	await create_timer(0.3).timeout
+	_check(course.maze_illusory_wall == null or course.maze_illusory_wall.is_shattered, "Maze illusory wall shatters")
+	_check(course.maze_chest_real != null and not course.maze_chest_real.is_mimic, "Real chest chamber hides behind the illusory row")
+	_check(course.maze_chest_mimic != null and course.maze_chest_mimic.is_mimic, "Golden dead end is baited with a mimic")
+	course.maze_chest_mimic._on_player_entered(office.player)
+	_check(course.maze_chest_mimic.is_triggered, "Maze mimic bites the greedy pig")
+	_check(runner.checkpoints.size() == 3, "Third checkpoint registered inside the maze")
+
+	# Zigzag guard's patrol legs must not glide through solid maze rows (its own
+	# body is excluded: the guard standing on its own route is expected).
+	var zig_cone: Node3D = course.zigzag_dog.get_node("VisionCone")
+	var pts: Array = zig_cone.patrol_points
+	var blocked_legs := 0
+	for i in pts.size():
+		var from := pts[i] as Vector3
+		var to := pts[(i + 1) % pts.size()] as Vector3
+		var query := PhysicsRayQueryParameters3D.create(from + Vector3.UP * 1.0, to + Vector3.UP * 1.0, 1)
+		query.exclude = [course.zigzag_dog.get_rid()]
+		if not course.get_world_3d().direct_space_state.intersect_ray(query).is_empty():
+			blocked_legs += 1
+	_check(blocked_legs == 0, "Zigzag guard's patrol legs stay inside the maze gaps (%d blocked)" % blocked_legs)
+
 	# Mimic chest vs Real chest
 	_check(course.mimic_chest_fake != null and course.mimic_chest_real != null, "Course 3 has Mimic chests")
 	course.mimic_chest_fake._on_player_entered(office.player)

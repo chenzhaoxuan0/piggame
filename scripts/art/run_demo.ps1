@@ -136,7 +136,7 @@ if ($PackCheck) {
         'illusory_wall.gd.remap', 'mimic_chest.gd.remap', 'bouncy_mushroom.gd.remap',
         'boost_pad.gd.remap', 'watermelon_peel.gd.remap', 'racing_finish_gate.gd.remap',
         'mystery_item_box.gd.remap', 'stunt_jump_ramp.gd.remap', 'neon_bumper.gd.remap',
-        'zone_environment.gd.remap', 'race_timer.gd.remap', 'mud_patch.gd.remap',
+        'zone_environment.gd.remap', 'race_timer.gd.remap', 'mud_patch.gd.remap', 'patrol_guard_dog.gd.remap',
         'pastoral_farm.scn', 'runtime_catalog.json', 'res://scripts/ui/game_hud.gd.remap', 'res://scripts/ui/menus.gd.remap'
     )
     # Absent checks target real pack entries (.remap/.gdc/.import), because plain path
