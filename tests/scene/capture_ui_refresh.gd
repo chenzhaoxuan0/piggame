@@ -20,6 +20,11 @@ func _run() -> void:
 	office._open_settings(true)
 	await create_timer(0.3).timeout
 	await _shot("02_settings")
+	var mute: CheckButton = office.settings_menu.find_child("MuteAudioToggle", true, false)
+	mute.button_pressed = true
+	await create_timer(0.2).timeout
+	await _shot("02b_settings_toggle_on")
+	mute.button_pressed = false
 	office._close_settings()
 	await process_frame
 
@@ -69,7 +74,8 @@ func _run() -> void:
 	office.pokemon_battle.visible = false
 	office.dialogue_open = false
 
-	office._show_overlay("旷野归途", "金牌是农场的，但命是你自己的。\n\n风从麦浪上吹来。前面没有围栏与食槽。", [{"text": "重新出发", "call": office._restart}])
+	root.get_node("GameManager").ending = "escape"
+	office._show_ending()
 	await create_timer(0.3).timeout
 	await _shot("09_ending_overlay")
 	office.overlay.visible = false
@@ -81,6 +87,18 @@ func _run() -> void:
 	office._select_level_from_settings("course_4")
 	await create_timer(1.2).timeout
 	await _shot("11_course4_countdown")
+
+	office._select_level_from_settings("course_0")
+	await create_timer(1.0).timeout
+	await _shot("13_course0_nightmare")
+
+	office._select_level_from_settings("course_2")
+	await create_timer(0.8).timeout
+	await _shot("14_course2_creek")
+
+	office._select_level_from_settings("course_3")
+	await create_timer(0.8).timeout
+	await _shot("15_course3_woodland")
 
 	office.queue_free()
 	await process_frame

@@ -130,13 +130,17 @@ static func _build_overlay(host: Node) -> void:
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 20)
 	card.add_child(vbox)
+	var art_frame := UI.patch_panel(20, UI.WHITE, UI.SAGE, Vector2(8, 8))
+	art_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(art_frame)
 	host.ending_art = TextureRect.new()
 	host.ending_art.custom_minimum_size = Vector2(600, 270)
 	host.ending_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	host.ending_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	host.ending_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	art_frame.add_child(host.ending_art)
+	host.ending_art.visibility_changed.connect(func(): art_frame.visible = host.ending_art.visible)
 	host.ending_art.hide()
-	vbox.add_child(host.ending_art)
 	host.overlay_title = UI.label("", 40, UI.TEAL_DEEP, true)
 	host.overlay_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(host.overlay_title)
