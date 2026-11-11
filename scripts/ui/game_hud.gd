@@ -8,20 +8,6 @@ extends RefCounted
 
 const UI = preload("res://scripts/ui/ui_kit.gd")
 
-static func style(bg: Color, border: Color = Color(0.40, 0.38, 0.30), radius: int = 12) -> StyleBoxFlat:
-	return UI.patch(radius, bg)
-
-static func label(text_value: String, font_size: int = 18) -> Label:
-	return UI.label(text_value, font_size)
-
-static func button(text_value: String, callback: Callable, align_left: bool = false) -> Button:
-	var btn := UI.button(text_value, callback)
-	btn.clip_text = true
-	btn.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	if align_left:
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	return btn
-
 static func build_all(host: Node) -> void:
 	var layer := CanvasLayer.new()
 	host.add_child(layer)
