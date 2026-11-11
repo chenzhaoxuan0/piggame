@@ -190,6 +190,21 @@ func snap_to_target(yaw: float = NAN) -> void:
 	_initialized = true
 	_update_foliage_cutout()
 
+func smooth_turn_yaw(target_yaw: float, duration := 0.45) -> void:
+	# For courses with corners (nightmare prologue serpentine): yaw stays locked
+	# to the corridor axis, but a turn trigger rotates it along the new leg over
+	# a beat instead of snapping 90 degrees in one frame.
+	if mode != CameraMode.THIRD_PERSON:
+		return
+	var from := _tp_yaw
+	var diff := wrapf(target_yaw - from, -PI, PI)
+	if absf(diff) < 0.02:
+		return
+	var tween := create_tween()
+	tween.tween_method(func(t: float):
+		_tp_yaw = from + diff * t
+	, 0.0, 1.0, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
 func _unhandled_input(event: InputEvent) -> void:
 	if mode != CameraMode.THIRD_PERSON:
 		return

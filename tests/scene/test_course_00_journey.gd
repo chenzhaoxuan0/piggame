@@ -1,7 +1,5 @@
 extends SceneTree
 
-const L = preload("res://scripts/levels/farm_layout.gd")
-
 var office: Node
 var failures := 0
 var game: Node
@@ -42,24 +40,49 @@ func _run() -> void:
 	_check(not game.has_struggle_skill and not game.has_discern_skill and not game.has_dash_skill, "Course 0 grants no skills (pure slapstick tutorial)")
 	_check(not game.npc_completed["ox"] and not game.npc_completed["sheep"] and not game.npc_completed["horse"], "Course 0 leaves the farm story untouched")
 
-	# Structure: fog-chased pens, plant gauntlet, dock crates, roller door exit.
+	# Serpentine structure: five floor legs, four camera turns, exit faces -Z.
+	for leg in ["FloorL1", "FloorL2", "FloorL3", "FloorL4", "FloorL5"]:
+		_check(course.has_node(leg), "Serpentine leg exists: " + leg)
+	_check(absf(course.get_node("FloorL2").position.z - (-30.0)) < 0.1, "L2 is the eastbound belt corridor (z=-30)")
+	for turn in ["CameraTurn1", "CameraTurn2", "CameraTurn3", "CameraTurn4"]:
+		_check(course.has_node(turn), "Camera turn trigger exists: " + turn)
+	var turn1: Area3D = course.get_node("CameraTurn1")
+	var turn2: Area3D = course.get_node("CameraTurn2")
+	_check(is_equal_approx(float(turn1.get_meta("turn_yaw_deg")), -90.0) and is_equal_approx(float(turn2.get_meta("turn_yaw_deg")), 0.0), "Turns alternate east/south (exit still faces -Z)")
+	_check(course.get_node("CourseExit").position.z < course.get_node("FloorL5").position.z - 10.0, "The exit sits at the far end of the final -Z leg")
+
+	# Pens: fog + cages + sleeping dog (no vision cones anywhere in the dream).
 	_check(course.has_node("CagePenA") and course.has_node("CagePenD"), "Holding pens have weave blocks")
 	_check(course.drowsy_fog != null and course.drowsy_fog.global_position.z > 12.0, "Drowsy fog starts behind the spawn")
 	_check(course.sleeping_dog.is_in_group("chase_dogs") and course.sleeping_dog.get_node_or_null("VisionCone") == null, "Sleeping dog is a solid obstacle with NO vision cone")
 	_check(course.has_node("PensDoorTrigger"), "The slam-door trigger ends the fog chase")
+
+	# Belts: the corridor IS the road; hooks hang over 8 m legs.
 	_check(course.belt_a != null and course.belt_d != null, "Processing floor is a conveyor escape (four belts)")
 	_check(is_equal_approx(course.belt_a.global_position.y, -0.35), "Belt decks sit flush with the floor (no unjumpable lips)")
-	_check(course.belt_a.belt_size.x >= 11.0 and course.belt_b.belt_size.x >= 11.0 and course.belt_c.belt_size.x >= 11.0, "Line belts span the full corridor - no middle bypass floor")
-	_check(course.belt_a.belt_speed < course.belt_b.belt_speed and course.belt_b.belt_speed < course.belt_c.belt_speed, "The three lines escalate in speed")
+	_check(course.belt_a.belt_size.z >= 7.0 and course.belt_b.belt_size.z >= 7.0, "L2 lines span the eastbound corridor - no side bypass")
+	_check(course.belt_c.belt_size.x >= 7.0, "L3 line spans the southbound corridor - no side bypass")
+	_check(course.belt_a.belt_speed < course.belt_b.belt_speed, "The two lines escalate in speed")
 	_check(course.belt_d.belt_direction.normalized().x > 0.9, "The final belt is a lateral transfer running toward the east wall")
-	_check(course.belt_d.position.x + course.belt_d.belt_size.x * 0.5 < 4.5, "Transfer belt stops short of the wall (drift can never shove the pig through geometry)")
+	_check(course.belt_d.position.x + course.belt_d.belt_size.x * 0.5 < 34.0, "Transfer belt stops short of the wall (drift can never shove the pig through geometry)")
 	_check(course.has_node("MeatHook1") and course.has_node("MeatHook4"), "Four meathooks hang over the belts")
 	for hook_name in ["MeatHook1", "MeatHook2", "MeatHook3", "MeatHook4"]:
 		var hook_node: Node3D = course.get_node(hook_name)
-		_check(absf(hook_node.position.x) < 0.1 and hook_node.gantry_half_width > 5.9, hook_name + " hangs over the belt center with wall-flush posts")
+		_check(hook_node.gantry_half_width <= 3.7, hook_name + " spans the narrow 8 m corridor (hooks actually block)")
+	_check(absf(course.get_node("MeatHook1").rotation.y) > 1.4, "L2 hooks are rotated to swing across the eastbound belt")
+	_check(absf(course.get_node("MeatHook3").rotation.y) < 0.01, "L3 hook swings across the southbound belt")
 	_check(course.has_node("FakeSunDoor") and course.exit_hint_label != null and not course.exit_hint_label.visible, "Painted-sun decoy door exists, real-exit hint hidden until baited")
-	_check(absf(course.fake_sun_door.position.z - course.belt_d.position.z) < 1.5 and course.fake_sun_door.position.x > course.belt_d.position.x + course.belt_d.belt_size.x * 0.5, "The decoy door sits exactly where the transfer belt flings you")
+	_check(absf(course.fake_sun_door.position.z - course.belt_d.position.z) < 1.5 and course.fake_sun_door.position.x > course.belt_d.position.x + course.belt_d.belt_size.x * 0.5 - 1.0, "The decoy door sits where the transfer belt flings you")
 	_check(course.has_node("DockCrateA") and course.has_node("RollerDoorTop"), "Loading dock has crates and the roller door")
+
+	# Start + checkpoints + exit along the serpentine.
+	runner._on_start(office.player)
+	await process_frame
+	_check(runner.started, "Course 0 started")
+	_check(office.player.control_mode == "chase", "Player in chase mode inside the dream")
+	_check(runner.checkpoints.size() == 3, "Three checkpoints registered along the serpentine")
+	for dog in runner._dogs:
+		dog.set_active(false)
 
 	# The drowsy fog creeps forward until the door slams.
 	var fog_z_start: float = course.drowsy_fog.global_position.z
@@ -84,12 +107,12 @@ func _run() -> void:
 	await create_timer(1.2).timeout
 	_check(not is_instance_valid(course.drowsy_fog), "The fog dissolves after the slam")
 
-	# The lines carry the pig back north (+Z): the wade is the puzzle.
-	office.player.reset_at(course.belt_b.global_position + Vector3(0, 0.95, 2.0))
+	# The L2 lines carry the pig back WEST (-X): the wade is the puzzle.
+	office.player.reset_at(course.belt_b.global_position + Vector3(-2.0, 0.95, 0.0))
 	office.player.velocity = Vector3.ZERO
 	office.player.is_moving = false
 	await create_timer(1.0).timeout
-	_check(office.player.global_position.z > course.belt_b.global_position.z + 2.2, "Standing on a line belt is carried back north (z=%.2f)" % office.player.global_position.z)
+	_check(office.player.global_position.x < course.belt_b.global_position.x - 2.0, "Standing on an L2 line is carried back west (x=%.2f)" % office.player.global_position.x)
 	# The lateral transfer belt drifts the pig east (+X) toward the decoy wall.
 	office.player.reset_at(course.belt_d.global_position + Vector3(-1.5, 0.95, 0.0))
 	office.player.velocity = Vector3.ZERO
@@ -98,8 +121,8 @@ func _run() -> void:
 	_check(office.player.global_position.x > course.belt_d.global_position.x - 1.5 + 2.0, "The transfer belt drags the pig east toward the painted-sun wall (x=%.2f)" % office.player.global_position.x)
 
 	# Watchdog: fall below kill_y -> respawn at checkpoint (non-lethal).
-	runner._on_checkpoint(office.player, 2, Vector3(0, 0.6, -52.5))
-	office.player.global_position = Vector3(0, -50, -52.5)
+	runner._on_checkpoint(office.player, 3, Vector3(30, 0.6, -55.5))
+	office.player.global_position = Vector3(30, -50, -55.5)
 	for i in 5: await physics_frame
 	_check(runner.respawn_count >= 1 and office.player.global_position.y > -12.0, "Watchdog respawned the dreaming pig (non-lethal)")
 

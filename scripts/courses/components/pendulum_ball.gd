@@ -103,8 +103,13 @@ func _physics_process(delta: float) -> void:
 func _on_ball_body(body: Node3D) -> void:
 	if _hit_timer > 0.0:
 		return
+	# Knock direction: tangential velocity of the swinging ball, measured along
+	# the PIVOT'S OWN swing axis (its local X), so a hook rotated to swing
+	# across an eastbound corridor also knocks you across it - the old
+	# world-X LEFT/RIGHT knocked along the corridor on rotated copies.
+	var swing_axis: Vector3 = global_transform.basis.x.normalized()
 	var swing_vel := cos(_time * swing_speed + phase_offset)
-	var lateral_dir := Vector3.RIGHT if swing_vel > 0 else Vector3.LEFT
+	var lateral_dir: Vector3 = swing_axis * (1.0 if swing_vel > 0 else -1.0)
 
 	if _is_player(body):
 		if body.has_method("is_knocked_back") and body.is_knocked_back():

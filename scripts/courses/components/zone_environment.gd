@@ -34,14 +34,15 @@ const PRESETS := {
 		"sun_energy": 0.12, "sun_color": Color("6F86C9"),
 		"glow": true,
 	},
-	# Nightmare meat plant (course 0 prologue dream): near-dark, oppressive
-	# red-amber fog, a dying ember sun. Gameplay-line provisional look; the art
-	# line owns the final zone style (AGENTS.md section 5).
+	# Nightmare meat plant (course 0 prologue dream): a working FACTORY, not
+	# hell - cool grey hangar light, thin industrial haze, white fluorescent
+	# sun. The unease comes from the machinery, not from darkness. Gameplay-line
+	# provisional look; the art line owns the final zone style (AGENTS.md S5).
 	"nightmare_plant": {
-		"bg_color": Color("170D0C"),
-		"ambient_color": Color("6E3A32"), "ambient_energy": 0.5,
-		"fog_density": 0.055, "fog_color": Color("361A15"),
-		"sun_energy": 0.08, "sun_color": Color("FF6B4A"),
+		"bg_color": Color("454C55"),
+		"ambient_color": Color("ACB4BE"), "ambient_energy": 0.85,
+		"fog_density": 0.022, "fog_color": Color("6B7480"),
+		"sun_energy": 0.32, "sun_color": Color("FFF4E6"),
 		"glow": false,
 	},
 }

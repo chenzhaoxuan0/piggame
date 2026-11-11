@@ -129,7 +129,12 @@ static func walk(tree: SceneTree, player: Node3D, waypoints: Array[Vector3], is_
 
 		var target := waypoints[index]
 		if sidestep != 0:
-			target += Vector3(2.6, 0, 0) * sidestep
+			# Sidestep LATERAL to the current heading, not fixed +X: courses
+			# with corners (the nightmare serpentine) run east too.
+			var to_target := target - flat
+			var lateral := Vector3(-to_target.z, 0.0, to_target.x)
+			lateral = lateral.normalized() if lateral.length_squared() > 0.01 else Vector3.RIGHT
+			target += lateral * 2.6 * sidestep
 		if not player.is_moving or player.target_destination.distance_to(target) > 0.01:
 			player.interact_target = null
 			player._click_route.clear()
