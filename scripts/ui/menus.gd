@@ -27,7 +27,7 @@ static func _build_start_menu(host: Node) -> void:
 	host.start_menu.add_child(center)
 
 	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(460, 360)
+	card.custom_minimum_size = Vector2(460, 400)
 	card.add_theme_stylebox_override("panel", HUD.style(Color(0.96, 0.94, 0.88, 0.98), Color(0.40, 0.38, 0.30)))
 	center.add_child(card)
 
@@ -48,10 +48,16 @@ static func _build_start_menu(host: Node) -> void:
 	var sep := HSeparator.new()
 	vbox.add_child(sep)
 
-	var btn_start := HUD.button("▶  开始游戏", host._start_game)
+	var btn_start := HUD.button("▶  开始游戏", host.start_dream_intro)
 	btn_start.name = "StartButton"
 	btn_start.custom_minimum_size.y = 48
 	vbox.add_child(btn_start)
+
+	# The nightmare prologue plays first; this skips straight to the pen escape.
+	var btn_skip := HUD.button("跳过序章，直接出圈", host._start_game)
+	btn_skip.name = "SkipIntroButton"
+	btn_skip.custom_minimum_size.y = 30
+	vbox.add_child(btn_skip)
 
 	var btn_settings := HUD.button("⚙  游戏设置", host._open_settings.bind(true))
 	btn_settings.name = "SettingsButton"
@@ -224,6 +230,7 @@ static func _build_settings_menu(host: Node) -> void:
 	vbox.add_child(grid)
 
 	var levels: Array[Dictionary] = [
+		{"id": "course_0", "name": "序章: 噩梦屠宰场 (潜行/机关/追逐)"},
 		{"id": "course_1", "name": "关卡 1: 牛耕地 (糖豆人跑酷)"},
 		{"id": "course_2", "name": "关卡 2: 溪流 (我的世界体素)"},
 		{"id": "course_3", "name": "关卡 3: 林间 (纸箱潜行破幻)"},

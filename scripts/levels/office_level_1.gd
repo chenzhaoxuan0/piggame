@@ -417,6 +417,8 @@ func _select_level_from_settings(target_id: String) -> void:
 		if is_instance_valid(active_course):
 			_exit_course()
 		match target_id:
+			"course_0":
+				current_chase_id = "intro" # The dream: no chase bookkeeping
 			"course_1":
 				current_chase_id = "chase_1"
 			"course_2":
@@ -427,10 +429,10 @@ func _select_level_from_settings(target_id: String) -> void:
 				current_chase_id = "chase_final"
 			_:
 				current_chase_id = "chase_1"
-		if target_id != "course_1":
+		if target_id != "course_1" and target_id != "course_0":
 			# Demo shortcut must satisfy start_stage_chase's pin requirement for chase_2+,
 			# otherwise completing the course jumps stage to exploring without the pin
-			# and the ending becomes unreachable.
+			# and the ending becomes unreachable. The dream is pre-story: no pin.
 			GameManager.has_pin = true
 		# Companion skills come from the course's own setup() as course-scoped loans;
 		# writing them here used to tick the farm story's companion quests for free.
@@ -443,6 +445,21 @@ func _select_level_from_settings(target_id: String) -> void:
 
 func start_game() -> void:
 	_start_game()
+
+func start_dream_intro() -> void:
+	_start_dream_intro()
+
+func _start_dream_intro() -> void:
+	# Boot path: close the start menu, fall asleep, and enter the nightmare.
+	# Tests keep calling start_game() directly (straight to the farm); the skip
+	# button uses the same direct path.
+	if is_instance_valid(active_course):
+		return
+	_start_game()
+	current_chase_id = "intro"
+	_enter_course("course_0")
+	_show_toast("……（入梦）", "冰冷的地面，铁锈味，远处有铁链声。这里是——屠宰场？！")
+	_refresh_hud()
 
 func _start_game() -> void:
 	in_start_menu = false
@@ -911,6 +928,11 @@ func _on_course_started() -> void:
 	_refresh_hud()
 
 func _on_course_completed() -> void:
+	if current_chase_id == "intro":
+		# The dream ends without any stage bookkeeping: the run state stays in
+		# the prologue exactly as if the pig had never slept.
+		_finish_course_deferred.call_deferred()
+		return
 	GameManager.complete_stage_chase(current_chase_id)
 	# Defer the world swap out of the physics callback so the pig's reset position
 	# is not overwritten by the same frame's move_and_slide.
@@ -919,6 +941,14 @@ func _on_course_completed() -> void:
 func _finish_course_deferred() -> void:
 	var completed_id := current_chase_id
 	_exit_course()
+	if completed_id == "intro":
+		# Wake up in the pen: cold sweat, hooks still flashing, decision made.
+		_show_toast("……！！", "你一身冷汗地从泥窝里弹起来。梦里的铁钩还在眼前晃。")
+		await get_tree().create_timer(2.7).timeout
+		_show_toast("天快亮了。", "运牲车，明早六点就到。今晚——就今晚。")
+		_restore_control()
+		_refresh_hud()
+		return
 	match completed_id:
 		"chase_1":
 			_show_toast("通关成功！", "从神秘管道中喷出！顺利捷径抵达牛耕地！")
@@ -956,6 +986,9 @@ func _exit_course() -> void:
 		farm.set_named_gate_open("horse", true)
 
 	var exit_pos := Vector3(38.0, 24.1, 52.0)
+	if completed_id == "intro":
+		# Waking up from the nightmare drops the pig back into its pen.
+		exit_pos = farm.get_spawn_position()
 	match completed_id:
 		"chase_1":
 			exit_pos = Vector3(38.0, 24.1, 52.0)

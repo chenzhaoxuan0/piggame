@@ -25,19 +25,29 @@ func _run() -> void:
 	_check(office.in_settings and office.settings_menu.visible, "Settings menu opened")
 
 	# Check presence of Level Select buttons
+	var btn_c0: Button = office.settings_menu.find_child("BtnSelect_course_0", true, false)
 	var btn_c1: Button = office.settings_menu.find_child("BtnSelect_course_1", true, false)
 	var btn_c2: Button = office.settings_menu.find_child("BtnSelect_course_2", true, false)
 	var btn_c3: Button = office.settings_menu.find_child("BtnSelect_course_3", true, false)
 	var btn_c4: Button = office.settings_menu.find_child("BtnSelect_course_4", true, false)
 	var btn_farm: Button = office.settings_menu.find_child("BtnSelect_farm", true, false)
 
-	_check(btn_c1 != null and btn_c2 != null and btn_c3 != null and btn_c4 != null and btn_farm != null, "All level select buttons exist in settings")
+	_check(btn_c0 != null and btn_c1 != null and btn_c2 != null and btn_c3 != null and btn_c4 != null and btn_farm != null, "All level select buttons exist in settings (prologue included)")
 
 	# Hub atmosphere baseline: courses swap it for their zone look and must restore it.
 	var hub_world: WorldEnvironment = office.get_node("WorldEnvironment")
 	var hub_environment: Environment = hub_world.environment
 	var sun: DirectionalLight3D = office.get_node("Sun")
 	var hub_sun_energy: float = sun.light_energy
+	# 0. The nightmare prologue is replayable from level select
+	btn_c0.pressed.emit()
+	await process_frame
+	_check(office.active_course != null and office.active_course.runner.config.course_id == "course_0", "Prologue nightmare replayable via Level Select")
+	_check(game.stage == "prologue", "Entering the dream leaves the run stage untouched")
+	btn_c0.pressed.emit()
+	await process_frame
+	_check(game.stage == "prologue" and not game.chase_completed.get("chase_1", false), "Re-entering the dream still books no chase progress")
+
 
 	# 2. Select Course 2 directly from settings
 	btn_c2.pressed.emit()
