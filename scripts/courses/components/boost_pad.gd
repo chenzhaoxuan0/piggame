@@ -3,9 +3,14 @@ extends Area3D
 
 signal boost_activated(player: Node3D)
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 @export var boost_speed: float = 18.0
 @export var boost_duration: float = 1.6
 @export var pad_size: Vector2 = Vector2(3.5, 3.0)
+# Optional zone dressing (courtyard neon): the chevron boost plate model
+# replaces the flat slab; the pulse tween keeps working on the pad node.
+@export var lux_asset_id: String = ""
 
 const COLOR_NEON_YELLOW := Color("FACC15")
 const COLOR_NEON_ORANGE := Color("FB923C")
@@ -57,6 +62,15 @@ func _setup_visual() -> void:
 	arrow_label.outline_modulate = Color("1E293B")
 	arrow_label.outline_size = 6
 	add_child(arrow_label)
+
+	# Zone dressing: the neon chevron plate replaces the flat slab (the model
+	# carries its own printed arrows, so the Label3D chevron hides).
+	if not lux_asset_id.is_empty():
+		var lux := ASSETS.make(lux_asset_id)
+		if lux != null:
+			pad_mesh.mesh = null
+			pad_mesh.add_child(lux)
+			arrow_label.visible = false
 
 func _on_body_entered(body: Node3D) -> void:
 	if not is_active:

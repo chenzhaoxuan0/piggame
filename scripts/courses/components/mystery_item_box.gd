@@ -3,6 +3,8 @@ extends Area3D
 
 signal item_collected(item_type: String, player: Node3D)
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 enum ItemType {
 	ROCKET_BOOST,
 	DEPLOY_PEEL,
@@ -11,6 +13,9 @@ enum ItemType {
 
 @export var respawn_time: float = 4.0
 @export var box_size: float = 1.3
+# Optional zone dressing (courtyard neon): the golden question-mark item cube
+# replaces the translucent slab; float/spin/respawn keep working on the node.
+@export var lux_asset_id: String = ""
 
 const COLOR_NEON_YELLOW := Color("FACC15")
 const COLOR_NEON_ORANGE := Color("FB923C")
@@ -44,6 +49,13 @@ func _setup_visual() -> void:
 	mat.roughness = 0.2
 	_box_mesh.material_override = mat
 	add_child(_box_mesh)
+
+	# Zone dressing: the golden question cube replaces the translucent slab.
+	if not lux_asset_id.is_empty():
+		var lux := ASSETS.make(lux_asset_id)
+		if lux != null:
+			_box_mesh.mesh = null
+			_box_mesh.add_child(lux)
 
 	# Question mark label
 	_q_label = Label3D.new()

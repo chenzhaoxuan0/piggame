@@ -4,10 +4,15 @@ extends Node3D
 signal ramp_jumped(ramp: StuntJumpRamp, player: Node3D)
 signal landing_turbo(player: Node3D)
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 @export var ramp_size: Vector3 = Vector3(4.5, 1.8, 4.0)
 @export var launch_vertical: float = 9.5
 @export var launch_forward: float = 22.0
 @export var landing_turbo_speed: float = 8.0 # Forward kick on touchdown ("落地迷你涡轮")
+# Optional zone dressing (courtyard neon): the chevron mega-ramp model replaces
+# the tilted box; launch collision and labels stay.
+@export var lux_asset_id: String = ""
 
 const COLOR_NEON_CYAN := Color("06B6D4")
 const COLOR_NEON_YELLOW := Color("FACC15")
@@ -94,6 +99,15 @@ func _setup_ramp_structure() -> void:
 	mat.emission_energy_multiplier = 1.2
 	mesh.material_override = mat
 	add_child(mesh)
+
+	# Zone dressing: the chevron mega-ramp replaces the tilted box (the model
+	# is normalized to 6 x 6 x 2.2 with its own slope stripes).
+	if not lux_asset_id.is_empty():
+		var lux := ASSETS.make(lux_asset_id)
+		if lux != null:
+			lux.scale = Vector3(ramp_size.x / 6.0, ramp_size.z / 6.0, ramp_size.y / 2.2)
+			add_child(lux)
+			mesh.visible = false
 
 	# Neon chevron arrows
 	var chevron := Label3D.new()
