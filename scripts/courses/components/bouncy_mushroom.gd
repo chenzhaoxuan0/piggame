@@ -13,6 +13,11 @@ signal mushroom_bounced(mushroom: Node3D, target: Node3D)
 @export var stalk_color: Color = Color("FDF6E2") # Cream stem
 @export var spot_color: Color = Color("FFFFFF") # White spots
 @export var cooldown: float = 0.6
+# Optional zone dressing (woodland fairytale): the big toadstool model replaces
+# the procedural stalk+cap+spots; the squash & stretch keeps working on the cap.
+@export var lux_asset_id: String = "PROP_C3_BOUNCY_MUSHROOM"
+
+const ASSETS = preload("res://scripts/art/asset_library.gd")
 
 var _cooldown_timer := 0.0
 var _cap: Node3D
@@ -102,6 +107,19 @@ func _ready() -> void:
 	area.add_child(area_shape)
 	area.body_entered.connect(_on_cap_step)
 	add_child(area)
+
+	# Zone dressing: the whole toadstool rides the cap root so the squash &
+	# stretch plays around its middle.
+	if not lux_asset_id.is_empty():
+		var lux := ASSETS.make(lux_asset_id)
+		if lux != null:
+			for node in [stalk_mesh, cap_mesh]:
+				node.visible = false
+			for spot in _cap.get_children():
+				if spot is MeshInstance3D:
+					spot.visible = false
+			lux.position.y = -_cap.position.y
+			_cap.add_child(lux)
 
 func _physics_process(delta: float) -> void:
 	_cooldown_timer = maxf(0.0, _cooldown_timer - delta)

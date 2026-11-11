@@ -3,7 +3,13 @@ extends Node3D
 
 signal chest_opened(chest: MimicChest, is_mimic: bool)
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 @export var is_mimic: bool = false
+# Optional zone dressing (woodland fairytale): the storybook chest model
+# replaces the procedural base+lid pair; the mimic breathing tell becomes a
+# subtle model squish and opening becomes a tip-back + gold sparkle burst.
+@export var lux_asset_id: String = ""
 
 const COLOR_WOOD := Color("78350F") # Rich mahogany
 const COLOR_GOLD := Color("FBBF24")
@@ -12,6 +18,7 @@ const COLOR_MIMIC_PURPLE := Color("7E22CE")
 var is_triggered: bool = false
 var chest_mesh: MeshInstance3D
 var lid_mesh: MeshInstance3D
+var _lux_visual: Node3D = null
 var hint_label: Label3D
 var trigger_area: Area3D
 
@@ -41,6 +48,16 @@ func _setup_visual() -> void:
 	lid_mat.albedo_color = COLOR_GOLD if not is_mimic else COLOR_WOOD
 	lid_mesh.material_override = lid_mat
 	add_child(lid_mesh)
+
+	# Zone dressing: the storybook chest replaces the box pair.
+	if not lux_asset_id.is_empty():
+		var lux := ASSETS.make(lux_asset_id)
+		if lux != null:
+			_lux_visual = lux
+			lux.position.y = -0.4
+			chest_mesh.mesh = null
+			lid_mesh.visible = false
+			chest_mesh.add_child(lux)
 
 	hint_label = Label3D.new()
 	hint_label.name = "ChestLabel"
@@ -76,7 +93,10 @@ func _process(_delta: float) -> void:
 
 	var t := Time.get_ticks_msec() * 0.003
 	if is_mimic:
-		# Subtle Souls-like breathing tell: lid slowly rises and drops
+		# Subtle Souls-like breathing tell: lid slowly rises and drops (or the
+		# dressed model squishes by a couple of percent)
+		if _lux_visual != null:
+			_lux_visual.scale.y = 1.0 + sin(t) * 0.025
 		lid_mesh.position.y = 0.9 + sin(t) * 0.04
 		if has_discern:
 			hint_label.visible = true
@@ -112,10 +132,15 @@ func _on_player_entered(player: Node3D) -> void:
 		_trigger_real_treasure(player)
 
 func _trigger_mimic_bite(player: Node3D) -> void:
-	# Snap lid wide open
+	# Snap lid wide open (dressed chest: the whole chest lunges and snaps back)
 	var tween := create_tween()
-	tween.tween_property(lid_mesh, "rotation:x", -deg_to_rad(75.0), 0.1)
-	tween.tween_property(lid_mesh, "rotation:x", 0.0, 0.1)
+	if _lux_visual != null:
+		var lunge_dir := (player.global_position - global_position).normalized()
+		tween.tween_property(_lux_visual, "position", _lux_visual.position + lunge_dir * 0.7, 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(_lux_visual, "position", _lux_visual.position, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	else:
+		tween.tween_property(lid_mesh, "rotation:x", -deg_to_rad(75.0), 0.1)
+		tween.tween_property(lid_mesh, "rotation:x", 0.0, 0.1)
 
 	# Slapstick bite & knockback
 	if player.has_method("apply_knockback"):
@@ -126,7 +151,12 @@ func _trigger_mimic_bite(player: Node3D) -> void:
 
 func _trigger_real_treasure(player: Node3D) -> void:
 	var tween := create_tween()
-	tween.tween_property(lid_mesh, "rotation:x", -deg_to_rad(90.0), 0.3)
+	if _lux_visual != null:
+		# Dressed chest: tip back over 0.3 s and burst gold sparkles.
+		tween.tween_property(_lux_visual, "rotation:x", -deg_to_rad(100.0), 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		_spawn_gold_sparkles()
+	else:
+		tween.tween_property(lid_mesh, "rotation:x", -deg_to_rad(90.0), 0.3)
 
 	# Pop the golden sweet-potato toast; the COURSE owns the speed buff from
 	# here (a wall-clock timer here could outlive the course into the farm, and
@@ -145,3 +175,31 @@ func _trigger_real_treasure(player: Node3D) -> void:
 	lbl_tween.tween_callback(buff_lbl.queue_free)
 
 	chest_opened.emit(self, false)
+
+func _spawn_gold_sparkles() -> void:
+	# Gold sparkle burst for the dressed real chest (tween-driven, headless-safe).
+	var fx := Node3D.new()
+	fx.name = "ChestSparkles"
+	add_child(fx)
+	for i in 10:
+		var mote := MeshInstance3D.new()
+		var sphere := SphereMesh.new()
+		var s := 0.08 + randf() * 0.07
+		sphere.radius = s
+		sphere.height = s * 2.0
+		mote.mesh = sphere
+		mote.position = Vector3(randf_range(-0.4, 0.4), 0.6, randf_range(-0.3, 0.3))
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = COLOR_GOLD
+		mat.emission_enabled = true
+		mat.emission = COLOR_GOLD
+		mat.emission_energy_multiplier = 1.8
+		mote.material_override = mat
+		fx.add_child(mote)
+		var tw := fx.create_tween()
+		tw.set_parallel(true)
+		tw.tween_property(mote, "position", mote.position + Vector3(randf_range(-0.8, 0.8), 1.2 + randf() * 0.8, randf_range(-0.8, 0.8)), 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(mote, "scale", Vector3.ONE * 0.05, 0.6)
+	var cleanup := fx.create_tween()
+	cleanup.tween_interval(0.8)
+	cleanup.tween_callback(fx.queue_free)

@@ -1,0 +1,37 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://d0fa7imbjc6c2"
+path="res://.godot/imported/ENV_C3_MEADOW_TILE_1.png-97237904dddfdeea0d3209b11ae601bb.ctex"
+metadata={
+"vram_texture": false
+}
+generator_parameters={
+"md5": "f25bd2253a7f03eb764e4cc3d49c5fc8"
+}
+
+[deps]
+
+source_file="res://assets/models/aholo/ENV_C3_MEADOW_TILE/ENV_C3_MEADOW_TILE_1.png"
+dest_files=["res://.godot/imported/ENV_C3_MEADOW_TILE_1.png-97237904dddfdeea0d3209b11ae601bb.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal_map=0
+compress/channel_pack=0
+mipmaps/generate=true
+mipmaps/limit=-1
+roughness/mode=0
+roughness/src_normal=""
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/normal_map_invert_y=false
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
+process/size_limit=0
+detect_3d/compress_to=1
