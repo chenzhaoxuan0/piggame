@@ -121,8 +121,8 @@ func _make_config() -> CourseConfig:
 	# The serpentine sprawls east: legs live between x -6 and x 52, z 20..-88.
 	cfg.bounds = AABB(Vector3(-15, -16, -100), Vector3(75, 40, 130))
 	cfg.dog_count = 1
-	cfg.dog_speed_min = 3.0
-	cfg.dog_speed_max = 5.0
+	cfg.dog_speed_min = 3.6
+	cfg.dog_speed_max = 5.6
 	# The dream butcher is the farmer himself (stun prod and all).
 	cfg.dog_visual_asset_id = "CHAR_07"
 	cfg.memes = {
@@ -281,7 +281,7 @@ func _build_holding_pins() -> void:
 	drowsy_fog = DROWSY_FOG.new()
 	drowsy_fog.name = "DrowsyFog"
 	drowsy_fog.position = Vector3(0, 0, 20.0)
-	drowsy_fog.fog_speed = 2.0
+	drowsy_fog.fog_speed = 2.6
 	add_child(drowsy_fog)
 	drowsy_fog.fog_touched.connect(_on_fog_caught)
 
@@ -336,15 +336,15 @@ func _build_processing_floor() -> void:
 	_label("踏上皮带——【按住 Shift 冲刺】逆流冲过去！", Vector3(8.0, 2.4, -30.0), 22)
 
 	# L2 (eastbound, z -34..-26): two westbound lines with a prod crossing.
-	belt_a = _belt("BeltA", Vector3(13, -0.35, -30), Vector3(10, 0.35, 7.2), Vector3(-1, 0, 0), 2.4)
+	belt_a = _belt("BeltA", Vector3(13, -0.35, -30), Vector3(10, 0.35, 7.2), Vector3(-1, 0, 0), 2.8)
 	belt_a.belt_entered.connect(_on_first_belt_entered)
-	belt_b = _belt("BeltB", Vector3(26, -0.35, -30), Vector3(12, 0.35, 7.2), Vector3(-1, 0, 0), 3.0)
+	belt_b = _belt("BeltB", Vector3(26, -0.35, -30), Vector3(12, 0.35, 7.2), Vector3(-1, 0, 0), 3.4)
 	_stun_prod("StunProdStrip1", Vector3(19.0, 0, -30.0))
 
 	# Hooks on eastbound legs swing ACROSS the corridor: the gantry is rotated
 	# to span the 8 m width, posts hug the walls (no pocket, no wide lane).
-	_hook("MeatHook1", Vector3(13.0, 0, -30.0), true, 2.4, 0.0)
-	_hook("MeatHook2", Vector3(26.0, 0, -30.0), true, 2.7, PI * 0.6)
+	_hook("MeatHook1", Vector3(13.0, 0, -30.0), true, 2.7, 0.0)
+	_hook("MeatHook2", Vector3(26.0, 0, -30.0), true, 3.0, PI * 0.6)
 	_steam_vent(Vector3(11.0, 0, -28.5), Vector3(-0.45, 0, 0))
 	_steam_vent(Vector3(23.0, 0, -31.5), Vector3(-0.45, 0, 0))
 
@@ -352,11 +352,11 @@ func _build_processing_floor() -> void:
 
 	# L3 (southbound, x 26..34): one more line under a hook, then the lateral
 	# transfer belt flinging you east into the painted-sun wall.
-	belt_c = _belt("BeltC", Vector3(30, -0.35, -42), Vector3(7.2, 0.35, 8), Vector3(0, 0, 1), 2.8)
+	belt_c = _belt("BeltC", Vector3(30, -0.35, -42), Vector3(7.2, 0.35, 8), Vector3(0, 0, 1), 3.2)
 	_stun_prod("StunProdStrip2", Vector3(30.0, 0, -47.0))
-	_hook("MeatHook3", Vector3(30.0, 0, -42.0), false, 2.9, PI * 0.3)
+	_hook("MeatHook3", Vector3(30.0, 0, -42.0), false, 3.2, PI * 0.3)
 
-	belt_d = _belt("BeltD", Vector3(29.8, -0.35, -50.5), Vector3(7.2, 0.35, 5), Vector3(1, 0, 0), 2.6)
+	belt_d = _belt("BeltD", Vector3(29.8, -0.35, -50.5), Vector3(7.2, 0.35, 5), Vector3(1, 0, 0), 3.0)
 	var door_frame := _solid_box("FakeSunDoorFrame", Vector3(0.4, 3.2, 2.4), Vector3(33.7, 1.6, -50.5), EMBER)
 	# The painted fake door: flaking oil paint on a wall panel (the sun label
 	# stays, the procedural frame box hides). Body origin at mid-height again.
@@ -378,7 +378,7 @@ func _build_processing_floor() -> void:
 
 	# L4 (eastbound link, x 34..46): a jump hurdle, steam and one hook.
 	_hurdle("TutorialHurdle2", Vector3(0.5, 0.55, 7.2), Vector3(38.5, 0.275, -54.0))
-	_hook("MeatHook4", Vector3(42.0, 0, -54.0), true, 2.5, PI)
+	_hook("MeatHook4", Vector3(42.0, 0, -54.0), true, 2.8, PI)
 	_steam_vent(Vector3(38.0, 0, -52.5), Vector3(-0.45, 0, 0))
 	_steam_vent(Vector3(43.0, 0, -55.5), Vector3(-0.45, 0, 0))
 

@@ -95,9 +95,9 @@ var current_chase_id := ""
 var in_qte := false
 var current_qte_dog: ChaseDog = null
 var qte_hits := 0
-const QTE_TARGET_HITS := 5
+const QTE_TARGET_HITS := 6
 var qte_time_remaining := 3.5
-const QTE_TIME_TOTAL := 3.5
+const QTE_TIME_TOTAL := 3.2
 
 func _ready() -> void:
 	GameManager.reset_run()
@@ -774,8 +774,25 @@ func _on_pokemon_battle_finished(success: bool) -> void:
 		var ok := GameManager.complete_showdown()
 		if ok: farm.set_gate_open(true)
 		_show_toast("意志对决胜利！铁门轰然开启！", "农场主掌控欲彻底瓦解，快穿过大铁门登上后山索道！")
-	_restore_control()
+		_restore_control()
+	else:
+		# Failure ending beat: dragged back to the pen in front of the gate,
+		# the 6am truck looming - then the pig grits its teeth and goes again.
+		# The stage stays "showdown", so a retry is a seamless re-challenge.
+		player.set_control_mode("paused")
+		_show_overlay("败下阵来",
+			"电击棍的麻意还没散。你被拖索拽回铁门前，项圈上多了一道勒痕。\n“明早的车不等人。”\n\n（黎明之前——把话说得再硬一点。）",
+			[
+				{"text": "再战一场", "call": _retry_farmer_showdown},
+				{"text": "从头开始", "call": _restart},
+			])
+		return
 	_refresh_hud()
+
+func _retry_farmer_showdown() -> void:
+	if is_instance_valid(overlay):
+		overlay.visible = false
+	_start_farmer_showdown()
 
 func _split_lines(content: String) -> Array:
 	var lines := []

@@ -45,9 +45,9 @@ var floating_container: Control
 const MOVES := [
 	{
 		"name": "【 斗 志 冲 击 】",
-		"subtext": "正面冲撞 · 坚决破围 (基础威力 34)",
+		"subtext": "正面冲撞 · 坚决破围 (基础威力 30)",
 		"desc": "低头猛冲，用坚决的额头正面撞击！不退缩，不犹疑！",
-		"damage": 34,
+		"damage": 30,
 		"counter_round": -1
 	},
 	{
@@ -362,10 +362,12 @@ func execute_move(move_index: int) -> void:
 	var move: Dictionary = MOVES[move_index]
 	var dmg: float = float(move.damage)
 	var is_counter: bool = (move.counter_round == current_turn)
-
-	# Bonus damage for counter move
-	if is_counter:
-		dmg += 6.0
+	# Counter system: a companion move only lands its full weight on the round
+	# it counters; on any other round the farmer's pressure blunts it to 30%.
+	# 斗志冲击 (counter_round -1) is honest plain damage, never a misfire.
+	var is_misfire: bool = (not is_counter) and move.counter_round > 0
+	if is_misfire:
+		dmg *= 0.3
 
 	# 1. Pig attack narrative
 	var pig_log := ""
@@ -380,46 +382,63 @@ func execute_move(move_index: int) -> void:
 			pig_log = "一口猪 借追风四蹄翻腾极速：‘奔跑为了感受山风！’【借马之风】闪避电击棍并绕后猛冲！"
 
 	narrative_label.text = pig_log
+	if is_misfire:
+		narrative_label.text += "\n……可是时机不对！这一招没能咬住他的话头——"
 	_screen_shake()
 
 	# Deal damage to Farmer
 	farmer_hp = maxf(0.0, farmer_hp - dmg)
 	_animate_hp_change(farmer_hp_bar, farmer_hp, farmer_hp_label, farmer_max_hp)
 
-	var dmg_text := "-%d 暴击破防!" % int(dmg) if is_counter else "-%d 意志冲击!" % int(dmg)
+	var dmg_text := "-%d 克制破防!" % int(dmg) if is_counter else ("-%d 收效甚微…" % int(dmg) if is_misfire else "-%d 意志冲击!" % int(dmg))
 	_spawn_damage_text(farmer_plate.global_position + Vector2(180, 40), dmg_text, Color(0.85, 0.25, 0.15))
 
 	await get_tree().create_timer(0.22).timeout
 
 	# Check if Farmer defeated
-	if farmer_hp <= 0.0 or current_turn >= 3:
+	if farmer_hp <= 0.0:
 		farmer_hp = 0.0
 		_update_hp_displays()
 		_resolve_victory()
 		return
 
-	# 2. Farmer counter-reaction
+	# 2. Farmer counter-reaction (every round now - the pig's will can break)
 	await get_tree().create_timer(0.12).timeout
-	_farmer_counter_turn()
+	_farmer_counter_turn(is_counter)
 
-func _farmer_counter_turn() -> void:
+func _farmer_counter_turn(was_countered: bool) -> void:
+	# The threat lands full force when the pig's move did not counter this
+	# round; a countered round only grazes (the pig still pays for standing
+	# up to him). Numbers: full counter play leaves the pig near ~40 HP -
+	# the razor's-edge win; one misfire and the pig is usually down first.
 	var farmer_log := ""
-	var pig_dmg := 8.0
+	var pig_dmg := 0.0
 
 	if current_turn == 1:
 		farmer_log = "\n农场主 掏出满袋【甜麦麸】大声呵斥：“加满甜料还不够吗？！圈外没有你能吃的食槽！”"
-		pig_dmg = 6.0
-		_update_farmer_status("[ 动摇中 ]", Color(0.75, 0.45, 0.15))
+		pig_dmg = 18.0 if was_countered else 32.0
+		_update_farmer_status("[ 动摇中 ]" if was_countered else "[ 甜料攻势 ]", Color(0.75, 0.45, 0.15))
 	elif current_turn == 2:
 		farmer_log = "\n农场主 气急败坏高举电击棍：“肉猪的天职就是长肉！走出这道大门你什么都不是！”"
-		pig_dmg = 8.0
-		_update_farmer_status("[ 惊愕破防 ]", Color(0.85, 0.30, 0.20))
+		pig_dmg = 20.0 if was_countered else 38.0
+		_update_farmer_status("[ 惊愕破防 ]" if was_countered else "[ 电棍威吓 ]", Color(0.85, 0.30, 0.20))
+	else:
+		farmer_log = "\n农场主 挥舞电击棍扑了上来：“最后一步了——你出不了这道门！！”"
+		pig_dmg = 22.0 if was_countered else 45.0
+		_update_farmer_status("[ 狗急跳墙 ]", Color(0.85, 0.30, 0.20))
 
-	pig_hp = maxf(10.0, pig_hp - pig_dmg)
+	pig_hp = maxf(0.0, pig_hp - pig_dmg)
 	_animate_hp_change(pig_hp_bar, pig_hp, pig_hp_label, pig_max_hp)
 	_spawn_damage_text(pig_plate.global_position + Vector2(180, 40), "-%d 动摇" % int(pig_dmg), Color(0.55, 0.40, 0.25))
 
 	narrative_label.text += farmer_log
+
+	# The pig's will breaks first: down, or the farmer withstood all
+	# three rounds. Either way the showdown is lost - and can be retried.
+	if pig_hp <= 0.0 or current_turn >= 3:
+		_resolve_defeat()
+		return
+
 	current_turn += 1
 	turn_header_label.text = "【 铁 门 前 的 决 战 · 第 %d 回 合 】" % current_turn
 
@@ -434,6 +453,8 @@ func _resolve_victory() -> void:
 	_update_farmer_status("[ 彻底溃败 ]", Color(0.55, 0.50, 0.45))
 	turn_header_label.text = "【 决 胜 · 铁 门 轰 然 敞 开 】"
 	narrative_label.text = "农场主 电击棍脱手掉在地上，颓然跌坐在地……\n“跑了一头，亏了千把块……算了，圈里还有几百头。”\n\n轰——铛！！铁大门锁扣被彻底撞断！铁门轰然敞开！"
+	if pig_hp <= 40.0:
+		narrative_label.text += "\n\n（你浑身发抖，就剩一口喘着的气——可是门，开了。）"
 	_screen_shake(8.0)
 
 	await get_tree().create_timer(0.35).timeout
@@ -443,6 +464,20 @@ func _resolve_victory() -> void:
 	battle_active = false
 	visible = false
 	battle_completed.emit(true)
+
+func _resolve_defeat() -> void:
+	_update_pig_status("[ 意志溃散 ]", Color(0.55, 0.50, 0.45))
+	turn_header_label.text = "【 败 下 阵 来 】"
+	narrative_label.text = "电击棍的麻意爬满四肢……你的四蹄一软，跪在了铁门前。\n农场主喘着粗气把拖索扣回你的项圈：“闹够了？回圈。明早的车，不等人。”\n\n（黎明之前，把话说得再硬一点——再来。）"
+	_screen_shake(8.0)
+
+	await get_tree().create_timer(0.35).timeout
+	is_busy = false
+	if is_instance_valid(level_ref) and "busy" in level_ref:
+		level_ref.busy = false
+	battle_active = false
+	visible = false
+	battle_completed.emit(false)
 
 func _update_hp_displays() -> void:
 	if is_instance_valid(farmer_hp_bar):

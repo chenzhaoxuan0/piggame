@@ -72,9 +72,10 @@ func _run() -> void:
 	level._on_qte_tapped()
 	level._on_qte_tapped()
 	_check(level.qte_hits == 2, "QTE hits increment correctly on Space tap")
-	_check(level.qte_counter_label.text == "2 / 5", "QTE counter label displays hit count")
-	
+	_check(level.qte_counter_label.text == "2 / %d" % level.QTE_TARGET_HITS, "QTE counter label displays hit count")
+
 	# Complete Chase 1 struggle
+	level._on_qte_tapped()
 	level._on_qte_tapped()
 	level._on_qte_tapped()
 	level._on_qte_tapped()

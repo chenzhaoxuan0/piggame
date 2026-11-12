@@ -65,8 +65,8 @@ func _make_config() -> CourseConfig:
 	cfg.kill_y = -12.0
 	cfg.bounds = AABB(Vector3(-30, -16, -112), Vector3(60, 40, 132))
 	cfg.dog_count = 1
-	cfg.dog_speed_min = 2.6
-	cfg.dog_speed_max = 6.0
+	cfg.dog_speed_min = 3.2
+	cfg.dog_speed_max = 6.6
 	cfg.memes = {
 		"course_start": {"title": "阴影追进管道了！", "text": "跑赢这条试炼道，出口就是牛耕地！弹簧垫、问号砖、大摆锤——冲！", "duration": 3.0},
 		"launch_pad": {"title": "芜湖起飞！", "text": "糖豆人弹簧弹射！飞越泥潭！", "duration": 2.2},
@@ -324,10 +324,10 @@ func _build_sweepers() -> void:
 	var sweeper1 := SPINNING_SWEEPER.new()
 	sweeper1.name = "Sweeper1"
 	sweeper1.position = Vector3(0, 0, -51.5)
-	sweeper1.rotate_speed = 2.0
+	sweeper1.rotate_speed = 2.4
 	sweeper1.bar_length = 7.6
 	sweeper1.bar_elevation = 0.35
-	sweeper1.knockback_power = 6.5
+	sweeper1.knockback_power = 7.5
 	sweeper1.knockback_up = 3.0
 	sweeper1.meme_id = "sweeper_hit"
 	add_child(sweeper1)
@@ -336,10 +336,10 @@ func _build_sweepers() -> void:
 	var sweeper2 := SPINNING_SWEEPER.new()
 	sweeper2.name = "Sweeper2"
 	sweeper2.position = Vector3(0, 0, -57.5)
-	sweeper2.rotate_speed = -2.2
+	sweeper2.rotate_speed = -2.6
 	sweeper2.bar_length = 7.6
 	sweeper2.bar_elevation = 0.35
-	sweeper2.knockback_power = 7.0
+	sweeper2.knockback_power = 8.0
 	sweeper2.knockback_up = 3.5
 	sweeper2.sweeper_color = Color("E74C3C")
 	sweeper2.meme_id = "sweeper_hit"
@@ -351,7 +351,7 @@ func _build_pendulums() -> void:
 	var pendulum := PENDULUM_BALL.new()
 	pendulum.name = "Pendulum1"
 	pendulum.position = Vector3(0, 0, -54.5)
-	pendulum.swing_speed = 2.6
+	pendulum.swing_speed = 3.0
 	pendulum.max_angle_deg = 45.0
 	pendulum.knockback_power = 8.0
 	pendulum.knockback_up = 4.0
@@ -390,10 +390,10 @@ func _build_hammer_bridge() -> void:
 	
 	# 4 Rhythmic hammers with alternating directions
 	var hammer_configs = [
-		{"z": -75.0, "speed": 1.8, "phase": 0.0},
-		{"z": -79.0, "speed": -2.0, "phase": PI * 0.5},
-		{"z": -83.0, "speed": 2.2, "phase": PI},
-		{"z": -87.0, "speed": -2.0, "phase": PI * 1.5},
+		{"z": -75.0, "speed": 2.2, "phase": 0.0},
+		{"z": -79.0, "speed": -2.4, "phase": PI * 0.5},
+		{"z": -83.0, "speed": 2.6, "phase": PI},
+		{"z": -87.0, "speed": -2.4, "phase": PI * 1.5},
 	]
 	for i in hammer_configs.size():
 		var cfg = hammer_configs[i]
@@ -403,7 +403,7 @@ func _build_hammer_bridge() -> void:
 		hammer.arm_length = 2.6
 		hammer.rotate_speed = cfg["speed"]
 		hammer.phase_offset = cfg["phase"]
-		hammer.knockback_power = 6.0
+		hammer.knockback_power = 7.0
 		hammer.knockback_up = 2.5
 		hammer.hammer_color = Color("E67E22") if i % 2 == 0 else Color("E74C3C")
 		hammer.meme_id = "hammer_hit"

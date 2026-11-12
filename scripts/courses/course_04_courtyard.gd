@@ -161,8 +161,8 @@ func _make_config() -> CourseConfig:
 	cfg.kill_y = -12.0
 	cfg.bounds = AABB(Vector3(-40, -16, -190), Vector3(80, 40, 220))
 	cfg.dog_count = 1
-	cfg.dog_speed_min = 3.2
-	cfg.dog_speed_max = 6.8
+	cfg.dog_speed_min = 3.8
+	cfg.dog_speed_max = 7.4
 	cfg.memes = {
 		"course_start": {"title": "最后一跑——冲破大铁门！", "text": "3…2…1…踩上加速带极速喷火！打破纪录，大门就在终点线后！", "duration": 3.0},
 		"boost_pad": {"title": "屁股喷火！极速加速！", "text": "踩中加速带！氮气爆发，瞬间拉开身后恶犬十个身位！", "duration": 2.2},
@@ -238,7 +238,7 @@ func _gravel_infield(node_name: String, pos: Vector3) -> void:
 	trap.name = node_name + "Trap"
 	trap.position = pos + Vector3(0, 0.5, 0)
 	trap.patch_size = Vector2(10.0, 30.0)
-	trap.mud_speed_factor = 0.4
+	trap.mud_speed_factor = 0.35
 	trap.surface_color = GRAVEL_SAND
 	trap.blob_color = GRAVEL_SAND_DARK
 	add_child(trap)
@@ -469,7 +469,7 @@ func _build_hazards() -> void:
 	mud_patch.name = "MudPatch"
 	mud_patch.position = Vector3(10, 0, -42.5)
 	mud_patch.patch_size = Vector2(6.0, 5.0)
-	mud_patch.mud_speed_factor = 0.5
+	mud_patch.mud_speed_factor = 0.45
 	add_child(mud_patch)
 	mud_patch.mud_entered.connect(func(_b):
 		if meme_layer:
@@ -479,8 +479,8 @@ func _build_hazards() -> void:
 
 	# 4. Nitro tunnel sweepers (west lane): low neon bars to JUMP at full boost.
 	# They sweep the dog too - luring it through here is a real tactic.
-	_tunnel_sweeper("NeonSweeper1", Vector3(-10, 0, -99.0), 1.8, 0.0)
-	_tunnel_sweeper("NeonSweeper2", Vector3(-10, 0, -109.0), -1.8, PI * 0.5)
+	_tunnel_sweeper("NeonSweeper1", Vector3(-10, 0, -99.0), 2.1, 0.0)
+	_tunnel_sweeper("NeonSweeper2", Vector3(-10, 0, -109.0), -2.1, PI * 0.5)
 	_label("⚠ 霓虹扫堂腿 · 起跳！", Vector3(-10, 2.2, -97.5), 20)
 
 	# 5. Swinging neon signboard across the final straight.
@@ -492,7 +492,7 @@ func _build_hazards() -> void:
 	sign_pendulum.ball_color = NEON_PINK
 	sign_pendulum.gantry_color = Color("334155")
 	sign_pendulum.gantry_half_width = 5.0 # Posts stand in the guardrail line: no pocket to get wedged into
-	sign_pendulum.swing_speed = 2.2
+	sign_pendulum.swing_speed = 2.5
 	sign_pendulum.max_angle_deg = 50.0
 	sign_pendulum.meme_id = "signboard_wham"
 	add_child(sign_pendulum)

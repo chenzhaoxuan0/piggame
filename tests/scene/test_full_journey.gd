@@ -125,8 +125,16 @@ func _run() -> void:
 	_check(office.player.jumps>=2, "actual Space input clears woodland log and creek gap (summit log now lives in Course 1)")
 	await _walk_to(Vector3(-79.4,2.1,-225))
 	await _interact()
-	await _dialogue()
-	_check(game.stage == "cablecar_ready", "three rounds open iron gate")
+	# The reworked showdown is a razor's-edge counter duel: plain option-0 spam
+	# loses now, the round-matched companion sequence (sheep/bull/horse) wins
+	# on the very last hit.
+	for i in 30:
+		if office.pokemon_battle.battle_active and not office.pokemon_battle.is_busy: break
+		await process_frame
+	for move_index in [2, 1, 3]:
+		office.pokemon_battle.execute_move(move_index)
+		await create_timer(0.9).timeout
+	_check(game.stage == "cablecar_ready", "counter sequence wins the showdown")
 	await _walk_to(Vector3(-82,2.1,-225))
 	await _follow(L.path("escape"))
 	await _walk_to(Vector3(-14,0.1,-275.5))

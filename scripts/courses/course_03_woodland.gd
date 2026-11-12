@@ -126,8 +126,8 @@ func _make_config() -> CourseConfig:
 	cfg.kill_y = -12.0
 	cfg.bounds = AABB(Vector3(-35, -16, -115), Vector3(70, 40, 140))
 	cfg.dog_count = 1
-	cfg.dog_speed_min = 2.4
-	cfg.dog_speed_max = 5.2
+	cfg.dog_speed_min = 3.0
+	cfg.dog_speed_max = 5.8
 	cfg.memes = {
 		"course_start": {"title": "看穿幻象，奔向马场！", "text": "迷雾森林，恶犬巡逻——纸箱隐匿、洞察辨伪，穿过林子就是马场！", "duration": 3.0},
 		"box_equip": {"title": "纸箱潜行模式！", "text": "【！】装备纸箱！静止不动时巡逻恶犬直接无视！按Shift可俯冲保龄撞狗！", "duration": 2.5},
@@ -229,9 +229,9 @@ func _make_patrol_guard(node_name: String, pos: Vector3, patrol_points: Array[Ve
 
 	var cone = PATROL_VISION_CONE.new()
 	cone.name = "VisionCone"
-	cone.cone_angle_deg = 65.0
-	cone.cone_range = 9.0
-	cone.patrol_speed = 3.0
+	cone.cone_angle_deg = 70.0
+	cone.cone_range = 10.5
+	cone.patrol_speed = 3.4
 	cone.patrol_points = patrol_points
 	guard.add_child(cone)
 
@@ -411,7 +411,7 @@ func _build_illusion_maze() -> void:
 	zigzag_dog = _make_patrol_guard("ZigzagDogGuard", Vector3(3.0, 0, -53.5), zigzag_pts)
 	var zigzag_cone = zigzag_dog.get_node("VisionCone")
 	zigzag_cone.cone_range = 7.0
-	zigzag_cone.patrol_speed = 2.4
+	zigzag_cone.patrol_speed = 2.7
 	zigzag_cone.player_detected.connect(func(_p):
 		if runner != null:
 			runner.alert_dogs(4.0)

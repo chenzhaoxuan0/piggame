@@ -118,7 +118,7 @@ func _run() -> void:
 	# Mud puddle and gravel infield slow the pig and give the speed back on exit
 	var base_speed: float = office.player.move_speed
 	course.mud_patch._on_body_entered(office.player)
-	_check(is_equal_approx(office.player.move_speed, base_speed * 0.5), "Mud patch halves the pig's speed")
+	_check(is_equal_approx(office.player.move_speed, base_speed * 0.45), "Mud patch bogs the pig down to 45% speed")
 	course.mud_patch._on_body_exited(office.player)
 	_check(is_equal_approx(office.player.move_speed, base_speed), "Leaving the mud restores full speed")
 	course.gravel_traps[0]._on_body_entered(office.player)
@@ -199,7 +199,7 @@ func _run() -> void:
 	await process_frame
 	_check(office.in_qte and office.qte_panel.visible, "QTE panel triggered on course dog grapple")
 	_check(office.player.control_mode == "qte", "Player locked into QTE mode")
-	for i in 5:
+	for i in office.QTE_TARGET_HITS:
 		office._on_qte_tapped()
 		await process_frame
 	_check(not office.in_qte, "QTE resolved after rapid taps")

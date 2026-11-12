@@ -100,8 +100,8 @@ func _run() -> void:
 	_check(office.in_qte and office.qte_panel.visible, "QTE struggle UI popped on dog grapple")
 	_check(office.player.control_mode == "qte", "Player locked into QTE input mode")
 
-	# Rapid taps to break free
-	for i in 5:
+	# Rapid taps to break free (target count follows the office constant)
+	for i in office.QTE_TARGET_HITS:
 		office._on_qte_tapped()
 		await process_frame
 	_check(not office.in_qte and not office.qte_panel.visible, "QTE completed successfully after rapid taps")

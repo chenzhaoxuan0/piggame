@@ -112,8 +112,8 @@ func _make_config() -> CourseConfig:
 	cfg.kill_y = -12.0
 	cfg.bounds = AABB(Vector3(-35, -16, -115), Vector3(70, 40, 140))
 	cfg.dog_count = 1
-	cfg.dog_speed_min = 2.4
-	cfg.dog_speed_max = 5.2
+	cfg.dog_speed_min = 3.0
+	cfg.dog_speed_max = 5.8
 	cfg.memes = {
 		"course_start": {"title": "狗群在溪谷尽头嚎叫！", "text": "画风突变——化身体素工匠！推方块、搭桥、过河，甩开犬队突围！", "duration": 3.0},
 		"water_splash": {"title": "小猪落水！", "text": "湍急的体素溪流！被冲回岸边狗刨中……", "duration": 2.2},

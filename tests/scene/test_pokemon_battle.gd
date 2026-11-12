@@ -70,6 +70,29 @@ func _run() -> void:
 	_check(not level.dialogue_open, "Dialogue state clears and returns control to player")
 	_check(level.player.control_mode == "explore", "Player control mode restored to explore")
 
+	# 7. Defeat path: plain 斗志 spam no longer wins the counter duel
+	game.stage = "showdown"
+	level._start_farmer_showdown()
+	await process_frame
+	_check(level.pokemon_battle.battle_active and level.pokemon_battle.farmer_hp == 100.0
+		and level.pokemon_battle.pig_hp == 100.0, "Rematch restarts the duel with full HP on both sides")
+	for i in 3:
+		level.pokemon_battle.execute_move(0)
+		await create_timer(0.65 if i < 2 else 0.9).timeout
+	_check(not level.pokemon_battle.battle_active, "Three plain charges lose the reworked duel")
+	_check(game.stage == "showdown", "Defeat keeps the showdown stage - the gate stays shut")
+	_check(level.overlay.visible, "Failure ending overlay shows the dragged-back-to-pen beat")
+
+	# 8. Retry from the failure overlay, then win on the razor's edge
+	level._retry_farmer_showdown()
+	await process_frame
+	_check(not level.overlay.visible and level.pokemon_battle.battle_active
+		and level.pokemon_battle.pig_hp == 100.0, "Rematch button reopens the battle fully reset")
+	for pair in [[2, 0.65], [1, 0.65], [3, 0.9]]:
+		level.pokemon_battle.execute_move(pair[0])
+		await create_timer(pair[1]).timeout
+	_check(game.stage == "cablecar_ready", "Counter sequence wins after a defeat - lose, retry, survive")
+
 	# Cleanup
 	root_node.queue_free()
 	await process_frame

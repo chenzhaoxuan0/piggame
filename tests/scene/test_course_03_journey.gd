@@ -156,7 +156,7 @@ func _run() -> void:
 	await process_frame
 	_check(office.in_qte and office.qte_panel.visible, "QTE panel triggered on course dog grapple")
 	_check(office.player.control_mode == "qte", "Player locked into QTE mode")
-	for i in 5:
+	for i in office.QTE_TARGET_HITS:
 		office._on_qte_tapped()
 		await process_frame
 	_check(not office.in_qte, "QTE resolved after rapid taps")
