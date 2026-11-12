@@ -22,6 +22,11 @@ var npc_completed: Dictionary = {"ox": false, "sheep": false, "horse": false}
 var npc_met: Dictionary = {"ox": false, "sheep": false, "horse": false}
 var has_read_record: bool = false
 var ending: String = ""
+# Boot handoff from the opening key-test scene: "dream" auto-enters the
+# nightmare prologue, "farm" skips straight to the pen. Deliberately NOT
+# cleared by reset_run() - office_level_1._ready() resets the run BEFORE it
+# consumes this flag.
+var pending_boot: String = ""
 # The nightmare prologue's story beat: true once the pig has woken from the
 # dream (or skipped it - the 6am truck deadline is known either way), so the
 # to-do notebook can show the prologue as a crossed-out story entry.

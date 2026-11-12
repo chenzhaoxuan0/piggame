@@ -125,7 +125,18 @@ func _ready() -> void:
 	player.reset_at(farm.get_spawn_position())
 	camera.snap_to_target()
 	_refresh_hud()
-	_show_start_menu()
+	# The opening key-test scene hands off through GameManager.pending_boot
+	# (survives the reset_run() above by design). No flag means a direct
+	# instantiate - tests and captures still get the classic start menu.
+	match GameManager.pending_boot:
+		"dream":
+			GameManager.pending_boot = ""
+			_start_dream_intro()
+		"farm":
+			GameManager.pending_boot = ""
+			skip_dream_intro()
+		_:
+			_show_start_menu()
 
 func _build_pin() -> void:
 	pin_visual = preload("res://scripts/art/asset_library.gd").make("PROP_03")
@@ -545,9 +556,12 @@ func _close_settings() -> void:
 				settings_btn.grab_focus()
 
 func _return_to_main_menu() -> void:
+	# The opening key-test scene IS the main menu now (it lives in its own
+	# scene so the boot flow can offer the key playground before the dream).
 	paused = false
 	in_settings = false
-	_restart()
+	GameManager.pending_boot = ""
+	get_tree().change_scene_to_file("res://scenes/ui/opening_scene.tscn")
 
 func _resume() -> void:
 	paused = false
