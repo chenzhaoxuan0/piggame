@@ -1,24 +1,13 @@
 {
   "asset_id": "ENV_06_HAY",
   "raw_triangles": 9606,
-  "triangles": 4000,
-  "vertices": 3790,
+  "triangles": 2599,
   "size_blender_xyz": [
-    0.9438499808311462,
-    1.1248277425765991,
-    0.9000000953674316
+    0.9428788423538208,
+    1.125605821609497,
+    0.8999999761581421
   ],
-  "material_count": 3,
-  "file_bytes": 409140,
-  "postprocess": "UV albedo sampled to authored solid palette; decimated; angle-split normals; grounded; metre scale",
-  "runtime": "assets/models/aholo/ENV_06_HAY/ENV_06_HAY_game.glb",
-  "size_godot_xyz": [
-    1.6999999284744263,
-    0.9000000953674316,
-    1.1500000953674316
-  ],
-  "finishing": "Authored palette regions, facing Godot -Z, local Blender postproduction",
-  "rig_bones": 0,
-  "animations": [],
-  "gate_hinges": false
+  "file_bytes": 205556,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_06_HAY/ENV_06_HAY_game.glb"
 }

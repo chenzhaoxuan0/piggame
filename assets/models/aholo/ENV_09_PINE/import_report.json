@@ -7,7 +7,7 @@
     4.658712863922119,
     6.800000190734863
   ],
-  "file_bytes": 156444,
+  "file_bytes": 156448,
   "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
   "runtime": "assets/models/aholo/ENV_09_PINE/ENV_09_PINE_game.glb"
 }

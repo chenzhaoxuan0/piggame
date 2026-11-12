@@ -7,7 +7,7 @@
     1.167781949043274,
     0.7500000596046448
   ],
-  "file_bytes": 101892,
+  "file_bytes": 101896,
   "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
   "runtime": "assets/models/aholo/ENV_09_STUMP/ENV_09_STUMP_game.glb"
 }

@@ -16,7 +16,7 @@ if args.accept:
     for asset_id in args.accept:
         spec=SPECS[asset_id]
         report=json.loads((BASE/asset_id/'import_report.json').read_text(encoding='utf-8'))
-        budget=7000 if asset_id=='ENV_09_WOOL' else (4500 if asset_id in ['ENV_09_BARREL','ENV_09_HURDLE'] else 2600)
+        budget=7000 if asset_id=='ENV_09_WOOL' else (4500 if asset_id in ['ENV_09_BARREL','ENV_09_HURDLE','ENV_06_CRATE'] else 2600)
         if report['triangles']>budget: raise ValueError('Dressing exceeds review budget: '+asset_id)
         resource='res://'+report['runtime']
         catalog['assets'][asset_id]={'path':resource,'accepted':True,'yaw_degrees':0,

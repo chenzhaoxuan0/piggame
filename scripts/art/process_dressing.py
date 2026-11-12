@@ -72,7 +72,9 @@ def process(asset_id):
     count=sum(len(p.vertices)-2 for p in obj.data.polygons)
     if count>spec['budget']:
         dec=obj.modifiers.new('Game silhouette','DECIMATE')
-        if asset_id in ['ENV_09_BARREL','ENV_09_WOOL','ENV_09_HURDLE']:
+        # Hard-surface slatted/planked silhouettes tear under collapse decimation;
+        # planar dissolve keeps their flat faces clean (same contract as barrel/hurdle).
+        if asset_id in ['ENV_09_BARREL','ENV_09_WOOL','ENV_09_HURDLE','ENV_06_CRATE']:
             dec.decimate_type='DISSOLVE';dec.angle_limit=math.radians(35 if asset_id=='ENV_09_WOOL' else 12)
             dec.use_dissolve_boundaries=False
         else: dec.ratio=spec['budget']/count

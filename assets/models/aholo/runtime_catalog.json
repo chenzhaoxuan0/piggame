@@ -112,25 +112,28 @@
       "path": "res://assets/models/aholo/ENV_06_CRATE/ENV_06_CRATE_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 4000,
-      "animations": [],
-      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+      "triangles": 4203,
+      "category": "environment_dressing",
+      "triangle_budget": 4500,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-02"
     },
     "ENV_06_HAY": {
       "path": "res://assets/models/aholo/ENV_06_HAY/ENV_06_HAY_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 4000,
-      "animations": [],
-      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+      "triangles": 2599,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-02"
     },
     "ENV_06_TRACTOR": {
       "path": "res://assets/models/aholo/ENV_06_TRACTOR/ENV_06_TRACTOR_game.glb",
       "accepted": true,
       "yaw_degrees": 0,
-      "triangles": 4000,
-      "animations": [],
-      "validation": "Rendered Godot preview, skeleton motion, stateful props and full journey verified; 2026-11-02"
+      "triangles": 2597,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-02"
     },
     "PROP_02": {
       "path": "res://assets/models/aholo/PROP_02/PROP_02_game.glb",

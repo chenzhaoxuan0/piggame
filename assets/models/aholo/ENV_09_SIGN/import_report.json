@@ -7,7 +7,7 @@
     0.9305970072746277,
     1.8000000715255737
   ],
-  "file_bytes": 78948,
+  "file_bytes": 78944,
   "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
   "runtime": "assets/models/aholo/ENV_09_SIGN/ENV_09_SIGN_game.glb"
 }

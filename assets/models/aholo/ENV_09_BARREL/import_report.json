@@ -7,7 +7,7 @@
     0.802130401134491,
     0.9999999403953552
   ],
-  "file_bytes": 196484,
+  "file_bytes": 196480,
   "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
   "runtime": "assets/models/aholo/ENV_09_BARREL/ENV_09_BARREL_game.glb"
 }

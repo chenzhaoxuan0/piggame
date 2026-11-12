@@ -7,7 +7,7 @@
     2.5285797119140625,
     1.600000023841858
   ],
-  "file_bytes": 191972,
+  "file_bytes": 191976,
   "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
   "runtime": "assets/models/aholo/ENV_09_HURDLE/ENV_09_HURDLE_game.glb"
 }
