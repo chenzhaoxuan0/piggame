@@ -58,9 +58,11 @@ var ending_art: TextureRect
 var in_start_menu := true
 var in_settings := false
 var settings_from_start := false
+var achievements_from_start := false
 var start_menu: Control
 var pause_menu: Control
 var settings_menu: Control
+var achievements_menu: Control
 
 # Untitled Goose Game Style UI Extensions
 var todo_notebook: PanelContainer
@@ -177,6 +179,7 @@ func _build_hud() -> void:
 	_wire_dialogue_panel()
 	_build_pokemon_battle()
 	GAME_MENUS.build_all(self)
+	achievements_menu = GAME_MENUS.build_achievements_menu(hud, _close_achievements)
 
 func _wire_dialogue_panel() -> void:
 	dialogue_panel.gui_input.connect(func(event: InputEvent):
@@ -289,6 +292,8 @@ func _finish_qte(success: bool) -> void:
 	qte_panel.visible = false
 	var dog := current_qte_dog
 	current_qte_dog = null
+	if success:
+		AchievementManager.unlock("grapple_escape")
 
 	if is_instance_valid(active_course):
 		active_course.runner.resolve_qte(dog, success)
@@ -354,6 +359,7 @@ func _on_player_dash_changed(remaining: float, _cooldown: float) -> void:
 				fill_style.bg_color = Color(0.42, 0.75, 0.38) # Full stamina green
 
 func _on_player_dodge_succeeded(_dog: Node3D) -> void:
+	AchievementManager.unlock("first_dodge")
 	_show_toast("★ 闪避成功！", "灵巧侧身闪过恶犬扑杀！")
 
 # -------------------------------------------------------------
@@ -452,7 +458,7 @@ func start_dream_intro() -> void:
 func skip_dream_intro() -> void:
 	# Skip path: the dream never plays, but the 6am truck deadline is still the
 	# story's inciting incident - mark the prologue beat as known.
-	GameManager.intro_dream_done = true
+	GameManager.mark_intro_dream_done()
 	_start_game()
 
 func _start_dream_intro() -> void:
@@ -525,6 +531,9 @@ func _show_pause_settings() -> void:
 func _open_settings(from_start: bool = false) -> void:
 	in_settings = true
 	settings_from_start = from_start
+	# The wall and the settings card are sibling modals - never both at once.
+	if is_instance_valid(achievements_menu):
+		achievements_menu.visible = false
 	if from_start:
 		if is_instance_valid(start_menu): start_menu.visible = false
 	else:
@@ -554,6 +563,37 @@ func _close_settings() -> void:
 			var settings_btn: Button = pause_menu.find_child("SettingsButton", true, false)
 			if is_instance_valid(settings_btn):
 				settings_btn.grab_focus()
+
+func _open_achievements(from_start: bool = false) -> void:
+	achievements_from_start = from_start
+	if in_settings:
+		_close_settings()
+	if is_instance_valid(achievements_menu):
+		GAME_MENUS.refresh_achievements_menu(achievements_menu)
+		achievements_menu.visible = true
+		var back_btn: Button = achievements_menu.find_child("BackButton", true, false)
+		if is_instance_valid(back_btn):
+			back_btn.grab_focus()
+	if from_start:
+		if is_instance_valid(start_menu): start_menu.visible = false
+	else:
+		if is_instance_valid(pause_menu): pause_menu.visible = false
+
+func _close_achievements() -> void:
+	if is_instance_valid(achievements_menu):
+		achievements_menu.visible = false
+	if achievements_from_start:
+		if is_instance_valid(start_menu):
+			start_menu.visible = true
+			var achv_btn: Button = start_menu.find_child("AchievementsButton", true, false)
+			if is_instance_valid(achv_btn):
+				achv_btn.grab_focus()
+	else:
+		if is_instance_valid(pause_menu):
+			pause_menu.visible = true
+			var achv_btn: Button = pause_menu.find_child("AchievementsButton", true, false)
+			if is_instance_valid(achv_btn):
+				achv_btn.grab_focus()
 
 func _return_to_main_menu() -> void:
 	# The opening key-test scene IS the main menu now (it lives in its own
@@ -623,6 +663,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 			
 	if event.is_action_pressed("ui_cancel") and not cinematic and GameManager.stage != "ending":
+		if achievements_menu != null and is_instance_valid(achievements_menu) and achievements_menu.visible:
+			_close_achievements()
+			get_viewport().set_input_as_handled()
+			return
 		if in_settings:
 			_close_settings()
 			get_viewport().set_input_as_handled()
@@ -899,6 +943,7 @@ func _on_secret_pipe_entered(course_id: String) -> void:
 		"course_4": current_chase_id = "chase_final"
 		_: current_chase_id = "chase_1"
 	_show_toast("【发现隐藏捷径！】", "钻入神秘管道，逃入隐藏试炼赛道！")
+	AchievementManager.unlock("pipe_explorer")
 	_enter_course(course_id)
 
 func enter_secret_course(course_id: String = "course_1") -> void:
@@ -963,7 +1008,7 @@ func _finish_course_deferred() -> void:
 	if completed_id == "intro":
 		# Wake up in the pen: cold sweat, hooks still flashing, decision made.
 		# The prologue story beat lands on the to-do notebook's first line.
-		GameManager.intro_dream_done = true
+		GameManager.mark_intro_dream_done()
 		_show_toast("……！！", "你一身冷汗地从泥窝里弹起来。梦里的铁钩还在眼前晃。")
 		await get_tree().create_timer(2.7).timeout
 		_show_toast("天快亮了。", "运牲车，明早六点就到。今晚——就今晚。（山顶残墙上的老岩羊在等你，它见过外面的事。）")

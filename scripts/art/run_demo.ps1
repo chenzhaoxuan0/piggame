@@ -140,7 +140,7 @@ if ($PackCheck) {
         'res://scripts/courses/course_00_nightmare.gd.remap', 'res://scenes/courses/course_00_nightmare.tscn.remap',
         'pastoral_farm.scn', 'runtime_catalog.json', 'res://scripts/ui/game_hud.gd.remap', 'res://scripts/ui/menus.gd.remap',
         'res://scenes/ui/opening_scene.tscn.remap', 'res://scripts/ui/opening_scene.gd.remap',
-        'res://scripts/ui/ui_kit.gd.remap'
+        'res://scripts/ui/ui_kit.gd.remap', 'res://scripts/core/achievement_manager.gd.remap'
     )
     # Absent checks target real pack entries (.remap/.gdc/.import), because plain path
     # strings also appear inside the packed .godot/uid_cache.bin for every project resource.

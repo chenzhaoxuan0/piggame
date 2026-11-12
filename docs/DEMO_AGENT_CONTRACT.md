@@ -25,7 +25,7 @@
 - stage: String = prologue / exploring / chase / showdown / cablecar_ready / ending。
 - has_pin: bool；npc_completed: Dictionary；npc_met: Dictionary；has_read_record: bool；ending: String。
 - signal state_changed；reset_run()；choose_red()->bool；choose_blue()->bool；complete_npc(id:String)->bool；read_record()；start_chase()->bool；retry_chase()->bool（chase -> exploring）；complete_chase()->bool；complete_showdown()->bool；can_launch_cablecar()->bool；finish_escape()->bool。
-- 所有操作校验阶段，结算幂等；技能在 NPC 完成事件后才获取。无存档/平台成就需求。
+- 所有操作校验阶段，结算幂等；技能在 NPC 完成事件后才获取。运行进度无存档；成就进度例外：AchievementManager（autoload）把已解锁成就持久化到 user://achievements.json（仓库唯一存档文件），reset_run() 不清成就，游戏本体状态机不变。
 
 ## DialogueManager（Agent A）
 

@@ -75,6 +75,12 @@ func reset_run() -> void:
 func is_in_chase() -> bool:
 	return stage.begins_with("chase")
 
+## The dream beat is a plain field write in the level script; this setter lets
+## listeners (AchievementManager) hear about it through state_changed.
+func mark_intro_dream_done() -> void:
+	intro_dream_done = true
+	state_changed.emit()
+
 func start_stage_chase(chase_id: String) -> bool:
 	if not has_pin and chase_id != "chase_1":
 		return false

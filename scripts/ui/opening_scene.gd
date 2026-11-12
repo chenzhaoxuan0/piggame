@@ -11,6 +11,7 @@ extends Node3D
 # its own start menu.
 
 const UI = preload("res://scripts/ui/ui_kit.gd")
+const GAME_MENUS = preload("res://scripts/ui/menus.gd")
 const PIG_SCENE = preload("res://scenes/characters/pig.tscn")
 const ISO_CAMERA = preload("res://scripts/core/isometric_camera.gd")
 
@@ -22,6 +23,8 @@ const STRAW := Color("E8C86A")
 var pig: PigController
 var trough: StaticBody3D
 var _keycaps := {} # action/key tag -> Array[PanelContainer]
+var _ui_root: Control
+var achievements_panel: Control
 
 func _ready() -> void:
 	_build_stage()
@@ -149,6 +152,7 @@ func _build_camera() -> void:
 func _on_pig_interacted(target: Node3D) -> void:
 	if target != trough:
 		return
+	AchievementManager.unlock("trough_sniff") # Before the dream even starts
 	_snort("哼哼！（拱得食槽哐当响）")
 	var squash := create_tween()
 	squash.tween_property(trough, "scale", Vector3(1.12, 0.72, 1.12), 0.08)
@@ -176,6 +180,7 @@ func _build_ui() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UI.apply(root)
 	layer.add_child(root)
+	_ui_root = root
 
 	# Menu card, left of centre - the pen stage stays visible behind it.
 	var column := VBoxContainer.new()
@@ -208,6 +213,10 @@ func _build_ui() -> void:
 	btn_skip.custom_minimum_size.y = 36
 	btn_skip.add_theme_font_size_override("font_size", 16)
 	vbox.add_child(btn_skip)
+	var btn_achv := UI.button("🏅  成就墙", _open_achievements_panel)
+	btn_achv.name = "AchievementsButton"
+	btn_achv.custom_minimum_size.y = 40
+	vbox.add_child(btn_achv)
 	var btn_quit := UI.button("✕  退出游戏", func(): get_tree().quit())
 	btn_quit.name = "QuitButton"
 	btn_quit.custom_minimum_size.y = 40
@@ -216,7 +225,7 @@ func _build_ui() -> void:
 	vbox.add_child(hint)
 	# The whole point of this scene: keys must reach the pig, so no button
 	# ever takes focus (a focused button eats Space/Enter as ui_accept).
-	for btn in [btn_start, btn_skip, btn_quit]:
+	for btn in [btn_start, btn_skip, btn_achv, btn_quit]:
 		btn.focus_mode = Control.FOCUS_NONE
 
 	# Key-test strip along the bottom: keycap per bound key, lights up while
@@ -276,6 +285,16 @@ func _process(_delta: float) -> void:
 			cap.modulate = tint
 
 # ------------------------------------------------------------- hand-off
+func _open_achievements_panel() -> void:
+	if achievements_panel == null:
+		achievements_panel = GAME_MENUS.build_achievements_menu(_ui_root, _close_achievements_panel)
+	GAME_MENUS.refresh_achievements_menu(achievements_panel)
+	achievements_panel.visible = true
+
+func _close_achievements_panel() -> void:
+	if achievements_panel != null:
+		achievements_panel.visible = false
+
 func _boot_to(intent: String) -> void:
 	GameManager.pending_boot = intent
 	get_tree().change_scene_to_file("res://scenes/levels/office_level_1.tscn")

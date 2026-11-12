@@ -20,6 +20,88 @@ static func _dim(host: Node, parent: Control, alpha: float) -> void:
 	bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	parent.add_child(bg)
 
+# 成就墙面板：不绑 host（office 的 hud 层与开场场景的 UI 层都能挂），
+# 展示时调 refresh_achievements_menu 重建行。on_close 由调用方决定回到哪个菜单。
+static func build_achievements_menu(parent: Control, on_close: Callable) -> Control:
+	var menu := Control.new()
+	menu.name = "AchievementsMenu"
+	menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	menu.visible = false
+	parent.add_child(menu)
+	_dim(parent, menu, 0.55)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	menu.add_child(center)
+
+	var card := UI.patch_panel(24, UI.PAPER, UI.SUNNY, Vector2(28, 18))
+	card.custom_minimum_size = Vector2(640, 0)
+	_tilt(card, -0.6)
+	center.add_child(card)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	card.add_child(vbox)
+
+	var title := UI.label("🏅 成就墙", 28, UI.TEAL_DEEP, true)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+	var count := UI.label("？", 14, UI.INK_SOFT)
+	count.name = "AchievementCount"
+	count.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(count)
+
+	vbox.add_child(HSeparator.new())
+
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(0, 400)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	vbox.add_child(scroll)
+	var rows := VBoxContainer.new()
+	rows.name = "AchievementRows"
+	rows.add_theme_constant_override("separation", 6)
+	rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(rows)
+
+	var btn_back := UI.button("返  回", on_close)
+	btn_back.name = "BackButton"
+	btn_back.custom_minimum_size.y = 44
+	vbox.add_child(btn_back)
+	return menu
+
+static func refresh_achievements_menu(menu: Control) -> void:
+	if not is_instance_valid(menu):
+		return
+	var rows: VBoxContainer = menu.find_child("AchievementRows", true, false)
+	var count: Label = menu.find_child("AchievementCount", true, false)
+	if rows == null or count == null:
+		return
+	for child in rows.get_children():
+		child.queue_free()
+	var am: Node = Engine.get_main_loop().root.get_node_or_null("AchievementManager")
+	if am == null:
+		return
+	count.text = "已解锁 %d / %d" % [am.unlocked_count(), am.total()]
+	for def in am.DEFS:
+		var done: bool = am.is_unlocked(str(def["id"]))
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		rows.add_child(row)
+		var dot := PanelContainer.new()
+		dot.custom_minimum_size = Vector2(18, 18)
+		dot.add_theme_stylebox_override("panel", UI.pill(
+			UI.SUNNY if done else UI.PAPER_DEEP, 9,
+			Color.TRANSPARENT if done else UI.PAPER_EDGE, 0 if done else 2, Vector2.ZERO))
+		dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(dot)
+		var text := VBoxContainer.new()
+		text.add_theme_constant_override("separation", 1)
+		row.add_child(text)
+		var t := UI.label(("🏅 " if done else "🔒 ") + str(def["title"]), 17,
+			UI.TEAL_DEEP if done else UI.INK_SOFT, true)
+		text.add_child(t)
+		text.add_child(UI.label(str(def["desc"]), 13, UI.INK_SOFT))
+
 static func _tilt(node: Control, degrees: float) -> void:
 	node.rotation_degrees = degrees
 	node.resized.connect(func(): node.pivot_offset = node.size * 0.5)
@@ -72,6 +154,11 @@ static func _build_start_menu(host: Node) -> void:
 	btn_settings.name = "SettingsButton"
 	btn_settings.custom_minimum_size.y = 48
 	vbox.add_child(btn_settings)
+
+	var btn_achv := UI.button("🏅  成就墙", host._open_achievements.bind(true))
+	btn_achv.name = "AchievementsButton"
+	btn_achv.custom_minimum_size.y = 44
+	vbox.add_child(btn_achv)
 
 	var btn_quit := UI.button("✕  退出游戏", func(): host.get_tree().quit())
 	btn_quit.name = "QuitButton"
@@ -158,6 +245,11 @@ static func _build_pause_menu(host: Node) -> void:
 	btn_settings.name = "SettingsButton"
 	btn_settings.custom_minimum_size.y = 44
 	vbox.add_child(btn_settings)
+
+	var btn_achv := UI.button("🏅  成就墙", host._open_achievements.bind(false))
+	btn_achv.name = "AchievementsButton"
+	btn_achv.custom_minimum_size.y = 44
+	vbox.add_child(btn_achv)
 
 	var btn_restart := UI.button("↺  从头开始", host._restart)
 	btn_restart.name = "RestartButton"

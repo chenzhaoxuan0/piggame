@@ -665,6 +665,8 @@ func _build_finish_gate() -> void:
 func _on_finish_line_crossed(player: Node3D) -> void:
 	if meme_layer:
 		meme_layer.play("record_broken" if finish_gate.record_broken else "record_miss")
+	if finish_gate.record_broken:
+		AchievementManager.unlock("record_breaker")
 	runner._on_exit(player)
 
 func _build_decorations() -> void:
