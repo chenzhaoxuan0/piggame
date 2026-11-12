@@ -232,9 +232,13 @@ func _build_ui() -> void:
 	# held (see _process).
 	var strip := UI.patch_panel(18, UI.PAPER, UI.TEAL, Vector2(20, 12))
 	strip.name = "KeyTestStrip"
-	# MINSIZE preset centers the panel's own size on the bottom anchor (a plain
-	# preset pins a zero-size box at the anchor and grows it off-screen).
+	# MINSIZE preset is applied while the strip is still empty (min size 0), so
+	# the keycap rows added below grow the panel afterwards - that growth must
+	# go UP, or the strip sinks past the bottom edge (default grow_vertical is
+	# END/down; same trap the achievement popup's grow-directions dodge).
 	strip.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE)
+	strip.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	strip.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	strip.offset_top -= 24
 	strip.offset_bottom -= 24
 	root.add_child(strip)
