@@ -41,3 +41,6 @@ assets/models/aholo/ENV_09_*/source/rejected_*/
 
 # Local pipeline exchange
 assets/models/aholo/_ipc/
+
+# AI session state
+.zcode/
