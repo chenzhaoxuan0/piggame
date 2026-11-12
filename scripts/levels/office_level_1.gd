@@ -90,6 +90,36 @@ var skill_card_desc_label: Label
 var skill_card_btn: Button
 var in_skill_card := false
 
+# Course-scoped loan skill card (non-blocking, auto-dismissing)
+var loan_card: PanelContainer
+var loan_card_title: Label
+var loan_card_subtitle: Label
+var loan_card_key_label: Label
+var loan_card_desc_label: Label
+var loan_card_hint: Label
+var _loan_queue: Array[String] = []
+var _loan_showing := false
+const LOAN_SKILL_TEXTS := {
+	"struggle": {
+		"title": "【 坚 韧 挣 脱 】",
+		"subtitle": "借老牛坚忍不屈的硬骨气 · 本关与你同行",
+		"key": "【核心按键】 被咬住时狂按 [ 空格键 / SPACE ] 或 [ E ]",
+		"desc": "被恶犬扑咬纠缠时，在时限内猛敲空格，即可爆发巨力震退恶犬并使其眩晕！"
+	},
+	"discern": {
+		"title": "【 破 妄 明 眸 】",
+		"subtitle": "借小羊清澈明辨的目光 · 本关与你同行",
+		"key": "【被动视觉】 幻影恶犬将显现为半透明紫灰虚影",
+		"desc": "幻影恶犬无法阻拦你，穿过虚影会使其化作烟尘消散！专心避开实体黑犬即可！"
+	},
+	"dash": {
+		"title": "【 疾 风 冲 刺 】",
+		"subtitle": "借追风骏马四蹄翻腾的疾速 · 本关与你同行",
+		"key": "【核心按键】 长按 [ Shift 键 ] 消耗体力加速",
+		"desc": "长按多久就加速多久，松开即刻恢复体力！恶犬红圈扑杀时按 Shift 灵巧闪避！"
+	}
+}
+
 # Chase & QTE logic state
 var current_chase_id := ""
 var in_qte := false
@@ -123,7 +153,9 @@ func _ready() -> void:
 		farm.playground_event.connect(_on_playground_event)
 		
 	GameManager.state_changed.connect(_refresh_hud)
-	
+	if GameManager.has_signal("course_skill_granted"):
+		GameManager.course_skill_granted.connect(_on_course_skill_granted)
+
 	_build_hud()
 	_build_pin()
 	player.reset_at(farm.get_spawn_position())
@@ -336,6 +368,40 @@ func _dismiss_skill_card() -> void:
 	skill_card_modal.visible = false
 	_restore_control()
 	_refresh_hud()
+
+# -------------------------------------------------------------
+# Course-scoped loan skill card (non-blocking: the pig keeps running)
+# -------------------------------------------------------------
+func _on_course_skill_granted(skill_id: String) -> void:
+	_loan_queue.append(skill_id)
+	if not _loan_showing:
+		_pump_loan_cards()
+
+func _pump_loan_cards() -> void:
+	_loan_showing = true
+	while not _loan_queue.is_empty():
+		await _show_loan_card(_loan_queue.pop_front())
+	_loan_showing = false
+
+func _show_loan_card(skill_id: String) -> void:
+	var text: Dictionary = LOAN_SKILL_TEXTS.get(skill_id, {})
+	if text.is_empty():
+		return
+	loan_card_title.text = text.get("title", "")
+	loan_card_subtitle.text = text.get("subtitle", "")
+	loan_card_key_label.text = text.get("key", "")
+	loan_card_desc_label.text = text.get("desc", "")
+	loan_card.visible = true
+	loan_card.modulate.a = 0.0
+	loan_card.scale = Vector2(0.9, 0.9)
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(loan_card, "modulate:a", 1.0, 0.2)
+	tween.tween_property(loan_card, "scale", Vector2.ONE, 0.24).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await get_tree().create_timer(3.0).timeout
+	var fade := create_tween()
+	fade.tween_property(loan_card, "modulate:a", 0.0, 0.3)
+	await fade.finished
+	loan_card.visible = false
 
 # -------------------------------------------------------------
 # Dash Sprint Gauge (Horse Pasture Power)

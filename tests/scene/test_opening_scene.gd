@@ -45,7 +45,15 @@ func _run() -> void:
 		_check(btn != null, "Menu button exists: " + btn_name)
 		if btn != null:
 			_check(btn.focus_mode == Control.FOCUS_NONE, "Button never steals keyboard focus: " + btn_name)
-	_check(opening.find_child("KeyTestStrip", true, false) != null, "Key-test strip is on screen")
+	var strip: Control = opening.find_child("KeyTestStrip", true, false)
+	_check(strip != null, "Key-test strip is on screen")
+	if strip != null:
+		# The strip is laid out while still empty, then grown by its keycap rows:
+		# growth must stay inside the viewport (grow_vertical BEGIN, or it sinks
+		# past the bottom edge - the bug the capture screenshot caught).
+		await process_frame
+		var viewport_rect := Rect2(Vector2.ZERO, strip.get_viewport_rect().size)
+		_check(viewport_rect.encloses(strip.get_global_rect()), "Key-test strip fully inside the viewport")
 
 	# --- 2. Keys move the pig: WASD walking (polled, first input used)
 	var origin: Vector3 = pig.global_position
