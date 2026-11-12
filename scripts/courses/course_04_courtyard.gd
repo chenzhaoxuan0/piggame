@@ -156,15 +156,15 @@ func _on_race_go() -> void:
 func _make_config() -> CourseConfig:
 	var cfg := CONFIG_SCRIPT.new()
 	cfg.course_id = "course_4"
-	cfg.title = "大院隐藏关卡 · 《马车极速狂飙》打破35秒纪录！"
-	cfg.desc = "终极街机竞速赛道！踩上黄色加速带极速喷火、扔西瓜皮滑倒恶犬、凭借【疾风之步】打破世界纪录冲破大门！"
+	cfg.title = "终章 · 大院金牌突围"
+	cfg.desc = "最后的直线！踩上黄色加速带极速喷火、扔西瓜皮滑倒恶犬、用疾风之步打破 35 秒纪录——撞开大铁门，这是通往自由的最后一跑！"
 	cfg.kill_y = -12.0
 	cfg.bounds = AABB(Vector3(-40, -16, -190), Vector3(80, 40, 220))
 	cfg.dog_count = 1
 	cfg.dog_speed_min = 3.2
 	cfg.dog_speed_max = 6.8
 	cfg.memes = {
-		"course_start": {"title": "3... 2... 1... 起跑！", "text": "切换极速街机赛道！踩加速带漂移过弯，冲刺打破世界纪录！", "duration": 3.0},
+		"course_start": {"title": "最后一跑——冲破大铁门！", "text": "3…2…1…踩上加速带极速喷火！打破纪录，大门就在终点线后！", "duration": 3.0},
 		"boost_pad": {"title": "屁股喷火！极速加速！", "text": "踩中加速带！氮气爆发，瞬间拉开身后恶犬十个身位！", "duration": 2.2},
 		"mystery_box": {"title": "❓ 撞碎问号道具箱！", "text": "道具抽取成功！火箭喷射/后置西瓜皮/无敌金猪！", "duration": 2.2},
 		"stunt_jump": {"title": "🏁 360° 空中特技！", "text": "一口猪飞跃霓虹大跳台！完美落地获得迷你涡轮加速！", "duration": 2.5},

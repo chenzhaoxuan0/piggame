@@ -115,8 +115,8 @@ func setup(player: Node3D) -> void:
 func _make_config() -> CourseConfig:
 	var cfg := CONFIG_SCRIPT.new()
 	cfg.course_id = "course_0"
-	cfg.title = "噩梦 · 屠宰场之夜"
-	cfg.desc = "白得发亮的灯管，消毒水味……躲开困意浓雾，沿着流水线一路转折，在被追上之前冲出月台铁门！"
+	cfg.title = "序幕 · 噩梦"
+	cfg.desc = "困意浓雾在身后漫过来。沿流水线一路转折，在被追上之前冲出月台铁门——从这场梦里醒来！"
 	cfg.kill_y = -12.0
 	# The serpentine sprawls east: legs live between x -6 and x 52, z 20..-88.
 	cfg.bounds = AABB(Vector3(-15, -16, -100), Vector3(75, 40, 130))
@@ -126,7 +126,11 @@ func _make_config() -> CourseConfig:
 	# The dream butcher is the farmer himself (stun prod and all).
 	cfg.dog_visual_asset_id = "CHAR_07"
 	cfg.memes = {
-		"course_start": {"title": "……（入梦）", "text": "白得发亮的灯管，消毒水味。这里是——屠宰场？！用 W/A/S/D 移动，身后有困意浓雾——快跑！", "duration": 4.5},
+		# Progressive reveal: the opening is pure confusion (no location named);
+		# suspicion grows in the pens, the hooks land the first real dread in
+		# the plant, and the word 屠宰场 only drops at the mid-factory corner.
+		"course_start": {"title": "醒一醒——先离开这里！", "text": "头顶的灯管白得发亮，空气里有铁锈和消毒水的味道……用 W/A/S/D 移动。身后有困意浓雾在漫过来——快跑！", "duration": 4.5},
+		"reveal_plant": {"title": "这里是——屠宰场！！", "text": "一车间、二车间……挂在铁钩上的是肉。活物被运进来，然后——别想了。找到月台，冲出去，醒来！", "duration": 3.5},
 		"dash_learned": {"title": "梦里的本能觉醒了！", "text": "按住【Shift】冲刺！下方体力条会用尽——逆着传送带冲过去！", "duration": 3.5},
 		"dodge_learned": {"title": "红圈预警！", "text": "屠夫扑击前脚下会亮起红圈——看准时机按【Shift】闪避！", "duration": 3.5},
 		"fog_wake": {"title": "困意……", "text": "身后有什么东西漫过来了。别回头，跑。", "duration": 2.0},
@@ -247,7 +251,7 @@ func _solid_box(node_name: String, size: Vector3, pos: Vector3, color: Color) ->
 # ------------------------------------------------------------------
 func _build_holding_pins() -> void:
 	_label("【W / A / S / D  移动】", Vector3(0, 2.0, 10.5), 34)
-	_label("【噩梦 · 圈栏】身后有困意浓雾在追！绕开笼架、别碰睡着的狗，\n冲进尽头的铁门甩掉它——然后右转！", Vector3(0, 2.8, 8.0), 20)
+	_label("【这里是……圈栏？】铁栏杆，铁链——这里关着好多活物。\n身后有困意浓雾在追！绕开笼架、别碰睡着的狗，\n冲进尽头的铁门甩掉它——然后右转！", Vector3(0, 2.8, 8.0), 20)
 
 	for cage in [
 		{"pos": Vector3(-2.5, 0.8, 4.0), "name": "CagePenA"},
@@ -328,7 +332,7 @@ func _on_pens_door_entered(body: Node3D) -> void:
 # the hooks ARE the obstacle; you time them or eat steel.
 # ------------------------------------------------------------------
 func _build_processing_floor() -> void:
-	_label("【流水线一车间】右转！\n脚下的路全是传送带，铁钩就在头顶——掐节奏！", Vector3(0, 3.0, -23.5), 19)
+	_label("【流水线一车间】头顶挂着的是……挂肉的铁钩？！\n脚下的路全是传送带——掐着铁钩的节奏过！", Vector3(0, 3.0, -23.5), 19)
 	_label("踏上皮带——【按住 Shift 冲刺】逆流冲过去！", Vector3(8.0, 2.4, -30.0), 22)
 
 	# L2 (eastbound, z -34..-26): two westbound lines with a prod crossing.
@@ -453,6 +457,7 @@ func _stun_prod(node_name: String, pos: Vector3) -> void:
 	pillar.cap_color = Color("FFF59D")
 	pillar.star_color = Color("00E5FF")
 	pillar.lux_asset_id = "PROP_C0_STUN_PROD" # Realistic hazard-striped shocker pillar
+	pillar.meme_id = "prod_zap" # The written zap toast never fired without this
 	add_child(pillar)
 
 func _steam_vent(pos: Vector3, back_dir: Vector3) -> void:
@@ -472,14 +477,16 @@ func _build_camera_turns() -> void:
 	# Corner triggers: the third-person camera stays yaw-locked to the leg
 	# axis (free yaw would spin on strafe/backpedal), so each corner smoothly
 	# rotates it to the next leg's heading. -90 deg faces +X, 0 faces -Z.
+	# Turn 2 doubles as the nightmare's mid-factory reveal beat (one-shot).
 	_turn_trigger("CameraTurn1", Vector3(8.0, 1.5, -30.0), Vector3(3, 3, 8), -90.0)
-	_turn_trigger("CameraTurn2", Vector3(30.0, 1.5, -36.5), Vector3(8, 3, 3), 0.0)
+	_turn_trigger("CameraTurn2", Vector3(30.0, 1.5, -36.5), Vector3(8, 3, 3), 0.0, "reveal_plant")
 	_turn_trigger("CameraTurn3", Vector3(36.0, 1.5, -54.0), Vector3(3, 3, 8), -90.0)
 	_turn_trigger("CameraTurn4", Vector3(43.0, 1.5, -56.0), Vector3(8, 3, 3), 0.0)
 
-func _turn_trigger(node_name: String, pos: Vector3, size: Vector3, yaw_deg: float) -> void:
+func _turn_trigger(node_name: String, pos: Vector3, size: Vector3, yaw_deg: float, meme: String = "") -> void:
 	var area := _area(node_name, "", pos, size)
 	area.set_meta("turn_yaw_deg", yaw_deg)
+	area.set_meta("turn_meme", meme)
 	area.body_entered.connect(_on_turn_entered.bind(area))
 
 func _on_turn_entered(body: Node3D, area: Area3D) -> void:
@@ -488,6 +495,9 @@ func _on_turn_entered(body: Node3D, area: Area3D) -> void:
 	if _turn_shots.get(area.name, false):
 		return
 	_turn_shots[area.name] = true
+	var meme: String = area.get_meta("turn_meme", "")
+	if not meme.is_empty() and meme_layer:
+		meme_layer.play(meme)
 	var office_root := get_parent()
 	if office_root == null:
 		return

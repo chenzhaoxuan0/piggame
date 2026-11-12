@@ -60,15 +60,15 @@ func setup(player: Node3D) -> void:
 func _make_config() -> CourseConfig:
 	var cfg := CONFIG_SCRIPT.new()
 	cfg.course_id = "course_1"
-	cfg.title = "牛耕地隐藏闯关 · 糖豆人试炼"
-	cfg.desc = "飞越弹簧垫、顶问号砖、撞开幸运门、躲避扫堂腿与大摆锤！"
+	cfg.title = "第一章 · 甩掉阴影，冲进牛耕地"
+	cfg.desc = "身后的过往阴影紧追不放！飞越弹簧垫、顶问号砖、撞开幸运门——跑赢这条糖豆人试炼，就到阿牛的耕地！"
 	cfg.kill_y = -12.0
 	cfg.bounds = AABB(Vector3(-30, -16, -112), Vector3(60, 40, 132))
 	cfg.dog_count = 1
 	cfg.dog_speed_min = 2.6
 	cfg.dog_speed_max = 6.0
 	cfg.memes = {
-		"course_start": {"title": "隐藏赛道开启！", "text": "阿牛：你居然发现了秘密管道！往前冲！", "duration": 3.0},
+		"course_start": {"title": "阴影追进管道了！", "text": "跑赢这条试炼道，出口就是牛耕地！弹簧垫、问号砖、大摆锤——冲！", "duration": 3.0},
 		"launch_pad": {"title": "芜湖起飞！", "text": "糖豆人弹簧弹射！飞越泥潭！", "duration": 2.2},
 		"super_bounce": {"title": "绝处逢生！", "text": "跌落谷底？强力弹簧直接送你重回跑道！", "duration": 2.5},
 		"bumper_hit": {"title": "Duang！", "text": "弹力充气柱！弹飞旋转！", "duration": 2.0},

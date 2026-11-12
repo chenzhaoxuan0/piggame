@@ -62,7 +62,7 @@ static func _build_start_menu(host: Node) -> void:
 	vbox.add_child(btn_start)
 
 	# The nightmare prologue plays first; this skips straight to the pen escape.
-	var btn_skip := UI.button("跳过序章，直接出圈", host._start_game)
+	var btn_skip := UI.button("跳过序章，直接出圈", host.skip_dream_intro)
 	btn_skip.name = "SkipIntroButton"
 	btn_skip.custom_minimum_size.y = 36
 	btn_skip.add_theme_font_size_override("font_size", 16)

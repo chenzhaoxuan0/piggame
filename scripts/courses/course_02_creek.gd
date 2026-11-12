@@ -107,15 +107,15 @@ func setup(player: Node3D) -> void:
 func _make_config() -> CourseConfig:
 	var cfg := CONFIG_SCRIPT.new()
 	cfg.course_id = "course_2"
-	cfg.title = "溪流隐藏关卡 · 《我的世界》体素解谜"
-	cfg.desc = "像素水流奔涌！推动方块填河架桥、推落重力沙砸晕恶犬、引爆红石TNT炸穿黑曜石！"
+	cfg.title = "第二章 · 溪谷犬群突围"
+	cfg.desc = "带着坚忍之骨冲进溪谷！推方块填河架桥、推落重力沙砸晕恶犬、引爆红石TNT——狗群在溪谷尽头等着你！"
 	cfg.kill_y = -12.0
 	cfg.bounds = AABB(Vector3(-35, -16, -115), Vector3(70, 40, 140))
 	cfg.dog_count = 1
 	cfg.dog_speed_min = 2.4
 	cfg.dog_speed_max = 5.2
 	cfg.memes = {
-		"course_start": {"title": "进入《我的世界》体素次元！", "text": "画风与玩法突变！小猪化身体素工匠，前方水流急促！", "duration": 3.0},
+		"course_start": {"title": "狗群在溪谷尽头嚎叫！", "text": "画风突变——化身体素工匠！推方块、搭桥、过河，甩开犬队突围！", "duration": 3.0},
 		"water_splash": {"title": "小猪落水！", "text": "湍急的体素溪流！被冲回岸边狗刨中……", "duration": 2.2},
 		"water_slide": {"title": "🌊 瀑布急流滑梯！", "text": "咻——！一口猪顺着瀑布急流飞速滑入峡谷！", "duration": 2.2},
 		"slime_bounce": {"title": "🟩 史莱姆超级弹跳！", "text": "BOING！踩上粘液块，一口猪高高弹射过峡谷！", "duration": 2.2},

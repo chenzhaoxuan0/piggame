@@ -438,16 +438,22 @@ func start_game() -> void:
 func start_dream_intro() -> void:
 	_start_dream_intro()
 
+func skip_dream_intro() -> void:
+	# Skip path: the dream never plays, but the 6am truck deadline is still the
+	# story's inciting incident - mark the prologue beat as known.
+	GameManager.intro_dream_done = true
+	_start_game()
+
 func _start_dream_intro() -> void:
 	# Boot path: close the start menu, fall asleep, and enter the nightmare.
 	# Tests keep calling start_game() directly (straight to the farm); the skip
-	# button uses the same direct path.
+	# button goes through skip_dream_intro().
 	if is_instance_valid(active_course):
 		return
 	_start_game()
 	current_chase_id = "intro"
 	_enter_course("course_0")
-	_show_toast("……（入梦）", "冰冷的地面，铁锈味，远处有铁链声。这里是——屠宰场？！")
+	_show_toast("……（入梦）", "冰冷的地面，铁锈味，远处有铁链声。……这里是哪？")
 	_refresh_hud()
 
 func _start_game() -> void:
@@ -915,7 +921,10 @@ func _enter_course(stage_id: String) -> void:
 	# without this the chase prompt kept showing the last farm value (999.0 m).
 	active_course.runner.pressure_changed.connect(func(value: float): pressure = value)
 	active_course.runner.player_respawned.connect(func(_pos: Vector3): camera.snap_to_target(active_course.runner.respawn_yaw()))
-	_show_toast(active_course.runner.config.title, active_course.runner.config.desc)
+	# The intro gets its own dream-entry toast instead: the title banner would
+	# land on the same frame and overwrite it in the shared toast panel.
+	if current_chase_id != "intro":
+		_show_toast(active_course.runner.config.title, active_course.runner.config.desc)
 	_refresh_hud()
 
 func _on_course_started() -> void:
@@ -939,21 +948,25 @@ func _finish_course_deferred() -> void:
 	_exit_course()
 	if completed_id == "intro":
 		# Wake up in the pen: cold sweat, hooks still flashing, decision made.
+		# The prologue story beat lands on the to-do notebook's first line.
+		GameManager.intro_dream_done = true
 		_show_toast("……！！", "你一身冷汗地从泥窝里弹起来。梦里的铁钩还在眼前晃。")
 		await get_tree().create_timer(2.7).timeout
-		_show_toast("天快亮了。", "运牲车，明早六点就到。今晚——就今晚。")
+		_show_toast("天快亮了。", "运牲车，明早六点就到。今晚——就今晚。（山顶残墙上的老岩羊在等你，它见过外面的事。）")
 		_restore_control()
 		_refresh_hud()
 		return
+	# Chapter transitions: each course exit narrates where the story just landed
+	# and who the pig should find next, so the escape reads as one story.
 	match completed_id:
 		"chase_1":
-			_show_toast("通关成功！", "从神秘管道中喷出！顺利捷径抵达牛耕地！")
+			_show_toast("甩掉了！", "阴影被关在管道外——牛耕地到了。去找那头拉犁的老牛。")
 		"chase_2":
-			_show_toast("通关成功！", "从神秘管道中喷出！顺利捷径抵达小羊草甸！")
+			_show_toast("冲出溪谷！", "狗群的嚎叫留在身后——草甸上那只躲着光的小羊在等你。")
 		"chase_3":
-			_show_toast("通关成功！", "从神秘管道中喷出！顺利捷径抵达烈马赛道！")
+			_show_toast("穿过了迷雾！", "幻影散了——马场就在前方，去见守着旧纪录的烈马。")
 		"chase_final":
-			_show_toast("终极通关！", "勇夺金牌皇冠！顺利捷径抵达农场主铁门！")
+			_show_toast("大铁门开了！", "最后的了断——农场主就在门后。（走上前，按 F）")
 	_refresh_hud()
 
 func _exit_course() -> void:

@@ -22,6 +22,10 @@ var npc_completed: Dictionary = {"ox": false, "sheep": false, "horse": false}
 var npc_met: Dictionary = {"ox": false, "sheep": false, "horse": false}
 var has_read_record: bool = false
 var ending: String = ""
+# The nightmare prologue's story beat: true once the pig has woken from the
+# dream (or skipped it - the 6am truck deadline is known either way), so the
+# to-do notebook can show the prologue as a crossed-out story entry.
+var intro_dream_done: bool = false
 
 # Companions' granted powers (meaningful forward momentum).
 # Setters write npc_completed: assignments from level select must be visible to
@@ -59,6 +63,7 @@ func reset_run() -> void:
 	npc_met = {"ox": false, "sheep": false, "horse": false}
 	has_read_record = false
 	ending = ""
+	intro_dream_done = false
 	clear_course_skills()
 	state_changed.emit()
 
@@ -168,6 +173,11 @@ func set_language(lang: String) -> void:
 
 func get_to_do_items() -> Array[Dictionary]:
 	return [
+		{
+			"id": "prologue_dream",
+			"text": "从噩梦中醒来（运牲车明早六点就到）",
+			"done": intro_dream_done
+		},
 		{
 			"id": "break_free",
 			"text": "叼起铜插销，撞开猪圈木栓",

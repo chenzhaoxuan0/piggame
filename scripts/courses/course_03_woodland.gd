@@ -121,15 +121,15 @@ func _gm() -> Node:
 func _make_config() -> CourseConfig:
 	var cfg := CONFIG_SCRIPT.new()
 	cfg.course_id = "course_3"
-	cfg.title = "林间隐藏关卡 · 《潜龙谍影/魂系》潜行破幻"
-	cfg.desc = "迷雾弥漫林间！套上纸箱躲避巡逻恶犬视锥、开启【洞察之眸】辨别宝箱怪与击碎幻影墙壁！"
+	cfg.title = "第三章 · 迷雾林间寻路"
+	cfg.desc = "用破妄明眸看穿幻象！套纸箱躲避巡逻恶犬、辨出宝箱怪、击碎幻影墙壁——穿过童话迷雾，马场的灯就在林后！"
 	cfg.kill_y = -12.0
 	cfg.bounds = AABB(Vector3(-35, -16, -115), Vector3(70, 40, 140))
 	cfg.dog_count = 1
 	cfg.dog_speed_min = 2.4
 	cfg.dog_speed_max = 5.2
 	cfg.memes = {
-		"course_start": {"title": "步入迷雾古林！", "text": "童话森林雾气氤氲，恶犬在小径巡逻！请寻找掩护！", "duration": 3.0},
+		"course_start": {"title": "看穿幻象，奔向马场！", "text": "迷雾森林，恶犬巡逻——纸箱隐匿、洞察辨伪，穿过林子就是马场！", "duration": 3.0},
 		"box_equip": {"title": "纸箱潜行模式！", "text": "【！】装备纸箱！静止不动时巡逻恶犬直接无视！按Shift可俯冲保龄撞狗！", "duration": 2.5},
 		"pinecone_thrown": {"title": "声东击西！", "text": "金松果啪嗒落地！恶犬循声四处张望，视线被完全引开！", "duration": 2.5},
 		"dog_alert": {"title": "【！】警报拉响！", "text": "恶犬察觉到了异动！快原地呆住或逃出视线！", "duration": 2.2},

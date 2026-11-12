@@ -36,7 +36,9 @@ func _run() -> void:
 	_check(office.todo_notebook != null and office.todo_notebook.visible, "To-Do notebook is created and visible")
 	var todo_items: Array[Dictionary] = game.get_to_do_items()
 	_check(todo_items.size() >= 8, "To-Do checklist contains all milestone tasks")
-	_check(not todo_items[0]["done"], "Initial break free task is not done yet")
+	# Index 0 is the crossed-out prologue-dream entry; the escape plan starts at 1.
+	_check(not todo_items[0]["done"], "Prologue dream task stays unticked before the pig sleeps")
+	_check(not todo_items[1]["done"], "Initial break free task is not done yet")
 
 	# 2. Test Chase 1 Triggering (Summit -> Ox)
 	# Trigger red choice
@@ -44,7 +46,7 @@ func _run() -> void:
 	office.farm.set_pigpen_open(true)
 	await process_frame
 	_check(game.has_pin, "Pig acquired the brass pin")
-	_check(game.get_to_do_items()[0]["done"], "First task is completed and marked with strikethrough")
+	_check(game.get_to_do_items()[1]["done"], "First task is completed and marked with strikethrough")
 
 	# Enter Course 1 via secret pipe
 	office.enter_secret_course("course_1")
@@ -83,7 +85,7 @@ func _run() -> void:
 	# 3. Sync Ox completion to farm
 	office.farm.set_npc_completed("ox")
 	await process_frame
-	_check(game.get_to_do_items()[2]["done"], "Ox companion task marked complete with strikethrough")
+	_check(game.get_to_do_items()[3]["done"], "Ox companion task marked complete with strikethrough")
 
 	# 4. Test Chase 2 & QTE Struggle (Ox -> Sheep)
 	office.start_stage_chase("chase_2")
