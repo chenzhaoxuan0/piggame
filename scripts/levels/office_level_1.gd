@@ -396,6 +396,11 @@ func _show_loan_card(skill_id: String) -> void:
 	loan_card.visible = true
 	loan_card.modulate.a = 0.0
 	loan_card.scale = Vector2(0.9, 0.9)
+	# 借得卡占屏幕中央（y -132..92），与 ToastBanner（y -142..-78）同区：
+	# 钻管道进关时两者必然同屏，卡在场期间把横幅抬到卡上方（对话同款位置）。
+	if is_instance_valid(toast_panel) and toast_panel.visible:
+		toast_panel.offset_top = -386
+		toast_panel.offset_bottom = -322
 	var tween := create_tween().set_parallel(true)
 	tween.tween_property(loan_card, "modulate:a", 1.0, 0.2)
 	tween.tween_property(loan_card, "scale", Vector2.ONE, 0.24).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -404,6 +409,7 @@ func _show_loan_card(skill_id: String) -> void:
 	fade.tween_property(loan_card, "modulate:a", 0.0, 0.3)
 	await fade.finished
 	loan_card.visible = false
+	if is_instance_valid(toast_panel) and toast_panel.visible: _place_toast()
 
 # -------------------------------------------------------------
 # Dash Sprint Gauge (Horse Pasture Power)
