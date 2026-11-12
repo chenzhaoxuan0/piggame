@@ -119,6 +119,8 @@ func _ready() -> void:
 		farm.stage_chase_completed.connect(_on_farm_gate_passed)
 	if farm.has_signal("secret_pipe_entered"):
 		farm.secret_pipe_entered.connect(_on_secret_pipe_entered)
+	if farm.has_signal("playground_event"):
+		farm.playground_event.connect(_on_playground_event)
 		
 	GameManager.state_changed.connect(_refresh_hud)
 	
@@ -947,6 +949,21 @@ func start_stage_chase(stage_id: String) -> void:
 	_show_toast(str(config.get("title", "追逐开始！")), str(config.get("desc", "向前跑！")))
 	chase.start_stage(stage_id, player, config, points)
 	_refresh_hud()
+
+func _on_playground_event(kind: String, _detail) -> void:
+	# Farm playground easter eggs report here for the celebratory toasts
+	# (achievements unlock farm-side; this is the presentation layer).
+	match kind:
+		"cabbage_goal":
+			_show_toast("GOOOAL！", "卷心菜应声入网——牛耕地球会记你一功！")
+		"second_path":
+			_show_toast("第二条路！", "倒木被顶开了——跳，或者撞，都是你的路。")
+		"perfect_dive":
+			_show_toast("满分入坑！", "10 分！麻雀评委全体起立。")
+		"demolition_crew":
+			_show_toast("拆家小队！", "沿路的农具都记住了这头猪。")
+		"grass_gourmet":
+			_show_toast("食草动物的本分", "六丛嫩草，一丛不落。")
 
 func _on_secret_pipe_entered(course_id: String) -> void:
 	if dialogue_open or cinematic or overlay.visible or is_instance_valid(active_course):

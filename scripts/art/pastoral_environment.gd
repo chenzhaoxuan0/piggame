@@ -271,12 +271,16 @@ func _pigpen() -> void:
 
 func _fields() -> void:
 	_district = "OxFurrowsAndIrrigation"
-	_patch(Vector3(-21, .044, 58.3), Vector2(16.0, 10.4), SOIL, 16, .025)
+	# 2026-11-12: the furrow field used to sprawl across the ox-gate main lane
+	# and the ox-NPC spur; trimmed to 12 columns and shifted west so the crops
+	# sit fully off the road corridor (world x 10..29, z 37..52 vs lanes at
+	# z 55+ and x 41+), with the irrigation ditch moving along with it.
+	_patch(Vector3(-25, .044, 58.3), Vector2(16.0, 10.4), SOIL, 16, .025)
 	# Low trapezoidal furrows: actual raised soil volumes, not a row of boxes.
 	for row in 9:
-		var z := 50.8 + row * 1.85
-		for col in 18:
-			var x := -36.0 + col * 1.6
+		var z := 51.4 + row * 1.85
+		for col in 12:
+			var x := -40.0 + col * 1.6
 			var h := .17 + sin(col * .8 + row) * .025
 			var shade := SOIL_LIGHT.lightened(float(row % 3) * .012)
 			_quad(Vector3(x, .06, z - .6), Vector3(x + 1.61, .06, z - .6), Vector3(x + 1.61, h, z - .3), Vector3(x, h, z - .3), shade, Vector3(0, 1, -1))
@@ -285,11 +289,11 @@ func _fields() -> void:
 			if row > 4 and col % 2 == 0:
 				_tuft(Vector3(x + .7, h, z), .40, LEAF_LIGHT)
 	# Stone-lined irrigation ditch connects the field edge and watering area.
-	_box(Vector3(-23, .056, 48.5), Vector3(25, .03, .95), WATER)
-	for z in [47.94, 49.06]: _stone_wall(Vector3(-35.5, 0, z), Vector3(-10.5, 0, z), .22, .30)
-	for i in 4: _box(Vector3(-27.4 + i * .35, .34, 48.5), Vector3(.32, .12, 1.9), WOOD)
+	_box(Vector3(-27, .056, 48.5), Vector3(25, .03, .95), WATER)
+	for z in [47.94, 49.06]: _stone_wall(Vector3(-39.5, 0, z), Vector3(-14.5, 0, z), .22, .30)
+	for i in 4: _box(Vector3(-31.4 + i * .35, .34, 48.5), Vector3(.32, .12, 1.9), WOOD)
 	for i in 16:
-		_box(Vector3(-34 + i * 1.5, .081, 48.4 + sin(i) * .15), Vector3(.6, .01, .035), Color("B1C8B7"))
+		_box(Vector3(-38 + i * 1.5, .081, 48.4 + sin(i) * .15), Vector3(.6, .01, .035), Color("B1C8B7"))
 	_barn(Vector3(-33, 0, 46), Vector3(11, 5, 8), false)
 	# Keep the original silo/windmill footprint, but give them architectural detail.
 	for i in 18:

@@ -4,7 +4,9 @@ signal chase_entered
 signal chase_triggered(stage_id: String)
 signal stage_chase_completed(gate_id: String)
 signal secret_pipe_entered(course_id: String)
+signal playground_event(kind: String, detail)
 const ASSETS = preload("res://scripts/art/asset_library.gd")
+const PLAYTHING = preload("res://scripts/levels/farm_plaything.gd")
 const L = preload("res://scripts/levels/farm_layout.gd")
 const SPAWN := L.SPAWN
 const RETRY_POSITION := L.RETRY
@@ -67,6 +69,7 @@ func _ready() -> void:
 
 	_build_all_gates()
 	_build_road_obstacles()
+	_build_playground()
 	_cabin=Node3D.new()
 	_cabin.name="CableCarCabin"
 	add_child(_cabin)
@@ -112,7 +115,7 @@ func _install_environment() -> void:
 	var environment: Node3D
 	if not "--rebuild-environment" in OS.get_cmdline_user_args() and ResourceLoader.exists("res://assets/environments/pastoral_farm.scn"):
 		environment=load("res://assets/environments/pastoral_farm.scn").instantiate()
-		if environment.get_meta("layout_version",0)!=4:
+		if environment.get_meta("layout_version",0)!=5:
 			environment.free()
 			environment=null
 	if environment==null:
@@ -163,7 +166,9 @@ func _on_checkpoint(body: Node3D,point: Vector3) -> void:
 	if body.is_in_group("player") and body.control_mode in ["explore","chase"]:
 		_checkpoint=point+Vector3.UP*.1
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	if _cabbage_goal_cool > 0.0:
+		_cabbage_goal_cool = maxf(0.0, _cabbage_goal_cool - delta)
 	if not is_instance_valid(_player): _player=get_tree().get_first_node_in_group("player")
 	if not is_instance_valid(_player) or not _player.control_mode in ["explore","chase"]: return
 	var closest := L.closest_on_path(_player.global_position, L.journey())
@@ -372,6 +377,238 @@ func _build_road_obstacles() -> void:
 	var log_pos_2: Vector3 = L.LOGS[1].a.lerp(L.LOGS[1].b, L.LOGS[1].t)
 	var log2 := _box(self, "Log_Woodland_1", Vector3(3.6, 0.55, 0.55), log_pos_2 + Vector3.UP * 0.25, Color("4D3A27"), true)
 	var cart1 := _box(self, "Cart_Woodland_Side", Vector3(1.8, 0.7, 1.2), Vector3(-44, 14.2, -84), Color("6B523A"), true)
+	# The summit log is also a playground prop: a sprinting pig can shove it
+	# down the slope and open a walkable second path (jumping stays valid).
+	var charge := Area3D.new()
+	charge.name = "LogChargeSense"
+	charge.collision_layer = 0
+	charge.collision_mask = 2
+	charge.position = log_pos_1 + Vector3.UP * 0.6
+	var charge_shape := CollisionShape3D.new()
+	var charge_box := BoxShape3D.new()
+	charge_box.size = Vector3(4.8, 2.2, 2.8)
+	charge_shape.shape = charge_box
+	charge.add_child(charge_shape)
+	add_child(charge)
+	charge.body_entered.connect(_on_log_charge.bind(log1))
+
+var _log_shoved := false
+
+func _on_log_charge(body: Node3D, log: Node3D) -> void:
+	if _log_shoved:
+		return
+	if not body.is_in_group("player") and not body.name.to_lower().contains("pig"):
+		return
+	if not (body.get("is_sprinting") or body.get("dodge_timer") > 0.0):
+		return
+	_log_shoved = true
+	# Roll the gameplay log down-slope and kill both colliders (this box and
+	# the baked JumpLog convex from the environment scene).
+	log.collision_layer = 0
+	for child in log.get_children():
+		if child is CollisionShape3D:
+			child.disabled = true
+	var env := get_node_or_null("PastoralEnvironment")
+	if env != null:
+		for baked in env.find_children("JumpLog", "StaticBody3D", true, false):
+			if baked.global_position.distance_to(log.global_position) < 4.0:
+				baked.visible = false
+				for shape in baked.get_children():
+					if shape is CollisionShape3D:
+						shape.disabled = true
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(log, "position", log.position + Vector3(-2.2, -0.6, -3.4), 0.7)
+	tween.tween_property(log, "rotation:z", log.rotation.z + PI * 0.5, 0.7)
+	_gag_at(log.global_position + Vector3.UP * 1.6, "轰隆——倒木被顶得滚下坡！第二条路，开了。", 2.6)
+	AchievementManager.unlock("second_path")
+	playground_event.emit("second_path", "")
+
+# ------------------------------------------------------------- playground
+# Ten kinds of body-driven easter eggs down the whole mountain road. Every
+# collider here sits well off the road lanes (raycast/journey-bot red lines).
+const PLAYTIP_TARGET := 5
+const PLAYGRASS_TARGET := 6
+var _play_counts := {"tippable": 0, "grass": 0}
+var _cabbage_goal_cool := 0.0
+
+func _plaything(kind: int, sense: Vector3, cool: float,
+		charge_only := false, gags: Array[String] = []):
+	var thing: Node3D = PLAYTHING.new()
+	thing.name = "Plaything"
+	thing.kind = kind
+	thing.sense_size = sense
+	thing.cooldown = cool
+	thing.need_charge = charge_only
+	thing.gag_lines = gags
+	thing.played.connect(_on_plaything_played)
+	return thing
+
+func _build_playground() -> void:
+	# --- Ox terrace: the cabbage pitch beside the (relocated) vegetable field
+	var ball := _sphere(self, "CabbageBall", 0.4, Vector3(46, 24.4, 30), Color("7DB874"), true)
+	ball.add_child(_plaything(PLAYTHING.Kind.CABBAGE, Vector3(2.4, 2.0, 2.4), 0.45))
+	var goal := Node3D.new()
+	goal.name = "CabbageGoal"
+	goal.position = Vector3(46, 24, 24.6)
+	add_child(goal)
+	_box(goal, "PostL", Vector3(0.22, 1.5, 0.22), Vector3(-1.7, 0.75, 0), Color("5A442E"), true)
+	_box(goal, "PostR", Vector3(0.22, 1.5, 0.22), Vector3(1.7, 0.75, 0), Color("5A442E"), true)
+	_box(goal, "CrossBar", Vector3(3.6, 0.22, 0.22), Vector3(0, 1.5, 0), Color("5A442E"), true)
+	_box(goal, "NetBack", Vector3(3.4, 1.3, 0.12), Vector3(0, 0.7, -0.7), Color("E8E2CE"), false)
+	_label(goal, "GoalTitle", "牛耕地球会 · 卷心菜联赛", Vector3(0, 2.2, 0), 20)
+	var goal_area := Area3D.new()
+	goal_area.name = "CabbageGoalArea"
+	goal_area.collision_layer = 0
+	goal_area.collision_mask = 1 # statics: the cabbage ball itself (layer 1)
+	goal_area.position = Vector3(0, 0.8, 0)
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(3.2, 1.0, 1.4)
+	shape.shape = box
+	goal_area.add_child(shape)
+	goal.add_child(goal_area)
+	goal_area.body_entered.connect(_on_cabbage_goal)
+
+	# --- Five tippables scattered down the mountain (sprint to topple)
+	_tipple("Barrel_Zigzag", Vector3(-34, 25.8, 101), Vector3(0.9, 1.1, 0.9), Color("8F6A42"))
+	_tipple("Wheelbarrow_Meadow", Vector3(-33, 16.6, -50), Vector3(1.4, 0.7, 0.9), Color("B0543F"))
+	_tipple("WoolBale_Meadow", Vector3(-45, 16.6, -30), Vector3(1.5, 0.9, 1.1), Color("E8E2CE"))
+	_tipple("Barrel_Track", Vector3(58, 8.6, -132), Vector3(0.9, 1.1, 0.9), Color("8F6A42"))
+	_build_scarecrow(Vector3(14, 24, 48))
+
+	# --- Six nibble-grass tufts along the descent
+	for def in [
+		[Vector3(-5, 31.4, 82), "ENV_09_FERN"],
+		[Vector3(-36, 26.4, 95), "ENV_09_REEDS"],
+		[Vector3(14, 24.4, 58), "ENV_09_FERN"],
+		[Vector3(44, 21.3, 14), "ENV_09_REEDS"],
+		[Vector3(-45, 16.3, -55), "ENV_09_FERN"],
+		[Vector3(30, 8.3, -112), "ENV_09_REEDS"],
+	]:
+		var tuft := ASSETS.make(def[1])
+		if tuft == null:
+			tuft = _box(self, "GrassTuft", Vector3(0.9, 0.6, 0.9), def[0], Color("7DB874"), false)
+			add_child(tuft)
+			tuft.position = def[0]
+		else:
+			add_child(tuft)
+			tuft.position = def[0]
+		tuft.name = "NibbleGrass"
+		tuft.add_child(_plaything(PLAYTHING.Kind.GRASS, Vector3(2.6, 2.0, 2.6), 2.5))
+
+	# --- Hay dive at the bottom of the west zigzag
+	var hay := _box(self, "HayDiveStack", Vector3(2.8, 1.5, 2.8), Vector3(-57.5, 23.4, 74.5), Color("E8C86A"), false)
+	hay.add_child(_plaything(PLAYTHING.Kind.HAYSTACK, Vector3(2.8, 2.6, 2.8), 2.0))
+	_label(self, "HayDiveLabel", "草垛跳水 · 跳进来！", Vector3(-57.5, 25.6, 74.5), 18)
+
+	# --- Beehive by the orchard (sting = speed)
+	var hive_stand := _box(self, "Beehive", Vector3(0.7, 1.1, 0.7), Vector3(68, 24.55, 50), Color("D9A441"), true)
+	hive_stand.add_child(_plaything(PLAYTHING.Kind.BEEHIVE, Vector3(2.2, 2.2, 2.2), 6.0))
+
+	# --- Mailbox at the ox gate (nose it open)
+	var mailbox := _box(self, "MailboxPost", Vector3(0.18, 1.0, 0.18), Vector3(25, 24.5, 62), Color("665A48"), true)
+	var box_body := _box(mailbox, "MailboxBody", Vector3(0.5, 0.35, 0.8), Vector3(0, 0.55, 0), Color("A96550"), false)
+	var flag := _box(mailbox, "MailFlag", Vector3(0.08, 0.3, 0.08), Vector3(0.28, 0.75, 0), Color("E4573D"), false)
+	mailbox.add_child(_plaything(PLAYTHING.Kind.MAILBOX, Vector3(1.6, 2.4, 1.8), 1.0))
+
+	# --- Broadcast horn at the ox gate
+	var horn_pole := _box(self, "BroadcastHorn", Vector3(0.2, 2.6, 0.2), Vector3(34, 25.3, 59), Color("665A48"), true)
+	_box(horn_pole, "HornCone", Vector3(0.5, 0.5, 0.9), Vector3(0, 1.5, 0.4), Color("B0543F"), false)
+	horn_pole.add_child(_plaything(PLAYTHING.Kind.HORN, Vector3(2.0, 3.4, 2.4), 8.0))
+
+	# --- Mud pit by the pigpen (roll!)
+	var mud := _box(self, "MudPit", Vector3(3.4, 0.12, 3.4), Vector3(7, 32.05, 95), Color("6B5D52"), false)
+	mud.add_child(_plaything(PLAYTHING.Kind.MUDPIT, Vector3(3.4, 1.6, 3.4), 5.0))
+
+	# --- Hen nest behind the barn
+	var nest := _box(self, "HenNest", Vector3(1.1, 0.45, 1.1), Vector3(24, 24.2, 36), Color("C9A35E"), false)
+	nest.add_child(_plaything(PLAYTHING.Kind.NEST, Vector3(2.0, 1.8, 2.0), 1.2))
+
+func _tipple(node_name: String, pos: Vector3, size: Vector3, color: Color) -> void:
+	var body := _box(self, node_name, size, pos, color, true)
+	body.add_child(_plaything(PLAYTHING.Kind.TIPPABLE, Vector3(2.6, 2.4, 2.6), 1.0, true))
+
+func _build_scarecrow(pos: Vector3) -> void:
+	var scare := Node3D.new()
+	scare.name = "Scarecrow_Field"
+	scare.position = pos
+	add_child(scare)
+	_box(scare, "Pole", Vector3(0.16, 2.4, 0.16), Vector3(0, 1.2, 0), Color("665A48"), true)
+	_box(scare, "Arms", Vector3(1.7, 0.16, 0.16), Vector3(0, 1.7, 0), Color("665A48"), false)
+	_box(scare, "Head", Vector3(0.5, 0.5, 0.5), Vector3(0, 2.1, 0), Color("E8C86A"), false)
+	_box(scare, "Hat", Vector3(0.8, 0.12, 0.8), Vector3(0, 2.4, 0), Color("B0543F"), false)
+	scare.add_child(_plaything(PLAYTHING.Kind.TIPPABLE, Vector3(2.6, 3.0, 2.6), 1.0, true,
+		["麻雀四散！衣服里藏着……另一件更破的衣服。"]))
+
+func _on_plaything_played(kind: String, _detail) -> void:
+	if kind == "tippable":
+		_play_counts["tippable"] += 1
+		if _play_counts["tippable"] >= PLAYTIP_TARGET:
+			AchievementManager.unlock("demolition_crew")
+			playground_event.emit("demolition_crew", "")
+	elif kind == "grass":
+		_play_counts["grass"] += 1
+		if _play_counts["grass"] >= PLAYGRASS_TARGET:
+			AchievementManager.unlock("grass_gourmet")
+			playground_event.emit("grass_gourmet", "")
+	elif kind == "perfect_dive":
+		AchievementManager.unlock("perfect_dive")
+		playground_event.emit("perfect_dive", _detail)
+	else:
+		playground_event.emit(kind, _detail)
+
+func _on_cabbage_goal(body: Node3D) -> void:
+	if body.name != "CabbageBall":
+		return
+	if _cabbage_goal_cool > 0.0:
+		return
+	_cabbage_goal_cool = 5.0
+	var goal := get_node_or_null("CabbageGoal")
+	if goal != null:
+		var tween := create_tween()
+		tween.tween_property(goal, "position:x", goal.position.x + 0.25, 0.07)
+		tween.tween_property(goal, "position:x", goal.position.x - 0.25, 0.07)
+		tween.tween_property(goal, "position:x", goal.position.x, 0.1)
+	_gag_at(Vector3(46, 26.4, 24.6), "GOOOAL！卷心菜应声入网！", 2.4)
+	AchievementManager.unlock("cabbage_striker")
+	playground_event.emit("cabbage_goal", "")
+
+func _sphere(parent: Node3D, node_name: String, radius: float, pos: Vector3, color: Color, solid: bool) -> Node3D:
+	var root: Node3D
+	if solid:
+		var body := AnimatableBody3D.new()
+		body.collision_layer = 1
+		body.collision_mask = 0
+		var shape := CollisionShape3D.new()
+		var sphere := SphereShape3D.new()
+		sphere.radius = radius
+		shape.shape = sphere
+		body.add_child(shape)
+		root = body
+	else:
+		root = Node3D.new()
+	root.name = node_name
+	root.position = pos
+	parent.add_child(root)
+	var mesh := MeshInstance3D.new()
+	mesh.name = "VisualMesh"
+	var sphere_mesh := SphereMesh.new()
+	sphere_mesh.radius = radius
+	sphere_mesh.height = radius * 2.0
+	mesh.mesh = sphere_mesh
+	mesh.material_override = _material(color)
+	root.add_child(mesh)
+	return root
+
+func _gag_at(world_pos: Vector3, text: String, life := 2.0) -> void:
+	var label := preload("res://scripts/ui/ui_kit.gd").world_label(text, 24, Color("FFFDF6"), Color("2C6E7A"))
+	label.position = world_pos
+	add_child(label)
+	var t := create_tween()
+	t.tween_property(label, "position:y", world_pos.y + 0.8, life)
+	t.parallel().tween_property(label, "modulate:a", 0.0, life * 0.9)
+	t.tween_callback(label.queue_free)
 
 func set_named_gate_open(gate_id: String, open: bool) -> void:
 	var gate: StaticBody3D = _named_gates.get(gate_id, null)

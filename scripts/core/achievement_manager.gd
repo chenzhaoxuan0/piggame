@@ -31,6 +31,11 @@ const DEFS := [
 	{"id": "first_dodge", "title": "千钧一发", "desc": "看准红圈，第一次闪避成功。"},
 	{"id": "grapple_escape", "title": "挣脱本能", "desc": "第一次在恶犬的扑咬下狂点挣脱（QTE）成功。"},
 	{"id": "trough_sniff", "title": "哼哼初试", "desc": "还没入梦，就在开场猪圈里拱了拱食槽。"},
+	{"id": "cabbage_striker", "title": "卷心菜前锋", "desc": "在牛耕地球会，把卷心菜一脚踢进了球门。"},
+	{"id": "second_path", "title": "第二条路", "desc": "用肩膀（和冲刺）顶开了下山路上那根倒木——不只有跳这一条路。"},
+	{"id": "demolition_crew", "title": "拆家小队", "desc": "沿下山路的五件农具，全都被撞翻了一遍。"},
+	{"id": "grass_gourmet", "title": "食草动物的本分", "desc": "啃遍了下山路上全部六丛嫩草。"},
+	{"id": "perfect_dive", "title": "满分入坑", "desc": "从山坡跳进草垛，麻雀评委打出了 10 分。"},
 ]
 
 var unlocked := {} # id -> true
