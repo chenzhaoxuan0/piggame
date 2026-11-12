@@ -3,6 +3,10 @@ extends Node
 # One owner for the whitebox demo's run state. No persistence or art dependencies.
 signal state_changed
 signal character_selected(character_id: String)
+# Course-scoped loans only: fires for each skill that flips false->true while
+# the pig does not own it permanently, so the HUD can show a loan skill card
+# once per course entry (re-grants and farm-learned skills stay silent).
+signal course_skill_granted(skill_id: String)
 signal language_changed(language_code: String)
 
 enum CharacterType { PIG, OX, HORSE, SHEEP }
@@ -50,10 +54,16 @@ var has_dash_skill: bool:
 # Course-scoped skill loans: granted on course setup(), cleared on course exit.
 var course_skill_bonuses: Dictionary = {"struggle": false, "discern": false, "dash": false}
 
+const _SKILL_OWNER_NPC := {"struggle": "ox", "discern": "sheep", "dash": "horse"}
+
 func grant_course_skills(ids: Array) -> void:
 	for id in ids:
 		if course_skill_bonuses.has(id):
+			if course_skill_bonuses[id]:
+				continue
 			course_skill_bonuses[id] = true
+			if not npc_completed.get(_SKILL_OWNER_NPC.get(id, ""), false):
+				course_skill_granted.emit(id)
 
 func clear_course_skills() -> void:
 	for id in course_skill_bonuses:

@@ -25,6 +25,7 @@ static func build_all(host: Node) -> void:
 	_build_dash_gauge(host)
 	_build_toast_banner(host)
 	_build_skill_card(host)
+	_build_loan_card(host)
 
 static func _center_pivot(node: Control) -> void:
 	node.resized.connect(func(): node.pivot_offset = node.size * 0.5)
@@ -326,3 +327,56 @@ static func _build_skill_card(host: Node) -> void:
 	vbox.add_child(host.skill_card_btn)
 
 	host.skill_card_modal.visible = false
+
+static func _build_loan_card(host: Node) -> void:
+	# 赛道借得技能卡：与 skill_card_modal 同一套缝线补丁语言，但更小、
+	# 非阻塞（mouse IGNORE + 自动消退）——赛道中途弹卡不能把奔跑的猪定住。
+	host.loan_card = UI.patch_panel(20, UI.PAPER, UI.TEAL, Vector2(28, 22))
+	host.loan_card.name = "LoanSkillCard"
+	host.loan_card.set_anchors_preset(Control.PRESET_CENTER)
+	host.loan_card.offset_left = -270
+	host.loan_card.offset_top = -132
+	host.loan_card.offset_right = 270
+	host.loan_card.offset_bottom = 92
+	host.loan_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_center_pivot(host.loan_card)
+	host.hud.add_child(host.loan_card)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.loan_card.add_child(vbox)
+
+	var tag := UI.name_tag("★ 本关借得伙伴之力 ★", UI.TEAL, UI.WHITE, 14)
+	tag.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	vbox.add_child(tag)
+
+	host.loan_card_title = UI.label("【 坚 韧 挣 脱 】", 24, UI.TEAL_DEEP, true)
+	host.loan_card_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(host.loan_card_title)
+
+	host.loan_card_subtitle = UI.label("借老牛坚忍不屈的硬骨气", 15, UI.INK_SOFT)
+	host.loan_card_subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(host.loan_card_subtitle)
+
+	var key_panel := PanelContainer.new()
+	key_panel.add_theme_stylebox_override("panel", UI.pill(UI.PAPER_DEEP, 14, UI.PAPER_EDGE, 2, Vector2(16, 8)))
+	key_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	key_panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	vbox.add_child(key_panel)
+
+	host.loan_card_key_label = UI.label("【核心按键】 被咬住时狂按 [ 空格键 / SPACE ]", 15, UI.RED, true)
+	host.loan_card_key_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	key_panel.add_child(host.loan_card_key_label)
+
+	host.loan_card_desc_label = UI.label("", 14, UI.INK)
+	host.loan_card_desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	host.loan_card_desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(host.loan_card_desc_label)
+
+	host.loan_card_hint = UI.label("3 秒后自动收起 · 继续奔跑吧！", 12, UI.INK_SOFT)
+	host.loan_card_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(host.loan_card_hint)
+
+	host.loan_card.visible = false
