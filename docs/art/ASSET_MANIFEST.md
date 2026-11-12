@@ -2,7 +2,7 @@
 
 当前版本：`0.6.0-enriched-farm`，36 件运行模型与 1,684 个地编实例；最新交付见 [地编资产与场景说明](07_ENVIRONMENT_DRESSING.md)。下文保留 `0.3.0-art` 的初期来源与面数记录。`0.4.0-pastoral` 的色板与哑光着色见 [环境重构说明](ENVIRONMENT_REBUILD.md)，`0.5.0-mountain` 的地图流程见 [山地地图](MOUNTAIN_MAP.md)。
 
-更新：2026-11-02，版本 `0.3.0-art`。本轮完成 **14 件核心资产 + 4 类环境构件** 的制作、后处理与 Godot 接入。七个角色均带骨骼，以及 `idle / walk / run / celebrate` 四段动画；玩法实际使用前三段，庆祝动作保留在模型中。
+更新：2026-11-02，版本 `0.3.0-art`。本轮完成 **14 件核心资产 + 4 类环境构件** 的制作、后处理与 Godot 接入。七个角色均带骨骼；`2026-11-12` 起动画升级为**逐角色 clip 集**（`build_raw_rigged_characters.py` 生成）：全员循环 `idle / walk / run / celebrate / talk`，另加一次性 clip——猪 `jump / dodge / hit`，犬 `attack / bark`，农场主 `attack`。玩法经 `ActorAnimation.play_oneshot()` 动画优先调用，模型缺 clip 时回退原有程序化动作（巡逻守卫仍是程序化圆柱体，未穿模型）。
 
 本轮沿用用户已生成的 2D 风格包；用户已授权继续建模和 commit。原白模 G0 与合成后的完整实机流程均通过。没有把场景原画整张交给图生 3D。
 

@@ -87,6 +87,16 @@ func _ready() -> void:
 	add_child(_warning)
 	preload("res://scripts/art/asset_library.gd").replace_visuals(_visual, visual_asset_id)
 
+## Animation-first action helper: plays a skeletal clip when the dressed model
+## has one (CHAR_06 dog / CHAR_07 dream-farmer), returns false so callers keep
+## their procedural fallback.
+func _play_action(clip: String) -> bool:
+	if not is_instance_valid(_visual): return false
+	var found := _visual.find_children("ActorAnimation", "Node", true, false)
+	if not found.is_empty() and found[0].has_method("play_oneshot"):
+		return found[0].play_oneshot(clip, 1.25)
+	return false
+
 func _add_box(size: Vector3, offset: Vector3, material: Material) -> void:
 	var mesh_node: MeshInstance3D = MeshInstance3D.new()
 	var box: BoxMesh = BoxMesh.new()
@@ -199,6 +209,7 @@ func _physics_process(delta: float) -> void:
 			if distance < 3.5 and _can_reach_player():
 				phase = "windup"
 				phase_time = windup_duration
+				_play_action("bark")
 				_lunge_direction = to_player.normalized()
 				_warning.visible = true
 				if is_instance_valid(target):
@@ -225,6 +236,7 @@ func _physics_process(delta: float) -> void:
 			if phase_time <= 0.0:
 				phase = "lunge"
 				phase_time = 0.38
+				_play_action("attack")
 				_warning.visible = false
 		"lunge":
 			movement = _lunge_direction * lunge_speed
