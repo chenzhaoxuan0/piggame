@@ -54,6 +54,7 @@ func _on_body_entered(body: Node3D) -> void:
 	is_collected = true
 
 	var popup := Label3D.new()
+	popup.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	popup.text = "🍠 +1"
 	popup.font_size = 22
 	popup.billboard = BaseMaterial3D.BILLBOARD_ENABLED

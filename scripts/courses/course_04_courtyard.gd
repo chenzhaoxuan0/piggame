@@ -727,15 +727,9 @@ func _checkpoint(node_name: String, index: int, pos: Vector3, respawn: Vector3) 
 	_label("◆ 赛道维修检查点", pos + Vector3(0, 1.6, 0), 18)
 
 func _label(text: String, pos: Vector3, font_size: int, parent: Node3D = null) -> Label3D:
-	var label := Label3D.new()
-	label.text = text
-	label.font_size = font_size
+	var ui := preload("res://scripts/ui/ui_kit.gd")
+	var label := ui.world_label(text, font_size, CREAM, DARK)
 	label.position = pos
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.shaded = false
-	label.modulate = CREAM
-	label.outline_modulate = DARK
-	label.outline_size = 6
 	(parent if parent else self).add_child(label)
 	return label
 

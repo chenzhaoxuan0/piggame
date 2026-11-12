@@ -45,6 +45,7 @@ func _setup_cone_visual() -> void:
 
 func _setup_alert_billboard() -> void:
 	alert_billboard = Label3D.new()
+	alert_billboard.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	alert_billboard.name = "AlertBillboard"
 	alert_billboard.text = "！"
 	alert_billboard.font_size = 54

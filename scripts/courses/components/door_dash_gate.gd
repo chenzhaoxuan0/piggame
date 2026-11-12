@@ -35,14 +35,8 @@ func _build_frame() -> void:
 	add_child(frame)
 
 	# Banner above gate
-	var banner := Label3D.new()
-	banner.text = "★ 疯狂三选一 · 哪扇能撞开？ ★"
-	banner.font_size = 22
+	var banner := preload("res://scripts/ui/ui_kit.gd").world_label("★ 疯狂三选一 · 哪扇能撞开？ ★", 22, Color("FFF275"), Color("3A3630"))
 	banner.position = Vector3(0, gate_height + 0.8, 0)
-	banner.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	banner.modulate = Color("FFF275")
-	banner.outline_modulate = Color("3A3630")
-	banner.outline_size = 6
 	add_child(banner)
 
 func _build_doors() -> void:
@@ -82,6 +76,7 @@ func _build_doors() -> void:
 		# Door symbol / markings
 		var sym := Label3D.new()
 		sym.text = "?" if not is_breakable else "!"
+		sym.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 		sym.font_size = 48
 		sym.position = Vector3(0, door_h * 0.55, 0.3)
 		sym.modulate = Color.WHITE

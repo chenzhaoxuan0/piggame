@@ -3,6 +3,8 @@ extends Control
 # Character Selection Screen (《一口猪在金牌农场》围城多视角选择)
 # 核心机制：同一个悬崖箱庭，不同动物视角，相互羡慕，相互救赎
 
+const UI = preload("res://scripts/ui/ui_kit.gd")
+
 @onready var btn_pig = $VBoxContainer/CharactersRow/CardPig/VBox/BtnSelect
 @onready var btn_ox = $VBoxContainer/CharactersRow/CardOx/VBox/BtnSelect
 @onready var btn_horse = $VBoxContainer/CharactersRow/CardHorse/VBox/BtnSelect
@@ -40,6 +42,32 @@ var characters_desc = {
 }
 
 func _ready() -> void:
+	UI.apply(self)
+	$Background.color = UI.PAPER_DEEP
+	for card_name in ["CardPig", "CardOx", "CardHorse", "CardSheep"]:
+		var card: PanelContainer = get_node_or_null("VBoxContainer/CharactersRow/" + card_name)
+		if card:
+			card.add_theme_stylebox_override("panel", UI.patch(20, UI.PAPER, Vector2(18, 16)))
+			UI.stitch_rect(card, UI.PINK if card_name == "CardPig" else UI.SAGE, 8.0, 15.0)
+			var btn: Button = card.get_node_or_null("VBox/BtnSelect")
+			if btn:
+				for c in ["font_color", "font_hover_color", "font_focus_color", "font_pressed_color"]:
+					btn.add_theme_color_override(c, UI.INK)
+			if card_name != "CardPig":
+				card.modulate = Color(1, 1, 1, 0.72)
+	var pig_name: Label = get_node_or_null("VBoxContainer/CharactersRow/CardPig/VBox/Name")
+	if pig_name:
+		pig_name.add_theme_color_override("font_color", UI.CORAL)
+	var pig_role: Label = get_node_or_null("VBoxContainer/CharactersRow/CardPig/VBox/Role")
+	if pig_role:
+		pig_role.add_theme_color_override("font_color", UI.INK_SOFT)
+	var info: PanelContainer = get_node_or_null("VBoxContainer/InfoBanner")
+	if info:
+		info.add_theme_stylebox_override("panel", UI.patch(16, UI.WHITE, Vector2(20, 12)))
+	$VBoxContainer/Header/Title.add_theme_color_override("font_color", UI.TEAL_DEEP)
+	$VBoxContainer/Header/Title.add_theme_font_override("font", UI.font_bold())
+	$VBoxContainer/Header/SubTitle.add_theme_color_override("font_color", UI.INK_SOFT)
+	$VBoxContainer/InfoBanner/LabelInfo.add_theme_color_override("font_color", UI.INK)
 	update_info_display("pig")
 	setup_connections()
 

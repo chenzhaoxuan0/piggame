@@ -46,6 +46,7 @@ func _setup_visual() -> void:
 	add_child(mesh_instance)
 
 	hint_label = Label3D.new()
+	hint_label.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	hint_label.name = "IllusoryHint"
 	hint_label.text = "【洞察之眸已看破假象】\n一撞即穿！"
 	hint_label.font_size = 22

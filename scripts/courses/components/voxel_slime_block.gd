@@ -60,6 +60,7 @@ func _setup_visual() -> void:
 
 	# Label above block
 	var lbl := Label3D.new()
+	lbl.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	lbl.name = "SlimeLabel"
 	lbl.text = "【史莱姆弹跳块】\nBoing!"
 	lbl.font_size = 18

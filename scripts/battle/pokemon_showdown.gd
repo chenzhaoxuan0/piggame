@@ -7,6 +7,7 @@ class_name PokemonShowdown
 signal battle_completed(success: bool)
 
 const ART_2D = preload("res://scripts/art/art_2d.gd")
+const UI = preload("res://scripts/ui/ui_kit.gd")
 
 # Battle Stats
 var farmer_hp: float = 100.0
@@ -152,12 +153,13 @@ func _build_ui() -> void:
 	log_box.add_child(log_vbox)
 
 	turn_header_label = _label("【 铁 门 前 的 决 战 · 第 1 回 合 】", 16)
-	turn_header_label.add_theme_color_override("font_color", Color(0.68, 0.26, 0.16))
+	turn_header_label.add_theme_font_override("font", UI.font_bold())
+	turn_header_label.add_theme_color_override("font_color", UI.CORAL)
 	log_vbox.add_child(turn_header_label)
 
 	narrative_label = _label("农场主 挡在大铁门前，手中高压电击棍滋滋作响！\n请选择一口猪的对抗招式：", 16)
 	narrative_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	narrative_label.add_theme_color_override("font_color", Color(0.25, 0.22, 0.16))
+	narrative_label.add_theme_color_override("font_color", UI.INK)
 	narrative_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	log_vbox.add_child(narrative_label)
 
@@ -190,22 +192,23 @@ func _build_ui() -> void:
 		move_buttons.append(btn)
 
 func _create_status_plate(is_player: bool) -> PanelContainer:
-	var plate := PanelContainer.new()
+	var plate := UI.patch_panel(18, UI.PAPER, UI.CORAL if is_player else UI.TEAL, Vector2(16, 12))
 	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var border_color := Color(0.72, 0.28, 0.18) if is_player else Color(0.40, 0.32, 0.22)
-	plate.add_theme_stylebox_override("panel", _panel_style(Color(0.98, 0.96, 0.91, 0.97), border_color, 14, 3))
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 14)
 	plate.add_child(row)
 
-	# Avatar
+	# Avatar in a stitched patch frame
+	var frame := UI.patch_panel(18, UI.WHITE, UI.SAGE, Vector2(5, 5))
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(frame)
 	var portrait := TextureRect.new()
-	portrait.custom_minimum_size = Vector2(80, 80)
+	portrait.custom_minimum_size = Vector2(78, 78)
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	portrait.texture = ART_2D.PORTRAITS.get("一口猪" if is_player else "农场主")
-	row.add_child(portrait)
+	frame.add_child(portrait)
 
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -218,12 +221,13 @@ func _create_status_plate(is_player: bool) -> PanelContainer:
 	col.add_child(title_row)
 
 	var name_text := "一口猪  Lv.47" if is_player else "农场主  Lv.40"
-	var name_lbl := _label(name_text, 17)
-	name_lbl.add_theme_color_override("font_color", Color(0.24, 0.20, 0.15))
+	var name_lbl := _label(name_text, 18)
+	name_lbl.add_theme_font_override("font", UI.font_bold())
+	name_lbl.add_theme_color_override("font_color", UI.INK)
 	title_row.add_child(name_lbl)
 
 	var badge := _label("[ 自由意志 ]" if is_player else "[ 权威态 ]", 13)
-	badge.add_theme_color_override("font_color", Color(0.72, 0.28, 0.18) if is_player else Color(0.50, 0.42, 0.30))
+	badge.add_theme_color_override("font_color", UI.CORAL if is_player else UI.TEAL)
 	title_row.add_child(badge)
 
 	# HP Row
@@ -231,27 +235,14 @@ func _create_status_plate(is_player: bool) -> PanelContainer:
 	hp_row.add_theme_constant_override("separation", 8)
 	col.add_child(hp_row)
 
-	var tag := _label("HP", 14)
-	tag.add_theme_color_override("font_color", Color(0.50, 0.35, 0.20))
+	var tag := UI.label("HP", 14, UI.CORAL, true)
 	hp_row.add_child(tag)
 
-	var bar := ProgressBar.new()
-	bar.custom_minimum_size = Vector2(170, 16)
-	bar.max_value = 100.0
-	bar.value = 100.0
-	bar.show_percentage = false
-	var bar_fill := StyleBoxFlat.new()
-	bar_fill.bg_color = Color(0.38, 0.68, 0.34) # Goose Green
-	bar_fill.set_corner_radius_all(6)
-	var bar_bg := StyleBoxFlat.new()
-	bar_bg.bg_color = Color(0.85, 0.81, 0.72)
-	bar_bg.set_corner_radius_all(6)
-	bar.add_theme_stylebox_override("fill", bar_fill)
-	bar.add_theme_stylebox_override("background", bar_bg)
+	var bar := UI.progress_bar(100.0, 100.0, UI.SAGE_DEEP, Vector2(170, 16))
 	hp_row.add_child(bar)
 
 	var hp_lbl := _label("100 / 100", 14)
-	hp_lbl.add_theme_color_override("font_color", Color(0.35, 0.30, 0.22))
+	hp_lbl.add_theme_color_override("font_color", UI.INK_SOFT)
 	hp_row.add_child(hp_lbl)
 
 	if is_player:
@@ -266,7 +257,7 @@ func _create_status_plate(is_player: bool) -> PanelContainer:
 		col.add_child(comp_row)
 		for tag_str in ["★ 阿牛·坚韧", "★ 绵绵·明眸", "★ 追风·疾速"]:
 			var c_lbl := _label(tag_str, 12)
-			c_lbl.add_theme_color_override("font_color", Color(0.60, 0.45, 0.25))
+			c_lbl.add_theme_color_override("font_color", UI.INK_SOFT)
 			comp_row.add_child(c_lbl)
 	else:
 		farmer_hp_bar = bar
@@ -285,9 +276,9 @@ func _create_move_button(index: int, title: String, subtext: String) -> Button:
 	# so assigning btn.text while also adding child labels causes severe text overlap / double-rendering!
 	btn.text = ""
 
-	var normal_style := _panel_style(Color(0.97, 0.94, 0.86), Color(0.55, 0.45, 0.32), 10, 2)
-	var hover_style := _panel_style(Color(1.0, 0.98, 0.92), Color(0.75, 0.30, 0.18), 10, 3)
-	var pressed_style := _panel_style(Color(0.91, 0.86, 0.75), Color(0.40, 0.25, 0.15), 10, 2)
+	var normal_style := UI.pill(UI.WHITE, 16, UI.PAPER_EDGE, 2, Vector2(12, 8))
+	var hover_style := UI.pill(UI.SAGE, 16, UI.TEAL, 2, Vector2(12, 8))
+	var pressed_style := UI.pill(UI.SAGE_DEEP, 16, Color.TRANSPARENT, 0, Vector2(12, 8))
 	btn.add_theme_stylebox_override("normal", normal_style)
 	btn.add_theme_stylebox_override("hover", hover_style)
 	btn.add_theme_stylebox_override("pressed", pressed_style)
@@ -302,23 +293,24 @@ func _create_move_button(index: int, title: String, subtext: String) -> Button:
 
 	var title_lbl := _label("[ %d ]  %s" % [index + 1, title], 15)
 	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title_lbl.add_theme_color_override("font_color", Color(0.30, 0.24, 0.16))
+	title_lbl.add_theme_font_override("font", UI.font_bold())
+	title_lbl.add_theme_color_override("font_color", UI.INK)
 	vbox.add_child(title_lbl)
 
 	var sub_lbl := _label(subtext, 12)
 	sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sub_lbl.add_theme_color_override("font_color", Color(0.58, 0.46, 0.32))
+	sub_lbl.add_theme_color_override("font_color", UI.INK_SOFT)
 	sub_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(sub_lbl)
 
 	var update_colors := func(highlighted: bool):
 		if not is_instance_valid(title_lbl) or not is_instance_valid(sub_lbl): return
 		if highlighted or btn.has_focus():
-			title_lbl.add_theme_color_override("font_color", Color(0.72, 0.22, 0.14))
-			sub_lbl.add_theme_color_override("font_color", Color(0.42, 0.26, 0.16))
+			title_lbl.add_theme_color_override("font_color", UI.TEAL_DEEP)
+			sub_lbl.add_theme_color_override("font_color", UI.INK)
 		else:
-			title_lbl.add_theme_color_override("font_color", Color(0.30, 0.24, 0.16))
-			sub_lbl.add_theme_color_override("font_color", Color(0.58, 0.46, 0.32))
+			title_lbl.add_theme_color_override("font_color", UI.INK)
+			sub_lbl.add_theme_color_override("font_color", UI.INK_SOFT)
 
 	btn.mouse_entered.connect(func(): update_colors.call(true))
 	btn.mouse_exited.connect(func(): update_colors.call(false))
@@ -329,26 +321,10 @@ func _create_move_button(index: int, title: String, subtext: String) -> Button:
 	return btn
 
 func _panel_style(bg: Color, border: Color, radius: int, border_w: int) -> StyleBoxFlat:
-	var s := StyleBoxFlat.new()
-	s.bg_color = bg
-	s.border_color = border
-	s.set_border_width_all(border_w)
-	s.set_corner_radius_all(radius)
-	s.content_margin_left = 14
-	s.content_margin_right = 14
-	s.content_margin_top = 10
-	s.content_margin_bottom = 10
-	s.shadow_color = Color(0, 0, 0, 0.18)
-	s.shadow_size = 6
-	s.shadow_offset = Vector2(0, 3)
-	return s
+	return UI.patch(radius, bg, Vector2(14, 10), 6)
 
 func _label(text: String, font_size: int) -> Label:
-	var l := Label.new()
-	l.text = text
-	l.add_theme_font_size_override("font_size", font_size)
-	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return l
+	return UI.label(text, font_size)
 
 # -------------------------------------------------------------
 # Battle Flow Control
@@ -487,15 +463,12 @@ func _animate_hp_change(bar: ProgressBar, target_val: float, label: Label, max_v
 	)
 
 func _style_hp_bar(bar: ProgressBar, val: float) -> void:
-	var fill := StyleBoxFlat.new()
-	fill.set_corner_radius_all(6)
-	if val > 50.0:
-		fill.bg_color = Color(0.38, 0.68, 0.34) # Green
-	elif val > 20.0:
-		fill.bg_color = Color(0.85, 0.65, 0.20) # Yellow
-	else:
-		fill.bg_color = Color(0.82, 0.28, 0.20) # Red
-	bar.add_theme_stylebox_override("fill", fill)
+	var col := UI.SAGE_DEEP
+	if val <= 50.0:
+		col = UI.SUNNY
+	if val <= 20.0:
+		col = UI.RED
+	bar.add_theme_stylebox_override("fill", UI.pill(col, 9, Color.TRANSPARENT, 0, Vector2.ZERO))
 
 func _update_farmer_status(text: String, col: Color) -> void:
 	if is_instance_valid(farmer_status_badge):
@@ -520,10 +493,9 @@ func _screen_shake(intensity: float = 5.0) -> void:
 
 func _spawn_damage_text(pos: Vector2, text: String, color: Color) -> void:
 	if not is_instance_valid(floating_container): return
-	var dmg_lbl := Label.new()
-	dmg_lbl.text = text
-	dmg_lbl.add_theme_font_size_override("font_size", 20)
-	dmg_lbl.add_theme_color_override("font_color", color)
+	var dmg_lbl := UI.label(text, 22, color, true)
+	dmg_lbl.add_theme_color_override("font_outline_color", UI.WHITE)
+	dmg_lbl.add_theme_constant_override("outline_size", 6)
 	dmg_lbl.global_position = pos + Vector2(randf_range(-15, 15), randf_range(-10, 10))
 	floating_container.add_child(dmg_lbl)
 

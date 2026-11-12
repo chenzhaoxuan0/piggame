@@ -119,6 +119,7 @@ func _on_body_entered(body: Node3D) -> void:
 
 	# Pop up arcade score
 	var score_lbl := Label3D.new()
+	score_lbl.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	score_lbl.text = "🎯 BOING! +100"
 	score_lbl.font_size = 22
 	score_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED

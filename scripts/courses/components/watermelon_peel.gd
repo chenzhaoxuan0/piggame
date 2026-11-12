@@ -45,6 +45,7 @@ func _setup_visual() -> void:
 	add_child(peel_mesh)
 
 	var label := Label3D.new()
+	label.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	label.name = "PeelLabel"
 	label.text = "西瓜皮"
 	label.font_size = 18

@@ -70,26 +70,14 @@ func _solid_pillar(pos: Vector3) -> void:
 	add_child(pillar)
 
 func _setup_banner() -> void:
-	timer_label = Label3D.new()
+	timer_label = preload("res://scripts/ui/ui_kit.gd").world_label("★ WORLD RECORD: %s ★" % format_time(record_time), 28, COLOR_NEON_YELLOW, Color("0F172A"))
 	timer_label.name = "TimerHUD"
-	timer_label.text = "★ WORLD RECORD: %s ★" % format_time(record_time)
-	timer_label.font_size = 28
-	timer_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	timer_label.position = Vector3(0, gate_height + 2.0, 0)
-	timer_label.modulate = COLOR_NEON_YELLOW
-	timer_label.outline_modulate = Color("0F172A")
-	timer_label.outline_size = 8
 	add_child(timer_label)
 
-	banner_label = Label3D.new()
+	banner_label = preload("res://scripts/ui/ui_kit.gd").world_label("🏁 FINISH! 🏁", 42, Color("38BDF8"), Color("FFFFFF"))
 	banner_label.name = "VictoryBanner"
-	banner_label.text = "🏁 FINISH! 🏁"
-	banner_label.font_size = 42
-	banner_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	banner_label.position = Vector3(0, gate_height + 3.8, 0)
-	banner_label.modulate = Color("38BDF8")
-	banner_label.outline_modulate = Color("FFFFFF")
-	banner_label.outline_size = 10
 	banner_label.visible = false
 	add_child(banner_label)
 

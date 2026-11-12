@@ -56,6 +56,7 @@ func _ready() -> void:
 	# TNT labels on sides
 	for side in [0, 90, 180, 270]:
 		var label := Label3D.new()
+		label.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 		label.text = "TNT"
 		label.font_size = 32
 		label.modulate = Color("1A1A1A")

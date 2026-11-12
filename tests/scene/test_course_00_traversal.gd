@@ -19,6 +19,38 @@ func _check(ok: bool, message: String) -> void:
 	print("COURSE_00_TRAVERSAL_TEST %s: %s" % ["PASS" if ok else "FAIL", message])
 	if not ok: failures += 1
 
+func _tap_jump() -> void:
+	# The pig's jump is event-driven: a synthetic InputEventAction through the
+	# pipeline (Input.action_press alone never reaches it).
+	var pressed := InputEventAction.new()
+	pressed.action = "action_jump"
+	pressed.pressed = true
+	Input.parse_input_event(pressed)
+	var released := InputEventAction.new()
+	released.action = "action_jump"
+	released.pressed = false
+	Input.parse_input_event(released)
+
+func _jump_tick() -> void:
+	# Auto-hop for the tutorial hurdles ONLY: two rays ahead - blocked at knee
+	# height but clear at head height means a jumpable fence (0.55 m hurdles);
+	# blocked at both heights means a cage or wall, which the walker's sidestep
+	# must solve instead (a blanket "jump when slow" hop-pins against tall walls).
+	var pig: Node3D = office.player
+	if not (pig.is_on_floor() and pig.is_moving and Vector2(pig.velocity.x, pig.velocity.z).length() < 0.8):
+		return
+	var dir: Vector3 = pig.target_destination - pig.global_position
+	dir.y = 0.0
+	if dir.length_squared() < 0.01:
+		return
+	dir = dir.normalized()
+	var space = office.get_world_3d().direct_space_state
+	var origin: Vector3 = pig.global_position
+	var low: Dictionary = space.intersect_ray(PhysicsRayQueryParameters3D.create(origin + Vector3(0, 0.45, 0), origin + Vector3(0, 0.45, 0) + dir * 1.6, 1))
+	var high: Dictionary = space.intersect_ray(PhysicsRayQueryParameters3D.create(origin + Vector3(0, 1.0, 0), origin + Vector3(0, 1.0, 0) + dir * 1.6, 1))
+	if not low.is_empty() and high.is_empty():
+		_tap_jump()
+
 func _run() -> void:
 	game = root.get_node("GameManager")
 	office = load("res://scenes/levels/office_level_1.tscn").instantiate()
@@ -41,6 +73,8 @@ func _run() -> void:
 		Vector3(0.0, 0.6, -6.0),    # pens: between the patrol cages
 		Vector3(0.0, 0.6, -18.0),   # checkpoint 1, fog door ahead
 		Vector3(0.0, 0.6, -23.0),   # past the door, into the corner
+		Vector3(4.5, 0.6, -28.5),   # south into the L2 mouth first (a diagonal
+		# from the pens straight into the lines clips the wall above the mouth)
 		# Eastbound/southbound belt legs hug the SOUTH/EAST wall lane (z -33.2,
 		# x 33.2, z -57.2): the hook mid-band is a timing gate for players; the
 		# bot cannot time swings, so it takes the 1.3 m safe lane like a cautious
@@ -63,7 +97,7 @@ func _run() -> void:
 		Vector3(46.0, 0.6, -63.0),  # dock crates
 		Vector3(46.0, 0.6, -75.0),
 		Vector3(46.0, 0.6, -84.0),  # into the waking light
-	], func(): return runner.completed, 130.0)
+	], func(): return runner.completed, 130.0, 1.3, _jump_tick)
 	_check(result["ok"], "Pig physically walked the serpentine dream to the door (waypoint %d at %s, reason: %s)" % [result["index"], result["position"], result["reason"]])
 	print("COURSE_00_TRAVERSAL_TEST INFO: dream lap = %.1f s, knocks = %d (design target for players: 90-150 s)" % [result["seconds"], result["knocks"]])
 	if result["ok"]:

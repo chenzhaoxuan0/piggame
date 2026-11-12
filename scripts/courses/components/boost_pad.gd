@@ -48,6 +48,7 @@ func _setup_visual() -> void:
 
 	# Racing chevron arrows
 	arrow_label = Label3D.new()
+	arrow_label.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	arrow_label.name = "Chevron"
 	arrow_label.text = "▲ ▲ ▲"
 	arrow_label.font_size = 46

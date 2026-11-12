@@ -47,6 +47,8 @@ var fake_sun_door: Node3D
 var exit_hint_label: Label3D
 var _dock_chase_triggered := false
 var _door_slammed := false
+# Tutorial beats, one-shot each.
+var _dash_taught := false
 # Drowsy-fog proximity toasts, edge-triggered with hysteresis (reset once the
 # fog has fallen well behind again after a jolt).
 var _fog_warn_stage := 0
@@ -121,11 +123,13 @@ func _make_config() -> CourseConfig:
 	# The dream butcher is the farmer himself (stun prod and all).
 	cfg.dog_visual_asset_id = "CHAR_07"
 	cfg.memes = {
-		"course_start": {"title": "……（入梦）", "text": "白得发亮的灯管，消毒水味。这里是——屠宰场？！", "duration": 4.0},
+		"course_start": {"title": "……（入梦）", "text": "白得发亮的灯管，消毒水味。这里是——屠宰场？！用 W/A/S/D 移动，身后有困意浓雾——快跑！", "duration": 4.5},
+		"dash_learned": {"title": "梦里的本能觉醒了！", "text": "按住【Shift】冲刺！下方体力条会用尽——逆着传送带冲过去！", "duration": 3.5},
+		"dodge_learned": {"title": "红圈预警！", "text": "屠夫扑击前脚下会亮起红圈——看准时机按【Shift】闪避！", "duration": 3.5},
 		"fog_wake": {"title": "困意……", "text": "身后有什么东西漫过来了。别回头，跑。", "duration": 2.0},
 		"fog_closer": {"title": "困意更近了！", "text": "眼皮好沉……不行！这是梦里的困意，被追上会在梦里睡着的！", "duration": 2.2},
 		"fog_very_close": {"title": "快跑！！", "text": "睫毛只剩一条缝了！！", "duration": 1.8},
-		"fog_caught": {"title": "一个激灵！", "text": "你在梦里的梦里差点睡着——猛地惊醒，弹了出去！", "duration": 2.2},
+		"fog_caught": {"title": "眼皮一沉……", "text": "你在原地睡着了——梦把你摇回上一个亮着灯的角落。别停下！", "duration": 2.5},
 		"door_slam": {"title": "砰！", "text": "你甩上铁门。困意在门外撞了两下，没跟进来。", "duration": 2.5},
 		"sleeping_dog": {"title": "Zzz……", "text": "别碰睡着的狗。碰了你就会知道为什么。", "duration": 2.0},
 		"belt_ride": {"title": "流水线全速运转！", "text": "整条路都是传送带！逆流冲刺，别被送回上一间车间！", "duration": 2.5},
@@ -230,6 +234,7 @@ func _solid_box(node_name: String, size: Vector3, pos: Vector3, color: Color) ->
 # falling asleep again).
 # ------------------------------------------------------------------
 func _build_holding_pins() -> void:
+	_label("【W / A / S / D  移动】", Vector3(0, 2.0, 10.5), 34)
 	_label("【噩梦 · 圈栏】身后有困意浓雾在追！绕开笼架、别碰睡着的狗，\n冲进尽头的铁门甩掉它——然后右转！", Vector3(0, 2.8, 8.0), 20)
 
 	for cage in [
@@ -278,12 +283,24 @@ func _build_holding_pins() -> void:
 	var slam := _area("PensDoorTrigger", "", Vector3(0, 1, -19.5), Vector3(12, 4, 1.2))
 	slam.body_entered.connect(_on_pens_door_entered)
 
+	# Tutorial hurdle 1: full corridor width, 0.55 m tall - walking is blocked,
+	# the pig's 0.93 m jump clears it. Space is taught on the calm strip right
+	# after the fog door, before the plant needs jumping again.
+	_hurdle("TutorialHurdle1", Vector3(11.2, 0.55, 0.5), Vector3(0, 0.275, -23.5))
+
 func _on_fog_caught(player: Node3D) -> void:
 	if drowsy_fog == null or not is_instance_valid(drowsy_fog):
 		return
-	if player.has_method("apply_knockback"):
-		player.apply_knockback(Vector3(0, 0, -6.0) + Vector3.UP * 3.5, 0.6)
-	drowsy_fog.retreat(6.0)
+	if player.has_method("is_knocked_back") and player.is_knocked_back():
+		return # Already being thrown around - no double-dip on one mistake.
+	# Caught by drowsiness is the standard non-lethal failure loop (like the
+	# creek sweeping the pig back to shore): wake up at the last checkpoint
+	# and the fog falls back behind it. The old forward-jolt looked fun but
+	# pinned the pig against cage faces, trading a stumble for a grind.
+	var respawn_pos: Vector3 = runner.last_checkpoint if runner != null else SPAWN
+	if player.has_method("reset_at"):
+		player.reset_at(respawn_pos)
+	drowsy_fog.retreat_to_behind(respawn_pos.z)
 	_fog_warn_stage = 0
 	if meme_layer:
 		meme_layer.play("fog_caught")
@@ -306,9 +323,11 @@ func _on_pens_door_entered(body: Node3D) -> void:
 # ------------------------------------------------------------------
 func _build_processing_floor() -> void:
 	_label("【流水线一车间】右转！\n脚下的路全是传送带，铁钩就在头顶——掐节奏！", Vector3(0, 3.0, -23.5), 19)
+	_label("踏上皮带——【按住 Shift 冲刺】逆流冲过去！", Vector3(8.0, 2.4, -30.0), 22)
 
 	# L2 (eastbound, z -34..-26): two westbound lines with a prod crossing.
 	belt_a = _belt("BeltA", Vector3(13, -0.35, -30), Vector3(10, 0.35, 7.2), Vector3(-1, 0, 0), 2.4)
+	belt_a.belt_entered.connect(_on_first_belt_entered)
 	belt_b = _belt("BeltB", Vector3(26, -0.35, -30), Vector3(12, 0.35, 7.2), Vector3(-1, 0, 0), 3.0)
 	_stun_prod("StunProdStrip1", Vector3(19.0, 0, -30.0))
 
@@ -344,8 +363,9 @@ func _build_processing_floor() -> void:
 
 	_label("右转，连接走廊 →", Vector3(31.0, 2.6, -55.5), 20)
 
-	# L4 (eastbound link, x 34..46): steam gauntlet and one hook.
-	_hook("MeatHook4", Vector3(40.0, 0, -54.0), true, 2.5, PI)
+	# L4 (eastbound link, x 34..46): a jump hurdle, steam and one hook.
+	_hurdle("TutorialHurdle2", Vector3(0.5, 0.55, 7.2), Vector3(38.5, 0.275, -54.0))
+	_hook("MeatHook4", Vector3(42.0, 0, -54.0), true, 2.5, PI)
 	_steam_vent(Vector3(38.0, 0, -52.5), Vector3(-0.45, 0, 0))
 	_steam_vent(Vector3(43.0, 0, -55.5), Vector3(-0.45, 0, 0))
 
@@ -367,6 +387,29 @@ func _belt(node_name: String, pos: Vector3, size: Vector3, dir: Vector3, speed: 
 			meme_layer.play("belt_ride")
 	)
 	return belt
+
+func _hurdle(node_name: String, size: Vector3, pos: Vector3) -> void:
+	# Low amber fence blocking the full corridor width: walking stops, the
+	# pig's 0.93 m jump clears it. This is where Space gets taught.
+	var hurdle := _solid_box(node_name, size, pos, HAZARD_AMBER)
+	var hint := _label("【空格 跳跃！】", Vector3(0, 1.4, 0), 30, hurdle)
+	hint.name = "JumpHint"
+	hint.modulate = Color("FFF59D")
+
+func _on_first_belt_entered(body: Node3D) -> void:
+	# The sprint lesson: the belt outruns walking pace, so in the dream the
+	# pig's instinct wakes - a course-scoped dash loan (cleared on waking; the
+	# farm story still teaches nothing). The stamina gauge appears with it.
+	if _dash_taught:
+		return
+	_dash_taught = true
+	var gm := get_tree().root.get_node_or_null("GameManager")
+	if gm != null and gm.has_method("grant_course_skills"):
+		gm.grant_course_skills(["dash"])
+	if body.has_method("set_dash_enabled"):
+		body.set_dash_enabled(true)
+	if meme_layer:
+		meme_layer.play("dash_learned")
 
 func _hook(node_name: String, pos: Vector3, across_z: bool, speed: float, phase: float) -> void:
 	var hook: Node3D = PENDULUM_BALL.new()
@@ -489,6 +532,7 @@ func _build_loading_dock() -> void:
 	]:
 		_solid_box(crate["name"], Vector3(2.0, 1.6, 2.0), crate["pos"], CAGE_STEEL)
 
+	_label("【红圈 = 扑击预警！看准时机按 Shift 闪避！】", Vector3(46, 2.4, -59.0), 24)
 	var dock_trigger := _area("DockChaseTrigger", "", Vector3(46, 1, -61.0), Vector3(12, 3, 1.5))
 	dock_trigger.body_entered.connect(_on_dock_entered)
 
@@ -500,6 +544,7 @@ func _on_dock_entered(body: Node3D) -> void:
 	_dock_chase_triggered = true
 	if meme_layer:
 		meme_layer.play("butcher_chase")
+		meme_layer.play("dodge_learned")
 
 func _build_exit() -> void:
 	var door_pos := Vector3(46, 0, -86.0)
@@ -539,15 +584,9 @@ func _checkpoint(node_name: String, index: int, pos: Vector3, respawn: Vector3, 
 	_label("◆ 亮灯的角落", pos + Vector3(0, 1.6, 0), 18)
 
 func _label(text: String, pos: Vector3, font_size: int, parent: Node3D = null) -> Label3D:
-	var label := Label3D.new()
-	label.text = text
-	label.font_size = font_size
+	var ui := preload("res://scripts/ui/ui_kit.gd")
+	var label := ui.world_label(text, font_size, CREAM, DARK)
 	label.position = pos
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.shaded = false
-	label.modulate = CREAM
-	label.outline_modulate = DARK
-	label.outline_size = 6
 	(parent if parent else self).add_child(label)
 	return label
 

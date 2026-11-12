@@ -43,6 +43,7 @@ func _setup_visual() -> void:
 	add_child(lid_mesh)
 
 	hint_label = Label3D.new()
+	hint_label.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	hint_label.name = "ChestLabel"
 	hint_label.font_size = 20
 	hint_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -132,6 +133,7 @@ func _trigger_real_treasure(player: Node3D) -> void:
 	# here (a wall-clock timer here could outlive the course into the farm, and
 	# its save/restore could strand a stacked multiplier for good).
 	var buff_lbl := Label3D.new()
+	buff_lbl.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	buff_lbl.text = "🍠 获得黄金红薯！\n【移动速度提升！】"
 	buff_lbl.font_size = 24
 	buff_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED

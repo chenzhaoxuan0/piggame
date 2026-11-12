@@ -47,6 +47,7 @@ func _setup_visual() -> void:
 
 	# Question mark label
 	_q_label = Label3D.new()
+	_q_label.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	_q_label.name = "QuestionMark"
 	_q_label.text = "?"
 	_q_label.font_size = 56
@@ -105,6 +106,7 @@ func _collect(player: Node3D) -> void:
 
 func _apply_item(item: String, player: Node3D) -> void:
 	var popup_lbl := Label3D.new()
+	popup_lbl.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
 	popup_lbl.font_size = 24
 	popup_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	popup_lbl.outline_size = 6

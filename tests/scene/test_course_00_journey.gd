@@ -89,16 +89,17 @@ func _run() -> void:
 	await create_timer(0.5).timeout
 	_check(course.drowsy_fog.global_position.z < fog_z_start - 0.5, "Drowsy fog creeps forward (z %.2f -> %.2f)" % [fog_z_start, course.drowsy_fog.global_position.z])
 
-	# Catching the pig jolts it onward (no respawn) and the fog falls back.
-	office.player.reset_at(Vector3(0, 0.6, 10.0))
-	office.player.knockback_timer = 0.0
+	# Catching the pig is the standard non-lethal failure: back to the last
+	# checkpoint, fog parked a lead behind it (the old forward-jolt pinned the
+	# pig against cage faces).
+	runner._on_checkpoint(office.player, 1, Vector3(0, 0.6, -18.0))
+	office.player.global_position = Vector3(0, 0.6, 10.0)
 	course.drowsy_fog.global_position = Vector3(0, 0, 10.6)
 	course.drowsy_fog._touch_cooldown_left = 0.0
 	course.drowsy_fog._on_body_entered(office.player)
 	await physics_frame
-	_check(office.player.is_knocked_back(), "Fog catch jolts the pig forward (non-lethal, no respawn)")
-	var fog_z_before_retreat: float = course.drowsy_fog.global_position.z
-	_check(fog_z_before_retreat > 10.6, "Fog retreated behind the pig after the catch (z=%.2f)" % fog_z_before_retreat)
+	_check(not office.player.is_knocked_back() and office.player.global_position.distance_to(Vector3(0, 0.6, -18.0)) < 0.1, "Fog catch resets the pig to the last lit corner (non-lethal)")
+	_check(course.drowsy_fog.global_position.z > -18.0 + 10.0, "Fog parks a lead behind the checkpoint after a catch (z=%.2f)" % course.drowsy_fog.global_position.z)
 
 	# Slamming the door stops and dissolves the fog for good.
 	course.drowsy_fog._touch_cooldown_left = 0.0
@@ -130,6 +131,29 @@ func _run() -> void:
 	var dock_area: Area3D = course.get_node("DockChaseTrigger")
 	dock_area.body_entered.emit(office.player)
 	_check(course._dock_chase_triggered, "Stepping onto the dock arms the butcher alarm")
+
+	# TUTORIAL: hurdles block walking (0.4..0.7 m) and are jump-clearable.
+	for hurdle_name in ["TutorialHurdle1", "TutorialHurdle2"]:
+		var hurdle: Node3D = course.get_node(hurdle_name)
+		var hs: Vector3 = hurdle.scale * Vector3.ONE # hurdles are unit boxes
+		_check(hurdle.has_node("JumpHint"), hurdle_name + " carries the jump prompt")
+	# Walking into hurdle 1 is stopped (its collision is solid at 0.55 m).
+	office.player.reset_at(Vector3(0, 0.6, -21.5))
+	office.player.knockback_timer = 0.0
+	office.player.interact_target = null
+	office.player._click_route.clear()
+	office.player.target_destination = Vector3(0, 0.6, -26.0)
+	office.player.is_moving = true
+	await create_timer(1.5).timeout
+	_check(office.player.global_position.z > -24.2, "Hurdle 1 blocks walking (z=%.2f)" % office.player.global_position.z)
+
+	# TUTORIAL: stepping on the first belt teaches the dash loan (stamina HUD).
+	_check(not game.has_dash_skill, "No dash before the belt lesson")
+	office.player.reset_at(course.belt_a.global_position + Vector3(0, 0.95, 0))
+	await create_timer(0.8).timeout
+	_check(game.has_dash_skill, "First belt contact wakes the dream dash (course-scoped loan)")
+	_check(office.player.dash_enabled, "The taught dash actually enables the sprint")
+	_check(game.npc_completed["horse"] == false, "The dream dash loans without touching the horse quest")
 
 	# Reach the exit -> course completes, farm restored.
 	runner._on_exit(office.player)
