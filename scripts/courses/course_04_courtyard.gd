@@ -356,7 +356,8 @@ func _guardrail(node_name: String, size: Vector3, pos: Vector3, color: Color) ->
 	# Glowing rail segment run along the barrier (base sunk to the body's
 	# half-height origin); collision unchanged. The procedural beam hides - it
 	# occupies the exact same footprint and would z-fight with the model.
-	ASSETS.tile_run(body, "PROP_C4_GUARDRAIL", size, Vector3(4, 0.4, 1.2), 0.0, -0.6)
+	# Yaw follows the run axis (tile_run's contract): 0 for X runs, 90 for Z.
+	ASSETS.tile_run(body, "PROP_C4_GUARDRAIL", size, Vector3(4, 0.4, 1.2), 0.0 if size.x >= size.z else 90.0, -0.6)
 	mesh.visible = false
 	guardrails.append(body)
 

@@ -152,11 +152,11 @@ func _build_ground_and_structures() -> void:
 	# Waterfall slide descending from HighCliff into Canyon
 	_build_water_slide(Vector3(0, 1.5, -33.5))
 
-	# Canyon walls
+	# Canyon walls (the run marches along Z, so the segments yaw 90 per tile_run's contract)
 	var canyon_l := _solid_box("CanyonWallL", Vector3(2, 6, 36), Vector3(-6, 2.5, -50), VOXEL_STONE)
-	ASSETS.tile_run(canyon_l, "ENV_C2_CANYON_WALL", Vector3(2, 6, 36), Vector3(4, 2, 6), 0.0, -2.5)
+	ASSETS.tile_run(canyon_l, "ENV_C2_CANYON_WALL", Vector3(2, 6, 36), Vector3(4, 2, 6), 90.0, -2.5)
 	var canyon_r := _solid_box("CanyonWallR", Vector3(2, 6, 36), Vector3(6, 2.5, -50), VOXEL_STONE)
-	ASSETS.tile_run(canyon_r, "ENV_C2_CANYON_WALL", Vector3(2, 6, 36), Vector3(4, 2, 6), 0.0, -2.5)
+	ASSETS.tile_run(canyon_r, "ENV_C2_CANYON_WALL", Vector3(2, 6, 36), Vector3(4, 2, 6), 90.0, -2.5)
 
 	# 5. Exit Plaza (Y = 0.0) — pulled 0.5m closer so the canyon gap is 2.5m:
 	# a flat 3m gap left a ~0.1s takeoff window (max running jump = 2.9m).

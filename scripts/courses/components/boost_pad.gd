@@ -65,12 +65,14 @@ func _setup_visual() -> void:
 	add_child(arrow_label)
 
 	# Zone dressing: the neon chevron plate replaces the flat slab (the model
-	# carries its own printed arrows, so the Label3D chevron hides).
+	# carries its own printed arrows, so the Label3D chevron hides). The plate's
+	# long axis is local X, so yaw 90 points its chevrons down -Z (race forward).
 	if not lux_asset_id.is_empty():
 		var lux := ASSETS.make(lux_asset_id)
 		if lux != null:
 			pad_mesh.mesh = null
 			pad_mesh.add_child(lux)
+			lux.rotation.y = deg_to_rad(90.0)
 			arrow_label.visible = false
 
 func _on_body_entered(body: Node3D) -> void:
