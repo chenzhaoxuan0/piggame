@@ -466,13 +466,14 @@ func _show_notice(text: String) -> void:
 		var oldest: Node = notice_feed.get_child(0)
 		oldest.queue_free()
 		await get_tree().process_frame
+		if not is_instance_valid(notice_feed): return # 关卡在等待帧期间被释放
 	var card: PanelContainer = UI.patch_panel(14, UI.PAPER, UI.TEAL, Vector2(14, 9))
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.modulate.a = 0.0
 	var label: Label = UI.label(text, 16, UI.INK)
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.custom_minimum_size = Vector2(0, 0)
+	label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY # 中文长句无处可断词，任意处换行
 	card.add_child(label)
+	card.resized.connect(func(): card.pivot_offset = card.size * 0.5) # 布局定尺寸后以中心为轴弹入
 	notice_feed.add_child(card)
 	var tween := create_tween()
 	tween.tween_property(card, "modulate:a", 1.0, 0.18).set_ease(Tween.EASE_OUT)
