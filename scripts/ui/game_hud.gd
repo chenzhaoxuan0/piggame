@@ -338,7 +338,7 @@ static func _build_skill_card(host: Node) -> void:
 	host.skill_card_key_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	key_panel.add_child(host.skill_card_key_label)
 
-	host.skill_card_desc_label = UI.label("恶犬扑咬纠缠时，在时限内猛敲 5 次，可瞬间震飞恶犬 6 米并使其眩晕！", 15, UI.INK)
+	host.skill_card_desc_label = UI.label("恶犬扑咬纠缠时，在 2.2 秒内猛敲空格 8 次，可瞬间震飞恶犬 6 米并使其眩晕！", 15, UI.INK)
 	host.skill_card_desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	host.skill_card_desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(host.skill_card_desc_label)

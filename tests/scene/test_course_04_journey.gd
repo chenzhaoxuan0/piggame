@@ -206,14 +206,15 @@ func _run() -> void:
 	_check(test_dog.phase == "stun", "Dog stunned after successful struggle")
 	_check(office.player.control_mode == "chase", "Player restored to chase mode")
 
-	# 6. QTE failure is slapstick knockback
+	# 6. QTE failure costs the segment: back to the last checkpoint
 	runner._on_dog_grapple(test_dog)
 	await process_frame
 	if office.in_qte:
 		office._finish_qte(false)
 		await process_frame
 	_check(game.stage != "ending", "QTE failure does not end the run (non-lethal)")
-	_check(office.player.is_knocked_back() or office.player.control_mode == "chase", "QTE failure knocks pig back and resumes")
+	_check(not office.player.is_knocked_back(), "QTE failure no longer free-knocks the pig forward")
+	_check(office.player.global_position.distance_to(runner.last_checkpoint) < 1.5, "QTE failure drops the pig back at the last checkpoint to re-run the segment")
 
 	# 7. Reach exit via Racing Finish Gate -> real time on the banner, course complete,
 	#    farm restored, drops at Final Iron Gate

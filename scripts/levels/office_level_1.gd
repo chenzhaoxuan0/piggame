@@ -127,9 +127,13 @@ var current_chase_id := ""
 var in_qte := false
 var current_qte_dog: ChaseDog = null
 var qte_hits := 0
-const QTE_TARGET_HITS := 6
-var qte_time_remaining := 3.5
-const QTE_TIME_TOTAL := 3.2
+# 2026-11 tuning: 6 hits in 3.2 s let players stroll through the struggle.
+# 8 hits in 2.2 s (~3.6 taps/s) means only real mashing escapes; failing now
+# costs a checkpoint rerun instead of a game-over menu.
+const QTE_TARGET_HITS := 8
+var qte_time_remaining := 2.4
+const QTE_TIME_TOTAL := 2.2
+var _checkpoint_retries := 0
 
 func _ready() -> void:
 	GameManager.reset_run()
@@ -955,7 +959,7 @@ func _select_option(index: int) -> void:
 						"【 坚 韧 挣 脱 】",
 						"借老牛坚忍不屈的硬骨气 · 挣脱命运的死锁",
 						"【核心按键】 被咬住时狂按 [ 空格键 / SPACE ] 或 [ E ]",
-						"被恶犬扑咬纠缠时，在 3.5 秒内猛敲空格 5 次，即可爆发巨力震退恶犬 6 米并使其眩晕！"
+						"被恶犬扑咬纠缠时，在 2.2 秒内猛敲空格 8 次，即可爆发巨力震退恶犬 6 米并使其眩晕！"
 					)
 				elif id == "sheep":
 					farm.set_named_gate_open("sheep", true)
@@ -1032,6 +1036,8 @@ func _on_farm_chase_triggered(stage_id: String) -> void:
 	start_stage_chase(stage_id)
 
 func start_stage_chase(stage_id: String) -> void:
+	if stage_id != current_chase_id:
+		_checkpoint_retries = 0 # the fail counter is per leg; re-arms keep it
 	current_chase_id = stage_id
 	if COURSE_SCENES.has(stage_id):
 		_enter_course(stage_id)
@@ -1233,31 +1239,29 @@ func _on_chase_finished(success: bool) -> void:
 		player.set_control_mode("explore")
 		_refresh_hud()
 	else:
-		player.set_control_mode("ending")
-		var tip := "沿小路奔跑，按空格越过倒木障碍！被恶犬咬住时狂按空格拼命挣脱！"
-		if GameManager.has_struggle_skill:
-			tip = "【坚韧挣脱】已激活：被咬住时，在 3.5 秒内狂敲 [空格键 / SPACE] 5 次即可震退恶犬！"
-		_show_overlay("被犬队追上了", tip, [{"text": "从本段起点重试", "call": _retry}, {"text": "从头开始", "call": _restart}])
+		_checkpoint_retry_chase()
 
-func _retry() -> void:
+# Caught without breaking free: no game-over menu any more. The pig is dropped
+# back at the last trail checkpoint of this chase (farm._checkpoint trails the
+# journey within 14 m, so it is "上一个检查点" by construction) and the same
+# stage re-arms itself after a short beat - the pressure is the mash clock,
+# the penalty is re-running the leg, not reading a menu.
+func _checkpoint_retry_chase() -> void:
 	chase.stop_chase()
 	in_qte = false
-	overlay.visible = false
-	
-	var config: Dictionary = L.CHASE_CONFIGS.get(current_chase_id, {})
-	var retry_pos: Vector3 = config.get("retry", farm.RETRY_POSITION)
-	
+	_checkpoint_retries += 1
+	var retry_pos: Vector3 = farm._checkpoint
 	player.reset_at(retry_pos)
-	farm._checkpoint = retry_pos
-	camera.snap_to_target()
-	
-	if current_chase_id == "chase_final" or current_chase_id == "chase":
-		GameManager.retry_chase()
-	else:
-		GameManager.stage = "exploring"
-		
+	GameManager.retry_chase()
 	_restore_control()
+	camera.snap_to_target()
+	_show_toast("被扑住了！", "第 %d 次没挣脱——回到检查点，重新跑这段路！" % _checkpoint_retries)
 	_refresh_hud()
+	await get_tree().create_timer(1.4).timeout
+	# Re-arm only when the world is calm; a refused QTE request would wedge the
+	# runner (same guard as _on_qte_requested).
+	if is_inside_tree() and not dialogue_open and not cinematic and not overlay.visible and not paused and not GameManager.is_in_chase():
+		start_stage_chase(current_chase_id)
 
 func _launch_cablecar() -> void:
 	cinematic = true

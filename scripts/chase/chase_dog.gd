@@ -214,7 +214,10 @@ func _physics_process(delta: float) -> void:
 				if _can_start_grapple():
 					_captured = true
 					phase = "grapple"
-					phase_time = 3.5
+					# Grapple hold tracks the host QTE window (QTE_TIME_TOTAL + a beat):
+					# with the 8-hits/2.2 s struggle clock the old 3.5 s hold outlived
+					# the fail path and let the dog hang on doing nothing.
+					phase_time = 2.4
 					grapple_started.emit(self)
 					return
 			if distance < 3.5 and _can_reach_player():
@@ -240,7 +243,10 @@ func _physics_process(delta: float) -> void:
 				if _can_start_grapple():
 					_captured = true
 					phase = "grapple"
-					phase_time = 3.5
+					# Grapple hold tracks the host QTE window (QTE_TIME_TOTAL + a beat):
+					# with the 8-hits/2.2 s struggle clock the old 3.5 s hold outlived
+					# the fail path and let the dog hang on doing nothing.
+					phase_time = 2.4
 					_warning.visible = false
 					grapple_started.emit(self)
 					return
@@ -263,7 +269,10 @@ func _physics_process(delta: float) -> void:
 				if _can_start_grapple():
 					_captured = true
 					phase = "grapple"
-					phase_time = 3.5
+					# Grapple hold tracks the host QTE window (QTE_TIME_TOTAL + a beat):
+					# with the 8-hits/2.2 s struggle clock the old 3.5 s hold outlived
+					# the fail path and let the dog hang on doing nothing.
+					phase_time = 2.4
 					grapple_started.emit(self)
 					return
 			if phase_time <= 0.0:
