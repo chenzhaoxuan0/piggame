@@ -62,16 +62,30 @@ const GRAVITY := 18.0
 @onready var visual_mesh: Node3D = $VisualMesh
 
 # Animation-first wiring: when the dressed CHAR_01 model carries a skeletal
-# one-shot clip the script plays it and skips the procedural stand-in pose.
+# clip the script plays it and skips the procedural stand-in pose. The
+# animator is resolved once and cached (the visual is dressed in _ready).
+var _animator: Node = null
 var _dodge_animated := false
 var _hit_animated := false
 
+func _resolve_animator() -> Node:
+	if _animator == null and is_instance_valid(visual_mesh):
+		var found := visual_mesh.find_children("ActorAnimation", "Node", true, false)
+		_animator = found[0] if not found.is_empty() else null
+	return _animator
+
 func _play_action(clip: String, rate := 1.15) -> bool:
-	if not is_instance_valid(visual_mesh): return false
-	var found := visual_mesh.find_children("ActorAnimation", "Node", true, false)
-	if not found.is_empty() and found[0].has_method("play_oneshot"):
-		return found[0].play_oneshot(clip, rate)
+	var animator := _resolve_animator()
+	if animator != null and animator.has_method("play_oneshot"):
+		return animator.play_oneshot(clip, rate)
 	return false
+
+## True when the dressed model owns skeletal locomotion clips - its own
+## legwork/bounce IS the walk, so the procedural bob stands down (fallback
+## only for models without them).
+func _has_skeletal_locomotion() -> bool:
+	var animator := _resolve_animator()
+	return animator != null and animator.has_method("has_clip") and animator.has_clip("walk")
 
 func _ready() -> void:
 	preload("res://scripts/art/asset_library.gd").replace_visuals(visual_mesh, "CHAR_01")
@@ -462,10 +476,12 @@ func _physics_process(delta: float) -> void:
 	dash_state_changed.emit(stamina, cooldown_remaining)
 
 func _update_pose(direction: Vector3, delta: float) -> void:
+	var skeletal := _has_skeletal_locomotion()
 	if direction.length_squared() > 0.001 or dodge_timer > 0.0:
 		var dir := _dodge_direction if dodge_timer > 0.0 else direction
 		rotation.y = lerp_angle(rotation.y, atan2(-dir.x, -dir.z), minf(1.0, rotation_speed * delta * (1.6 if dodge_timer > 0.0 else 1.0)))
-		if _dodge_animated and dodge_timer > 0.0:
+		# Skeletal locomotion/dodge clip owns the body motion; keep facing only.
+		if skeletal or (_dodge_animated and dodge_timer > 0.0):
 			return
 		var is_dashing := is_sprinting or dodge_timer > 0.0
 		var freq: float = 0.030 if dodge_timer > 0.0 else (0.024 if is_dashing else 0.014)
@@ -474,6 +490,7 @@ func _update_pose(direction: Vector3, delta: float) -> void:
 		visual_mesh.rotation.z = walk_step * (0.07 if is_dashing else 0.035)
 		visual_mesh.rotation.x = -0.22 if dodge_timer > 0.0 else (-0.12 if is_dashing else 0.0)
 	else:
+		if skeletal: return
 		visual_mesh.position.y = move_toward(visual_mesh.position.y, 0.0, delta * 0.8)
 		visual_mesh.rotation.x = move_toward(visual_mesh.rotation.x, 0.0, delta * 0.8)
 		visual_mesh.rotation.z = move_toward(visual_mesh.rotation.z, 0.0, delta * 0.8)

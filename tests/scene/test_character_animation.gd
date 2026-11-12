@@ -116,5 +116,25 @@ func _run() -> void:
 	_check(not farm.play_npc_action("不存在的角色", "talk"), "unknown speaker safely reports no animation")
 	farm.queue_free()
 
+	# --- 6. Locomotion switching: actual movement selects the skeletal walk
+	# clip (windowed speed, not per-frame flicker) and the procedural bob
+	# stands down while skeletal locomotion owns the body motion.
+	var walker: Node = load("res://scenes/characters/pig.tscn").instantiate()
+	root.add_child(walker)
+	await create_timer(0.3).timeout
+	walker.set_control_mode("explore")
+	var walk_animator: Node = walker.visual_mesh.find_children("ActorAnimation", "Node", true, false)[0]
+	walker.target_destination = Vector3(0, 0, -12)
+	walker.is_moving = true
+	await create_timer(0.6).timeout
+	_check(walker.global_position.distance_to(Vector3.ZERO) > 1.0, "walker pig actually moves")
+	_check(walk_animator._current == "walk", "moving pig selects the skeletal walk clip")
+	_check(walker.visual_mesh.position.y == 0.0, "procedural bob stands down while skeletal walk plays")
+	walker.target_destination = walker.global_position
+	walker.is_moving = false
+	await create_timer(0.6).timeout
+	_check(walk_animator._current == "idle", "stopping returns the pig to idle")
+	walker.queue_free()
+
 	print("RIG_TEST summary: %d assertions, %d failures" % [assertions, failures])
 	quit(1 if failures > 0 else 0)

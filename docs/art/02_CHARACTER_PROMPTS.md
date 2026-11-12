@@ -269,4 +269,5 @@ Single isolated low-poly 3D model of a stylized human farmer, in the art style o
 
 - 动画优先：脚本能播对应 clip 时优先播放，模型缺 clip 时回退原程序化逻辑（`has_clip()` 探测），跨角色复用（如噩梦序章用 CHAR_07 扮演追击者）自动落回退路径。
 - 林间/溪谷巡逻守卫（`patrol_guard_dog.gd`）是程序化圆柱体、未穿模型，警戒旋转与压扁仍为 tween，待该守卫接入 CHAR_06 模型后再挂 clip。
-- 验收：`tests/scene/test_character_animation.gd` 校验逐角色 clip 清单、一次性回落、缺失回退与玩法接线。
+- 行走/奔跑由 `ActorAnimation` 按实际移速自动切换；移速用**固定时间窗累计**测量并用迟滞阈值（进入 run 5.2 m/s、退出 4.6 m/s）防抖——逐帧测速在渲染帧率≠物理帧率时会闪烁导致 walk 选不中。模型带骨骼行走 clip 时，玩法脚本里的程序化颠簸/摇摆整体退位（仅作无 clip 模型的兜底）。
+- 验收：`tests/scene/test_character_animation.gd` 校验逐角色 clip 清单、一次性回落、缺失回退、移动选中 walk 与程序化颠簸退位、玩法接线。

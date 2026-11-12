@@ -24,6 +24,7 @@ var _is_dissolving: bool = false
 var _lunge_direction: Vector3 = Vector3.FORWARD
 var _captured: bool = false
 var _visual: Node3D
+var _animator: Node = null
 var _warning: MeshInstance3D
 var _body_material: StandardMaterial3D
 var course: Array[Vector3] = []
@@ -90,12 +91,22 @@ func _ready() -> void:
 ## Animation-first action helper: plays a skeletal clip when the dressed model
 ## has one (CHAR_06 dog / CHAR_07 dream-farmer), returns false so callers keep
 ## their procedural fallback.
+func _resolve_animator() -> Node:
+	if _animator == null and is_instance_valid(_visual):
+		var found := _visual.find_children("ActorAnimation", "Node", true, false)
+		_animator = found[0] if not found.is_empty() else null
+	return _animator
+
 func _play_action(clip: String) -> bool:
-	if not is_instance_valid(_visual): return false
-	var found := _visual.find_children("ActorAnimation", "Node", true, false)
-	if not found.is_empty() and found[0].has_method("play_oneshot"):
-		return found[0].play_oneshot(clip, 1.25)
+	var animator := _resolve_animator()
+	if animator != null and animator.has_method("play_oneshot"):
+		return animator.play_oneshot(clip, 1.25)
 	return false
+
+## Skeletal locomotion owns the run bounce when the model carries walk clips.
+func _has_skeletal_locomotion() -> bool:
+	var animator := _resolve_animator()
+	return animator != null and animator.has_method("has_clip") and animator.has_clip("walk")
 
 func _add_box(size: Vector3, offset: Vector3, material: Material) -> void:
 	var mesh_node: MeshInstance3D = MeshInstance3D.new()
@@ -284,7 +295,8 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	if movement.length_squared() > 0.01:
 		rotation.y = lerp_angle(rotation.y, atan2(-movement.x, -movement.z), minf(1.0, delta * 12.0))
-		_visual.position.y = absf(sin(Time.get_ticks_msec() * 0.019)) * 0.045
+		if not _has_skeletal_locomotion():
+			_visual.position.y = absf(sin(Time.get_ticks_msec() * 0.019)) * 0.045
 	else:
 		_visual.position.y = 0.0
 	if phase == "windup":

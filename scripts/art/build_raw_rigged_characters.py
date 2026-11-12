@@ -80,18 +80,18 @@ def clip_pose(clip, p, pb, h, cid):
     phase = p * math.tau
 
     if clip in ['walk', 'run']:
-        amp = 0.35 if clip == 'walk' else 0.55
+        amp = 0.45 if clip == 'walk' else 0.65
         if name.startswith('Leg'):
             positive = name in ['LegLF', 'LegRB', 'LegL']
             rot[0] = math.sin(phase + (0 if positive else math.pi)) * amp
         elif name.startswith('Arm'):
             rot[0] = math.sin(phase) * amp * (1 if name == 'ArmL' else -1)
         elif name == 'Head':
-            rot[0] = math.sin(phase) * 0.018
+            rot[0] = math.sin(phase) * (0.03 if clip == 'walk' else 0.04)
         elif name == 'Tail':
             rot[1] = math.sin(phase) * 0.12
         elif name == 'Body':
-            loc[1] = abs(math.sin(phase)) * h * (0.035 if clip == 'run' else 0.012)
+            loc[1] = abs(math.sin(phase)) * h * (0.045 if clip == 'run' else 0.018)
     elif clip == 'idle':
         if name == 'Head':
             rot[0] = math.sin(phase) * 0.018
