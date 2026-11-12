@@ -964,6 +964,10 @@ func _on_playground_event(kind: String, _detail) -> void:
 			_show_toast("拆家小队！", "沿路的农具都记住了这头猪。")
 		"grass_gourmet":
 			_show_toast("食草动物的本分", "六丛嫩草，一丛不落。")
+		"potato_harvest":
+			_show_toast("春耕的馈赠", "五颗土豆，全是从犁沟里拱出来的。")
+		"apple_rain":
+			_show_toast("牛顿的苹果！", "苹果雨 + 当场吃完 = 猪的科学发现。")
 
 func _on_secret_pipe_entered(course_id: String) -> void:
 	if dialogue_open or cinematic or overlay.visible or is_instance_valid(active_course):

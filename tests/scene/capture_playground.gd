@@ -9,6 +9,8 @@ const SHOTS := [
 	["scarecrow", Vector3(14, 28, 56), Vector3(14, 24, 48)],
 	["log", Vector3(-52, 28, 90), Vector3(-55, 24.5, 95)],
 	["hay", Vector3(-52, 28, 70), Vector3(-57.5, 23.6, 74.5)],
+	["potatoes", Vector3(18, 29, 47), Vector3(18, 24, 44)],
+	["appletree", Vector3(70, 12, -104), Vector3(70, 9.5, -112)],
 ]
 
 func _initialize() -> void:

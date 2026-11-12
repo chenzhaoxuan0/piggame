@@ -38,7 +38,7 @@ func _run() -> void:
 	# --- Cabbage kick: contact hops the ball away from the pig
 	var ball: Node3D = farm.get_node("CabbageBall")
 	var ball_home: Vector3 = ball.global_position
-	pig.global_position = ball_home + Vector3(0, 0.6, 1.0)
+	pig.global_position = ball_home + Vector3(0, 0.6, 0.8)
 	pig.velocity = Vector3.ZERO
 	await physics_frame
 	await physics_frame
@@ -130,6 +130,37 @@ func _run() -> void:
 		await physics_frame
 	await create_timer(0.2).timeout
 	_check(nest_events.has("chick"), "Fourth nest nudge pops the chick")
+
+	# --- Potato mounds: five nose-digs in the furrow field
+	_check(not am.is_unlocked("potato_harvest"), "Harvest locked before digging")
+	for mound in farm.find_children("PotatoMound*", "", true, false):
+		pig.global_position = mound.global_position + Vector3(0, 0.4, 0.2)
+		await physics_frame
+		await physics_frame
+		await create_timer(0.2).timeout
+	_check(am.is_unlocked("potato_harvest"), "Digging all five mounds unlocks 春耕的馈赠")
+
+	# --- Apple tree: charged shake rains apples, walking over them eats all three
+	_check(not am.is_unlocked("apple_rain"), "Apple rain locked before the shake")
+	var tree: Node3D = farm.get_node("AppleTree")
+	pig.global_position = tree.global_position + Vector3(0, 0.6, 1.4)
+	pig.dodge_timer = 0.35
+	await physics_frame
+	await physics_frame
+	pig.global_position += Vector3(0, 0.6, 5.0) # step clear: an apple landing on the pig gets eaten instantly
+	await create_timer(0.7).timeout # let the apples land
+	var apples: Array = tree.find_children("ApplePickup*", "", true, false)
+	_check(apples.size() == 3, "The shake rains exactly three apples")
+	for apple in apples:
+		# An apple that landed on the standing pig was auto-eaten and queued
+		# for deletion - it can appear in the array yet be gone by our turn.
+		if not is_instance_valid(apple) or apple.is_queued_for_deletion():
+			continue
+		pig.global_position = apple.global_position + Vector3(0, 0.3, 0.1)
+		await physics_frame
+		await physics_frame
+		await create_timer(0.3).timeout
+	_check(am.is_unlocked("apple_rain"), "Eating all three apples unlocks 牛顿的苹果")
 
 	am.reset_progress(true)
 	print("\nALL FARM PLAYGROUND TESTS DONE: %d failures" % failures)

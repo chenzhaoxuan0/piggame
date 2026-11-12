@@ -13,7 +13,7 @@ extends Node3D
 
 signal played(kind: String, detail)
 
-enum Kind { GRASS, TIPPABLE, CABBAGE, HAYSTACK, BEEHIVE, MAILBOX, HORN, MUDPIT, NEST }
+enum Kind { GRASS, TIPPABLE, CABBAGE, HAYSTACK, BEEHIVE, MAILBOX, HORN, MUDPIT, NEST, POTATO, APPLE_TREE }
 
 const UI = preload("res://scripts/ui/ui_kit.gd")
 
@@ -31,6 +31,7 @@ var _cool_timer := 0.0
 var _one_shot_done := false
 var _nest_count := 0
 var _buffed_speed := 0.0
+var _apples_eaten := 0
 
 func _ready() -> void:
 	var area := Area3D.new()
@@ -70,6 +71,8 @@ func _on_sense(body: Node3D) -> void:
 		Kind.HORN: _react_horn()
 		Kind.MUDPIT: _react_mudpit(body)
 		Kind.NEST: _react_nest()
+		Kind.POTATO: _react_potato()
+		Kind.APPLE_TREE: _react_apple_tree(body)
 
 # ------------------------------------------------------------- reactions
 func _react_grass() -> void:
@@ -202,6 +205,94 @@ func _react_nest() -> void:
 		t.tween_callback(chick.queue_free)
 		_gag("第四下拱出来一只小鸡。它看了你一眼，飞走了。", 2.4)
 		played.emit("chick", "")
+
+func _react_potato() -> void:
+	# One nose-dig per mound: the potato pops out and lands beside the furrow.
+	if _one_shot_done or not _ready_cool():
+		return
+	_one_shot_done = true
+	var potato := MeshInstance3D.new()
+	potato.name = "DugPotato"
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.18
+	sphere.height = 0.36
+	potato.mesh = sphere
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color("B98A5A")
+	mat.roughness = 0.95
+	potato.material_override = mat
+	add_child(potato)
+	potato.position = Vector3(0.3, 0.1, 0.3)
+	var tween := create_tween()
+	tween.tween_property(potato, "position:y", 1.1, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(potato, "position:x", 0.9, 0.3)
+	tween.tween_property(potato, "position:y", 0.1, 0.2).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_IN)
+	_gag("拱出一颗土豆！个头还不小。")
+	played.emit("potato", "")
+
+func _react_apple_tree(body: Node3D) -> void:
+	# A charged shove rains three apples; each apple is its own tiny pickup -
+	# walk over one to crunch it. All three eaten = the achievement beat.
+	if _one_shot_done:
+		return
+	if not (body.is_sprinting or body.dodge_timer > 0.0):
+		_gag("（树纹丝不动——用 Shift 冲过来撞树干！）", 1.6)
+		return
+	_one_shot_done = true
+	_gag("哗啦啦——下了一场苹果雨！", 2.2)
+	for i in 3:
+		var apple := Node3D.new()
+		apple.name = "ApplePickup%d" % i
+		var mesh := MeshInstance3D.new()
+		var sphere := SphereMesh.new()
+		sphere.radius = 0.16
+		sphere.height = 0.32
+		mesh.mesh = sphere
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = Color("D94F3D")
+		mat.roughness = 0.6
+		mesh.material_override = mat
+		apple.add_child(mesh)
+		var land := Vector3(randf_range(-1.2, 1.2), 0.16, randf_range(-1.2, 1.2))
+		apple.position = Vector3(randf_range(-1.0, 1.0), 3.2, randf_range(-1.0, 1.0))
+		add_child(apple)
+		var tween := create_tween()
+		tween.tween_property(apple, "position:y", land.y, 0.5).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_IN)
+		tween.parallel().tween_property(apple, "position:x", land.x, 0.5)
+		tween.parallel().tween_property(apple, "position:z", land.z, 0.5)
+		var sense := Area3D.new()
+		sense.name = "AppleSense"
+		sense.collision_layer = 0
+		sense.collision_mask = 2
+		var shape := CollisionShape3D.new()
+		var box := BoxShape3D.new()
+		box.size = Vector3(1.1, 1.2, 1.1)
+		shape.shape = box
+		sense.add_child(shape)
+		apple.add_child(sense)
+		sense.body_entered.connect(_on_apple_eaten.bind(apple))
+	played.emit("apple_shake", "")
+
+func _on_apple_eaten(body: Node3D, apple: Node3D) -> void:
+	if not body.is_in_group("player") and not body.name.to_lower().contains("pig"):
+		return
+	if not is_instance_valid(apple) or apple.get_meta("eaten", false):
+		return
+	apple.set_meta("eaten", true)
+	_apples_eaten += 1
+	var crunch := UI.world_label("咔嚓——真甜。（%d / 3）" % _apples_eaten, 20, UI.WHITE, UI.INK)
+	crunch.position = apple.position + Vector3(0, 0.8, 0)
+	add_child(crunch)
+	var t := create_tween()
+	t.tween_property(crunch, "position:y", crunch.position.y + 0.6, 1.2)
+	t.parallel().tween_property(crunch, "modulate:a", 0.0, 1.1)
+	t.tween_callback(crunch.queue_free)
+	var shrink := create_tween()
+	shrink.tween_property(apple, "scale", Vector3.ZERO, 0.15)
+	shrink.tween_callback(apple.queue_free)
+	if _apples_eaten >= 3:
+		_gag("三颗全吃完了。牛顿没告诉你的是：猪不用等苹果掉。", 2.6)
+		played.emit("apples_all", "")
 
 # ------------------------------------------------------------- helpers
 func _gag_or(defaults: Array) -> String:

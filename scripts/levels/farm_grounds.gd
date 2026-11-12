@@ -429,7 +429,8 @@ func _on_log_charge(body: Node3D, log: Node3D) -> void:
 # collider here sits well off the road lanes (raycast/journey-bot red lines).
 const PLAYTIP_TARGET := 5
 const PLAYGRASS_TARGET := 6
-var _play_counts := {"tippable": 0, "grass": 0}
+const PLAYPOTATO_TARGET := 5
+var _play_counts := {"tippable": 0, "grass": 0, "potato": 0}
 var _cabbage_goal_cool := 0.0
 
 func _plaything(kind: int, sense: Vector3, cool: float,
@@ -525,6 +526,36 @@ func _build_playground() -> void:
 	var nest := _box(self, "HenNest", Vector3(1.1, 0.45, 1.1), Vector3(24, 24.2, 36), Color("C9A35E"), false)
 	nest.add_child(_plaything(PLAYTHING.Kind.NEST, Vector3(2.0, 1.8, 2.0), 1.2))
 
+	# --- Potato mounds in the furrow field (one nose-dig each). Unique names:
+	# a duplicate name at add_child time is dropped to @Node3D@N, breaking
+	# lookups (unlike a post-add rename, which gets a numeric suffix).
+	var mound_index := 0
+	for mound_pos in [
+		Vector3(12, 24.15, 40), Vector3(17, 24.15, 43.5),
+		Vector3(22, 24.15, 46.5), Vector3(26, 24.15, 49.5),
+		Vector3(14, 24.15, 50.5),
+	]:
+		var mound := _box(self, "PotatoMound%d" % mound_index, Vector3(0.9, 0.22, 0.9), mound_pos, Color("7A5C3E"), false)
+		mound.add_child(_plaything(PLAYTHING.Kind.POTATO, Vector3(2.0, 1.6, 2.0), 1.0))
+		mound_index += 1
+
+	# --- Shakeable apple tree by the horse track (charged shove rains apples)
+	var tree := _box(self, "AppleTree", Vector3(0.5, 2.6, 0.5), Vector3(76, 9.3, -108), Color("665A48"), true)
+	var canopy := MeshInstance3D.new()
+	canopy.name = "Canopy"
+	var canopy_sphere := SphereMesh.new()
+	canopy_sphere.radius = 1.6
+	canopy_sphere.height = 3.2
+	canopy.mesh = canopy_sphere
+	var canopy_mat := StandardMaterial3D.new()
+	canopy_mat.albedo_color = Color("5E8C4A")
+	canopy_mat.roughness = 0.95
+	canopy.material_override = canopy_mat
+	canopy.position = Vector3(0, 2.2, 0)
+	tree.add_child(canopy)
+	_label(tree, "AppleTreeLabel", "冲刺撞树 · 摇苹果！", Vector3(0, 4.3, 0), 18) # above the canopy sphere
+	tree.add_child(_plaything(PLAYTHING.Kind.APPLE_TREE, Vector3(2.8, 3.4, 2.8), 1.0, true))
+
 func _tipple(node_name: String, pos: Vector3, size: Vector3, color: Color) -> void:
 	var body := _box(self, node_name, size, pos, color, true)
 	body.add_child(_plaything(PLAYTHING.Kind.TIPPABLE, Vector3(2.6, 2.4, 2.6), 1.0, true))
@@ -552,6 +583,14 @@ func _on_plaything_played(kind: String, _detail) -> void:
 		if _play_counts["grass"] >= PLAYGRASS_TARGET:
 			AchievementManager.unlock("grass_gourmet")
 			playground_event.emit("grass_gourmet", "")
+	elif kind == "potato":
+		_play_counts["potato"] += 1
+		if _play_counts["potato"] >= PLAYPOTATO_TARGET:
+			AchievementManager.unlock("potato_harvest")
+			playground_event.emit("potato_harvest", "")
+	elif kind == "apples_all":
+		AchievementManager.unlock("apple_rain")
+		playground_event.emit("apple_rain", "")
 	elif kind == "perfect_dive":
 		AchievementManager.unlock("perfect_dive")
 		playground_event.emit("perfect_dive", _detail)
@@ -580,6 +619,9 @@ func _sphere(parent: Node3D, node_name: String, radius: float, pos: Vector3, col
 		var body := AnimatableBody3D.new()
 		body.collision_layer = 1
 		body.collision_mask = 0
+		# Tweens move this body (the cabbage ball); physics sync would fight
+		# them every frame and rewind the kick to a fraction of its hop.
+		body.sync_to_physics = false
 		var shape := CollisionShape3D.new()
 		var sphere := SphereShape3D.new()
 		sphere.radius = radius

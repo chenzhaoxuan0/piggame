@@ -36,6 +36,8 @@ const DEFS := [
 	{"id": "demolition_crew", "title": "拆家小队", "desc": "沿下山路的五件农具，全都被撞翻了一遍。"},
 	{"id": "grass_gourmet", "title": "食草动物的本分", "desc": "啃遍了下山路上全部六丛嫩草。"},
 	{"id": "perfect_dive", "title": "满分入坑", "desc": "从山坡跳进草垛，麻雀评委打出了 10 分。"},
+	{"id": "potato_harvest", "title": "春耕的馈赠", "desc": "在牛耕地的犁沟里拱出了全部五颗土豆。"},
+	{"id": "apple_rain", "title": "牛顿的苹果", "desc": "撞下马场苹果树的苹果雨，并当场吃完三颗。"},
 ]
 
 var unlocked := {} # id -> true
