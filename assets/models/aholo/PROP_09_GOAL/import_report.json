@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_09_GOAL",
+  "raw_triangles": 9560,
+  "triangles": 2400,
+  "size_blender_xyz": [
+    2.406020402908325,
+    1.2328286170959473,
+    1.5500000715255737
+  ],
+  "file_bytes": 189012,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_09_GOAL/PROP_09_GOAL_game.glb"
+}

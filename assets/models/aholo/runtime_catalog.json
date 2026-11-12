@@ -943,6 +943,24 @@
       "zone": "C4",
       "triangles": -1,
       "validation": "Zone-style asset (C4); processed via process_zone_models.py"
+    },
+    "PROP_08_CABBAGE": {
+      "path": "res://assets/models/aholo/PROP_08_CABBAGE/PROP_08_CABBAGE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 1499,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-13"
+    },
+    "PROP_09_GOAL": {
+      "path": "res://assets/models/aholo/PROP_09_GOAL/PROP_09_GOAL_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 2400,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-13"
     }
   }
 }

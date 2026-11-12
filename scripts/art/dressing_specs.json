@@ -255,13 +255,12 @@
   },
   "PROP_09_GOAL": {
     "name": "牛耕地球会球门",
-    "subject": "One small freestanding practice football goal, two round white posts and one round white crossbar, a flat cream-colored rectangular net panel hanging from the crossbar and sloping down to a slim ground frame at the back. Goal frame about 2.4 times as wide as it is tall. Freestanding single assembly, no ground plane.",
+    "subject": "One small freestanding football goal FRAME only: two white round vertical posts joined at the top by one round white horizontal crossbar, two slim white round ground bars along the back base. Open frame with nothing between the posts, no net, no mesh panel, no back wall, no board. Very wide low practice goal, the span between the two posts is clearly larger than the goal height. Complete freestanding assembly, no ground plane.",
     "height": 1.55,
     "budget": 2400,
     "palette": [
       "FFFFFF",
       "E8E2CE",
-      "D9D2BC",
       "5A442E"
     ]
   }
