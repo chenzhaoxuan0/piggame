@@ -55,6 +55,7 @@ var _pending_dash: bool = false
 var _jump_buffer := 0.0
 var _coyote_time := 0.0
 var jumps := 0
+var voice: PigVoice = null
 var _click_route: Array[Vector3] = []
 const JUMP_SPEED := 5.8
 const GRAVITY := 18.0
@@ -92,6 +93,9 @@ func _ready() -> void:
 	target_destination = global_position
 	camera = get_viewport().get_camera_3d()
 	floor_snap_length = 0.3
+	voice = PigVoice.new()
+	voice.name = "PigVoice"
+	add_child(voice)
 
 func set_control_mode(mode: String) -> void:
 	control_mode = mode
@@ -228,6 +232,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		if not is_tap and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			is_tap = true
 		if is_tap:
+			if is_instance_valid(voice):
+				voice.struggle_grunt()
 			qte_tapped.emit()
 			get_viewport().set_input_as_handled()
 		return
@@ -335,6 +341,10 @@ func _try_interact(target: Node3D) -> bool:
 	_cancel_destination()
 	velocity.x = 0.0
 	velocity.z = 0.0
+	# Snuffling at the trough deserves the snort (the interaction_id survives
+	# across the opening pen and the farm pigpen tutorial).
+	if is_instance_valid(voice) and str(target.get_meta("interaction_id", "")).find("trough") >= 0:
+		voice.oink()
 	reached_interactable.emit(target)
 	return true
 
@@ -455,6 +465,12 @@ func _physics_process(delta: float) -> void:
 		_coyote_time=0
 		jumps+=1
 		_play_action("jump", 1.2)
+		# Voice: plain hop = oink, Shift-held hop = the dramatic scream jump.
+		if is_instance_valid(voice):
+			if Input.is_action_pressed("action_dash"):
+				voice.squeal()
+			else:
+				voice.oink()
 	else:
 		# Mirror the knockback-branch guard: an upward impulse written by a trap
 		# (slime block, launch ramp) on an on-floor frame must not be zeroed.
