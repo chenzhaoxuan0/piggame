@@ -805,11 +805,11 @@ func _on_generic_pipe_top_entered(body: Node3D, course_id: String, hint_label: L
 			hint_label.text = "▼ 按 S 键钻入隐藏关！▼"
 			hint_label.modulate = Color("FFE066")
 
-func _on_generic_pipe_top_exited(body: Node3D, hint_label: Label3D, default_text: String) -> void:
+func _on_generic_pipe_top_exited(body: Node3D, hint_label: Label3D, default_text: String, hint_suffix: String) -> void:
 	if body.is_in_group("player"):
 		_player_on_pipe = false
 		if hint_label:
-			hint_label.text = default_text + "\n[ 跳上管顶按 S 钻入 ]"
+			hint_label.text = default_text + "\n" + hint_suffix
 			hint_label.modulate = CREAM
 
 func _trigger_pipe_enter(course_id: String = "course_1", pipe_node: Node3D = null) -> void:
@@ -908,19 +908,24 @@ func _build_secret_mario_pipe_exit() -> void:
 	_label(exit_root, "ExitPipeSign", "★ 地下隐藏关 · 出口 ★", Vector3(0, 1.8, 0), 20)
 
 func _build_all_course_pipes() -> void:
-	# Course 2 (Creek): Ox terrace heading into creek -> exits at Sheep meadow entrance
-	_build_custom_pipe_entrance("SecretCreekPipe", "course_2", Vector3(70.0, 24.0, 24.0), "★ 像素溪流管道 ★", Color("38BDF8"))
-	_build_custom_pipe_exit("SecretCreekPipeExit", Vector3(-38.0, 16.0, -20.0), "★ 溪流捷径 · 出口 ★", Color("38BDF8"))
+	# Hidden-course entrances live at the END of each downhill chase (mirroring the
+	# course-1 Mario pipe at the final summit corner before Ox's gate), so entering
+	# a secret never skips the chase content. Each entrance is themed to its course:
+	# creek = pixel whirlpool, woodland = fairy-tale tree hollow, courtyard = neon
+	# game-show launchpad.
+	# Course 2 (Creek): last creek-chase straight before Sheep's gate -> exit at Sheep meadow
+	_build_custom_pipe_entrance("SecretCreekPipe", "course_2", Vector3(-26.0, 16.0, -16.0), "★ 像素溪流漩涡 ★", "漩涡边缘", "whirlpool")
+	_build_custom_pipe_exit("SecretCreekPipeExit", Vector3(-38.0, 16.0, -20.0), "★ 溪流捷径 · 出口 ★", "whirlpool")
 
-	# Course 3 (Woodland): Sheep meadow heading into woodland -> exits at Horse pasture entrance
-	_build_custom_pipe_entrance("SecretWoodlandPipe", "course_3", Vector3(-64.0, 16.0, -58.0), "★ 童话林间树洞 ★", Color("86A873"))
-	_build_custom_pipe_exit("SecretWoodlandPipeExit", Vector3(16.0, 8.0, -88.0), "★ 林间捷径 · 出口 ★", Color("86A873"))
+	# Course 3 (Woodland): final woodland stretch before Horse's gate -> exit inside Horse pasture
+	_build_custom_pipe_entrance("SecretWoodlandPipe", "course_3", Vector3(12.0, 8.8, -85.0), "★ 童话林间树洞 ★", "树洞边", "treehollow")
+	_build_custom_pipe_exit("SecretWoodlandPipeExit", Vector3(22.0, 8.0, -94.0), "★ 林间捷径 · 出口 ★", "treehollow")
 
-	# Course 4 (Courtyard): Horse pasture approach -> exits at final Showdown Gate
-	_build_custom_pipe_entrance("SecretCourtyardPipe", "course_4", Vector3(-22.0, 4.0, -164.0), "★ 终极综艺管道 ★", Color("FF1493"))
-	_build_custom_pipe_exit("SecretCourtyardPipeExit", Vector3(-78.0, 2.0, -220.0), "★ 终极大院 · 出口 ★", Color("FF1493"))
+	# Course 4 (Courtyard): last breakout leg before the final gate -> exit beside the final gate approach
+	_build_custom_pipe_entrance("SecretCourtyardPipe", "course_4", Vector3(-71.0, 2.0, -217.0), "★ 荧光综艺弹射台 ★", "弹射台", "launchpad")
+	_build_custom_pipe_exit("SecretCourtyardPipeExit", Vector3(-78.0, 2.0, -220.0), "★ 终极大院 · 出口 ★", "launchpad")
 
-func _build_custom_pipe_entrance(pipe_name: String, course_id: String, pos: Vector3, label_text: String, pipe_color: Color) -> Node3D:
+func _build_custom_pipe_entrance(pipe_name: String, course_id: String, pos: Vector3, label_text: String, stand_word: String, style: String) -> Node3D:
 	var pipe_root := Node3D.new()
 	pipe_root.name = pipe_name
 	pipe_root.position = pos
@@ -937,49 +942,17 @@ func _build_custom_pipe_entrance(pipe_name: String, course_id: String, pos: Vect
 	body_shape.shape = cyl_shape
 	body_shape.position.y = 0.35
 	pipe_body.add_child(body_shape)
-
-	var lux_pipe := ASSETS.make("PROP_C1_PIPE")
-	if lux_pipe:
-		pipe_body.add_child(lux_pipe)
-	else:
-		var pipe_mat := StandardMaterial3D.new()
-		pipe_mat.albedo_color = pipe_color
-		pipe_mat.roughness = 0.45
-
-		var body_mesh := MeshInstance3D.new()
-		var body_cyl := CylinderMesh.new()
-		body_cyl.top_radius = 1.0
-		body_cyl.bottom_radius = 1.0
-		body_cyl.height = 0.65
-		body_mesh.mesh = body_cyl
-		body_mesh.position.y = 0.325
-		body_mesh.material_override = pipe_mat
-		pipe_body.add_child(body_mesh)
-
-		var rim_mesh := MeshInstance3D.new()
-		var rim_cyl := CylinderMesh.new()
-		rim_cyl.top_radius = 1.2
-		rim_cyl.bottom_radius = 1.2
-		rim_cyl.height = 0.2
-		rim_mesh.mesh = rim_cyl
-		rim_mesh.position.y = 0.58
-		rim_mesh.material_override = pipe_mat
-		pipe_body.add_child(rim_mesh)
-
-		var hole_mesh := MeshInstance3D.new()
-		var hole_cyl := CylinderMesh.new()
-		hole_cyl.top_radius = 0.88
-		hole_cyl.bottom_radius = 0.88
-		hole_cyl.height = 0.04
-		hole_mesh.mesh = hole_cyl
-		hole_mesh.position.y = 0.67
-		var hole_mat := StandardMaterial3D.new()
-		hole_mat.albedo_color = Color("0A150A")
-		hole_mesh.material_override = hole_mat
-		pipe_body.add_child(hole_mesh)
-
+	match style:
+		"whirlpool":
+			_build_whirlpool_visuals(pipe_body)
+		"treehollow":
+			_build_treehollow_visuals(pipe_body)
+		"launchpad":
+			_build_launchpad_visuals(pipe_body)
 	pipe_root.add_child(pipe_body)
-	var hint := _label(pipe_root, "PipeSign", label_text + "\n[ 跳上管顶按 S 钻入 ]", Vector3(0, 2.2, 0), 22)
+
+	var hint_suffix := "[ 跳上%s按 S 钻入 ]" % stand_word
+	var hint := _label(pipe_root, "PipeSign", label_text + "\n" + hint_suffix, Vector3(0, 2.2, 0), 22)
 
 	var top_area := Area3D.new()
 	top_area.name = "PipeTopArea"
@@ -995,12 +968,114 @@ func _build_custom_pipe_entrance(pipe_name: String, course_id: String, pos: Vect
 		_on_generic_pipe_top_entered(body, course_id, hint, pipe_root)
 	)
 	top_area.body_exited.connect(func(body: Node3D):
-		_on_generic_pipe_top_exited(body, hint, label_text)
+		_on_generic_pipe_top_exited(body, hint, label_text, hint_suffix)
 	)
 	pipe_root.add_child(top_area)
 	return pipe_root
 
-func _build_custom_pipe_exit(exit_name: String, pos: Vector3, label_text: String, pipe_color: Color) -> Node3D:
+func _flat_mat(color: Color, glow: float = 0.0) -> StandardMaterial3D:
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.roughness = 0.55
+	if glow > 0.0:
+		mat.emission_enabled = true
+		mat.emission = color
+		mat.emission_energy_multiplier = glow
+	return mat
+
+func _cyl(parent: Node3D, radius: float, height: float, y: float, mat: Material) -> MeshInstance3D:
+	var mesh := MeshInstance3D.new()
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = radius
+	cyl.bottom_radius = radius
+	cyl.height = height
+	mesh.mesh = cyl
+	mesh.position.y = y
+	mesh.material_override = mat
+	parent.add_child(mesh)
+	return mesh
+
+func _box_mesh(parent: Node3D, size: Vector3, pos: Vector3, mat: Material) -> MeshInstance3D:
+	var mesh := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = size
+	mesh.mesh = box
+	mesh.position = pos
+	mesh.material_override = mat
+	parent.add_child(mesh)
+	return mesh
+
+func _build_whirlpool_visuals(pipe_body: Node3D) -> void:
+	# Creek course: a pixel/voxel-styled stone ring around a spinning water vortex.
+	var water_mat := _flat_mat(Color("38BDF8"))
+	var deep_mat := _flat_mat(Color("0E7490"))
+	var stone_mat := _flat_mat(Color("78716C"))
+	_cyl(pipe_body, 1.0, 0.65, 0.325, water_mat)
+	_cyl(pipe_body, 0.62, 0.04, 0.665, deep_mat)
+	# Voxel stepping stones ringing the pool (pixel style = chunky boxes).
+	for i in range(8):
+		var angle := TAU * i / 8.0
+		var ring_pos := Vector3(cos(angle) * 1.35, 0.5, sin(angle) * 1.35)
+		_box_mesh(pipe_body, Vector3(0.55, 0.5, 0.55), ring_pos, stone_mat)
+	# Spinning foam cross on the water so the vortex reads as alive.
+	var foam := Node3D.new()
+	foam.name = "VortexFoam"
+	pipe_body.add_child(foam)
+	foam.position.y = 0.63
+	var foam_mat := _flat_mat(Color("BAE6FD"))
+	_box_mesh(foam, Vector3(1.5, 0.06, 0.3), Vector3.ZERO, foam_mat)
+	_box_mesh(foam, Vector3(0.3, 0.06, 1.5), Vector3.ZERO, foam_mat)
+	var tween := pipe_body.create_tween()
+	tween.set_loops()
+	tween.tween_property(foam, "rotation:y", TAU, 2.4).as_relative()
+
+func _build_treehollow_visuals(pipe_body: Node3D) -> void:
+	# Woodland course: a fairy-tale tree stump with a dark hollow mouth.
+	var bark_mat := _flat_mat(Color("A9746B"))
+	var bark_dark := _flat_mat(Color("7C5A52"))
+	var leaf_mat := _flat_mat(Color("9DC183"))
+	var hole_mat := _flat_mat(Color("1C1410"))
+	_cyl(pipe_body, 1.1, 0.85, 0.425, bark_mat)
+	_cyl(pipe_body, 0.92, 0.06, 0.86, bark_dark)
+	_cyl(pipe_body, 0.78, 0.04, 0.885, hole_mat)
+	# Storybook trunk + canopy behind the stump so the hollow reads as a tree.
+	var trunk := _cyl(pipe_body, 0.42, 2.6, 1.3, bark_mat)
+	trunk.position = Vector3(1.0, 1.3, -1.0)
+	var canopy := Node3D.new()
+	canopy.name = "Canopy"
+	pipe_body.add_child(canopy)
+	canopy.position = Vector3(1.0, 2.9, -1.0)
+	var blob := MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 1.05
+	sphere.height = 1.6
+	blob.mesh = sphere
+	blob.material_override = leaf_mat
+	canopy.add_child(blob)
+	var blob2 := MeshInstance3D.new()
+	blob2.mesh = sphere
+	blob2.scale = Vector3(0.7, 0.6, 0.7)
+	blob2.position = Vector3(0.75, 0.35, 0.35)
+	blob2.material_override = leaf_mat
+	canopy.add_child(blob2)
+
+func _build_launchpad_visuals(pipe_body: Node3D) -> void:
+	# Courtyard course: a neon game-show podium with glowing chevrons.
+	var podium_mat := _flat_mat(Color("FF1493"), 0.8)
+	var ring_mat := _flat_mat(Color("22D3EE"), 1.4)
+	var dark_mat := _flat_mat(Color("2B0A1E"))
+	_cyl(pipe_body, 1.0, 0.65, 0.325, podium_mat)
+	_cyl(pipe_body, 1.25, 0.12, 0.06, ring_mat)
+	_cyl(pipe_body, 0.8, 0.04, 0.665, dark_mat)
+	# Glowing chevron arrows pointing down into the pad.
+	for i in range(4):
+		var angle := TAU * i / 4.0 + PI / 4.0
+		var chev := _box_mesh(pipe_body, Vector3(0.42, 0.1, 0.2), Vector3(cos(angle) * 1.15, 0.68, sin(angle) * 1.15), ring_mat)
+		chev.rotation.y = -angle
+
+func _build_custom_pipe_exit(exit_name: String, pos: Vector3, label_text: String, style: String) -> Node3D:
+	# Exit stubs share the entrance's course-themed look, squashed to stub height
+	# (the pig pops back out of the same kind of portal it dove into).
 	var exit_root := Node3D.new()
 	exit_root.name = exit_name
 	exit_root.position = pos
@@ -1018,46 +1093,17 @@ func _build_custom_pipe_exit(exit_name: String, pos: Vector3, label_text: String
 	body_shape.position.y = 0.175
 	pipe_body.add_child(body_shape)
 
-	var lux_pipe := ASSETS.make("PROP_C1_PIPE")
-	if lux_pipe:
-		lux_pipe.scale = Vector3(1.0, 0.65, 1.0)
-		pipe_body.add_child(lux_pipe)
-	else:
-		var pipe_mat := StandardMaterial3D.new()
-		pipe_mat.albedo_color = pipe_color
-		pipe_mat.roughness = 0.45
-
-		var body_mesh := MeshInstance3D.new()
-		var body_cyl := CylinderMesh.new()
-		body_cyl.top_radius = 1.0
-		body_cyl.bottom_radius = 1.0
-		body_cyl.height = 0.35
-		body_mesh.mesh = body_cyl
-		body_mesh.position.y = 0.175
-		body_mesh.material_override = pipe_mat
-		pipe_body.add_child(body_mesh)
-
-		var rim_mesh := MeshInstance3D.new()
-		var rim_cyl := CylinderMesh.new()
-		rim_cyl.top_radius = 1.2
-		rim_cyl.bottom_radius = 1.2
-		rim_cyl.height = 0.15
-		rim_mesh.mesh = rim_cyl
-		rim_mesh.position.y = 0.3
-		rim_mesh.material_override = pipe_mat
-		pipe_body.add_child(rim_mesh)
-
-		var hole_mesh := MeshInstance3D.new()
-		var hole_cyl := CylinderMesh.new()
-		hole_cyl.top_radius = 0.88
-		hole_cyl.bottom_radius = 0.88
-		hole_cyl.height = 0.04
-		hole_mesh.mesh = hole_cyl
-		hole_mesh.position.y = 0.37
-		var hole_mat := StandardMaterial3D.new()
-		hole_mat.albedo_color = Color("0A150A")
-		hole_mesh.material_override = hole_mat
-		pipe_body.add_child(hole_mesh)
+	var deco := Node3D.new()
+	deco.name = "ExitDeco"
+	deco.scale = Vector3(1.0, 0.55, 1.0)
+	pipe_body.add_child(deco)
+	match style:
+		"whirlpool":
+			_build_whirlpool_visuals(deco)
+		"treehollow":
+			_build_treehollow_visuals(deco)
+		"launchpad":
+			_build_launchpad_visuals(deco)
 
 	exit_root.add_child(pipe_body)
 	_label(exit_root, "ExitPipeSign", label_text, Vector3(0, 1.8, 0), 20)
