@@ -1166,15 +1166,17 @@ func _exit_course() -> void:
 	if completed_id == "intro":
 		# Waking up from the nightmare drops the pig back into its pen.
 		exit_pos = farm.get_spawn_position()
+	# Exit drops match the visual exit stubs in FarmGrounds; each lands deep in
+	# the next meadow (>= 26 m from its hidden entrance, clear of gates/fences).
 	match completed_id:
 		"chase_1":
 			exit_pos = Vector3(38.0, 24.1, 52.0)
 		"chase_2":
-			exit_pos = Vector3(-38.0, 16.1, -20.0)
+			exit_pos = Vector3(-44.0, 16.1, -37.0)
 		"chase_3":
-			exit_pos = Vector3(16.0, 8.1, -88.0)
+			exit_pos = Vector3(27.0, 8.1, -103.5)
 		"chase_final":
-			exit_pos = Vector3(-78.0, 2.1, -220.0)
+			exit_pos = Vector3(-75.5, 2.1, -223.5)
 	player.reset_at(exit_pos)
 	if is_instance_valid(player):
 		player.set_meta("in_stealth_box", false)

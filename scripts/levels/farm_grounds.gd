@@ -80,7 +80,9 @@ func _ready() -> void:
 	_box(lever,"LeverPost",Vector3(.2,.8,.2),Vector3.ZERO,Color("9C805E"))
 	_box(lever,"LeverHandle",Vector3(.6,.12,.12),Vector3.UP*.45,Color("A96550"))
 	_label(lever,"LeverLabel","E · 启动索道",Vector3(0,1.2,0),22)
-	var board := _interaction("RecordBoard","record_board",Vector3(24,8,-106),Vector3(1.7,2,.6))
+	# Record board faces the horse track from the north-east (the old spot stood
+	# in the middle of the gate-to-court walking lane).
+	var board := _interaction("RecordBoard","record_board",Vector3(55,8,-103),Vector3(1.7,2,.6))
 	board.get_node("CollisionShape3D").position.y=1
 	board.add_child(ASSETS.make("PROP_06"))
 	_label(board,"BoardText","50 米直道 / 春季纪录 · 35 秒",Vector3(0,2.5,0),22)
@@ -100,7 +102,9 @@ func _ready() -> void:
 	_area("ChaseTrigger_3", Vector3(-66, 15, -76) + Vector3.UP, Vector3(6, 4, 6), _on_stage_chase_trigger.bind("chase_3"))
 	for point in L.journey():
 		_area("TrailCheckpoint", point + Vector3.UP * 1.5, Vector3(14, 6, 14), _on_checkpoint.bind(point))
-	var signs := [[Vector3(2,32,89),"沿山路下行 → 牛的耕地"],[Vector3(-50,25,101),"空格 · 跳过倒木"],[Vector3(54,22,2),"溪桥缺口 · 空格跳跃"],[Vector3(72,24,23),"下坡 → 羊棚草甸"],[Vector3(-63,16,-59),"林间山路 → 马场"],[Vector3(-4,8,-134),"前方犬队巡逻 · 顺路突围"],[Vector3(-79,2,-237),"索道在林后 · 沿路转弯"]]
+	# Trail signs stand clear of the roadside fences (the jump-log and cablecar
+	# signs used to skewer the summit/escape fence lines).
+	var signs := [[Vector3(2,32,89),"沿山路下行 → 牛的耕地"],[Vector3(-58.5,25,100),"空格 · 跳过倒木"],[Vector3(54,22,2),"溪桥缺口 · 空格跳跃"],[Vector3(72,24,23),"下坡 → 羊棚草甸"],[Vector3(-63,16,-59),"林间山路 → 马场"],[Vector3(-4,8,-134),"前方犬队巡逻 · 顺路突围"],[Vector3(-77.2,2,-236.6),"索道在林后 · 沿路转弯"]]
 	for sign_data in signs:
 		_box(self,"TrailSignPost",Vector3(.14,1.3,.14),sign_data[0]+Vector3.UP*.65,Color("665A48"))
 		_label(self,"TrailSign",sign_data[1],sign_data[0]+Vector3.UP*1.7,21)
@@ -116,7 +120,7 @@ func _install_environment() -> void:
 	var environment: Node3D
 	if not "--rebuild-environment" in OS.get_cmdline_user_args() and ResourceLoader.exists("res://assets/environments/pastoral_farm.scn"):
 		environment=load("res://assets/environments/pastoral_farm.scn").instantiate()
-		if environment.get_meta("layout_version",0)!=5:
+		if environment.get_meta("layout_version",0)!=6:
 			environment.free()
 			environment=null
 	if environment==null:
@@ -391,7 +395,9 @@ func _build_road_obstacles() -> void:
 	# Woodland road logs aligned with L.LOGS[1]
 	var log_pos_2: Vector3 = L.LOGS[1].a.lerp(L.LOGS[1].b, L.LOGS[1].t)
 	var log2 := _box(self, "Log_Woodland_1", Vector3(3.6, 0.55, 0.55), log_pos_2 + Vector3.UP * 0.25, Color("4D3A27"), true)
-	var cart1 := _box(self, "Cart_Woodland_Side", Vector3(1.8, 0.7, 1.2), Vector3(-44, 14.2, -84), Color("6B523A"), true)
+	# Woodland road cart: the old miter-bulge spot wedged it into the roadside
+	# fence; it now rests on the shoulder south of the woodland road.
+	var cart1 := _box(self, "Cart_Woodland_Side", Vector3(1.8, 0.7, 1.2), Vector3(-43.2, 13.85, -79.2), Color("6B523A"), true)
 	# The summit log is also a playground prop: a sprinting pig can shove it
 	# down the slope and open a walkable second path (jumping stays valid).
 	var charge := Area3D.new()
@@ -513,17 +519,19 @@ func _build_playground() -> void:
 		tuft.name = "NibbleGrass"
 		tuft.add_child(_plaything(PLAYTHING.Kind.GRASS, Vector3(2.6, 2.0, 2.6), 2.5))
 
-	# --- Hay dive at the bottom of the west zigzag
-	var hay := _box(self, "HayDiveStack", Vector3(2.8, 1.5, 2.8), Vector3(-57.5, 23.4, 74.5), Color("E8C86A"), false)
+	# --- Hay dive at the bottom of the west zigzag (clear of the roadside fence)
+	var hay := _box(self, "HayDiveStack", Vector3(2.8, 1.5, 2.8), Vector3(-60.5, 23.9, 72.5), Color("E8C86A"), false)
 	hay.add_child(_plaything(PLAYTHING.Kind.HAYSTACK, Vector3(2.8, 2.6, 2.8), 2.0))
-	_label(self, "HayDiveLabel", "草垛跳水 · 跳进来！", Vector3(-57.5, 25.6, 74.5), 18)
+	_label(self, "HayDiveLabel", "草垛跳水 · 跳进来！", Vector3(-60.5, 26.1, 72.5), 18)
 
 	# --- Beehive by the orchard (sting = speed)
 	var hive_stand := _box(self, "Beehive", Vector3(0.7, 1.1, 0.7), Vector3(68, 24.55, 50), Color("D9A441"), true)
 	hive_stand.add_child(_plaything(PLAYTHING.Kind.BEEHIVE, Vector3(2.2, 2.2, 2.2), 6.0))
 
-	# --- Mailbox at the ox gate (nose it open)
-	var mailbox := _box(self, "MailboxPost", Vector3(0.18, 1.0, 0.18), Vector3(25, 24.5, 62), Color("665A48"), true)
+	# --- Mailbox at the ox gate (nose it open). The old roadside spot skewered
+	# the summit road's north fence; it now stands on the terrace south of the
+	# road, east of the gate posts.
+	var mailbox := _box(self, "MailboxPost", Vector3(0.18, 1.0, 0.18), Vector3(32.5, 24.26, 59.5), Color("665A48"), true)
 	var box_body := _box(mailbox, "MailboxBody", Vector3(0.5, 0.35, 0.8), Vector3(0, 0.55, 0), Color("A96550"), false)
 	var flag := _box(mailbox, "MailFlag", Vector3(0.08, 0.3, 0.08), Vector3(0.28, 0.75, 0), Color("E4573D"), false)
 	mailbox.add_child(_plaything(PLAYTHING.Kind.MAILBOX, Vector3(1.6, 2.4, 1.8), 1.0))
@@ -912,18 +920,25 @@ func _build_all_course_pipes() -> void:
 	# course-1 Mario pipe at the final summit corner before Ox's gate), so entering
 	# a secret never skips the chase content. Each entrance is themed to its course:
 	# creek = pixel whirlpool, woodland = fairy-tale tree hollow, courtyard = neon
-	# game-show launchpad.
-	# Course 2 (Creek): last creek-chase straight before Sheep's gate -> exit at Sheep meadow
-	_build_custom_pipe_entrance("SecretCreekPipe", "course_2", Vector3(-26.0, 16.0, -16.0), "★ 像素溪流漩涡 ★", "漩涡边缘", "whirlpool")
-	_build_custom_pipe_exit("SecretCreekPipeExit", Vector3(-38.0, 16.0, -20.0), "★ 溪流捷径 · 出口 ★", "whirlpool")
+	# game-show launchpad. Every entrance tucks against a road shoulder (pad edge
+	# >= ~0.6 m off the roadside fence; the old C2/C4 spots skewered the fence)
+	# and every exit lands deep inside the next meadow — >= 26 m from its entrance
+	# so the pop-out never drops the pig back on top of the portal it dove into.
+	# Course 2 (Creek): tucked on the last creek-chase straight's shoulder before
+	# Sheep's gate -> exit inside the sheep meadow, on the way to 小羊.
+	_build_custom_pipe_entrance("SecretCreekPipe", "course_2", Vector3(-27.0, 16.0, -15.0), "★ 像素溪流漩涡 ★", "漩涡边缘", "whirlpool")
+	_build_custom_pipe_exit("SecretCreekPipeExit", Vector3(-44.0, 16.0, -37.0), "★ 溪流捷径 · 出口 ★", "whirlpool")
 
-	# Course 3 (Woodland): final woodland stretch before Horse's gate -> exit inside Horse pasture
-	_build_custom_pipe_entrance("SecretWoodlandPipe", "course_3", Vector3(12.0, 8.8, -85.0), "★ 童话林间树洞 ★", "树洞边", "treehollow")
-	_build_custom_pipe_exit("SecretWoodlandPipeExit", Vector3(22.0, 8.0, -94.0), "★ 林间捷径 · 出口 ★", "treehollow")
+	# Course 3 (Woodland): road shoulder on the final woodland stretch before
+	# Horse's gate -> exit inside the horse pasture short of the record board.
+	_build_custom_pipe_entrance("SecretWoodlandPipe", "course_3", Vector3(8.2, 8.95, -85.3), "★ 童话林间树洞 ★", "树洞边", "treehollow")
+	_build_custom_pipe_exit("SecretWoodlandPipeExit", Vector3(27.0, 8.0, -103.5), "★ 林间捷径 · 出口 ★", "treehollow")
 
-	# Course 4 (Courtyard): last breakout leg before the final gate -> exit beside the final gate approach
-	_build_custom_pipe_entrance("SecretCourtyardPipe", "course_4", Vector3(-71.0, 2.0, -217.0), "★ 荧光综艺弹射台 ★", "弹射台", "launchpad")
-	_build_custom_pipe_exit("SecretCourtyardPipeExit", Vector3(-78.0, 2.0, -220.0), "★ 终极大院 · 出口 ★", "launchpad")
+	# Course 4 (Courtyard): west shoulder of the breakout straight before the final
+	# corner (the old spot sat 0.4 m inside the chase fence) -> exit on the gate
+	# court beside the farmer.
+	_build_custom_pipe_entrance("SecretCourtyardPipe", "course_4", Vector3(-48.0, 2.0, -197.0), "★ 荧光综艺弹射台 ★", "弹射台", "launchpad")
+	_build_custom_pipe_exit("SecretCourtyardPipeExit", Vector3(-75.5, 2.0, -223.5), "★ 终极大院 · 出口 ★", "launchpad")
 
 func _build_custom_pipe_entrance(pipe_name: String, course_id: String, pos: Vector3, label_text: String, stand_word: String, style: String) -> Node3D:
 	var pipe_root := Node3D.new()
@@ -1012,10 +1027,11 @@ func _build_whirlpool_visuals(pipe_body: Node3D) -> void:
 	var stone_mat := _flat_mat(Color("78716C"))
 	_cyl(pipe_body, 1.0, 0.65, 0.325, water_mat)
 	_cyl(pipe_body, 0.62, 0.04, 0.665, deep_mat)
-	# Voxel stepping stones ringing the pool (pixel style = chunky boxes).
+	# Voxel stepping stones ringing the pool (pixel style = chunky boxes). Ring
+	# stays inside the pad's roadside clearance so no stone pokes through the fence.
 	for i in range(8):
 		var angle := TAU * i / 8.0
-		var ring_pos := Vector3(cos(angle) * 1.35, 0.5, sin(angle) * 1.35)
+		var ring_pos := Vector3(cos(angle) * 1.1, 0.5, sin(angle) * 1.1)
 		_box_mesh(pipe_body, Vector3(0.55, 0.5, 0.55), ring_pos, stone_mat)
 	# Spinning foam cross on the water so the vortex reads as alive.
 	var foam := Node3D.new()
