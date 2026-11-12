@@ -12,6 +12,7 @@ const SPAWN := L.SPAWN
 const RETRY_POSITION := L.RETRY
 const CABLECAR_TRAVEL := L.TRAVEL
 const CREAM := Color("E1DDC5")
+const NPC_TITLES := {"goat": "老岩羊", "ox": "老牛", "sheep": "小羊", "horse": "追风", "farmer": "农场主"}
 var _gate: StaticBody3D
 var _pigpen_gate: StaticBody3D
 var _ox_gate: StaticBody3D
@@ -41,7 +42,7 @@ var _pipe_hint_label: Label3D
 func _ready() -> void:
 	add_to_group("farm_world")
 	_install_environment()
-	var titles := {"goat":"老岩羊", "ox":"老牛", "sheep":"小羊", "horse":"追风", "farmer":"农场主"}
+	var titles := NPC_TITLES
 	var assets := {"goat":"CHAR_02", "ox":"CHAR_03", "sheep":"CHAR_04", "horse":"CHAR_05", "farmer":"CHAR_07"}
 	for id in L.NPCS:
 		var body := _interaction("NPC_"+id,id,L.NPCS[id],Vector3(.85,1.2,.85))
@@ -213,6 +214,20 @@ func click_path(from: Vector3,to: Vector3) -> Array[Vector3]:
 	result.append(b.point)
 	result.append(to)
 	return result
+
+## Play a skeletal one-shot clip (e.g. "talk") on the NPC whose display title
+## matches the dialogue speaker. Returns true when a rigged NPC animated.
+func play_npc_action(speaker: String, clip: String) -> bool:
+	var id := ""
+	for key in NPC_TITLES:
+		if NPC_TITLES[key] == speaker:
+			id = key
+			break
+	if id == "" or not _npcs.has(id): return false
+	var found: Array = _npcs[id].find_children("ActorAnimation", "Node", true, false)
+	if not found.is_empty() and found[0].has_method("play_oneshot"):
+		return found[0].play_oneshot(clip, 1.0)
+	return false
 
 func set_npc_completed(id: String) -> void:
 	if not _npcs.has(id): return

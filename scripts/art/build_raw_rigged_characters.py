@@ -4,7 +4,8 @@
 3. Zero smoothing/welding/modification: 100% pristine low-poly faceted appearance.
 4. Correct spatial orientation: Align forward direction to Blender +Y (Godot -Z).
 5. Add standard 8-bone armature rig & weights.
-6. Add 4 standard NLA animation clips: idle, walk, run, celebrate.
+6. Add per-character NLA animation clips (loops: idle/walk/run/celebrate/talk;
+   one-shots: pig jump/dodge/hit, dog attack/bark, farmer attack).
 7. Ground to Y=0, export to {cid}_game.glb and render authentic preview {cid}.png.
 """
 import bpy
@@ -47,6 +48,123 @@ LEG_HEIGHT = {
     'CHAR_06': 0.43,
     'CHAR_07': 0.48,
 }
+
+def _track(p, keys):
+    """Piecewise-linear keyframe track: keys = [(p, value), ...] with p in 0..1."""
+    if p <= keys[0][0]: return keys[0][1]
+    for i in range(1, len(keys)):
+        p1, v1 = keys[i]
+        if p <= p1:
+            p0, v0 = keys[i - 1]
+            span = p1 - p0
+            return v0 + (v1 - v0) * ((p - p0) / span if span > 0 else 1.0)
+    return keys[-1][1]
+
+def clip_specs(cid):
+    """Per-character clip list: (name, duration in seconds)."""
+    specs = [('idle', 2.0), ('walk', 1.0), ('run', 0.6), ('celebrate', 1.2), ('talk', 1.2)]
+    if cid == 'CHAR_01':
+        specs += [('jump', 0.7), ('dodge', 0.5), ('hit', 0.6)]
+    elif cid == 'CHAR_06':
+        specs += [('attack', 0.5), ('bark', 0.7)]
+    elif cid == 'CHAR_07':
+        specs += [('attack', 0.6)]
+    return specs
+
+def clip_pose(clip, p, pb, h, cid):
+    """Pose one bone at normalized time p (0..1) for a clip. Returns (euler, location)."""
+    name = pb.name
+    rot = [0.0, 0.0, 0.0]
+    loc = [0.0, 0.0, 0.0]
+    biped = cid == 'CHAR_07'
+    phase = p * math.tau
+
+    if clip in ['walk', 'run']:
+        amp = 0.45 if clip == 'walk' else 0.65
+        if name.startswith('Leg'):
+            positive = name in ['LegLF', 'LegRB', 'LegL']
+            rot[0] = math.sin(phase + (0 if positive else math.pi)) * amp
+        elif name.startswith('Arm'):
+            rot[0] = math.sin(phase) * amp * (1 if name == 'ArmL' else -1)
+        elif name == 'Head':
+            rot[0] = math.sin(phase) * (0.03 if clip == 'walk' else 0.04)
+        elif name == 'Tail':
+            rot[1] = math.sin(phase) * 0.12
+        elif name == 'Body':
+            loc[1] = abs(math.sin(phase)) * h * (0.045 if clip == 'run' else 0.018)
+    elif clip == 'idle':
+        if name == 'Head':
+            rot[0] = math.sin(phase) * 0.018
+        elif name == 'Tail':
+            rot[1] = math.sin(phase) * 0.12
+        elif name == 'Body':
+            loc[1] = abs(math.sin(phase)) * h * 0.004
+    elif clip == 'celebrate':
+        if name == 'Body':
+            loc[1] = abs(math.sin(phase * 2.0)) * h * 0.05
+            rot[0] = math.sin(phase * 2.0) * 0.06
+        elif name == 'Head':
+            rot[0] = math.sin(phase) * 0.18
+        elif name == 'Tail':
+            rot[1] = math.sin(phase * 2.0) * 0.3
+        elif name.startswith('Leg'):
+            positive = name in ['LegLF', 'LegRB', 'LegL']
+            rot[0] = (0.1 if positive else -0.1) + math.sin(phase * 2.0 + (0 if positive else math.pi)) * 0.3
+    elif clip == 'jump':
+        if name == 'Body':
+            loc[2] = _track(p, [(0.0, 0.0), (0.25, -h * 0.05), (0.55, h * 0.10), (0.85, h * 0.01), (1.0, 0.0)])
+        elif name.startswith('Leg'):
+            rot[0] = _track(p, [(0.0, 0.0), (0.25, 0.7), (0.55, -0.9), (1.0, 0.0)])
+        elif name == 'Head':
+            rot[0] = _track(p, [(0.0, 0.0), (0.4, -0.2), (0.7, 0.1), (1.0, 0.0)])
+    elif clip == 'dodge':
+        if name == 'Body':
+            rot[0] = -math.tau * (p * p * (3.0 - 2.0 * p))
+        elif name.startswith('Leg'):
+            rot[0] = 1.0
+        elif name == 'Head':
+            rot[0] = 0.5
+    elif clip == 'hit':
+        if name == 'Body':
+            rot[0] = _track(p, [(0.0, 0.0), (0.15, -1.0), (0.5, -0.4), (1.0, 0.0)])
+        elif name.startswith('Leg'):
+            rot[0] = math.sin(p * 20.0) * 0.35 * (1.0 - p)
+        elif name == 'Head':
+            rot[0] = _track(p, [(0.0, 0.0), (0.15, -0.5), (1.0, 0.0)])
+    elif clip == 'attack':
+        if biped:
+            if name == 'ArmL':
+                rot[0] = _track(p, [(0.0, 0.0), (0.3, -1.6), (0.55, 0.9), (1.0, 0.0)])
+            elif name == 'Body':
+                rot[0] = _track(p, [(0.0, 0.0), (0.5, 0.15), (1.0, 0.0)])
+            elif name == 'Head':
+                rot[0] = _track(p, [(0.0, 0.0), (0.3, -0.2), (0.55, 0.15), (1.0, 0.0)])
+        else:
+            if name == 'Body':
+                rot[0] = _track(p, [(0.0, 0.0), (0.3, 0.1), (0.45, 0.55), (0.8, 0.3), (1.0, 0.0)])
+            elif name == 'Head':
+                rot[0] = _track(p, [(0.0, 0.0), (0.35, -0.2), (0.5, 0.7), (1.0, 0.0)])
+            elif name.startswith('Leg') and name.endswith('F'):
+                rot[0] = _track(p, [(0.0, 0.0), (0.5, -0.6), (1.0, 0.0)])
+            elif name.startswith('Leg'):
+                rot[0] = _track(p, [(0.0, 0.0), (0.5, 0.5), (1.0, 0.0)])
+    elif clip == 'bark':
+        if name == 'Head':
+            rot[0] = -0.35 + math.sin(p * math.tau * 6.0) * 0.08
+        elif name == 'Tail':
+            rot[1] = math.sin(p * math.tau * 4.0) * 0.35
+        elif name == 'Body':
+            loc[1] = abs(math.sin(p * math.tau * 3.0)) * h * 0.01
+    elif clip == 'talk':
+        if biped:
+            if name == 'ArmR':
+                rot[0] = math.sin(phase) * 0.35
+            elif name == 'Head':
+                rot[0] = math.sin(phase + math.pi * 0.5) * 0.06
+        else:
+            if name == 'Head':
+                rot[0] = math.sin(phase) * 0.10
+    return tuple(rot), tuple(loc)
 
 def make_armature(obj, cid, lo, hi):
     h = hi.z
@@ -120,27 +238,17 @@ def make_armature(obj, cid, lo, hi):
     rig.animation_data_create()
     bpy.context.scene.render.fps = 24
     
-    for clip, duration, amp in [('idle', 2, 0.018), ('walk', 1, 0.35), ('run', 0.6, 0.55), ('celebrate', 1.2, 0.12)]:
+    for clip, duration in clip_specs(cid):
         action = bpy.data.actions.new(clip)
         rig.animation_data.action = action
         end = round(duration * 24) + 1
         for f in range(1, end + 1):
-            phase = (f - 1) / (end - 1) * math.tau
+            t = (f - 1) / (end - 1)
             for pb in rig.pose.bones:
                 pb.rotation_mode = 'XYZ'
-                pb.rotation_euler = (0, 0, 0)
-                pb.location = (0, 0, 0)
-                if pb.name.startswith('Leg') and clip in ['walk', 'run']:
-                    positive = pb.name in ['LegLF', 'LegRB', 'LegL']
-                    pb.rotation_euler.x = math.sin(phase + (0 if positive else math.pi)) * amp
-                elif pb.name.startswith('Arm'):
-                    pb.rotation_euler.x = math.sin(phase) * (amp if clip in ['walk', 'run'] else 0.025) * (1 if pb.name == 'ArmL' else -1)
-                elif pb.name == 'Head':
-                    pb.rotation_euler.x = math.sin(phase) * (0.08 if clip == 'celebrate' else 0.018)
-                elif pb.name == 'Tail':
-                    pb.rotation_euler.y = math.sin(phase) * 0.12
-                elif pb.name == 'Body':
-                    pb.location.y = abs(math.sin(phase)) * h * (0.035 if clip == 'run' else 0.012 if clip == 'walk' else 0.004)
+                rot, loc = clip_pose(clip, t, pb, h, cid)
+                pb.rotation_euler = rot
+                pb.location = loc
                 pb.keyframe_insert(data_path='rotation_euler', frame=f)
                 pb.keyframe_insert(data_path='location', frame=f)
         rig.animation_data.action = None

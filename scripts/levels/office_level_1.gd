@@ -744,6 +744,9 @@ func open_dialogue(key: String) -> void:
 	speaker_label.text = str(data.get("speaker", "")) + "  /  " + str(data.get("title", ""))
 	portrait.texture = ART_2D.PORTRAITS.get(str(data.get("speaker", "")))
 	portrait.visible = portrait.texture != null
+	var world := get_tree().get_first_node_in_group("farm_world")
+	if world != null and world.has_method("play_npc_action"):
+		world.play_npc_action(str(data.get("speaker", "")), "talk")
 	dialogue_lines = _split_lines(str(data.get("content", "")))
 	line_index = 0
 	current_options = data.get("options", [])
@@ -775,6 +778,8 @@ func _on_pokemon_battle_finished(success: bool) -> void:
 	if success:
 		var ok := GameManager.complete_showdown()
 		if ok: farm.set_gate_open(true)
+		if player.has_method("play_victory_animation"):
+			player.play_victory_animation()
 		_show_toast("意志对决胜利！铁门轰然开启！", "农场主掌控欲彻底瓦解，快穿过大铁门登上后山索道！")
 		_restore_control()
 	else:

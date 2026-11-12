@@ -237,3 +237,37 @@ Clean circular game dialogue avatar icon of a bewildered, disheveled farmer in d
 ```text
 Single isolated low-poly 3D model of a stylized human farmer, in the art style of Untitled Goose Game. Character in neutral A-pose, wearing a flat cap, dungarees over a sweater, and rubber boots, holding a chunky black and yellow baton. House House game character asset, clean faceted low-poly mesh, flat-shaded solid colors, zero texture noise, untextured matte materials. Pure solid white background, no floor, zero shadow, isometric view.
 ```
+
+---
+
+## 8. 逐角色动作设计（骨骼动画规范，2026-11-12）
+
+统一 8 骨骼 armature（Root/Body/Head/Tail + 四足 LegLF/LegRF/LegLB/LegRB，农场主双足 LegL/LegR + ArmL/ArmR），动画由 `scripts/art/build_raw_rigged_characters.py` 参数化生成，24fps，分**循环**与**一次性**两类；一次性 clip 由 `ActorAnimation.play_oneshot()` 播放，播完自动回落到移动循环。动作只控制视觉，位移仍由玩法代码负责。
+
+### 8.1 循环动作（全员）
+
+| 动作 | 时长 | 设计 |
+| :--- | :--- | :--- |
+| `idle` | 2.0s | 呼吸微动：头部小幅摆动、尾巴轻摇、躯干 0.4% 起伏 |
+| `walk` | 1.0s | 对角步态（LegLF+LegRB 同相），摆幅 0.35 rad |
+| `run` | 0.6s | 对角步态加速，摆幅 0.55 rad，躯干起伏 3.5% |
+| `celebrate` | 1.2s | 胜利欢腾：双腿交替蹬踢、头部大幅摆动、尾巴快摆、躯干弹跳（首次接入终局对决胜利） |
+| `talk` | 1.2s | 对话演出：四足角色头部点头；农场主 ArmR 比划 + 头部微点（由 `open_dialogue` 按说话人触发） |
+
+### 8.2 一次性动作（逐角色）
+
+| 角色 | 动作 | 时长 | 设计 | 玩法触发 |
+| :--- | :--- | :--- | :--- | :--- |
+| 猪 CHAR_01 | `jump` | 0.7s | 蹲伏(25%)→蹬伸腾空(55%，躯干 +10%)→收腿落地 | 空格起跳帧 |
+| 猪 CHAR_01 | `dodge` | 0.5s | 收腿团身 + 躯干平滑前滚 360° | 闪避触发（替代程序化前倾 -0.22 rad） |
+| 猪 CHAR_01 | `hit` | 0.6s | 躯干后仰 1.0 rad → 挣扎回正，四肢乱摆衰减 | `apply_knockback`（替代程序化 rotation.x 翻滚） |
+| 犬 CHAR_06 | `attack` | 0.5s | 躯干前倾 0.55 rad + 头部下压咬合 + 前肢前探 | 扑咬 lunge 相位开始 |
+| 犬 CHAR_06 | `bark` | 0.7s | 抬头 -0.35 rad 高频抖动吠叫 + 尾巴快摇 | windup 警戒相位开始 |
+| 农场主 CHAR_07 | `attack` | 0.6s | ArmL 举至 -1.6 rad 后挥落至 0.9 rad（电棍 PROP_07 经 BoneAttachment 随 ArmL 同步） | 噩梦追击/对决（已具备挂点，玩法触发点后续接入） |
+
+### 8.3 边界与回退
+
+- 动画优先：脚本能播对应 clip 时优先播放，模型缺 clip 时回退原程序化逻辑（`has_clip()` 探测），跨角色复用（如噩梦序章用 CHAR_07 扮演追击者）自动落回退路径。
+- 林间/溪谷巡逻守卫（`patrol_guard_dog.gd`）是程序化圆柱体、未穿模型，警戒旋转与压扁仍为 tween，待该守卫接入 CHAR_06 模型后再挂 clip。
+- 行走/奔跑由 `ActorAnimation` 按实际移速自动切换；移速用**固定时间窗累计**测量并用迟滞阈值（进入 run 5.2 m/s、退出 4.6 m/s）防抖——逐帧测速在渲染帧率≠物理帧率时会闪烁导致 walk 选不中。模型带骨骼行走 clip 时，玩法脚本里的程序化颠簸/摇摆整体退位（仅作无 clip 模型的兜底）。
+- 验收：`tests/scene/test_character_animation.gd` 校验逐角色 clip 清单、一次性回落、缺失回退、移动选中 walk 与程序化颠簸退位、玩法接线。

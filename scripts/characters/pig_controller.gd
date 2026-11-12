@@ -61,6 +61,32 @@ const GRAVITY := 18.0
 
 @onready var visual_mesh: Node3D = $VisualMesh
 
+# Animation-first wiring: when the dressed CHAR_01 model carries a skeletal
+# clip the script plays it and skips the procedural stand-in pose. The
+# animator is resolved once and cached (the visual is dressed in _ready).
+var _animator: Node = null
+var _dodge_animated := false
+var _hit_animated := false
+
+func _resolve_animator() -> Node:
+	if _animator == null and is_instance_valid(visual_mesh):
+		var found := visual_mesh.find_children("ActorAnimation", "Node", true, false)
+		_animator = found[0] if not found.is_empty() else null
+	return _animator
+
+func _play_action(clip: String, rate := 1.15) -> bool:
+	var animator := _resolve_animator()
+	if animator != null and animator.has_method("play_oneshot"):
+		return animator.play_oneshot(clip, rate)
+	return false
+
+## True when the dressed model owns skeletal locomotion clips - its own
+## legwork/bounce IS the walk, so the procedural bob stands down (fallback
+## only for models without them).
+func _has_skeletal_locomotion() -> bool:
+	var animator := _resolve_animator()
+	return animator != null and animator.has_method("has_clip") and animator.has_clip("walk")
+
 func _ready() -> void:
 	preload("res://scripts/art/asset_library.gd").replace_visuals(visual_mesh, "CHAR_01")
 	target_destination = global_position
@@ -100,6 +126,8 @@ func reset_at(pos: Vector3) -> void:
 	force_dodge_available = false
 	dash_remaining = 0.0
 	cooldown_remaining = 0.0
+	_dodge_animated = false
+	_hit_animated = false
 	if is_instance_valid(visual_mesh):
 		visual_mesh.position.y = 0.0
 		visual_mesh.rotation.z = 0.0
@@ -129,6 +157,7 @@ func apply_knockback(impulse: Vector3, duration: float = 0.65) -> void:
 		return
 	knockback_velocity = impulse
 	knockback_timer = duration
+	_hit_animated = _play_action("hit", 1.1)
 	velocity = impulse
 	_cancel_destination()
 	is_sprinting = false
@@ -156,10 +185,16 @@ func notify_dodge_success(dog: Node3D = null) -> void:
 	_successful_dodges += 1
 	dodge_succeeded.emit(dog)
 
+## Victory flourish for endings/settlement beats: plays the skeletal
+## celebrate clip when the dressed model has one.
+func play_victory_animation() -> void:
+	_play_action("celebrate", 1.0)
+
 func _perform_dodge() -> void:
 	dodge_timer = dodge_duration
 	_dodge_cooldown_timer = dodge_cooldown
 	dash_remaining = dodge_duration
+	_dodge_animated = _play_action("dodge", 1.3)
 	
 	var dir := _keyboard_direction()
 	if dir.length_squared() > 0.01:
@@ -352,7 +387,7 @@ func _physics_process(delta: float) -> void:
 		velocity.z = knockback_velocity.z
 		velocity.y = -0.2 if is_on_floor() and velocity.y <= 0.0 else velocity.y - GRAVITY * delta
 		move_and_slide()
-		if is_instance_valid(visual_mesh):
+		if is_instance_valid(visual_mesh) and not _hit_animated:
 			visual_mesh.rotation.x += delta * 10.0
 		if knockback_timer <= 0.0:
 			knockback_velocity = Vector3.ZERO
@@ -419,6 +454,7 @@ func _physics_process(delta: float) -> void:
 		_jump_buffer=0
 		_coyote_time=0
 		jumps+=1
+		_play_action("jump", 1.2)
 	else:
 		# Mirror the knockback-branch guard: an upward impulse written by a trap
 		# (slime block, launch ramp) on an on-floor frame must not be zeroed.
@@ -440,9 +476,13 @@ func _physics_process(delta: float) -> void:
 	dash_state_changed.emit(stamina, cooldown_remaining)
 
 func _update_pose(direction: Vector3, delta: float) -> void:
+	var skeletal := _has_skeletal_locomotion()
 	if direction.length_squared() > 0.001 or dodge_timer > 0.0:
 		var dir := _dodge_direction if dodge_timer > 0.0 else direction
 		rotation.y = lerp_angle(rotation.y, atan2(-dir.x, -dir.z), minf(1.0, rotation_speed * delta * (1.6 if dodge_timer > 0.0 else 1.0)))
+		# Skeletal locomotion/dodge clip owns the body motion; keep facing only.
+		if skeletal or (_dodge_animated and dodge_timer > 0.0):
+			return
 		var is_dashing := is_sprinting or dodge_timer > 0.0
 		var freq: float = 0.030 if dodge_timer > 0.0 else (0.024 if is_dashing else 0.014)
 		var walk_step: float = sin(Time.get_ticks_msec() * freq)
@@ -450,6 +490,7 @@ func _update_pose(direction: Vector3, delta: float) -> void:
 		visual_mesh.rotation.z = walk_step * (0.07 if is_dashing else 0.035)
 		visual_mesh.rotation.x = -0.22 if dodge_timer > 0.0 else (-0.12 if is_dashing else 0.0)
 	else:
+		if skeletal: return
 		visual_mesh.position.y = move_toward(visual_mesh.position.y, 0.0, delta * 0.8)
 		visual_mesh.rotation.x = move_toward(visual_mesh.rotation.x, 0.0, delta * 0.8)
 		visual_mesh.rotation.z = move_toward(visual_mesh.rotation.z, 0.0, delta * 0.8)
