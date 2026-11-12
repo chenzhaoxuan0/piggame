@@ -7,7 +7,7 @@
     0.7121529579162598,
     0.699999988079071
   ],
-  "file_bytes": 259420,
+  "file_bytes": 259416,
   "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
   "runtime": "assets/models/aholo/ENV_09_WOOL/ENV_09_WOOL_game.glb"
 }
