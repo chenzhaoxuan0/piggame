@@ -29,7 +29,7 @@ func _run() -> void:
 	_check(office.farm.has_node("SecretWoodlandPipe"), "Farm has SecretWoodlandPipe entrance")
 	_check(office.farm.has_node("SecretWoodlandPipeExit"), "Farm has SecretWoodlandPipeExit at horse pasture entrance")
 	var pipe: Node3D = office.farm.get_node("SecretWoodlandPipe")
-	_check(pipe.position.distance_to(Vector3(-64.0, 16.0, -58.0)) < 1.0, "Secret woodland pipe located at sheep meadow")
+	_check(pipe.position.distance_to(Vector3(12.0, 8.8, -85.0)) < 1.0, "Secret woodland entrance located at the woodland-chase end before Horse's gate")
 	_check(pipe.has_node("PipeBody") and pipe.has_node("PipeTopArea"), "Pipe has solid body and top detection area")
 
 	# Pig standing on pipe rim
