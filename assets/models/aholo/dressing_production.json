@@ -184,35 +184,11 @@
       "sha256": "ac410fb6381fe7a6de8ab388b19df24566293b4b343a1e2f0145c691f58e366a"
     },
     "ENV_09_HAWTHORN": {
-      "rejected_candidates": [
-        {
-          "task_id": 4573922,
-          "parameters": {
-            "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One low asymmetrical hawthorn shrub, three connected rounded sage green foliage masses, a few simple large cream flower clusters, broad spreading silhouette. No pot.",
-            "style": "cartoon",
-            "version": "G1-Turbo",
-            "faceCount": 10000,
-            "outputFormat": [
-              "zip",
-              "glb"
-            ],
-            "enablePbr": true,
-            "aiPredictSize": false,
-            "wait": false
-          },
-          "status": "downloaded",
-          "generated_at": "2026-11-02T05:43:37.716856+00:00",
-          "remote_status": 3,
-          "raw_model": "assets/models/aholo/ENV_09_HAWTHORN/ENV_09_HAWTHORN.glb",
-          "sha256": "235f2afe59f2b190ac8b9d485a2496b31c7a5f51d69016363e0feb5a5ab3cfca",
-          "reason": "Fragmented overlapping surfaces in runtime preview; retry with G1 quality model"
-        }
-      ],
-      "task_id": 6871827,
+      "task_id": 4573922,
       "parameters": {
         "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One low asymmetrical hawthorn shrub, three connected rounded sage green foliage masses, a few simple large cream flower clusters, broad spreading silhouette. No pot.",
         "style": "cartoon",
-        "version": "G1",
+        "version": "G1-Turbo",
         "faceCount": 10000,
         "outputFormat": [
           "zip",
@@ -223,10 +199,34 @@
         "wait": false
       },
       "status": "downloaded",
-      "generated_at": "2026-11-12T14:19:36.294101+00:00",
+      "generated_at": "2026-11-02T05:43:37.716856+00:00",
       "remote_status": 3,
       "raw_model": "assets/models/aholo/ENV_09_HAWTHORN/ENV_09_HAWTHORN.glb",
-      "sha256": "c056c4b475c5ced99f1ba624a4b07640bc7a3aaf752ee886adeedab7bec5703b"
+      "sha256": "235f2afe59f2b190ac8b9d485a2496b31c7a5f51d69016363e0feb5a5ab3cfca",
+      "rejected_candidates": [
+        {
+          "task_id": 6871827,
+          "parameters": {
+            "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One low asymmetrical hawthorn shrub, three connected rounded sage green foliage masses, a few simple large cream flower clusters, broad spreading silhouette. No pot.",
+            "style": "cartoon",
+            "version": "G1",
+            "faceCount": 10000,
+            "outputFormat": [
+              "zip",
+              "glb"
+            ],
+            "enablePbr": true,
+            "aiPredictSize": false,
+            "wait": false
+          },
+          "status": "downloaded",
+          "generated_at": "2026-11-12T14:19:36.294101+00:00",
+          "remote_status": 3,
+          "raw_model": "assets/models/aholo/ENV_09_HAWTHORN/ENV_09_HAWTHORN.glb",
+          "sha256": "c056c4b475c5ced99f1ba624a4b07640bc7a3aaf752ee886adeedab7bec5703b",
+          "reason": "G1 candidate rejected in in-game review (triptych 092/093/098/099); reverted to the previous accepted model"
+        }
+      ]
     },
     "ENV_09_FERN": {
       "rejected_candidates": [
@@ -274,35 +274,11 @@
       "sha256": "4c2f0464edb773a6e8e306d41f7fa54d4390f2846a051d4a788f6ac232c9d355"
     },
     "ENV_09_REEDS": {
-      "rejected_candidates": [
-        {
-          "task_id": 4574000,
-          "parameters": {
-            "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One compact clump of seven broad green reed leaves and three brown cattail seed heads, simple thick silhouettes suitable for a low polygon game, no water or ground.",
-            "style": "cartoon",
-            "version": "G1-Turbo",
-            "faceCount": 10000,
-            "outputFormat": [
-              "zip",
-              "glb"
-            ],
-            "enablePbr": true,
-            "aiPredictSize": false,
-            "wait": false
-          },
-          "status": "downloaded",
-          "generated_at": "2026-11-02T05:48:33.468402+00:00",
-          "remote_status": 3,
-          "raw_model": "assets/models/aholo/ENV_09_REEDS/ENV_09_REEDS.glb",
-          "sha256": "3499442f0bc474fc81a169ade726eeb06c4b445e7a85e8fae2ed4ff38d48904f",
-          "reason": "Fragmented overlapping surfaces in runtime preview; retry with G1 quality model"
-        }
-      ],
-      "task_id": 6873706,
+      "task_id": 4574000,
       "parameters": {
         "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One compact clump of seven broad green reed leaves and three brown cattail seed heads, simple thick silhouettes suitable for a low polygon game, no water or ground.",
         "style": "cartoon",
-        "version": "G1",
+        "version": "G1-Turbo",
         "faceCount": 10000,
         "outputFormat": [
           "zip",
@@ -313,19 +289,17 @@
         "wait": false
       },
       "status": "downloaded",
-      "generated_at": "2026-11-12T14:26:00.083227+00:00",
+      "generated_at": "2026-11-02T05:48:33.468402+00:00",
       "remote_status": 3,
       "raw_model": "assets/models/aholo/ENV_09_REEDS/ENV_09_REEDS.glb",
-      "sha256": "f54971a3311d877f653ad21eb3980117eac4f8d003e221dc1683106d866cf681"
-    },
-    "ENV_09_ROCK": {
+      "sha256": "3499442f0bc474fc81a169ade726eeb06c4b445e7a85e8fae2ed4ff38d48904f",
       "rejected_candidates": [
         {
-          "task_id": 4574005,
+          "task_id": 6873706,
           "parameters": {
-            "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One squat asymmetrical granite boulder with large broad smooth angular faces, blue grey stone, a single smooth olive green moss patch covering the top, no cracks texture.",
+            "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One compact clump of seven broad green reed leaves and three brown cattail seed heads, simple thick silhouettes suitable for a low polygon game, no water or ground.",
             "style": "cartoon",
-            "version": "G1-Turbo",
+            "version": "G1",
             "faceCount": 10000,
             "outputFormat": [
               "zip",
@@ -336,18 +310,20 @@
             "wait": false
           },
           "status": "downloaded",
-          "generated_at": "2026-11-02T05:48:36.205572+00:00",
+          "generated_at": "2026-11-12T14:26:00.083227+00:00",
           "remote_status": 3,
-          "raw_model": "assets/models/aholo/ENV_09_ROCK/ENV_09_ROCK.glb",
-          "sha256": "93c3d14d413586436e5cca8c96493c233004c5f6c9541c727c7c9f8a564a57f8",
-          "reason": "Fragmented overlapping surfaces in runtime preview; retry with G1 quality model"
+          "raw_model": "assets/models/aholo/ENV_09_REEDS/ENV_09_REEDS.glb",
+          "sha256": "f54971a3311d877f653ad21eb3980117eac4f8d003e221dc1683106d866cf681",
+          "reason": "G1 candidate rejected in in-game review (triptych 092/093/098/099); reverted to the previous accepted model"
         }
-      ],
-      "task_id": 6875315,
+      ]
+    },
+    "ENV_09_ROCK": {
+      "task_id": 4574005,
       "parameters": {
         "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One squat asymmetrical granite boulder with large broad smooth angular faces, blue grey stone, a single smooth olive green moss patch covering the top, no cracks texture.",
         "style": "cartoon",
-        "version": "G1",
+        "version": "G1-Turbo",
         "faceCount": 10000,
         "outputFormat": [
           "zip",
@@ -358,10 +334,34 @@
         "wait": false
       },
       "status": "downloaded",
-      "generated_at": "2026-11-12T14:33:07.618191+00:00",
+      "generated_at": "2026-11-02T05:48:36.205572+00:00",
       "remote_status": 3,
       "raw_model": "assets/models/aholo/ENV_09_ROCK/ENV_09_ROCK.glb",
-      "sha256": "46ead5d760da6f30575d273f8556c0fa894c91fbc8a5cc639c8433ffdb7a7ef6"
+      "sha256": "93c3d14d413586436e5cca8c96493c233004c5f6c9541c727c7c9f8a564a57f8",
+      "rejected_candidates": [
+        {
+          "task_id": 6875315,
+          "parameters": {
+            "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One squat asymmetrical granite boulder with large broad smooth angular faces, blue grey stone, a single smooth olive green moss patch covering the top, no cracks texture.",
+            "style": "cartoon",
+            "version": "G1",
+            "faceCount": 10000,
+            "outputFormat": [
+              "zip",
+              "glb"
+            ],
+            "enablePbr": true,
+            "aiPredictSize": false,
+            "wait": false
+          },
+          "status": "downloaded",
+          "generated_at": "2026-11-12T14:33:07.618191+00:00",
+          "remote_status": 3,
+          "raw_model": "assets/models/aholo/ENV_09_ROCK/ENV_09_ROCK.glb",
+          "sha256": "46ead5d760da6f30575d273f8556c0fa894c91fbc8a5cc639c8433ffdb7a7ef6",
+          "reason": "G1 candidate rejected in in-game review (triptych 092/093/098/099); reverted to the previous accepted model"
+        }
+      ]
     },
     "ENV_09_STUMP": {
       "rejected_candidates": [
@@ -642,35 +642,11 @@
       "sha256": "d380f959bd828edb4909e299c6378ba84bce70b16a99dffd4a3f0a23e5d4f219"
     },
     "ENV_09_HURDLE": {
-      "rejected_candidates": [
-        {
-          "task_id": 4574145,
-          "parameters": {
-            "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One complete horse jumping hurdle, two thick upright timber standards, two horizontal poles, broad feet. Muted terracotta red and cream alternating broad color bands. Freestanding single assembly.",
-            "style": "cartoon",
-            "version": "G1-Turbo",
-            "faceCount": 10000,
-            "outputFormat": [
-              "zip",
-              "glb"
-            ],
-            "enablePbr": true,
-            "aiPredictSize": false,
-            "wait": false
-          },
-          "status": "downloaded",
-          "generated_at": "2026-11-02T05:56:13.347675+00:00",
-          "remote_status": 3,
-          "raw_model": "assets/models/aholo/ENV_09_HURDLE/ENV_09_HURDLE.glb",
-          "sha256": "8648db2391de4048c8cb1986209689e9e7d60658adb1ea9311d77f10a385d884",
-          "reason": "Fragmented overlapping surfaces in runtime preview; retry with G1 quality model"
-        }
-      ],
-      "task_id": 6871859,
+      "task_id": 4574145,
       "parameters": {
         "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One complete horse jumping hurdle, two thick upright timber standards, two horizontal poles, broad feet. Muted terracotta red and cream alternating broad color bands. Freestanding single assembly.",
         "style": "cartoon",
-        "version": "G1",
+        "version": "G1-Turbo",
         "faceCount": 10000,
         "outputFormat": [
           "zip",
@@ -681,10 +657,34 @@
         "wait": false
       },
       "status": "downloaded",
-      "generated_at": "2026-11-12T14:19:39.584690+00:00",
+      "generated_at": "2026-11-02T05:56:13.347675+00:00",
       "remote_status": 3,
       "raw_model": "assets/models/aholo/ENV_09_HURDLE/ENV_09_HURDLE.glb",
-      "sha256": "d9c3e84074196444d0621f1bcfa84b27e5c99941a3d4fdf3a952b8f3c52bd656"
+      "sha256": "8648db2391de4048c8cb1986209689e9e7d60658adb1ea9311d77f10a385d884",
+      "rejected_candidates": [
+        {
+          "task_id": 6871859,
+          "parameters": {
+            "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One complete horse jumping hurdle, two thick upright timber standards, two horizontal poles, broad feet. Muted terracotta red and cream alternating broad color bands. Freestanding single assembly.",
+            "style": "cartoon",
+            "version": "G1",
+            "faceCount": 10000,
+            "outputFormat": [
+              "zip",
+              "glb"
+            ],
+            "enablePbr": true,
+            "aiPredictSize": false,
+            "wait": false
+          },
+          "status": "downloaded",
+          "generated_at": "2026-11-12T14:19:39.584690+00:00",
+          "remote_status": 3,
+          "raw_model": "assets/models/aholo/ENV_09_HURDLE/ENV_09_HURDLE.glb",
+          "sha256": "d9c3e84074196444d0621f1bcfa84b27e5c99941a3d4fdf3a952b8f3c52bd656",
+          "reason": "G1 candidate rejected in in-game review (triptych 092/093/098/099); reverted to the previous accepted model"
+        }
+      ]
     },
     "ENV_09_RAIL": {
       "rejected_candidates": [
