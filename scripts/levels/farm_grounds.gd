@@ -621,15 +621,15 @@ func _build_all_course_pipes() -> void:
 	# game-show launchpad.
 	# Course 2 (Creek): last creek-chase straight before Sheep's gate -> exit at Sheep meadow
 	_build_custom_pipe_entrance("SecretCreekPipe", "course_2", Vector3(-26.0, 16.0, -16.0), "★ 像素溪流漩涡 ★", "漩涡边缘", "whirlpool")
-	_build_custom_pipe_exit("SecretCreekPipeExit", Vector3(-38.0, 16.0, -20.0), "★ 溪流捷径 · 出口 ★", Color("38BDF8"))
+	_build_custom_pipe_exit("SecretCreekPipeExit", Vector3(-38.0, 16.0, -20.0), "★ 溪流捷径 · 出口 ★", "whirlpool")
 
 	# Course 3 (Woodland): final woodland stretch before Horse's gate -> exit inside Horse pasture
 	_build_custom_pipe_entrance("SecretWoodlandPipe", "course_3", Vector3(12.0, 8.8, -85.0), "★ 童话林间树洞 ★", "树洞边", "treehollow")
-	_build_custom_pipe_exit("SecretWoodlandPipeExit", Vector3(22.0, 8.0, -94.0), "★ 林间捷径 · 出口 ★", Color("86A873"))
+	_build_custom_pipe_exit("SecretWoodlandPipeExit", Vector3(22.0, 8.0, -94.0), "★ 林间捷径 · 出口 ★", "treehollow")
 
 	# Course 4 (Courtyard): last breakout leg before the final gate -> exit beside the final gate approach
 	_build_custom_pipe_entrance("SecretCourtyardPipe", "course_4", Vector3(-71.0, 2.0, -217.0), "★ 荧光综艺弹射台 ★", "弹射台", "launchpad")
-	_build_custom_pipe_exit("SecretCourtyardPipeExit", Vector3(-78.0, 2.0, -220.0), "★ 终极大院 · 出口 ★", Color("FF1493"))
+	_build_custom_pipe_exit("SecretCourtyardPipeExit", Vector3(-78.0, 2.0, -220.0), "★ 终极大院 · 出口 ★", "launchpad")
 
 func _build_custom_pipe_entrance(pipe_name: String, course_id: String, pos: Vector3, label_text: String, stand_word: String, style: String) -> Node3D:
 	var pipe_root := Node3D.new()
@@ -779,7 +779,9 @@ func _build_launchpad_visuals(pipe_body: Node3D) -> void:
 		var chev := _box_mesh(pipe_body, Vector3(0.42, 0.1, 0.2), Vector3(cos(angle) * 1.15, 0.68, sin(angle) * 1.15), ring_mat)
 		chev.rotation.y = -angle
 
-func _build_custom_pipe_exit(exit_name: String, pos: Vector3, label_text: String, pipe_color: Color) -> Node3D:
+func _build_custom_pipe_exit(exit_name: String, pos: Vector3, label_text: String, style: String) -> Node3D:
+	# Exit stubs share the entrance's course-themed look, squashed to stub height
+	# (the pig pops back out of the same kind of portal it dove into).
 	var exit_root := Node3D.new()
 	exit_root.name = exit_name
 	exit_root.position = pos
@@ -797,46 +799,17 @@ func _build_custom_pipe_exit(exit_name: String, pos: Vector3, label_text: String
 	body_shape.position.y = 0.175
 	pipe_body.add_child(body_shape)
 
-	var lux_pipe := ASSETS.make("PROP_C1_PIPE")
-	if lux_pipe:
-		lux_pipe.scale = Vector3(1.0, 0.65, 1.0)
-		pipe_body.add_child(lux_pipe)
-	else:
-		var pipe_mat := StandardMaterial3D.new()
-		pipe_mat.albedo_color = pipe_color
-		pipe_mat.roughness = 0.45
-
-		var body_mesh := MeshInstance3D.new()
-		var body_cyl := CylinderMesh.new()
-		body_cyl.top_radius = 1.0
-		body_cyl.bottom_radius = 1.0
-		body_cyl.height = 0.35
-		body_mesh.mesh = body_cyl
-		body_mesh.position.y = 0.175
-		body_mesh.material_override = pipe_mat
-		pipe_body.add_child(body_mesh)
-
-		var rim_mesh := MeshInstance3D.new()
-		var rim_cyl := CylinderMesh.new()
-		rim_cyl.top_radius = 1.2
-		rim_cyl.bottom_radius = 1.2
-		rim_cyl.height = 0.15
-		rim_mesh.mesh = rim_cyl
-		rim_mesh.position.y = 0.3
-		rim_mesh.material_override = pipe_mat
-		pipe_body.add_child(rim_mesh)
-
-		var hole_mesh := MeshInstance3D.new()
-		var hole_cyl := CylinderMesh.new()
-		hole_cyl.top_radius = 0.88
-		hole_cyl.bottom_radius = 0.88
-		hole_cyl.height = 0.04
-		hole_mesh.mesh = hole_cyl
-		hole_mesh.position.y = 0.37
-		var hole_mat := StandardMaterial3D.new()
-		hole_mat.albedo_color = Color("0A150A")
-		hole_mesh.material_override = hole_mat
-		pipe_body.add_child(hole_mesh)
+	var deco := Node3D.new()
+	deco.name = "ExitDeco"
+	deco.scale = Vector3(1.0, 0.55, 1.0)
+	pipe_body.add_child(deco)
+	match style:
+		"whirlpool":
+			_build_whirlpool_visuals(deco)
+		"treehollow":
+			_build_treehollow_visuals(deco)
+		"launchpad":
+			_build_launchpad_visuals(deco)
 
 	exit_root.add_child(pipe_body)
 	_label(exit_root, "ExitPipeSign", label_text, Vector3(0, 1.8, 0), 20)
