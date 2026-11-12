@@ -832,6 +832,8 @@ func open_dialogue(key: String) -> void:
 	dialogue_open = true
 	player.set_control_mode("dialogue")
 	dialogue_panel.visible = true
+	# 通知流加在对话面板之后（渲染在上层），对话期间藏起，避免残留卡片压住台词。
+	if is_instance_valid(notice_feed): notice_feed.visible = false
 	if is_instance_valid(toast_panel) and toast_panel.visible: _place_toast()
 	speaker_label.text = str(data.get("speaker", "")) + "  /  " + str(data.get("title", ""))
 	portrait.texture = ART_2D.PORTRAITS.get(str(data.get("speaker", "")))
@@ -853,6 +855,7 @@ func _start_farmer_showdown() -> void:
 	if paused: _resume()
 	dialogue_open = true
 	player.set_control_mode("dialogue")
+	if is_instance_valid(notice_feed): notice_feed.visible = false # 同上：对决期间不压界面
 	if is_instance_valid(dialogue_panel):
 		dialogue_panel.visible = false
 	if is_instance_valid(prompt):
@@ -1004,6 +1007,7 @@ func close_dialogue() -> void:
 			start_menu.visible = false
 	dialogue_open = false
 	dialogue_panel.visible = false
+	if is_instance_valid(notice_feed): notice_feed.visible = true
 	if is_instance_valid(toast_panel) and toast_panel.visible: _place_toast()
 	_restore_control()
 	_refresh_hud()
