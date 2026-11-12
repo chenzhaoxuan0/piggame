@@ -1,5 +1,11 @@
 extends Node3D
 
+# 大院 · 霓虹综艺竞速（course_4）。全场场地要素换成糖豆人×马车霓虹街机资产
+# （docs/ZONE_STYLE_ASSET_PLAN.md）：柏油砖/沙砾砖、发光护栏、箭头加速带、
+# 巨胎、交通锥、霓虹扫堂腿、招牌摆锤、问号道具箱、特技跳台、弹珠柱、终点门、
+# 起点门架、泛光灯塔、轮胎堆。角色恒定大鹅平涂不换装（AGENTS.md §5）。
+
+const ASSETS = preload("res://scripts/art/asset_library.gd")
 const RUNNER_SCRIPT = preload("res://scripts/courses/course_runner.gd")
 const MEME_SCRIPT = preload("res://scripts/courses/meme_layer.gd")
 const CONFIG_SCRIPT = preload("res://scripts/courses/course_config.gd")
@@ -197,16 +203,16 @@ func _build_track_ground() -> void:
 	# A player who avoids the sweepers and pendulum keeps the dash payoff and
 	# lands well under 35 s - 疾风之步 is how the record falls, as the design
 	# doc intends. BOOST_SPEED is the tuning knob (18 gave free wins).
-	_track_segment("StraightA", Vector3(10, 1, 36), Vector3(0, -0.5, 2))      # x -5..5,   z -16..20
-	_track_segment("CurveB", Vector3(20, 1, 10), Vector3(5, -0.5, -21))       # x -5..15,  z -26..-16
-	_track_segment("OuterB", Vector3(10, 1, 30), Vector3(10, -0.5, -41))      # x 5..15,   z -56..-26
-	_track_segment("HairpinC", Vector3(20, 1, 10), Vector3(5, -0.5, -61))     # x -5..15,  z -66..-56
-	_track_segment("MidC", Vector3(10, 1, 14), Vector3(0, -0.5, -73))         # x -5..5,   z -80..-66
-	_track_segment("CurveD", Vector3(20, 1, 10), Vector3(-5, -0.5, -85))      # x -15..5,  z -90..-80
-	_track_segment("OuterD", Vector3(10, 1, 30), Vector3(-10, -0.5, -105))    # x -15..-5, z -120..-90
-	_track_segment("HairpinE", Vector3(20, 1, 10), Vector3(-5, -0.5, -125))   # x -15..5,  z -130..-120
-	_track_segment("StraightC", Vector3(10, 1, 30), Vector3(0, -0.5, -145))   # x -5..5,   z -160..-130
-	_track_segment("ExitArena", Vector3(14, 1, 14), Vector3(0, -0.5, -167))   # x -7..7,   z -174..-160
+	_track_segment("StraightA", Vector3(10, 1, 36), Vector3(0, -0.5, 2), RACING_ASPHALT, "ENV_C4_ASPHALT")      # x -5..5,   z -16..20
+	_track_segment("CurveB", Vector3(20, 1, 10), Vector3(5, -0.5, -21), RACING_ASPHALT, "ENV_C4_ASPHALT")       # x -5..15,  z -26..-16
+	_track_segment("OuterB", Vector3(10, 1, 30), Vector3(10, -0.5, -41), RACING_ASPHALT, "ENV_C4_ASPHALT")      # x 5..15,   z -56..-26
+	_track_segment("HairpinC", Vector3(20, 1, 10), Vector3(5, -0.5, -61), RACING_ASPHALT, "ENV_C4_ASPHALT")     # x -5..15,  z -66..-56
+	_track_segment("MidC", Vector3(10, 1, 14), Vector3(0, -0.5, -73), RACING_ASPHALT, "ENV_C4_ASPHALT")         # x -5..5,   z -80..-66
+	_track_segment("CurveD", Vector3(20, 1, 10), Vector3(-5, -0.5, -85), RACING_ASPHALT, "ENV_C4_ASPHALT")      # x -15..5,  z -90..-80
+	_track_segment("OuterD", Vector3(10, 1, 30), Vector3(-10, -0.5, -105), RACING_ASPHALT, "ENV_C4_ASPHALT")    # x -15..-5, z -120..-90
+	_track_segment("HairpinE", Vector3(20, 1, 10), Vector3(-5, -0.5, -125), RACING_ASPHALT, "ENV_C4_ASPHALT")   # x -15..5,  z -130..-120
+	_track_segment("StraightC", Vector3(10, 1, 30), Vector3(0, -0.5, -145), RACING_ASPHALT, "ENV_C4_ASPHALT")   # x -5..5,   z -160..-130
+	_track_segment("ExitArena", Vector3(14, 1, 14), Vector3(0, -0.5, -167), RACING_ASPHALT, "ENV_C4_ASPHALT")   # x -7..7,   z -174..-160
 	_gravel_infield("InfieldGravel", Vector3(0, -0.5, -41))                   # x -5..5,   z -56..-26
 	_gravel_infield("InfieldGravel2", Vector3(0, -0.5, -105))                 # x -5..5,   z -120..-90
 
@@ -227,7 +233,7 @@ func _build_track_ground() -> void:
 	_curb_run(Vector3(-4.4, 0, -130), Vector3(-4.4, 0, -160))
 
 func _gravel_infield(node_name: String, pos: Vector3) -> void:
-	_track_segment(node_name, Vector3(10, 1, 30), pos, GRAVEL_SAND)
+	_track_segment(node_name, Vector3(10, 1, 30), pos, GRAVEL_SAND, "ENV_C4_GRAVEL")
 	var trap: Node3D = MUD_PATCH.new()
 	trap.name = node_name + "Trap"
 	trap.position = pos + Vector3(0, 0.5, 0)
@@ -242,7 +248,7 @@ func _gravel_infield(node_name: String, pos: Vector3) -> void:
 	)
 	gravel_traps.append(trap)
 
-func _track_segment(node_name: String, size: Vector3, pos: Vector3, surface: Color = RACING_ASPHALT) -> StaticBody3D:
+func _track_segment(node_name: String, size: Vector3, pos: Vector3, surface: Color = RACING_ASPHALT, dress_id := "") -> StaticBody3D:
 	var body := StaticBody3D.new()
 	body.name = node_name
 	body.position = pos
@@ -266,6 +272,9 @@ func _track_segment(node_name: String, size: Vector3, pos: Vector3, surface: Col
 	body.add_child(tarmac)
 
 	add_child(body)
+	# Neon arena tile dressing over the slab (collision unchanged).
+	if not dress_id.is_empty():
+		ASSETS.tile_slab_top(body, dress_id, size, Vector3(10, 1, 10), size.y * 0.5)
 	return body
 
 func _curb_run(from: Vector3, to: Vector3) -> void:
@@ -344,6 +353,11 @@ func _guardrail(node_name: String, size: Vector3, pos: Vector3, color: Color) ->
 	body.add_child(mesh)
 
 	add_child(body)
+	# Glowing rail segment run along the barrier (base sunk to the body's
+	# half-height origin); collision unchanged. The procedural beam hides - it
+	# occupies the exact same footprint and would z-fight with the model.
+	ASSETS.tile_run(body, "PROP_C4_GUARDRAIL", size, Vector3(4, 0.4, 1.2), 0.0, -0.6)
+	mesh.visible = false
 	guardrails.append(body)
 
 func _build_start_grid() -> void:
@@ -361,6 +375,13 @@ func _build_start_grid() -> void:
 	frame_mat.albedo_color = DARK
 	frame.material_override = frame_mat
 	traffic_lights.add_child(frame)
+
+	# Zone dressing: the start gantry model replaces the steel beam (the
+	# countdown label and boom barrier stay).
+	var gantry_lux := ASSETS.make("PROP_C4_START_GANTRY")
+	if gantry_lux != null:
+		frame.visible = false
+		traffic_lights.add_child(gantry_lux)
 
 	start_light_label = _label("准备……", Vector3(0, 4.9, 0), 64, traffic_lights)
 	start_light_label.name = "StartLightLabel"
@@ -411,6 +432,7 @@ func _boost_pad(node_name: String, pos: Vector3) -> Node3D:
 	pad.name = node_name
 	pad.position = pos
 	pad.boost_speed = BOOST_SPEED
+	pad.lux_asset_id = "PROP_C4_BOOST_PAD"
 	add_child(pad)
 	pad.boost_activated.connect(func(_p):
 		if meme_layer:
@@ -426,7 +448,8 @@ func _build_hazards() -> void:
 	rolling_tire = ROLLING_HAY.new()
 	rolling_tire.name = "RollingTire"
 	rolling_tire.position = Vector3(0, 0.75, -10.0)
-	rolling_tire.use_lux_model = false # Neon zone: no ox-field hay bale model here
+	rolling_tire.use_lux_model = true
+	rolling_tire.lux_asset_id = "PROP_C4_TIRE" # Zone-neon giant tire, not the ox-field bale
 	rolling_tire.hay_color = TIRE_BLACK
 	rolling_tire.roll_direction = Vector3(0, 0, 1)
 	rolling_tire.roll_impulse = 9.0
@@ -463,7 +486,8 @@ func _build_hazards() -> void:
 	sign_pendulum = PENDULUM_BALL.new()
 	sign_pendulum.name = "NeonSignPendulum"
 	sign_pendulum.position = Vector3(0, 0, -135.5)
-	sign_pendulum.use_lux_model = false # Neon zone: no ox-field wrecking ball model here
+	sign_pendulum.use_lux_model = true
+	sign_pendulum.lux_asset_id = "PROP_C4_NEON_SIGN" # Zone-neon signboard, not the wrecking ball
 	sign_pendulum.ball_color = NEON_PINK
 	sign_pendulum.gantry_color = Color("334155")
 	sign_pendulum.gantry_half_width = 5.0 # Posts stand in the guardrail line: no pocket to get wedged into
@@ -476,7 +500,8 @@ func _tunnel_sweeper(node_name: String, pos: Vector3, speed: float, phase: float
 	var sweeper: Node3D = SPINNING_SWEEPER.new()
 	sweeper.name = node_name
 	sweeper.position = pos
-	sweeper.use_lux_model = false # Neon zone: no ox-field padded beam model here
+	sweeper.use_lux_model = true
+	sweeper.lux_asset_id = "PROP_C4_SWEEPER" # Zone-neon bar, not the ox-field beam
 	sweeper.sweeper_color = NEON_PINK if speed > 0.0 else NEON_CYAN
 	sweeper.rotate_speed = speed
 	sweeper.phase_offset = phase
@@ -513,6 +538,12 @@ func _traffic_cone(pos: Vector3) -> void:
 	mat.emission_energy_multiplier = 0.6
 	mesh.material_override = mat
 	cone.add_child(mesh)
+
+	# Zone dressing: the glossy traffic cone replaces the cylinder.
+	var cone_lux := ASSETS.make("PROP_C4_TRAFFIC_CONE")
+	if cone_lux != null:
+		mesh.visible = false
+		cone.add_child(cone_lux)
 
 	var kick := Area3D.new()
 	kick.name = "KickArea"
@@ -561,6 +592,7 @@ func _mystery_box(node_name: String, pos: Vector3) -> void:
 	var item_box = MYSTERY_ITEM_BOX.new()
 	item_box.name = node_name
 	item_box.position = pos
+	item_box.lux_asset_id = "PROP_C4_ITEM_BOX"
 	add_child(item_box)
 	item_box.item_collected.connect(func(item, star_player):
 		if item == "GOLDEN_STAR":
@@ -577,6 +609,7 @@ func _build_stunt_ramp() -> void:
 	stunt_ramp.position = Vector3(0, 0, -141.0)
 	stunt_ramp.launch_vertical = 10.0
 	stunt_ramp.launch_forward = 20.0
+	stunt_ramp.lux_asset_id = "PROP_C4_STUNT_RAMP"
 	add_child(stunt_ramp)
 
 	stunt_ramp.ramp_jumped.connect(func(_r, _p):
@@ -605,6 +638,7 @@ func _neon_bumper(node_name: String, pos: Vector3) -> void:
 	var bumper = NEON_BUMPER.new()
 	bumper.name = node_name
 	bumper.position = pos
+	bumper.lux_asset_id = "PROP_C4_BUMPER"
 	add_child(bumper)
 	bumper.bumper_hit.connect(func(_b, _target):
 		if meme_layer:
@@ -616,6 +650,7 @@ func _build_finish_gate() -> void:
 	finish_gate.name = "RacingFinishGate"
 	finish_gate.gate_width = 10.0
 	finish_gate.gate_height = 5.5
+	finish_gate.lux_asset_id = "PROP_C4_FINISH_GATE"
 	finish_gate.record_time = RECORD_TIME
 	finish_gate.position = Vector3(0, 0, -156.0)
 	add_child(finish_gate)
@@ -640,28 +675,12 @@ func _build_decorations() -> void:
 		_tire_stack(stack_pos)
 
 func _stadium_light(pos: Vector3) -> void:
-	var pole := MeshInstance3D.new()
-	var box := BoxMesh.new()
-	box.size = Vector3(0.4, 6.0, 0.4)
-	pole.mesh = box
-	pole.position = pos + Vector3(0, 3.0, 0)
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color("475569")
-	pole.material_override = mat
-	add_child(pole)
-
-	var lamp := MeshInstance3D.new()
-	var lamp_box := BoxMesh.new()
-	lamp_box.size = Vector3(1.2, 0.6, 0.8)
-	lamp.mesh = lamp_box
-	lamp.position = pos + Vector3(0, 6.2, 0)
-	var lamp_mat := StandardMaterial3D.new()
-	lamp_mat.albedo_color = NEON_YELLOW
-	lamp_mat.emission_enabled = true
-	lamp_mat.emission = Color("FEF08A")
-	lamp_mat.emission_energy_multiplier = 2.0
-	lamp.material_override = lamp_mat
-	add_child(lamp)
+	# Floodlight tower model (pole + four-bulb head in one asset).
+	var tower := ASSETS.make("PROP_C4_STADIUM_LIGHT")
+	if tower == null:
+		return
+	tower.position = pos
+	add_child(tower)
 
 func _tire_stack(pos: Vector3) -> void:
 	var body := StaticBody3D.new()
@@ -675,17 +694,7 @@ func _tire_stack(pos: Vector3) -> void:
 	cyl.height = 1.2
 	shape.shape = cyl
 	body.add_child(shape)
-	var mesh := MeshInstance3D.new()
-	var cyl_mesh := CylinderMesh.new()
-	cyl_mesh.top_radius = 0.7
-	cyl_mesh.bottom_radius = 0.7
-	cyl_mesh.height = 1.2
-	mesh.mesh = cyl_mesh
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = TIRE_BLACK
-	mat.roughness = 0.9
-	mesh.material_override = mat
-	body.add_child(mesh)
+	ASSETS.replace_visuals(body, "PROP_C4_TIRE_STACK")
 	add_child(body)
 
 func _build_markers() -> void:

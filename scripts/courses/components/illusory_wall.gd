@@ -7,11 +7,19 @@ signal wall_shattered(wall: IllusoryWall)
 @export var wall_height: float = 4.2
 @export var wall_depth: float = 1.0
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 const COLOR_SOLID := Color("475569") # Mossy slate
 const COLOR_ILLUSORY := Color("A78BFA88") # Shimmering ghost purple-white
 
+# Optional zone dressing (woodland fairytale): the maze-wall model makes the
+# illusion indistinguishable from real stone; with the sheep's insight it is
+# swapped for the translucent ghost box, keeping the shimmer readable.
+@export var lux_asset_id: String = ""
+
 var is_shattered: bool = false
 var mesh_instance: MeshInstance3D
+var _lux_visual: Node3D = null
 var collision_shape: CollisionShape3D
 var touch_area: Area3D
 var hint_label: Label3D
@@ -44,6 +52,17 @@ func _setup_visual() -> void:
 	mat.roughness = 0.9
 	mesh_instance.material_override = mat
 	add_child(mesh_instance)
+
+	# Zone dressing: the stone maze wall model stands in for the flat box,
+	# scaled to this wall's footprint (the asset is normalized to 10 x 4.5).
+	if not lux_asset_id.is_empty():
+		var lux := ASSETS.make(lux_asset_id)
+		if lux != null:
+			_lux_visual = lux
+			lux.scale = Vector3(wall_width / 10.0, wall_height / 4.5, wall_depth / 0.8)
+			lux.position.y = 0.0
+			add_child(lux)
+			mesh_instance.visible = false
 
 	hint_label = Label3D.new()
 	hint_label.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
@@ -96,6 +115,10 @@ func _has_discern_skill() -> bool:
 func _set_illusory_state(active: bool) -> void:
 	if hint_label:
 		hint_label.visible = active
+	# Dressed wall: insight swaps the solid model for the ghost box.
+	if _lux_visual != null:
+		_lux_visual.visible = not active
+		mesh_instance.visible = active
 	if mesh_instance and mesh_instance.material_override is StandardMaterial3D:
 		var mat := mesh_instance.material_override as StandardMaterial3D
 		if active:
@@ -140,6 +163,8 @@ func shatter() -> void:
 		collision_shape.disabled = true
 
 	var tween := create_tween()
+	if _lux_visual != null:
+		tween.tween_property(_lux_visual, "scale", Vector3(1.1, 0.05, 1.1), 0.25).set_trans(Tween.TRANS_QUAD)
 	tween.tween_property(mesh_instance, "scale", Vector3(1.1, 0.05, 1.1), 0.25).set_trans(Tween.TRANS_QUAD)
 	tween.parallel().tween_property(hint_label, "modulate:a", 0.0, 0.25)
 	tween.tween_callback(func():

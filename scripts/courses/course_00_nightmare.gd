@@ -5,9 +5,12 @@ extends Node3D
 # 左转，最终朝向仍是出口 -Z）→ 装卸月台被"农场主"追逐，冲出铁门即惊醒。
 # 这是机制教学关：不借出任何技能——被抓全是滑稽逃脱，教非致死循环本身。
 # 铁钩走廊只有 8 米宽（钩扫 ±3.2 米，贴墙缝不足 1 米）——钩子是真阻碍，必须
-# 掐时机。画风是"运转中的工厂"而非地狱：灰白混凝土、冷白灯光、薄工业雾。
-# 画风为玩法线程序化暂定，不加载任何 C1 农场风 Lux3D 道具（AGENTS.md §5）。
+# 掐时机。画风是"运转中的写实屠宰工厂"而非地狱：灰白混凝土、磨损钢材、冷白灯。
+# 序章是五关画风的起点（写实 photorealistic），与后续体素/童话/霓虹区反差开
+# （docs/ZONE_STYLE_ASSET_PLAN.md）；全部场地要素为 Lux3D 写实资产，只换视觉，
+# 碰撞与机关参数不动（AGENTS.md §5 分区画风制）。
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
 const RUNNER_SCRIPT = preload("res://scripts/courses/course_runner.gd")
 const MEME_SCRIPT = preload("res://scripts/courses/meme_layer.gd")
 const CONFIG_SCRIPT = preload("res://scripts/courses/course_config.gd")
@@ -199,12 +202,21 @@ func _floor_slab(node_name: String, size: Vector3, pos: Vector3) -> void:
 	mesh.material_override = mat
 	body.add_child(mesh)
 	add_child(body)
+	# Realistic concrete tile dressing over the slab (collision unchanged).
+	ASSETS.tile_slab_top(body, "ENV_C0_FLOOR", size, Vector3(4, 0.2, 4), size.y * 0.5)
 
 func _wall_z(node_name: String, x: float, z_from: float, z_to: float) -> void:
-	_solid_box(node_name, Vector3(0.4, 4.2, absf(z_to - z_from)), Vector3(x, 2.1, (z_from + z_to) * 0.5), WALL_STEEL)
+	var body := _solid_box(node_name, Vector3(0.4, 4.2, absf(z_to - z_from)), Vector3(x, 2.1, (z_from + z_to) * 0.5), WALL_STEEL)
+	# Wall panel segments run along Z: yaw the X-long panel 90 degrees. The
+	# body origin sits at mid-height, so the segment base goes to local -2.1.
+	# The procedural box hides: same footprint as the model run, z-fight risk.
+	ASSETS.tile_run(body, "ENV_C0_WALL", Vector3(0.4, 4.2, absf(z_to - z_from)), Vector3(4, 0.4, 4.2), 90.0, -2.1)
+	ASSETS.hide_procedural_visuals(body)
 
 func _wall_x(node_name: String, z: float, x_from: float, x_to: float) -> void:
-	_solid_box(node_name, Vector3(absf(x_to - x_from), 4.2, 0.4), Vector3((x_from + x_to) * 0.5, 2.1, z), WALL_STEEL)
+	var body := _solid_box(node_name, Vector3(absf(x_to - x_from), 4.2, 0.4), Vector3((x_from + x_to) * 0.5, 2.1, z), WALL_STEEL)
+	ASSETS.tile_run(body, "ENV_C0_WALL", Vector3(absf(x_to - x_from), 4.2, 0.4), Vector3(4, 0.4, 4.2), 0.0, -2.1)
+	ASSETS.hide_procedural_visuals(body)
 
 func _solid_box(node_name: String, size: Vector3, pos: Vector3, color: Color) -> StaticBody3D:
 	var body := StaticBody3D.new()
@@ -244,16 +256,10 @@ func _build_holding_pins() -> void:
 		{"pos": Vector3(2.5, 0.8, -14.0), "name": "CagePenD"},
 	]:
 		var pen := _solid_box(cage["name"], Vector3(5.0, 1.6, 2.4), cage["pos"], CAGE_STEEL)
-		for bar_idx in 6:
-			var bar := MeshInstance3D.new()
-			var bar_box := BoxMesh.new()
-			bar_box.size = Vector3(0.08, 0.9, 0.08)
-			bar.mesh = bar_box
-			bar.position = Vector3(-2.0 + 0.8 * float(bar_idx), 1.2, 0)
-			var bar_mat := StandardMaterial3D.new()
-			bar_mat.albedo_color = STEEL
-			bar.material_override = bar_mat
-			pen.add_child(bar)
+		# Realistic steel livestock cage (model carries its own bars; the
+		# procedural box + bar dressing hides, collision unchanged). The body
+		# origin sits at mid-height, so sink the model half a height down.
+		ASSETS.replace_visuals(pen, "PROP_C0_CAGE", Vector3(0, -0.8, 0))
 
 	sleeping_dog = PATROL_GUARD_DOG.new()
 	sleeping_dog.name = "SleepingPenDog"
@@ -348,6 +354,9 @@ func _build_processing_floor() -> void:
 
 	belt_d = _belt("BeltD", Vector3(29.8, -0.35, -50.5), Vector3(7.2, 0.35, 5), Vector3(1, 0, 0), 2.6)
 	var door_frame := _solid_box("FakeSunDoorFrame", Vector3(0.4, 3.2, 2.4), Vector3(33.7, 1.6, -50.5), EMBER)
+	# The painted fake door: flaking oil paint on a wall panel (the sun label
+	# stays, the procedural frame box hides). Body origin at mid-height again.
+	ASSETS.replace_visuals(door_frame, "PROP_C0_PAINTED_DOOR", Vector3(0, -1.6, 0))
 	var sun_label := _label("☀\n（出口？）", Vector3(-0.35, 0.6, 0), 40, door_frame)
 	sun_label.rotation.y = -PI * 0.5
 	fake_sun_door = DECOY_GOAL.new()
@@ -381,6 +390,7 @@ func _belt(node_name: String, pos: Vector3, size: Vector3, dir: Vector3, speed: 
 	belt.belt_size = size
 	belt.belt_direction = dir
 	belt.belt_speed = speed
+	belt.lux_asset_id = "PROP_C0_CONVEYOR" # Realistic line dressing; stripes keep scrolling
 	add_child(belt)
 	belt.belt_entered.connect(func(_b):
 		if meme_layer:
@@ -415,7 +425,8 @@ func _hook(node_name: String, pos: Vector3, across_z: bool, speed: float, phase:
 	var hook: Node3D = PENDULUM_BALL.new()
 	hook.name = node_name
 	hook.position = pos
-	hook.use_lux_model = false
+	hook.use_lux_model = true
+	hook.lux_asset_id = "PROP_C0_MEATHOOK" # Zone-realistic hook, not the ox-field ball
 	hook.ball_color = STEEL
 	hook.gantry_color = Color("4A545E")
 	# Dream hooks: arm 3.6, swing 30 -> sweep +-2.66 m. In the 8 m corridors
@@ -441,13 +452,15 @@ func _stun_prod(node_name: String, pos: Vector3) -> void:
 	pillar.bumper_color = HAZARD_AMBER
 	pillar.cap_color = Color("FFF59D")
 	pillar.star_color = Color("00E5FF")
+	pillar.lux_asset_id = "PROP_C0_STUN_PROD" # Realistic hazard-striped shocker pillar
 	add_child(pillar)
 
 func _steam_vent(pos: Vector3, back_dir: Vector3) -> void:
 	var steam: Node3D = LAUNCH_PAD.new()
 	steam.name = "SteamVent"
 	steam.position = pos
-	steam.use_lux_model = false # Nightmare zone: no ox-field props here
+	steam.use_lux_model = true
+	steam.lux_asset_id = "PROP_C0_STEAM_VENT" # Realistic cast-iron floor grate
 	steam.pad_color = WAKE_LIGHT
 	steam.launch_direction = back_dir
 	steam.launch_power = 5.0
@@ -518,6 +531,45 @@ func _build_plant_dressing() -> void:
 	_label("流水线 03 · 运行中", Vector3(5.7, 2.6, -30.0), 18)
 	_label("注意：上方挂钩区域", Vector3(34.0, 2.6, -30.0), 18)
 
+	# Realistic factory dressing: wall machinery clusters, hanging warning
+	# signs and fluorescent tube fixtures. Pure visuals - zero new colliders.
+	for machine in [
+		{"pos": Vector3(-5.5, 0, 10.0), "yaw": 90.0},
+		{"pos": Vector3(5.5, 0, 6.0), "yaw": -90.0},
+		{"pos": Vector3(12.0, 0, -25.4), "yaw": 0.0},
+		{"pos": Vector3(33.8, 0, -42.0), "yaw": -90.0},
+		{"pos": Vector3(26.2, 0, -46.0), "yaw": 90.0},
+		{"pos": Vector3(44.0, 0, -49.4), "yaw": 180.0},
+		{"pos": Vector3(51.8, 0, -62.0), "yaw": -90.0},
+		{"pos": Vector3(40.2, 0, -74.0), "yaw": 90.0},
+	]:
+		var machine_dressing := ASSETS.make("ENV_C0_MACHINERY")
+		if machine_dressing != null:
+			machine_dressing.position = machine["pos"]
+			machine_dressing.rotation.y = deg_to_rad(machine["yaw"])
+			add_child(machine_dressing)
+	for sign_pos in [Vector3(13, 3.4, -30), Vector3(26, 3.4, -30), Vector3(30, 3.4, -46), Vector3(42, 3.4, -54), Vector3(0, 3.4, -17)]:
+		var hazard_sign := ASSETS.make("PROP_C0_HAZARD_SIGN")
+		if hazard_sign != null:
+			hazard_sign.position = sign_pos
+			hazard_sign.rotation.y = deg_to_rad(90.0 if sign_pos.z < -20.0 and sign_pos.x > 25.0 else 0.0)
+			add_child(hazard_sign)
+	for light_def in [
+		{"pos": Vector3(0, 3.6, 0), "yaw": 0.0},
+		{"pos": Vector3(0, 3.6, -12), "yaw": 0.0},
+		{"pos": Vector3(13, 3.6, -30), "yaw": 0.0},
+		{"pos": Vector3(26, 3.6, -30), "yaw": 0.0},
+		{"pos": Vector3(30, 3.6, -46), "yaw": 90.0},
+		{"pos": Vector3(40, 3.6, -54), "yaw": 0.0},
+		{"pos": Vector3(46, 3.6, -62), "yaw": 90.0},
+		{"pos": Vector3(46, 3.6, -76), "yaw": 90.0},
+	]:
+		var tube := ASSETS.make("PROP_C0_LIGHT")
+		if tube != null:
+			tube.position = light_def["pos"]
+			tube.rotation.y = deg_to_rad(light_def["yaw"])
+			add_child(tube)
+
 # ------------------------------------------------------------------
 # L5: 装卸月台 - the dream butcher chase
 # ------------------------------------------------------------------
@@ -530,7 +582,8 @@ func _build_loading_dock() -> void:
 		{"pos": Vector3(43.0, 0.8, -71.0), "name": "DockCrateC"},
 		{"pos": Vector3(49.0, 0.8, -71.0), "name": "DockCrateD"},
 	]:
-		_solid_box(crate["name"], Vector3(2.0, 1.6, 2.0), crate["pos"], CAGE_STEEL)
+		var crate_body := _solid_box(crate["name"], Vector3(2.0, 1.6, 2.0), crate["pos"], CAGE_STEEL)
+		ASSETS.replace_visuals(crate_body, "PROP_C0_CRATE", Vector3(0, -0.8, 0))
 
 	_label("【红圈 = 扑击预警！看准时机按 Shift 闪避！】", Vector3(46, 2.4, -59.0), 24)
 	var dock_trigger := _area("DockChaseTrigger", "", Vector3(46, 1, -61.0), Vector3(12, 3, 1.5))
@@ -548,9 +601,22 @@ func _on_dock_entered(body: Node3D) -> void:
 
 func _build_exit() -> void:
 	var door_pos := Vector3(46, 0, -86.0)
-	_solid_box("RollerDoorL", Vector3(3.0, 4.2, 0.5), door_pos + Vector3(-3.5, 2.1, 0), STEEL)
-	_solid_box("RollerDoorR", Vector3(3.0, 4.2, 0.5), door_pos + Vector3(3.5, 2.1, 0), STEEL)
+	# Steel doorframe: collision boxes keep the 4 m doorway open; the wall
+	# panel model dresses each side and the lintel (shutter door scenery sits
+	# on the dock's back wall below).
+	var door_l := _solid_box("RollerDoorL", Vector3(3.0, 4.2, 0.5), door_pos + Vector3(-3.5, 2.1, 0), STEEL)
+	ASSETS.tile_run(door_l, "ENV_C0_WALL", Vector3(3.0, 4.2, 0.5), Vector3(4, 0.4, 4.2), 0.0, -2.1)
+	var door_r := _solid_box("RollerDoorR", Vector3(3.0, 4.2, 0.5), door_pos + Vector3(3.5, 2.1, 0), STEEL)
+	ASSETS.tile_run(door_r, "ENV_C0_WALL", Vector3(3.0, 4.2, 0.5), Vector3(4, 0.4, 4.2), 0.0, -2.1)
+	# RollerDoorTop stays procedural: a 1 m steel lintel above a 4.2 m tall
+	# wall model would need a 4x squash that reads wrong at eye level.
 	_solid_box("RollerDoorTop", Vector3(10.0, 1.0, 0.5), door_pos + Vector3(0, 3.7, 0), STEEL)
+
+	# Closed shutter scenery on the far dock wall (pure dressing, no collider).
+	var shutter := ASSETS.make("PROP_C0_ROLLER_DOOR")
+	if shutter != null:
+		shutter.position = Vector3(46, 0, -87.7)
+		add_child(shutter)
 
 	var light_mesh := MeshInstance3D.new()
 	light_mesh.name = "WakingLight"

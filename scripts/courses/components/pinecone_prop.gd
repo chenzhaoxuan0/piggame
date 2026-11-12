@@ -6,6 +6,11 @@ signal dog_distracted(dog: Node3D, landing_pos: Vector3)
 
 @export var throw_distance: float = 8.0
 @export var prompt_text: String = "[F] 拾取/投掷金松果 (声东击西引开恶犬)"
+# Optional zone dressing (woodland fairytale): the golden pinecone model
+# replaces the amber cylinder; it travels with the mesh node when held/thrown.
+@export var lux_asset_id: String = "PROP_C3_GOLDEN_PINECONE"
+
+const ASSETS = preload("res://scripts/art/asset_library.gd")
 
 const COLOR_CONE := Color("D97706") # Amber pinecone
 const COLOR_GOLD := Color("FDE68A")
@@ -39,6 +44,14 @@ func _setup_visual() -> void:
 	mat.emission_energy_multiplier = 0.5
 	_cone_mesh.material_override = mat
 	add_child(_cone_mesh)
+
+	# Zone dressing: the golden pinecone replaces the amber cylinder.
+	if not lux_asset_id.is_empty():
+		var lux := ASSETS.make(lux_asset_id)
+		if lux != null:
+			_cone_mesh.mesh = null
+			lux.position.y = -0.3
+			_cone_mesh.add_child(lux)
 
 	_prompt_lbl = Label3D.new()
 	_prompt_lbl.font = preload("res://scripts/ui/ui_kit.gd").font_bold()

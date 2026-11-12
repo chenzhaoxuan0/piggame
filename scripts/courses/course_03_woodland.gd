@@ -149,22 +149,22 @@ func _make_config() -> CourseConfig:
 
 func _build_ground() -> void:
 	# 1. Entrance Meadow
-	_fairytale_platform("EntranceMeadow", Vector3(14, 1, 14), Vector3(0, -0.5, 9), STORYBOOK_GREEN, STORYBOOK_LOAM)
+	_fairytale_platform("EntranceMeadow", Vector3(14, 1, 14), Vector3(0, -0.5, 9), STORYBOOK_GREEN, STORYBOOK_LOAM, "ENV_C3_MEADOW_TILE")
 
 	# 2. Narrow Stealth Path (Z = 2 to -26, flush with the meadow and the grove:
 	# the old -25/-26 seam left a 1 m pit on the main walking line - the pig fell
 	# in, respawned, and fell in again, forever)
-	_fairytale_platform("StealthPath", Vector3(8, 1, 28), Vector3(0, -0.5, -12), STORYBOOK_GREEN, STORYBOOK_LOAM)
+	_fairytale_platform("StealthPath", Vector3(8, 1, 28), Vector3(0, -0.5, -12), STORYBOOK_GREEN, STORYBOOK_LOAM, "ENV_C3_MEADOW_TILE")
 
 	# 3. Mimic Grove Plaza (Z = -26 to -46)
-	_fairytale_platform("MimicPlaza", Vector3(14, 1, 20), Vector3(0, -0.5, -36), STORYBOOK_GOLD, STORYBOOK_LOAM)
+	_fairytale_platform("MimicPlaza", Vector3(14, 1, 20), Vector3(0, -0.5, -36), STORYBOOK_GOLD, STORYBOOK_LOAM, "ENV_C3_GOLD_TILE")
 
 	# 4. Illusion maze strip behind the entry wall (Z = -46 to -78; used to start
 	# at -48, leaving a 2 m pit between the grove and the fairy path)
-	_fairytale_platform("HiddenFairyPath", Vector3(10, 1, 32), Vector3(0, -0.5, -62), STORYBOOK_PURPLE, STORYBOOK_LOAM)
+	_fairytale_platform("HiddenFairyPath", Vector3(10, 1, 32), Vector3(0, -0.5, -62), STORYBOOK_PURPLE, STORYBOOK_LOAM, "ENV_C3_PURPLE_TILE")
 
 	# 5. Hollow Tree Exit Glade (Z = -79 to -94)
-	_fairytale_platform("ExitGlade", Vector3(14, 1, 16), Vector3(0, -0.5, -86), STORYBOOK_GREEN, STORYBOOK_LOAM)
+	_fairytale_platform("ExitGlade", Vector3(14, 1, 16), Vector3(0, -0.5, -86), STORYBOOK_GREEN, STORYBOOK_LOAM, "ENV_C3_MEADOW_TILE")
 
 func _build_surroundings() -> void:
 	# Dense fairytale tree line
@@ -251,6 +251,7 @@ func _build_mimic_grove() -> void:
 	mimic_chest_fake = MIMIC_CHEST.new()
 	mimic_chest_fake.name = "MimicChestFake"
 	mimic_chest_fake.is_mimic = true
+	mimic_chest_fake.lux_asset_id = "PROP_C3_CHEST"
 	mimic_chest_fake.position = Vector3(-2.8, 0, -36.0)
 	add_child(mimic_chest_fake)
 
@@ -263,6 +264,7 @@ func _build_mimic_grove() -> void:
 	mimic_chest_real = MIMIC_CHEST.new()
 	mimic_chest_real.name = "MimicChestReal"
 	mimic_chest_real.is_mimic = false
+	mimic_chest_real.lux_asset_id = "PROP_C3_CHEST"
 	mimic_chest_real.position = Vector3(2.8, 0, -36.0)
 	add_child(mimic_chest_real)
 
@@ -292,6 +294,7 @@ func _build_illusory_wall_puzzle() -> void:
 	illusory_wall.name = "IllusoryWall"
 	illusory_wall.wall_width = 10.0
 	illusory_wall.wall_height = 4.5
+	illusory_wall.lux_asset_id = "PROP_C3_ILLUSORY_WALL"
 	illusory_wall.position = Vector3(0, 0, -47.5)
 	add_child(illusory_wall)
 
@@ -327,16 +330,17 @@ func _build_illusion_maze() -> void:
 	var y := MAZE_WALL_H * 0.5
 
 	# Row A (z=-52): solid left, gap on the right
-	maze_wall_a = _solid_box("MazeWallA", Vector3(6.0, MAZE_WALL_H, 0.8), Vector3(-2.0, y, -52.0), STORYBOOK_STONE)
+	maze_wall_a = _maze_wall("MazeWallA", Vector3(6.0, MAZE_WALL_H, 0.8), Vector3(-2.0, y, -52.0))
 	# Row B (z=-56): solid right, gap on the left
-	_solid_box("MazeWallB", Vector3(4.0, MAZE_WALL_H, 0.8), Vector3(3.0, y, -56.0), STORYBOOK_STONE)
+	_maze_wall("MazeWallB", Vector3(4.0, MAZE_WALL_H, 0.8), Vector3(3.0, y, -56.0))
 	# Row C (z=-61): the illusory row. Its left span is walk-through (shatters on
 	# touch with insight), and behind it hides the real treasure chamber.
-	_solid_box("MazeWallCSolid", Vector3(3.5, MAZE_WALL_H, 0.8), Vector3(3.25, y, -61.0), STORYBOOK_STONE)
+	_maze_wall("MazeWallCSolid", Vector3(3.5, MAZE_WALL_H, 0.8), Vector3(3.25, y, -61.0))
 	maze_illusory_wall = ILLUSORY_WALL.new()
 	maze_illusory_wall.name = "MazeIllusoryWallC"
 	maze_illusory_wall.wall_width = 6.5
 	maze_illusory_wall.wall_height = 2.6
+	maze_illusory_wall.lux_asset_id = "PROP_C3_ILLUSORY_WALL"
 	maze_illusory_wall.position = Vector3(-1.75, 0, -61.0)
 	add_child(maze_illusory_wall)
 	maze_illusory_wall.wall_shattered.connect(func(_w):
@@ -344,17 +348,18 @@ func _build_illusion_maze() -> void:
 			meme_layer.play("illusory_shatter")
 	)
 	# Row D (z=-65): seals the chamber on the left, gap on the right
-	_solid_box("MazeWallD", Vector3(4.5, MAZE_WALL_H, 0.8), Vector3(-2.75, y, -65.0), STORYBOOK_STONE)
+	_maze_wall("MazeWallD", Vector3(4.5, MAZE_WALL_H, 0.8), Vector3(-2.75, y, -65.0))
 	# Row E (z=-70): solid left, narrow gap on the right
-	_solid_box("MazeWallE", Vector3(7.0, MAZE_WALL_H, 0.8), Vector3(-1.5, y, -70.0), STORYBOOK_STONE)
+	_maze_wall("MazeWallE", Vector3(7.0, MAZE_WALL_H, 0.8), Vector3(-1.5, y, -70.0))
 	# Row F (z=-74): solid right (the mimic pocket's back), gap on the left
-	_solid_box("MazeWallF", Vector3(3.0, MAZE_WALL_H, 0.8), Vector3(3.5, y, -74.0), STORYBOOK_STONE)
+	_maze_wall("MazeWallF", Vector3(3.0, MAZE_WALL_H, 0.8), Vector3(3.5, y, -74.0))
 
 	# Bonus chamber (x -5..-0.5, z -65..-61, entered only through the fake wall):
 	# the real golden chest whose sweet-potato boost helps shake the dog.
 	maze_chest_real = MIMIC_CHEST.new()
 	maze_chest_real.name = "MazeChestReal"
 	maze_chest_real.is_mimic = false
+	maze_chest_real.lux_asset_id = "PROP_C3_CHEST"
 	maze_chest_real.position = Vector3(-2.8, 0, -63.0)
 	add_child(maze_chest_real)
 	maze_chest_real.chest_opened.connect(func(_c, is_m):
@@ -369,6 +374,7 @@ func _build_illusion_maze() -> void:
 	maze_chest_mimic = MIMIC_CHEST.new()
 	maze_chest_mimic.name = "MazeChestMimic"
 	maze_chest_mimic.is_mimic = true
+	maze_chest_mimic.lux_asset_id = "PROP_C3_CHEST"
 	maze_chest_mimic.position = Vector3(3.5, 0, -72.0)
 	add_child(maze_chest_mimic)
 	maze_chest_mimic.chest_opened.connect(func(_c, is_m):
@@ -418,36 +424,59 @@ func _build_illusion_maze() -> void:
 		_firefly(wisp_pos)
 
 func _build_decorations() -> void:
-	# Mushroom clusters
+	# Mushroom clusters + storybook bushes along the path (visual-only dressing)
 	_mushroom_prop(Vector3(-4, 0, 8), 0.8)
 	_mushroom_prop(Vector3(4, 0, 8), 0.6)
 	_mushroom_prop(Vector3(-5, 0, -28), 1.2)
 	_mushroom_prop(Vector3(5, 0, -68), 1.0)
+	for bush_pos in [Vector3(-6.2, 0, 2), Vector3(6.2, 0, -4), Vector3(-6.2, 0, -18), Vector3(6.2, 0, -24),
+		Vector3(-6.2, 0, -30), Vector3(6.2, 0, -44), Vector3(-6.2, 0, -80), Vector3(6.2, 0, -84)]:
+		var bush := ASSETS.make("ENV_C3_BUSH")
+		if bush != null:
+			bush.position = bush_pos
+			bush.rotation.y = randf() * TAU
+			add_child(bush)
 
 func _storybook_tree(pos: Vector3) -> void:
-	_solid_box("TreeTrunk", Vector3(1.2, 5.0, 1.2), pos + Vector3(0, 2.5, 0), STORYBOOK_WOOD)
-	_solid_box("TreeFoliage", Vector3(4.0, 4.0, 4.0), pos + Vector3(0, 5.5, 0), STORYBOOK_GREEN)
+	var trunk := _solid_box("TreeTrunk", Vector3(1.2, 5.0, 1.2), pos + Vector3(0, 2.5, 0), STORYBOOK_WOOD)
+	var foliage := _solid_box("TreeFoliage", Vector3(4.0, 4.0, 4.0), pos + Vector3(0, 5.5, 0), STORYBOOK_GREEN)
+	# Whole whimsical storybook tree dressed on the trunk body; both procedural
+	# boxes hide, collisions stay.
+	ASSETS.replace_visuals(trunk, "ENV_C3_TREE", Vector3(0, -2.5, 0))
+	ASSETS.hide_procedural_visuals(foliage)
 
 func _mushroom_prop(pos: Vector3, scale_f: float) -> void:
-	var m := MeshInstance3D.new()
-	var cap := CylinderMesh.new()
-	cap.top_radius = 0.1 * scale_f
-	cap.bottom_radius = 0.9 * scale_f
-	cap.height = 0.6 * scale_f
-	m.mesh = cap
-	m.position = pos + Vector3(0, 0.3 * scale_f, 0)
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = STORYBOOK_CORAL
-	m.material_override = mat
+	# Spotted toadstool dressing, scaled per cluster.
+	var m := ASSETS.make("PROP_C3_TOADSTOOL")
+	if m == null: return
+	m.position = pos
+	m.scale = Vector3.ONE * scale_f
+	m.rotation.y = randf() * TAU
 	add_child(m)
+
+func _maze_wall(node_name: String, size: Vector3, pos: Vector3) -> StaticBody3D:
+	# Mossy stone maze wall with the model run along its length; the body
+	# origin sits at mid-height so the segment base sinks to local -1.2. The
+	# procedural box hides: it sits at the exact same footprint and would
+	# z-fight with the model segments otherwise.
+	var body := _solid_box(node_name, size, pos, STORYBOOK_STONE)
+	ASSETS.tile_run(body, "PROP_C3_MAZE_WALL", size, Vector3(6, 0.8, 2.4), 0.0, -MAZE_WALL_H * 0.5)
+	return body
 
 func _build_exit() -> void:
 	var portal_pos := Vector3(0, 0, -88.0)
 
-	# Hollow ancient tree arch
-	_solid_box("ArchL", Vector3(1.4, 6.0, 1.4), portal_pos + Vector3(-2.6, 3.0, 0), STORYBOOK_WOOD)
-	_solid_box("ArchR", Vector3(1.4, 6.0, 1.4), portal_pos + Vector3(2.6, 3.0, 0), STORYBOOK_WOOD)
-	_solid_box("ArchTop", Vector3(6.6, 1.4, 1.4), portal_pos + Vector3(0, 6.6, 0), STORYBOOK_WOOD)
+	# Hollow ancient tree arch (collision stays; the giant hollow-trunk model
+	# replaces the three procedural boxes and wraps the glowing doorway)
+	var arch_l := _solid_box("ArchL", Vector3(1.4, 6.0, 1.4), portal_pos + Vector3(-2.6, 3.0, 0), STORYBOOK_WOOD)
+	var arch_r := _solid_box("ArchR", Vector3(1.4, 6.0, 1.4), portal_pos + Vector3(2.6, 3.0, 0), STORYBOOK_WOOD)
+	var arch_top := _solid_box("ArchTop", Vector3(6.6, 1.4, 1.4), portal_pos + Vector3(0, 6.6, 0), STORYBOOK_WOOD)
+	for arch in [arch_l, arch_r, arch_top]:
+		ASSETS.hide_procedural_visuals(arch)
+	var hollow_tree := ASSETS.make("PROP_C3_HOLLOW_TREE")
+	if hollow_tree != null:
+		hollow_tree.position = portal_pos
+		add_child(hollow_tree)
 
 	# Green fairy portal interior
 	var portal_mesh := MeshInstance3D.new()
@@ -501,7 +530,7 @@ func _checkpoint(node_name: String, index: int, pos: Vector3, respawn: Vector3) 
 	area.set_meta("respawn_yaw", 0.0) # The maze runs -Z: respawn facing into it
 	_label("◆ 童话萤火重生点", pos + Vector3(0, 1.6, 0), 18)
 
-func _fairytale_platform(node_name: String, size: Vector3, pos: Vector3, top_color: Color, side_color: Color) -> StaticBody3D:
+func _fairytale_platform(node_name: String, size: Vector3, pos: Vector3, top_color: Color, side_color: Color, dress_id := "") -> StaticBody3D:
 	var body := StaticBody3D.new()
 	body.name = node_name
 	body.position = pos
@@ -536,6 +565,9 @@ func _fairytale_platform(node_name: String, size: Vector3, pos: Vector3, top_col
 	body.add_child(base_mesh)
 
 	add_child(body)
+	# Hand-painted meadow tile dressing over the slab (collision unchanged).
+	if not dress_id.is_empty():
+		ASSETS.tile_slab_top(body, dress_id, size, Vector3(4, 1, 4), size.y * 0.5)
 	return body
 
 func _solid_box(node_name: String, size: Vector3, pos: Vector3, color: Color) -> StaticBody3D:

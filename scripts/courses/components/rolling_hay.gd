@@ -11,8 +11,10 @@ const ASSETS = preload("res://scripts/art/asset_library.gd")
 @export var auto_trigger_radius: float = 0.0
 @export var hay_color: Color = Color("F59E0B")
 # Zone art styles must not mix: the Lux3D hay bale is the ox-field (course 1)
-# look, so other zones opt out and recolor the procedural cylinder instead.
+# look by default, so other zones point `lux_asset_id` at their own zone model
+# (course 4 giant tire) or opt out and recolor the procedural cylinder instead.
 @export var use_lux_model: bool = true
+@export var lux_asset_id: String = "PROP_C1_HAYBALE"
 
 var _bale: RigidBody3D
 var _start_pos: Vector3
@@ -33,7 +35,7 @@ func _ready() -> void:
 	shape.shape = cyl
 	shape.rotation.z = PI * 0.5
 	_bale.add_child(shape)
-	var lux_bale: Node3D = ASSETS.make("PROP_C1_HAYBALE") if use_lux_model else null
+	var lux_bale: Node3D = ASSETS.make(lux_asset_id) if use_lux_model else null
 	if lux_bale:
 		_bale.add_child(lux_bale)
 	else:

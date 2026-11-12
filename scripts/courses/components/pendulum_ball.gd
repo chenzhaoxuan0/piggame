@@ -13,8 +13,10 @@ const ASSETS = preload("res://scripts/art/asset_library.gd")
 @export var hit_cooldown: float = 0.6
 @export var ball_color: Color = Color("34495E")
 # Zone art styles must not mix: the Lux3D pendulum is the ox-field (course 1)
-# look, so other zones opt out and dress the procedural fallback instead.
+# look by default, so other zones point `lux_asset_id` at their own zone model
+# (course 0 meat hook, course 4 neon sign) or opt out entirely.
 @export var use_lux_model: bool = true
+@export var lux_asset_id: String = "PROP_C1_PENDULUM"
 @export var gantry_color: Color = Color("795548")
 # Post offset from the centre line. On a walled lane set it to the wall offset:
 # posts standing inside the lane leave a pocket between post and wall that is
@@ -61,7 +63,7 @@ func _build_pendulum() -> void:
 	_pivot.add_child(chain)
 
 	# Wrecking ball at bottom (Lux3D model or procedural sphere fallback)
-	var lux_ball: Node3D = ASSETS.make("PROP_C1_PENDULUM") if use_lux_model else null
+	var lux_ball: Node3D = ASSETS.make(lux_asset_id) if use_lux_model else null
 	if lux_ball:
 		lux_ball.position.y = -arm_length
 		_ball_mesh = lux_ball

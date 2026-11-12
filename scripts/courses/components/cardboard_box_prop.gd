@@ -4,7 +4,12 @@ extends Node3D
 signal box_equipped(player: Node3D)
 signal box_unequipped(player: Node3D)
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 @export var box_size: Vector3 = Vector3(1.6, 1.4, 2.0)
+# Optional zone dressing (woodland fairytale): the kraft cardboard model
+# replaces the flat cube; equip/unequip/slide logic keys off this node.
+@export var lux_asset_id: String = "PROP_C3_CARDBOARD_BOX"
 
 const COLOR_CARDBOARD := Color("B45309") # Warm cardboard kraft
 const COLOR_LABEL := Color("FEF3C7")
@@ -38,6 +43,14 @@ func _setup_visual() -> void:
 	mat.roughness = 0.8
 	box_mesh.material_override = mat
 	add_child(box_mesh)
+
+	# Zone dressing: the kraft cardboard box replaces the flat cube.
+	if not lux_asset_id.is_empty():
+		var lux := ASSETS.make(lux_asset_id)
+		if lux != null:
+			box_mesh.mesh = null
+			lux.position.y = -box_size.y * 0.5
+			box_mesh.add_child(lux)
 
 	# Label on the box
 	var lbl := Label3D.new()

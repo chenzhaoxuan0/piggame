@@ -13,8 +13,10 @@ const ASSETS = preload("res://scripts/art/asset_library.gd")
 @export var phase_offset: float = 0.0
 @export var sweeper_color: Color = Color("E67E22")
 # Zone art styles must not mix: the Lux3D padded beam is the ox-field (course 1)
-# look, so other zones opt out and recolor the procedural bar instead.
+# look by default, so other zones point `lux_asset_id` at their own zone model
+# (course 4 neon sweeper) or opt out and recolor the procedural bar instead.
 @export var use_lux_model: bool = true
+@export var lux_asset_id: String = "PROP_C1_SWEEPER"
 
 var _pivot: Node3D
 var _hit_timer := 0.0
@@ -41,7 +43,7 @@ func _ready() -> void:
 	add_child(_pivot)
 
 	# Sweeper bar (Lux3D padded beam or procedural box fallback)
-	var lux_bar: Node3D = ASSETS.make("PROP_C1_SWEEPER") if use_lux_model else null
+	var lux_bar: Node3D = ASSETS.make(lux_asset_id) if use_lux_model else null
 	if lux_bar:
 		lux_bar.scale.x = bar_length / 7.6
 		_pivot.add_child(lux_bar)

@@ -26,8 +26,11 @@ func _route() -> Array[Vector3]:
 		Vector3(0.0, 0.6, -10.0),   # patrol guard corridor
 		Vector3(0.0, 0.6, -36.0),   # mimic grove
 		Vector3(0.0, 0.6, -44.0),   # approach the entry illusory wall
-		Vector3(3.0, 0.6, -50.0),   # maze corridor 1
-		Vector3(3.0, 0.6, -53.5),   # through row A's right gap (x = 3)
+		Vector3(4.0, 0.6, -50.0),   # maze corridor 1, east half: the zigzag guard
+		                            # patrols the x=3 line and parks beside the row-A
+		                            # gap - walk its east so the parked body never
+		                            # caps the click target (pig parks at 1 m distance)
+		Vector3(4.0, 0.6, -53.5),   # through row A's right gap (x = 4)
 		Vector3(0.0, 0.6, -53.5),   # west along corridor 2
 		Vector3(-1.0, 0.6, -59.0),  # south through row B's left gap (x = -1)
 		Vector3(0.5, 0.6, -61.8),   # through the illusory row C (shatters on touch)

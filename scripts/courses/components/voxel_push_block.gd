@@ -7,12 +7,17 @@ signal block_landed_on_target(block: Node3D, target: Node3D)
 
 enum BlockType { DIRT, SAND, TNT, STONE }
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 @export var block_type: BlockType = BlockType.DIRT
 @export var block_size: float = 1.8
 @export var push_distance: float = 2.0
 @export var is_gravity_affected: bool = false
 @export var can_be_pushed: bool = true
 @export var preferred_push_axis: Vector3 = Vector3.ZERO
+# Optional zone dressing (creek voxel): the Lux3D block model replaces the
+# colored cube; push/fall/ignite tweens keep working on the mesh node.
+@export var lux_asset_id: String = ""
 
 const COLOR_DIRT := Color("5A3E28")
 const COLOR_GRASS := Color("4ADE80")
@@ -115,8 +120,17 @@ func _setup_visuals() -> void:
 	mesh_instance.material_override = mat
 	add_child(mesh_instance)
 
-	# If TNT, add a white band in the middle
-	if block_type == BlockType.TNT:
+	# Zone dressing: swap the colored cube for the voxel block model.
+	if not lux_asset_id.is_empty():
+		var lux := ASSETS.make(lux_asset_id)
+		if lux != null:
+			mesh_instance.mesh = null
+			lux.position.y = -block_size * 0.5
+			mesh_instance.add_child(lux)
+
+	# If TNT, add a white band in the middle (skipped when the zone model
+	# already carries its own printed band)
+	if block_type == BlockType.TNT and lux_asset_id.is_empty():
 		var band := MeshInstance3D.new()
 		band.name = "TNTBand"
 		var band_mesh := BoxMesh.new()

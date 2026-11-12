@@ -3,9 +3,14 @@ extends Node3D
 
 signal finish_line_crossed(player: Node3D)
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 @export var gate_width: float = 12.0
 @export var gate_height: float = 6.0
 @export var record_time: float = 35.0 # The farm's standing record to beat (seconds)
+# Optional zone dressing (courtyard neon): the finish arch model (normalized to
+# 10 x 5.5) replaces the pillar/beam pair; labels and checkered line stay.
+@export var lux_asset_id: String = ""
 
 const COLOR_STEEL := Color("1E293B")
 const COLOR_NEON_CYAN := Color("06B6D4")
@@ -30,9 +35,9 @@ func _ready() -> void:
 
 func _setup_frame() -> void:
 	# Left pillar
-	_solid_pillar(Vector3(-gate_width * 0.5, gate_height * 0.5, 0))
+	_solid_pillar(Vector3(-gate_width * 0.5, gate_height * 0.5, 0), "PillarL")
 	# Right pillar
-	_solid_pillar(Vector3(gate_width * 0.5, gate_height * 0.5, 0))
+	_solid_pillar(Vector3(gate_width * 0.5, gate_height * 0.5, 0), "PillarR")
 
 	# Overhead beam
 	var beam := MeshInstance3D.new()
@@ -46,6 +51,16 @@ func _setup_frame() -> void:
 	beam.material_override = mat
 	add_child(beam)
 
+	# Zone dressing: the neon finish arch replaces the steel pillar/beam pair.
+	if not lux_asset_id.is_empty():
+		var lux := ASSETS.make(lux_asset_id)
+		if lux != null:
+			lux.scale = Vector3(gate_width / 10.0, gate_height / 5.5, 1.0)
+			add_child(lux)
+			get_node("OverheadBeam").visible = false
+			get_node("PillarL").visible = false
+			get_node("PillarR").visible = false
+
 	# Checkered line on the ground
 	var line := MeshInstance3D.new()
 	line.name = "CheckeredGround"
@@ -58,8 +73,9 @@ func _setup_frame() -> void:
 	line.material_override = line_mat
 	add_child(line)
 
-func _solid_pillar(pos: Vector3) -> void:
+func _solid_pillar(pos: Vector3, pillar_name: String) -> void:
 	var pillar := MeshInstance3D.new()
+	pillar.name = pillar_name
 	var box := BoxMesh.new()
 	box.size = Vector3(1.2, gate_height, 1.2)
 	pillar.mesh = box

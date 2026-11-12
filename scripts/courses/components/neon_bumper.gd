@@ -3,16 +3,22 @@ extends Node3D
 
 signal bumper_hit(bumper: NeonBumper, body: Node3D)
 
+const ASSETS = preload("res://scripts/art/asset_library.gd")
+
 @export var bumper_radius: float = 1.1
 @export var bumper_height: float = 1.2
 @export var repel_force: float = 16.0
 @export var cooldown: float = 0.25
+# Optional zone dressing (courtyard neon): the pinball bumper model replaces
+# the cylinder+ring pair; the pulse tween retargets to the model.
+@export var lux_asset_id: String = ""
 
 const COLOR_NEON_MAGENTA := Color("EC4899")
 const COLOR_NEON_CYAN := Color("06B6D4")
 
 var _cooldown_timer: float = 0.0
 var _mesh: MeshInstance3D
+var _lux_visual: Node3D = null
 var _mat: StandardMaterial3D
 
 func _ready() -> void:
@@ -52,6 +58,17 @@ func _setup_visual() -> void:
 	r_mat.emission_energy_multiplier = 2.0
 	ring.material_override = r_mat
 	add_child(ring)
+
+	# Zone dressing: the pinball bumper replaces the cylinder + ring pair
+	# (asset normalized to 1.6 x 1.5; scale to this bumper's footprint).
+	if not lux_asset_id.is_empty():
+		var lux := ASSETS.make(lux_asset_id)
+		if lux != null:
+			_lux_visual = lux
+			lux.scale = Vector3(bumper_radius * 2.0 / 1.6, bumper_height / 1.5, bumper_radius * 2.0 / 1.6)
+			add_child(lux)
+			_mesh.visible = false
+			ring.visible = false
 
 func _setup_collision() -> void:
 	var body := StaticBody3D.new()
@@ -111,11 +128,13 @@ func _on_body_entered(body: Node3D) -> void:
 	if body.has_method("stun"):
 		body.stun(1.5)
 
-	# Bumper pulse animation
-	if is_instance_valid(_mesh):
+	# Bumper pulse animation (scaled around the dressed model's base scale)
+	var pulse_target: Node3D = _lux_visual if _lux_visual != null else _mesh
+	if is_instance_valid(pulse_target):
+		var base_scale := pulse_target.scale
 		var tween := create_tween()
-		tween.tween_property(_mesh, "scale", Vector3(1.3, 0.8, 1.3), 0.06)
-		tween.tween_property(_mesh, "scale", Vector3.ONE, 0.12)
+		tween.tween_property(pulse_target, "scale", base_scale * Vector3(1.3, 0.8, 1.3), 0.06)
+		tween.tween_property(pulse_target, "scale", base_scale, 0.12)
 
 	# Pop up arcade score
 	var score_lbl := Label3D.new()

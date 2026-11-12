@@ -6,6 +6,12 @@ uniform bool use_texture = false;
 uniform sampler2D albedo_texture : source_color, filter_linear_mipmap;
 uniform bool valley_haze_enabled = true;
 uniform bool canopy_cutout = false;
+// Neon arena zones (course 4): extract EMISSION from the bright parts of the
+// albedo so neon strips glow under a bloom-enabled environment. Off by
+// default - the farm and every other zone keep the exact flat look.
+uniform bool emission_from_texture = false;
+uniform float emission_boost = 1.4;
+uniform float emission_threshold = 0.62;
 uniform vec3 player_focus = vec3(0.0,32.7,100.0);
 uniform vec3 player_camera = vec3(5.0,37.75,106.25);
 // Compatibility vertex colors carry the authored palette. A bounded diffuse response
@@ -29,6 +35,10 @@ void fragment() {
 	vec3 base = use_texture ? (texture(albedo_texture, UV).rgb * pigment.rgb) : (vertex_palette ? COLOR.rgb : pigment.rgb);
 	ALBEDO = mix(base, vec3(0.73, 0.73, 0.79), valley_haze);
 	ROUGHNESS = 1.0;
+	if (emission_from_texture) {
+		vec3 hot = clamp((base - vec3(emission_threshold)) / max(1.0 - emission_threshold, 0.001), 0.0, 1.0);
+		EMISSION += hot * emission_boost;
+	}
 }
 void light() {
 	float facing = smoothstep(-0.25, 0.8, dot(NORMAL, LIGHT));
