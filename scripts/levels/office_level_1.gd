@@ -98,6 +98,8 @@ var loan_card_key_label: Label
 var loan_card_desc_label: Label
 var loan_card_hint: Label
 var _loan_queue: Array[String] = []
+# 右下角触发通知流（彩蛋台词等「地图小字」的屏幕端统一出口）
+var notice_feed: VBoxContainer
 var _loan_showing := false
 const LOAN_SKILL_TEXTS := {
 	"struggle": {
@@ -455,6 +457,29 @@ func _show_toast(title_text: String, desc_text: String) -> void:
 	tween.tween_interval(2.5)
 	tween.tween_property(toast_panel, "modulate:a", 0.0, 0.35)
 	tween.tween_callback(func(): toast_panel.visible = false)
+
+func _show_notice(text: String) -> void:
+	# 彩蛋触发台词的右下角通知：缝线小补丁卡片，BACK 弹入，3.2s 后淡出。
+	# 同屏最多 4 条，超出先撤最旧一条，防止连触彩蛋刷屏。
+	if not is_instance_valid(notice_feed): return
+	while notice_feed.get_child_count() >= 4:
+		var oldest: Node = notice_feed.get_child(0)
+		oldest.queue_free()
+		await get_tree().process_frame
+	var card: PanelContainer = UI.patch_panel(14, UI.PAPER, UI.TEAL, Vector2(14, 9))
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.modulate.a = 0.0
+	var label: Label = UI.label(text, 16, UI.INK)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.custom_minimum_size = Vector2(0, 0)
+	card.add_child(label)
+	notice_feed.add_child(card)
+	var tween := create_tween()
+	tween.tween_property(card, "modulate:a", 1.0, 0.18).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(card, "scale", Vector2.ONE, 0.18).from(Vector2(0.92, 0.92)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_interval(3.2)
+	tween.tween_property(card, "modulate:a", 0.0, 0.35)
+	tween.tween_callback(card.queue_free)
 
 # -------------------------------------------------------------
 # Menus: Start, Pause, Settings
@@ -1024,6 +1049,10 @@ func start_stage_chase(stage_id: String) -> void:
 func _on_playground_event(kind: String, _detail) -> void:
 	# Farm playground easter eggs report here for the celebratory toasts
 	# (achievements unlock farm-side; this is the presentation layer).
+	# "gag" = 触发台词：不走中央横幅，弹右下角通知（地图上的世界小字不可读）。
+	if kind == "gag":
+		_show_notice(str(_detail))
+		return
 	match kind:
 		"cabbage_goal":
 			_show_toast("GOOOAL！", "卷心菜应声入网——牛耕地球会记你一功！")

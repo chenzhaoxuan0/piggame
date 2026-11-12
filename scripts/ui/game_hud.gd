@@ -24,6 +24,7 @@ static func build_all(host: Node) -> void:
 	_build_qte_panel(host)
 	_build_dash_gauge(host)
 	_build_toast_banner(host)
+	_build_notice_feed(host)
 	_build_skill_card(host)
 	_build_loan_card(host)
 
@@ -279,6 +280,25 @@ static func _build_toast_banner(host: Node) -> void:
 	vbox.add_child(host.toast_desc)
 
 	host.toast_panel.visible = false
+
+static func _build_notice_feed(host: Node) -> void:
+	# 右下角通知流：彩蛋触发台词的统一去处。世界里的 Label3D 小字在
+	# 镜头拉远后不可读，这里用屏幕角落的补丁卡片逐条弹出、自动消退。
+	# 底边抬高到成就弹窗（AchievementPopup，右下角 24px）上方，避免同屏重叠。
+	host.notice_feed = VBoxContainer.new()
+	host.notice_feed.name = "NoticeFeed"
+	host.notice_feed.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	host.notice_feed.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	host.notice_feed.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	host.notice_feed.add_theme_constant_override("separation", 8)
+	host.notice_feed.alignment = BoxContainer.ALIGNMENT_END
+	host.notice_feed.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.notice_feed.offset_left = -420
+	host.notice_feed.offset_right = -24
+	# 留出右下角成就弹窗的高度（约 120px），通知叠在它上方。
+	host.notice_feed.offset_top = -500
+	host.notice_feed.offset_bottom = -150
+	host.hud.add_child(host.notice_feed)
 
 static func _build_skill_card(host: Node) -> void:
 	# 技能解锁卡：居中缝线大补丁 + 向日葵标签 + 键帽说明。

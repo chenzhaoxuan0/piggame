@@ -111,6 +111,29 @@ func _run() -> void:
 	await process_frame
 	_check(not office.achievements_menu.visible and office.start_menu.visible,
 		"Closing the wall returns to the start menu")
+
+	# --- 8. Unlock popup anchors the bottom-right corner (above the notice feed zone)
+	am.reset_progress(true)
+	await process_frame
+	am.unlock("first_dodge")
+	await create_timer(0.4).timeout
+	var popup: Control = null
+	for layer in am.get_children():
+		if layer is CanvasLayer:
+			var found: Control = layer.find_child("AchievementPopup", true, false)
+			if found != null:
+				popup = found
+				break
+	if popup != null:
+		var vp_end: float = root.get_visible_rect().end.y
+		var vp_right: float = root.get_visible_rect().end.x
+		var anchored_br: bool = popup.global_position.y + popup.size.y >= vp_end - 200.0 \
+			and popup.global_position.y + popup.size.y <= vp_end \
+			and popup.global_position.x + popup.size.x >= vp_right - 200.0 \
+			and popup.global_position.x + popup.size.x <= vp_right
+		_check(anchored_br, "The unlock popup sits in the bottom-right corner")
+	else:
+		_check(false, "The unlock popup exists on its canvas layer")
 	office.queue_free()
 	await process_frame
 

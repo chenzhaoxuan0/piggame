@@ -119,7 +119,11 @@ func _run() -> void:
 
 	# --- Nest: three eggs then the chick finale
 	var nest_events := []
-	farm.playground_event.connect(func(kind, detail): nest_events.append(kind))
+	var gag_notices: Array[String] = []
+	farm.playground_event.connect(func(kind, detail):
+		nest_events.append(kind)
+		if kind == "gag":
+			gag_notices.append(str(detail)))
 	# body_entered needs re-entry per nudge: step out, then back in.
 	for i in 4:
 		pig.global_position = farm.get_node("HenNest").global_position + Vector3(0, 0.4, 2.2)
@@ -130,6 +134,12 @@ func _run() -> void:
 		await physics_frame
 	await create_timer(0.2).timeout
 	_check(nest_events.has("chick"), "Fourth nest nudge pops the chick")
+	_check(gag_notices.size() >= 4, "Every nest gag also reports a gag notice for the corner feed")
+	_check(gag_notices.any(func(t: String): return "拱出一枚蛋" in t), "Gag notice carries the actual line text")
+	_check(office.get("notice_feed") != null and office.notice_feed is VBoxContainer,
+		"The HUD owns a bottom-right notice feed")
+	_check(office.notice_feed.get_child_count() >= 1,
+		"Gag notices actually spawned corner cards in the HUD feed")
 
 	# --- Potato mounds: five nose-digs in the furrow field
 	_check(not am.is_unlocked("potato_harvest"), "Harvest locked before digging")

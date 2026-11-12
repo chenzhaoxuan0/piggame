@@ -12,6 +12,9 @@ extends Node3D
 ## the sense area and reports back through `played` for counting/achievements.
 
 signal played(kind: String, detail)
+## 反应台词上屏幕：世界里的漂浮小字在镜头拉远后几乎不可读，
+## 所以每句 gag 同时经此上报，由关卡层汇总成右下角通知。
+signal noticed(text: String)
 
 enum Kind { GRASS, TIPPABLE, CABBAGE, HAYSTACK, BEEHIVE, MAILBOX, HORN, MUDPIT, NEST, POTATO, APPLE_TREE }
 
@@ -280,6 +283,7 @@ func _on_apple_eaten(body: Node3D, apple: Node3D) -> void:
 		return
 	apple.set_meta("eaten", true)
 	_apples_eaten += 1
+	noticed.emit("咔嚓——真甜。（%d / 3）" % _apples_eaten)
 	var crunch := UI.world_label("咔嚓——真甜。（%d / 3）" % _apples_eaten, 20, UI.WHITE, UI.INK)
 	crunch.position = apple.position + Vector3(0, 0.8, 0)
 	add_child(crunch)
@@ -301,6 +305,7 @@ func _gag_or(defaults: Array) -> String:
 	return defaults.pick_random()
 
 func _gag(text: String, life := 1.8, offset := Vector3(0, 1.9, 0)) -> void:
+	noticed.emit(text)
 	var label := UI.world_label(text, 22, UI.WHITE, UI.TEAL_DEEP)
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.position = offset

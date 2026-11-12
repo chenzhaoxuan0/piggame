@@ -458,6 +458,9 @@ func _plaything(kind: int, sense: Vector3, cool: float,
 	thing.need_charge = charge_only
 	thing.gag_lines = gags
 	thing.played.connect(_on_plaything_played)
+	# gag 台词同步走 playground_event("gag")：世界小字之外，
+	# 由关卡宿主在屏幕右下角弹统一通知（地图上的字拉远后不可读）。
+	thing.noticed.connect(func(text: String): playground_event.emit("gag", text))
 	return thing
 
 func _build_playground() -> void:

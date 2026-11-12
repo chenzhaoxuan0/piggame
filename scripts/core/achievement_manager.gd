@@ -148,16 +148,17 @@ func _build_popup() -> void:
 
 	_popup = UI.patch_panel(16, UI.PAPER, UI.SUNNY, Vector2(18, 10))
 	_popup.name = "AchievementPopup"
-	# Pin a zero-size point 24 px in from the top-right corner, then let the
-	# panel auto-size to its content growing LEFT and DOWN (offset presets with
+	# Pin a zero-size point 24 px in from the bottom-right corner, then let the
+	# panel auto-size to its content growing LEFT and UP (offset presets with
 	# placeholder text would pin a stale size and shove it off-screen).
-	_popup.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	# 右下角与彩蛋通知流（NoticeFeed，HUD 层）同区：通知流底边抬高到弹窗上方。
+	_popup.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	_popup.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_popup.grow_vertical = Control.GROW_DIRECTION_END
+	_popup.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_popup.offset_left = -24
 	_popup.offset_right = -24
-	_popup.offset_top = 24
-	_popup.offset_bottom = 24
+	_popup.offset_top = -24
+	_popup.offset_bottom = -24
 	_popup.modulate.a = 0.0
 	_popup.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(_popup)
