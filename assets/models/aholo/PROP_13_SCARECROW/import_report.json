@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_13_SCARECROW",
+  "raw_triangles": 10420,
+  "triangles": 2200,
+  "size_blender_xyz": [
+    2.035712480545044,
+    0.9446216821670532,
+    2.6000001430511475
+  ],
+  "file_bytes": 175280,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_13_SCARECROW/PROP_13_SCARECROW_game.glb"
+}

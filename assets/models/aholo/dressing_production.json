@@ -987,6 +987,216 @@
       "remote_status": 3,
       "raw_model": "assets/models/aholo/PROP_09_GOAL/PROP_09_GOAL.glb",
       "sha256": "2356ebe6326ecb6b03719838b0acddd6c341e7f86a27ee1ccbdadc98de12bffc"
+    },
+    "PROP_10_WATER_BUCKET": {
+      "task_id": 7172359,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One upright galvanized metal water bucket with a slightly flared open top, a broad rolled rim and a curved thin carry handle arched over the top, flat intact base. Dark calm water surface visible just below the rim inside. Simple matte pale blue grey metal color blocks, softly rounded silhouette. Freestanding single object, no ground plane.",
+        "style": "cartoon",
+        "version": "G1",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-13T17:42:32.366067+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_10_WATER_BUCKET/PROP_10_WATER_BUCKET.glb",
+      "sha256": "f26bafacae2db01dd30f21b09424ec70831220156cf938b6e5300e3644abd2bb"
+    },
+    "PROP_11_HAY_STACK": {
+      "task_id": 7172387,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One large round haystack dome, a squat rounded golden straw mound with a few broad sweeping wrapped bands around its sides and a small stubble crown on top. Softly rounded chunky silhouette, matte solid straw color blocks, no individual straw sticks. Freestanding single object, no ground plane.",
+        "style": "cartoon",
+        "version": "G1",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-13T17:42:37.506115+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_11_HAY_STACK/PROP_11_HAY_STACK.glb",
+      "sha256": "f64db60f99c34cb28855039e65f34a9eeb03f7d96ff527b3a2d77abd9168ea75"
+    },
+    "PROP_12_METEOR_BUTTON": {
+      "task_id": 7172426,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One chunky freestanding emergency push button: a low round dark red pedestal base with a broad bright red domed button head on top, separated by a slim dark metal ring. Toy-like rounded proportions, matte solid color blocks, no text, no symbols, no arrows. Complete object with intact base, no ground plane.",
+        "style": "cartoon",
+        "version": "G1",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-13T17:42:41.744397+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_12_METEOR_BUTTON/PROP_12_METEOR_BUTTON.glb",
+      "sha256": "8382a4e3a363f200a85da6fa76887720895f1afa9cf54cdf98515253cb8cb983"
+    },
+    "PROP_13_SCARECROW": {
+      "task_id": 7172458,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One classic farm scarecrow: a single thick wooden pole with two straight crossbar arms, wearing a simple terracotta red shirt, a round pale straw bundle head with simple black dot eyes, and a wide brimmed hat. Softly rounded chunky low polygon construction, matte solid color blocks, no face details beyond the dot eyes. Complete freestanding assembly, no ground plane.",
+        "style": "cartoon",
+        "version": "G1",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-13T17:42:45.236930+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_13_SCARECROW/PROP_13_SCARECROW.glb",
+      "sha256": "5bb2ac7397529a2761673ada95ce04679549f808b8480623a189479489899642"
+    },
+    "PROP_14_BEEHIVE": {
+      "task_id": 7172487,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One rustic stacked wooden beehive: two squarish pale wooden hive boxes on short chunky legs with a small dark entrance slit, a low pitched simple roof on top. Rounded chunky low polygon construction, matte solid color blocks, no bees, no texture noise. Complete freestanding object, no ground plane.",
+        "style": "cartoon",
+        "version": "G1",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-13T17:42:48.606171+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_14_BEEHIVE/PROP_14_BEEHIVE.glb",
+      "sha256": "a3ceac3f37bd466af36fafc2d11219aa16e65ca1a7be8f27835c133bf019eccd"
+    },
+    "PROP_15_MAILBOX": {
+      "task_id": 7174859,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One simple rural wooden mailbox: a single thick round timber post carrying a pale terracotta red box with a softly arched roof lid and a small dark mail slot on the front, no flag, no lettering. Rounded chunky low polygon construction, matte solid color blocks. Complete freestanding object, no ground plane.",
+        "style": "cartoon",
+        "version": "G1",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-13T17:50:46.693616+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_15_MAILBOX/PROP_15_MAILBOX.glb",
+      "sha256": "e4bc2089beb7210c69d51e05183c258145ab39bad7dd7e922015cf6018818e9a"
+    },
+    "PROP_16_BROADCAST_HORN": {
+      "task_id": 7174887,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One farm public address horn loudspeaker on a tall straight wooden pole: a single broad rounded horn cone in muted terracotta red on a short dark metal bracket near the top of the pole, pointing slightly downward. Rounded chunky low polygon construction, matte solid color blocks. Complete freestanding assembly, no ground plane.",
+        "style": "cartoon",
+        "version": "G1",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-13T17:50:50.505472+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_16_BROADCAST_HORN/PROP_16_BROADCAST_HORN.glb",
+      "sha256": "598e5a19df7f9e9dc5a0f528df8546e38ff84239fd4b05941cab5f23d4583c63"
+    },
+    "PROP_17_HEN_NEST": {
+      "task_id": 7174915,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One low round straw hen nest: a wide flat ring of pale golden straw woven into a soft torus with a shallow hollow center, a few broad wrapped bands. Softly rounded chunky silhouette, matte solid straw color blocks, no eggs, no individual straws. Freestanding single object, no ground plane.",
+        "style": "cartoon",
+        "version": "G1",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-13T17:50:54.354421+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_17_HEN_NEST/PROP_17_HEN_NEST.glb",
+      "sha256": "c1e308b3e849de276ff89bccaccdd48009a2e4d79532c808d58be1a8f1d4dfce"
+    },
+    "PROP_18_POTATO_MOUND": {
+      "task_id": 7174936,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One small rounded mound of dark tilled farm soil with a soft lumpy dome top and a few broad smooth clumps, one or two tiny pale potato shoulders peeking out of the soil. Matte solid earth color blocks, softly rounded edges, no texture noise. Freestanding single object, no ground plane.",
+        "style": "cartoon",
+        "version": "G1",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-13T17:50:57.965396+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_18_POTATO_MOUND/PROP_18_POTATO_MOUND.glb",
+      "sha256": "fa426a442e2c5d6405ad07b84e1491717a98a101331b65c21327ee9d9ed311ad"
+    },
+    "PROP_C3_PLUNGER": {
+      "task_id": 7179262,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One toilet plunger standing upright on its rubber cup: a chunky bright red rubber suction cup with broad concentric ribs and a straight pale wooden handle set into its centre. Matte solid color blocks, softly rounded edges, no texture noise. Freestanding single object, no ground plane.",
+        "style": "cartoon",
+        "version": "G1",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-13T18:04:30.222544+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_C3_PLUNGER/PROP_C3_PLUNGER.glb",
+      "sha256": "d549a12676a6094c002977afbd771621b860d8610896cb9e6b5cd34e52ec9856"
     }
   }
 }

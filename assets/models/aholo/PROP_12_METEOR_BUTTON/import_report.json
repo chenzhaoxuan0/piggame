@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_12_METEOR_BUTTON",
+  "raw_triangles": 8096,
+  "triangles": 1200,
+  "size_blender_xyz": [
+    0.6574215888977051,
+    0.6591514945030212,
+    0.5
+  ],
+  "file_bytes": 96464,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_12_METEOR_BUTTON/PROP_12_METEOR_BUTTON_game.glb"
+}

@@ -961,6 +961,96 @@
       "category": "environment_dressing",
       "triangle_budget": 2600,
       "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-13"
+    },
+    "PROP_10_WATER_BUCKET": {
+      "path": "res://assets/models/aholo/PROP_10_WATER_BUCKET/PROP_10_WATER_BUCKET_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 1200,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-14"
+    },
+    "PROP_11_HAY_STACK": {
+      "path": "res://assets/models/aholo/PROP_11_HAY_STACK/PROP_11_HAY_STACK_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 1500,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-14"
+    },
+    "PROP_12_METEOR_BUTTON": {
+      "path": "res://assets/models/aholo/PROP_12_METEOR_BUTTON/PROP_12_METEOR_BUTTON_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 1200,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-14"
+    },
+    "PROP_13_SCARECROW": {
+      "path": "res://assets/models/aholo/PROP_13_SCARECROW/PROP_13_SCARECROW_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 2200,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-14"
+    },
+    "PROP_14_BEEHIVE": {
+      "path": "res://assets/models/aholo/PROP_14_BEEHIVE/PROP_14_BEEHIVE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 1500,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-14"
+    },
+    "PROP_15_MAILBOX": {
+      "path": "res://assets/models/aholo/PROP_15_MAILBOX/PROP_15_MAILBOX_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 1200,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-14"
+    },
+    "PROP_16_BROADCAST_HORN": {
+      "path": "res://assets/models/aholo/PROP_16_BROADCAST_HORN/PROP_16_BROADCAST_HORN_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 1500,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-14"
+    },
+    "PROP_17_HEN_NEST": {
+      "path": "res://assets/models/aholo/PROP_17_HEN_NEST/PROP_17_HEN_NEST_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 899,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-14"
+    },
+    "PROP_18_POTATO_MOUND": {
+      "path": "res://assets/models/aholo/PROP_18_POTATO_MOUND/PROP_18_POTATO_MOUND_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 700,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-14"
+    },
+    "PROP_C3_PLUNGER": {
+      "path": "res://assets/models/aholo/PROP_C3_PLUNGER/PROP_C3_PLUNGER_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 899,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-14"
     }
   }
 }

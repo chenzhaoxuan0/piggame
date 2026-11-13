@@ -263,5 +263,121 @@
       "E8E2CE",
       "5A442E"
     ]
+  },
+  "PROP_10_WATER_BUCKET": {
+    "name": "猪圈铁皮提水桶",
+    "subject": "One upright galvanized metal water bucket with a slightly flared open top, a broad rolled rim and a curved thin carry handle arched over the top, flat intact base. Dark calm water surface visible just below the rim inside. Simple matte pale blue grey metal color blocks, softly rounded silhouette. Freestanding single object, no ground plane.",
+    "height": 0.5,
+    "budget": 1200,
+    "palette": [
+      "8FA3AD",
+      "6E8290",
+      "4E8FA0",
+      "9C805E"
+    ]
+  },
+  "PROP_11_HAY_STACK": {
+    "name": "牧场圆形草垛",
+    "subject": "One large round haystack dome, a squat rounded golden straw mound with a few broad sweeping wrapped bands around its sides and a small stubble crown on top. Softly rounded chunky silhouette, matte solid straw color blocks, no individual straw sticks. Freestanding single object, no ground plane.",
+    "height": 1.1,
+    "budget": 1500,
+    "palette": [
+      "D9B45A",
+      "E8C86A",
+      "C9A35E",
+      "8F6A42"
+    ]
+  },
+  "PROP_12_METEOR_BUTTON": {
+    "name": "危险大红重置按钮",
+    "subject": "One chunky freestanding emergency push button: a low round dark red pedestal base with a broad bright red domed button head on top, separated by a slim dark metal ring. Toy-like rounded proportions, matte solid color blocks, no text, no symbols, no arrows. Complete object with intact base, no ground plane.",
+    "height": 0.5,
+    "budget": 1200,
+    "palette": [
+      "E4573D",
+      "8B3A2E",
+      "515A5A"
+    ]
+  },
+  "PROP_13_SCARECROW": {
+    "name": "耕地稻草人",
+    "subject": "One classic farm scarecrow: a single thick wooden pole with two straight crossbar arms, wearing a simple terracotta red shirt, a round pale straw bundle head with simple black dot eyes, and a wide brimmed hat. Softly rounded chunky low polygon construction, matte solid color blocks, no face details beyond the dot eyes. Complete freestanding assembly, no ground plane.",
+    "height": 2.6,
+    "budget": 2200,
+    "palette": [
+      "9C805E",
+      "E8C86A",
+      "B0543F",
+      "665A48"
+    ]
+  },
+  "PROP_14_BEEHIVE": {
+    "name": "果园木蜂箱",
+    "subject": "One rustic stacked wooden beehive: two squarish pale wooden hive boxes on short chunky legs with a small dark entrance slit, a low pitched simple roof on top. Rounded chunky low polygon construction, matte solid color blocks, no bees, no texture noise. Complete freestanding object, no ground plane.",
+    "height": 1.2,
+    "budget": 1500,
+    "palette": [
+      "D9A441",
+      "E1DDC5",
+      "9C805E",
+      "665A48"
+    ]
+  },
+  "PROP_15_MAILBOX": {
+    "name": "农场木邮箱",
+    "subject": "One simple rural wooden mailbox: a single thick round timber post carrying a pale terracotta red box with a softly arched roof lid and a small dark mail slot on the front, no flag, no lettering. Rounded chunky low polygon construction, matte solid color blocks. Complete freestanding object, no ground plane.",
+    "height": 1.1,
+    "budget": 1200,
+    "palette": [
+      "A96550",
+      "665A48",
+      "515A5A"
+    ]
+  },
+  "PROP_16_BROADCAST_HORN": {
+    "name": "农场广播喇叭",
+    "subject": "One farm public address horn loudspeaker on a tall straight wooden pole: a single broad rounded horn cone in muted terracotta red on a short dark metal bracket near the top of the pole, pointing slightly downward. Rounded chunky low polygon construction, matte solid color blocks. Complete freestanding assembly, no ground plane.",
+    "height": 2.6,
+    "budget": 1500,
+    "palette": [
+      "665A48",
+      "B0543F",
+      "515A5A",
+      "9C805E"
+    ]
+  },
+  "PROP_17_HEN_NEST": {
+    "name": "鸡窝草环",
+    "subject": "One low round straw hen nest: a wide flat ring of pale golden straw woven into a soft torus with a shallow hollow center, a few broad wrapped bands. Softly rounded chunky silhouette, matte solid straw color blocks, no eggs, no individual straws. Freestanding single object, no ground plane.",
+    "height": 0.5,
+    "budget": 900,
+    "palette": [
+      "C9A35E",
+      "D9B45A",
+      "8F6A42"
+    ]
+  },
+  "PROP_18_POTATO_MOUND": {
+    "name": "土豆土垄堆",
+    "subject": "One small rounded mound of dark tilled farm soil with a soft lumpy dome top and a few broad smooth clumps, one or two tiny pale potato shoulders peeking out of the soil. Matte solid earth color blocks, softly rounded edges, no texture noise. Freestanding single object, no ground plane.",
+    "height": 0.35,
+    "budget": 700,
+    "palette": [
+      "7A5C3E",
+      "6B523A",
+      "5E4A34",
+      "B98A5A"
+    ]
+  },
+  "PROP_C3_PLUNGER": {
+    "name": "林间皮搋子",
+    "subject": "One toilet plunger standing upright on its rubber cup: a chunky bright red rubber suction cup with broad concentric ribs and a straight pale wooden handle set into its centre. Matte solid color blocks, softly rounded edges, no texture noise. Freestanding single object, no ground plane.",
+    "height": 0.7,
+    "budget": 900,
+    "palette": [
+      "C0392B",
+      "8B5A2B",
+      "665A48"
+    ]
   }
 }
