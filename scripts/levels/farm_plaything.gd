@@ -349,11 +349,19 @@ func _react_meteor_button() -> void:
 	# dancing pig cannot summon a meteor shower.
 	if not _ready_cool():
 		return
-	var cap := get_parent().get_node_or_null("ButtonCap") as Node3D
-	if cap != null:
-		var press := create_tween()
-		press.tween_property(cap, "position:y", 0.12, 0.08)
-		press.tween_property(cap, "position:y", 0.22, 0.2)
+	# Press feedback: squash the mounted Lux3D button (the dome dips into the
+	# pedestal); the plain procedural cap keeps the offline fallback honest.
+	var lux := get_parent().get_node_or_null("ButtonLux") as Node3D
+	if lux != null:
+		var squash := create_tween()
+		squash.tween_property(lux, "scale:y", lux.scale.y * 0.7, 0.08)
+		squash.tween_property(lux, "scale:y", lux.scale.y, 0.2)
+	else:
+		var cap := get_parent().get_node_or_null("ButtonCap") as Node3D
+		if cap != null:
+			var press := create_tween()
+			press.tween_property(cap, "position:y", 0.12, 0.08)
+			press.tween_property(cap, "position:y", 0.22, 0.2)
 	_gag("咔哒。……天上有个小点在变大。", 2.2)
 	played.emit("meteor", "")
 

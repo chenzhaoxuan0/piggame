@@ -128,7 +128,10 @@ func _ready() -> void:
 	# signs used to skewer the summit/escape fence lines).
 	var signs := [[Vector3(2,32,89),"沿山路下行 → 牛的耕地"],[Vector3(-58.5,25,100),"空格 · 跳过倒木"],[Vector3(54,22,2),"溪桥缺口 · 空格跳跃"],[Vector3(72,24,23),"下坡 → 羊棚草甸"],[Vector3(-63,16,-59),"林间山路 → 马场"],[Vector3(-4,8,-134),"前方犬队巡逻 · 顺路突围"],[Vector3(-77.2,2,-236.6),"索道在林后 · 沿路转弯"]]
 	for sign_data in signs:
-		_box(self,"TrailSignPost",Vector3(.14,1.3,.14),sign_data[0]+Vector3.UP*.65,Color("665A48"))
+		var post := _box(self,"TrailSignPost",Vector3(.14,1.3,.14),sign_data[0]+Vector3.UP*.65,Color("665A48"))
+		# ENV_09_SIGN (arrow-board signpost) draws the marker; the box keeps a
+		# minimal collision so the roadside stand-up spot stays unchanged.
+		_mount_lux(post, "ENV_09_SIGN", Vector3(.9, 1.3, .3), "TrailSignLux")
 		_label(self,"TrailSign",sign_data[1],sign_data[0]+Vector3.UP*1.7,21)
 	for i in range(1,L.path("chase").size()-1):
 		var point: Vector3=L.path("chase")[i]
@@ -174,6 +177,49 @@ func _prop(id: String,p: Vector3) -> void:
 	if art:
 		add_child(art)
 		art.position=p
+
+## Swap a white-box prop's flat VisualMesh for its Lux3D model: the body keeps
+## its collision, scripts and playthings, and the model is scaled uniformly to
+## the replaced box height with its base dropped onto the box bottom, so every
+## transform gag (tip / squash / kick) keeps driving the same root. No-ops
+## without the asset - offline runs keep the box (same contract as the
+## NibbleGrass tufts). `centered` matches how the body root was placed: true
+## for _box/_sphere roots (origin at box centre), false for ground-level roots.
+func _mount_lux(body: Node3D, asset_id: String, box_size: Vector3, lux_name := "", centered := true) -> Node3D:
+	var art := ASSETS.make(asset_id)
+	if art == null:
+		return null
+	var mesh := body.get_node_or_null("VisualMesh")
+	if mesh != null:
+		mesh.visible = false
+	var aabb := _model_aabb(art)
+	var fit := box_size.y / aabb.size.y if aabb.size.y > 0.001 else 1.0
+	art.scale = Vector3.ONE * fit
+	# Models are metre-normalized with the base at the origin; drop the scaled
+	# base onto the bottom face of the collision box it dresses.
+	art.position = Vector3(0, (-box_size.y * 0.5 if centered else 0.0) - aabb.position.y * fit, 0)
+	if lux_name != "":
+		art.name = lux_name
+	body.add_child(art)
+	return art
+
+func _model_aabb(node: Node3D) -> AABB:
+	# Merged local-space bounds of every mesh under a freshly made (still out
+	# of tree) model, in the model's own coordinates.
+	var found := false
+	var merged := AABB()
+	if node is VisualInstance3D:
+		merged = (node as VisualInstance3D).get_aabb()
+		found = true
+	for child in node.get_children():
+		if not (child is Node3D):
+			continue
+		var child_box: AABB = (child as Node3D).transform * _model_aabb(child)
+		if child_box.size == Vector3.ZERO:
+			continue
+		merged = merged.merge(child_box) if found else child_box
+		found = true
+	return merged
 
 func _area(label: String,p: Vector3,size: Vector3,callback: Callable) -> void:
 	var area:=Area3D.new()
@@ -409,10 +455,14 @@ func _build_road_obstacles() -> void:
 	var log_pos_1: Vector3 = L.LOGS[0].a.lerp(L.LOGS[0].b, L.LOGS[0].t)
 	var log1 := _box(self, "Log_Summit_1", Vector3(3.6, 0.55, 0.55), log_pos_1 + Vector3.UP * 0.25, Color("5A442E"), true)
 	var hay1 := _box(self, "Hay_Summit_Side", Vector3(1.6, 0.75, 1.6), Vector3(-49, 24.3, 85), Color("C9A35E"), true)
+	_mount_lux(hay1, "PROP_11_HAY_STACK", Vector3(1.6, 0.75, 1.6), "HaystackLux")
 
-	# Creek road logs aligned with creek bridge / L.LOGS
+	# Creek road logs aligned with creek bridge / L.LOGS. The hurdle stays a
+	# plain box on purpose: its collider is a 0.65 m low jump bar and the 1.6 m
+	# hurdle model would dwarf it - a knee-high miniature reads worse.
 	var hurdle1 := _box(self, "Hurdle_Creek_Side", Vector3(2.5, 0.65, 0.25), Vector3(48, 22.2, 3), Color("8B6846"), true)
 	var rock1 := _box(self, "Rock_Creek_Side", Vector3(2.2, 0.6, 0.8), Vector3(14, 20.2, 6), Color("6C7A72"), true)
+	_mount_lux(rock1, "ENV_09_ROCK", Vector3(2.2, 0.6, 0.8), "RockLux")
 
 	# Woodland road logs aligned with L.LOGS[1]
 	var log_pos_2: Vector3 = L.LOGS[1].a.lerp(L.LOGS[1].b, L.LOGS[1].t)
@@ -420,6 +470,7 @@ func _build_road_obstacles() -> void:
 	# Woodland road cart: the old miter-bulge spot wedged it into the roadside
 	# fence; it now rests on the shoulder south of the woodland road.
 	var cart1 := _box(self, "Cart_Woodland_Side", Vector3(1.8, 0.7, 1.2), Vector3(-43.2, 13.85, -79.2), Color("6B523A"), true)
+	_mount_lux(cart1, "ENV_09_CART", Vector3(1.8, 0.7, 1.2), "CartLux")
 	# The summit log is also a playground prop: a sprinting pig can shove it
 	# down the slope and open a walkable second path (jumping stays valid).
 	var charge := Area3D.new()
@@ -511,8 +562,10 @@ func _register_pen_prop(body: Node3D) -> void:
 
 func _build_pigpen_play() -> void:
 	# Tippable bucket by the trough wall (no charge needed - the tutorial pig
-	# has dash, but a plain walk-by knock is funnier in a pen).
+	# has dash, but a plain walk-by knock is funnier in a pen). Lux3D
+	# PROP_10_WATER_BUCKET draws the bucket; the box under it stays collision.
 	var bucket := _box(self, "PenBucket", Vector3(0.5, 0.5, 0.5), Vector3(-4.5, 32.25, 96), Color("8FA3AD"), true)
+	_mount_lux(bucket, "PROP_10_WATER_BUCKET", Vector3(0.5, 0.5, 0.5), "BucketLux")
 	bucket.add_child(_plaything(PLAYTHING.Kind.TIPPABLE, Vector3(2.0, 2.2, 2.0), 1.0, false,
 		["咣当！水桶滚出去老远。", "哗啦——桶里还真有水。"]))
 	_register_pen_prop(bucket)
@@ -521,7 +574,9 @@ func _build_pigpen_play() -> void:
 	# punted by impulse (see _sphere / farm_plaything._react_cabbage). Spawned a
 	# hair above rest height so the fresh body never starts half-inside the
 	# floor. Contained by the pen walls plus the ball-only gate-gap fence below.
+	# PROP_08_CABBAGE is the pitch ball's look - the pen ball is its 0.7 m twin.
 	var pen_ball := _sphere(self, "PenCabbageBall", 0.35, Vector3(-3, 32.36, 102), Color("7DB874"), true)
+	_mount_lux(pen_ball, "PROP_08_CABBAGE", Vector3(0.7, 0.7, 0.7), "CabbageLux")
 	pen_ball.add_child(_plaything(PLAYTHING.Kind.CABBAGE, Vector3(2.0, 1.8, 2.0), 0.45))
 	_register_pen_prop(pen_ball)
 
@@ -530,6 +585,7 @@ func _build_pigpen_play() -> void:
 	# dive gag never had a landing. Now it lands ON the stack and squashes it
 	# (_on_hay_dive); the gag/score lines still come from the plaything.
 	var stack := _box(self, "PenHaystack", Vector3(1.8, 0.9, 1.8), Vector3(5, 32.45, 104.5), Color("D9B45A"), true)
+	_mount_lux(stack, "PROP_11_HAY_STACK", Vector3(1.8, 0.9, 1.8), "HaystackLux")
 	var stack_thing: FarmPlaything = _plaything(PLAYTHING.Kind.HAYSTACK, Vector3(2.4, 2.6, 2.4), 1.2)
 	stack.add_child(stack_thing)
 	stack_thing.played.connect(_on_hay_dive.bind(stack, 0.45, stack.position.y))
@@ -542,6 +598,11 @@ func _build_pigpen_play() -> void:
 	# never a dead button.
 	var button := _box(self, "MeteorButton", Vector3(1.0, 0.3, 1.0), Vector3(0, 32.15, 106.5), Color("8B3A2E"), true)
 	_box(button, "ButtonCap", Vector3(0.7, 0.14, 0.7), Vector3(0, 0.22, 0), Color("E4573D"), false)
+	# Lux3D PROP_12_METEOR_BUTTON draws base + dome as one 0.44 m model (the old
+	# base+cap silhouette); the cap node stays for the offline fallback press
+	# tween - farm_plaything prefers squashing the model when it is mounted.
+	if _mount_lux(button, "PROP_12_METEOR_BUTTON", Vector3(1.0, 0.44, 1.0), "ButtonLux") != null:
+		button.get_node("ButtonCap/VisualMesh").visible = false
 	button.add_child(_plaything(PLAYTHING.Kind.METEOR_BUTTON, Vector3(1.6, 1.8, 1.6), 1.8))
 	_label(button, "MeteorButtonLabel", "危险按钮 · 踩上去召唤陨石重置猪圈", Vector3(0, 1.5, 0), 18)
 
@@ -660,16 +721,9 @@ func _build_playground() -> void:
 	_build_pigpen_play()
 	# --- Ox terrace: the cabbage pitch beside the (relocated) vegetable field
 	var ball := _sphere(self, "CabbageBall", 0.4, Vector3(46, 24.41, 30), Color("7DB874"), true)
-	# Lux3D PROP_08_CABBAGE (0.8 m, flat leaf palette) replaces the plain green
-	# sphere visual; the RigidBody3D sphere collision keeps driving the kicks.
-	var cabbage := ASSETS.make("PROP_08_CABBAGE")
-	if cabbage != null:
-		var ball_mesh := ball.get_node_or_null("VisualMesh")
-		if ball_mesh != null:
-			ball_mesh.visible = false
-		cabbage.name = "CabbageLux"
-		cabbage.position = Vector3(0, -0.4, 0) # model pivot is bottom-centre, ball origin is centre
-		ball.add_child(cabbage)
+	# Lux3D PROP_08_CABBAGE (flat leaf palette) replaces the plain green sphere
+	# visual; the RigidBody3D sphere collision keeps driving the kicks.
+	_mount_lux(ball, "PROP_08_CABBAGE", Vector3(0.8, 0.8, 0.8), "CabbageLux")
 	ball.add_child(_plaything(PLAYTHING.Kind.CABBAGE, Vector3(2.4, 2.0, 2.4), 0.45))
 	var goal := Node3D.new()
 	goal.name = "CabbageGoal"
@@ -715,11 +769,12 @@ func _build_playground() -> void:
 	goal_area.body_entered.connect(_on_cabbage_goal)
 	_build_pitch_fence()
 
-	# --- Five tippables scattered down the mountain (sprint to topple)
-	_tipple("Barrel_Zigzag", Vector3(-34, 25.8, 101), Vector3(0.9, 1.1, 0.9), Color("8F6A42"))
-	_tipple("Wheelbarrow_Meadow", Vector3(-33, 16.6, -50), Vector3(1.4, 0.7, 0.9), Color("B0543F"))
-	_tipple("WoolBale_Meadow", Vector3(-45, 16.6, -30), Vector3(1.5, 0.9, 1.1), Color("E8E2CE"))
-	_tipple("Barrel_Track", Vector3(58, 8.6, -132), Vector3(0.9, 1.1, 0.9), Color("8F6A42"))
+	# --- Five tippables scattered down the mountain (sprint to topple). Each
+	# keeps its box collision; the Lux3D dressing draws the real object.
+	_tipple("Barrel_Zigzag", Vector3(-34, 25.8, 101), Vector3(0.9, 1.1, 0.9), Color("8F6A42"), "ENV_09_BARREL", "BarrelLux")
+	_tipple("Wheelbarrow_Meadow", Vector3(-33, 16.6, -50), Vector3(1.4, 0.7, 0.9), Color("B0543F"), "ENV_09_WHEELBARROW", "WheelbarrowLux")
+	_tipple("WoolBale_Meadow", Vector3(-45, 16.6, -30), Vector3(1.5, 0.9, 1.1), Color("E8E2CE"), "ENV_09_WOOL", "WoolBaleLux")
+	_tipple("Barrel_Track", Vector3(58, 8.6, -132), Vector3(0.9, 1.1, 0.9), Color("8F6A42"), "ENV_09_BARREL", "BarrelLux")
 	_build_scarecrow(Vector3(14, 24, 48))
 
 	# --- Six nibble-grass tufts along the descent
@@ -746,6 +801,7 @@ func _build_playground() -> void:
 	# Solid like the pen stack: the diving pig lands in it (and squashes it)
 	# instead of ghosting through the visual.
 	var hay := _box(self, "HayDiveStack", Vector3(2.8, 1.5, 2.8), Vector3(-60.5, 23.9, 72.5), Color("E8C86A"), true)
+	_mount_lux(hay, "PROP_11_HAY_STACK", Vector3(2.8, 1.5, 2.8), "HaystackLux")
 	var hay_thing: FarmPlaything = _plaything(PLAYTHING.Kind.HAYSTACK, Vector3(2.8, 2.6, 2.8), 2.0)
 	hay.add_child(hay_thing)
 	hay_thing.played.connect(_on_hay_dive.bind(hay, 0.75, hay.position.y))
@@ -753,6 +809,7 @@ func _build_playground() -> void:
 
 	# --- Beehive by the orchard (sting = speed)
 	var hive_stand := _box(self, "Beehive", Vector3(0.7, 1.1, 0.7), Vector3(68, 24.55, 50), Color("D9A441"), true)
+	_mount_lux(hive_stand, "PROP_14_BEEHIVE", Vector3(0.7, 1.1, 0.7), "BeehiveLux")
 	hive_stand.add_child(_plaything(PLAYTHING.Kind.BEEHIVE, Vector3(2.2, 2.2, 2.2), 6.0))
 
 	# --- Mailbox at the ox gate (nose it open). The old roadside spot skewered
@@ -761,11 +818,18 @@ func _build_playground() -> void:
 	var mailbox := _box(self, "MailboxPost", Vector3(0.18, 1.0, 0.18), Vector3(32.5, 24.26, 59.5), Color("665A48"), true)
 	var box_body := _box(mailbox, "MailboxBody", Vector3(0.5, 0.35, 0.8), Vector3(0, 0.55, 0), Color("A96550"), false)
 	var flag := _box(mailbox, "MailFlag", Vector3(0.08, 0.3, 0.08), Vector3(0.28, 0.75, 0), Color("E4573D"), false)
+	# Lux3D PROP_15_MAILBOX (post + arched box, no flag) replaces the two boxes;
+	# MailFlag stays procedural - the nose-it-open tween drives the flag.
+	if _mount_lux(mailbox, "PROP_15_MAILBOX", Vector3(0.5, 1.0, 0.8), "MailboxLux") != null:
+		mailbox.get_node("MailboxBody/VisualMesh").visible = false
 	mailbox.add_child(_plaything(PLAYTHING.Kind.MAILBOX, Vector3(1.6, 2.4, 1.8), 1.0))
 
 	# --- Broadcast horn at the ox gate
 	var horn_pole := _box(self, "BroadcastHorn", Vector3(0.2, 2.6, 0.2), Vector3(34, 25.3, 59), Color("665A48"), true)
 	_box(horn_pole, "HornCone", Vector3(0.5, 0.5, 0.9), Vector3(0, 1.5, 0.4), Color("B0543F"), false)
+	# Lux3D PROP_16_BROADCAST_HORN (pole + horn cone) replaces both boxes.
+	if _mount_lux(horn_pole, "PROP_16_BROADCAST_HORN", Vector3(0.5, 2.6, 0.5), "HornLux") != null:
+		horn_pole.get_node("HornCone/VisualMesh").visible = false
 	horn_pole.add_child(_plaything(PLAYTHING.Kind.HORN, Vector3(2.0, 3.4, 2.4), 8.0))
 
 	# --- Mud pit by the pigpen (roll!)
@@ -774,6 +838,7 @@ func _build_playground() -> void:
 
 	# --- Hen nest behind the barn
 	var nest := _box(self, "HenNest", Vector3(1.1, 0.45, 1.1), Vector3(24, 24.2, 36), Color("C9A35E"), false)
+	_mount_lux(nest, "PROP_17_HEN_NEST", Vector3(1.1, 0.45, 1.1), "HenNestLux")
 	nest.add_child(_plaything(PLAYTHING.Kind.NEST, Vector3(2.0, 1.8, 2.0), 1.2))
 
 	# --- Potato mounds in the furrow field (one nose-dig each). Unique names:
@@ -786,6 +851,7 @@ func _build_playground() -> void:
 		Vector3(14, 24.15, 50.5),
 	]:
 		var mound := _box(self, "PotatoMound%d" % mound_index, Vector3(0.9, 0.22, 0.9), mound_pos, Color("7A5C3E"), false)
+		_mount_lux(mound, "PROP_18_POTATO_MOUND", Vector3(0.9, 0.22, 0.9), "MoundLux")
 		mound.add_child(_plaything(PLAYTHING.Kind.POTATO, Vector3(2.0, 1.6, 2.0), 1.0))
 		mound_index += 1
 
@@ -803,11 +869,17 @@ func _build_playground() -> void:
 	canopy.material_override = canopy_mat
 	canopy.position = Vector3(0, 2.2, 0)
 	tree.add_child(canopy)
+	# Lux3D ENV_09_APPLE (the orchard apple tree, 4.2 m authored) replaces the
+	# trunk box + sphere canopy, fitted to the old ~3.4 m silhouette.
+	if _mount_lux(tree, "ENV_09_APPLE", Vector3(1.6, 3.4, 1.6), "AppleTreeLux") != null:
+		canopy.visible = false
 	_label(tree, "AppleTreeLabel", "冲刺撞树 · 摇苹果！", Vector3(0, 4.3, 0), 18) # above the canopy sphere
 	tree.add_child(_plaything(PLAYTHING.Kind.APPLE_TREE, Vector3(2.8, 3.4, 2.8), 1.0, true))
 
-func _tipple(node_name: String, pos: Vector3, size: Vector3, color: Color) -> void:
+func _tipple(node_name: String, pos: Vector3, size: Vector3, color: Color, asset_id := "", lux_name := "") -> void:
 	var body := _box(self, node_name, size, pos, color, true)
+	if asset_id != "":
+		_mount_lux(body, asset_id, size, lux_name)
 	body.add_child(_plaything(PLAYTHING.Kind.TIPPABLE, Vector3(2.6, 2.4, 2.6), 1.0, true))
 
 func _build_scarecrow(pos: Vector3) -> void:
@@ -819,6 +891,13 @@ func _build_scarecrow(pos: Vector3) -> void:
 	_box(scare, "Arms", Vector3(1.7, 0.16, 0.16), Vector3(0, 1.7, 0), Color("665A48"), false)
 	_box(scare, "Head", Vector3(0.5, 0.5, 0.5), Vector3(0, 2.1, 0), Color("E8C86A"), false)
 	_box(scare, "Hat", Vector3(0.8, 0.12, 0.8), Vector3(0, 2.4, 0), Color("B0543F"), false)
+	# Lux3D PROP_13_SCARECROW draws the whole figure (the root sits at ground
+	# level); the pole body keeps the collision the tipping gag rides on.
+	if _mount_lux(scare, "PROP_13_SCARECROW", Vector3(1.7, 2.6, 0.8), "ScarecrowLux", false) != null:
+		for part in ["Pole", "Arms", "Head", "Hat"]:
+			var mesh := scare.get_node_or_null(NodePath("%s/VisualMesh" % part))
+			if mesh != null:
+				mesh.visible = false
 	scare.add_child(_plaything(PLAYTHING.Kind.TIPPABLE, Vector3(2.6, 3.0, 2.6), 1.0, true,
 		["麻雀四散！衣服里藏着……另一件更破的衣服。"]))
 

@@ -33,6 +33,15 @@ func _run() -> void:
 	_check(get_nodes_in_group("interactable").size() == 8,
 		"Pen playthings stay out of the story interactables (still 5 NPCs + board + cablecar + trough)")
 
+	# --- The pen props wear their Lux3D models (the flat boxes stay as collision
+	# only - the white-box look must not creep back; a null make() fallback fails
+	# here because the mounted model is flagged by the asset library).
+	for lux_check in [["PenBucket", "BucketLux"], ["PenCabbageBall", "CabbageLux"],
+			["PenHaystack", "HaystackLux"], ["MeteorButton", "ButtonLux"]]:
+		var lux: Node = farm.get_node(lux_check[0]).get_node_or_null(lux_check[1])
+		_check(lux != null and lux.visible and lux.get_meta("source", "") == "Aholo Lux3D",
+			"%s wears its Lux3D model (%s)" % [lux_check[0], lux_check[1]])
+
 	# --- Kick the pen cabbage away from home
 	var ball: Node3D = farm.get_node("PenCabbageBall")
 	var ball_home: Vector3 = ball.global_position

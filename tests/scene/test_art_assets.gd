@@ -45,10 +45,10 @@ func _run() -> void:
 			course += 1
 		else:
 			core += 1
-	_check(core == 75, "75 core assets delivered (got %d)" % core)
+	_check(core == 84, "84 core assets delivered (got %d)" % core)
 	_check(dressing == 18, "18 diverse dressing modules delivered (got %d)" % dressing)
 	_check(course == 13, "13 course-1 props delivered (got %d)" % course)
-	_check(catalog.assets.size() == 106, "catalog total 106 (got %d)" % catalog.assets.size())
+	_check(catalog.assets.size() == 115, "catalog total 115 (got %d)" % catalog.assets.size())
 	for id in catalog.assets:
 		var visual := ASSETS.make(id)
 		_check(visual != null, "accepted model loads: " + id)
