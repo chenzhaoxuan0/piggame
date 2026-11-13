@@ -25,16 +25,14 @@ const DECOY_GOAL = preload("res://scripts/courses/components/decoy_goal.gd")
 const ZONE_ENVIRONMENT = preload("res://scripts/courses/components/zone_environment.gd")
 
 const SPAWN := Vector3(0, 0.6, 12)
-# Factory palette: desaturated industrial greys (concrete, worn steel, rust)
-# so the place reads as a REAL working plant; hazard amber and dried-blood red
-# stay as accents but at lower purity. The unease comes from the machinery,
-# not from darkness.
-const FLOOR_CONCRETE := Color("82888F")
-const WALL_STEEL := Color("585F68")
-const CAGE_STEEL := Color("747D88")
-const STEEL := Color("879099")
-const EMBER := Color("7E2A27")
-const HAZARD_AMBER := Color("CE9B33")
+# Factory palette: light grey concrete, cool steel, hazard amber. The unease
+# comes from the machinery, not from darkness.
+const FLOOR_CONCRETE := Color("8A9099")
+const WALL_STEEL := Color("5D6570")
+const CAGE_STEEL := Color("7A8593")
+const STEEL := Color("8C99A8")
+const EMBER := Color("8C2B2B")
+const HAZARD_AMBER := Color("FFB300")
 const WAKE_LIGHT := Color("FFF3E0")
 const CREAM := Color("FFFFFF")
 const DARK := Color("2A2E33")
@@ -60,22 +58,7 @@ var _fog_warn_stage := 0
 var _turn_shots: Dictionary = {} # camera-turn trigger name -> already fired
 
 func _ready() -> void:
-	# Photoreal trim over the shared preset (冷调肉联厂 rather than cartoon
-	# spookhouse): dimmer fluorescent wash, a touch more oil haze, a bit more
-	# key light for longer softer shadows, and a cooler/contrastier grade.
-	# 每个值都落在 C0 写实区间内（docs/ZONE_STYLE_ASSET_PLAN.md）。
-	ZONE_ENVIRONMENT.apply(self, "nightmare_plant", {
-		"ambient_energy": 0.68,
-		"fog_density": 0.031,
-		"sun_energy": 0.46,
-		"grade": {
-			"saturation": 0.84,
-			"contrast": 1.16,
-			"vignette": 0.18,
-			"tint_col": Color(0.955, 0.985, 1.055),
-			"tint_amount": 0.4,
-		},
-	})
+	ZONE_ENVIRONMENT.apply(self, "nightmare_plant")
 	_build_ground()
 	_build_holding_pins()
 	_build_processing_floor()
@@ -501,8 +484,8 @@ func _stun_prod(node_name: String, pos: Vector3) -> void:
 	pillar.name = node_name
 	pillar.position = pos
 	pillar.bumper_color = HAZARD_AMBER
-	pillar.cap_color = Color("E6DFA8") # weathered warn-yellow cap, not candy
-	pillar.star_color = Color("7FD4E4") # pale electric arc flash, not neon
+	pillar.cap_color = Color("FFF59D")
+	pillar.star_color = Color("00E5FF")
 	pillar.lux_asset_id = "PROP_C0_STUN_PROD" # Realistic hazard-striped shocker pillar
 	pillar.meme_id = "prod_zap" # The written zap toast never fired without this
 	add_child(pillar)
@@ -571,7 +554,6 @@ func _build_plant_dressing() -> void:
 	var rail_mat := StandardMaterial3D.new()
 	rail_mat.albedo_color = STEEL
 	rail_mat.metallic = 0.4
-	rail_mat.roughness = 0.55 # polished-by-use rail steel: semi-gloss sheen
 	for rail in [
 		{"center": Vector3(20, 4.1, -30), "size": Vector3(26, 0.25, 0.25)},
 		{"center": Vector3(30, 4.1, -46), "size": Vector3(0.25, 0.25, 20)},

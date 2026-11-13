@@ -7,7 +7,6 @@ const POKEMON_SHOWDOWN = preload("res://scripts/battle/pokemon_showdown.gd")
 const GAME_HUD = preload("res://scripts/ui/game_hud.gd")
 const GAME_MENUS = preload("res://scripts/ui/menus.gd")
 const UI = preload("res://scripts/ui/ui_kit.gd")
-const ZONE_GRADE = preload("res://scripts/courses/components/zone_grade.gd")
 const COURSE_SCENES = {
 	"course_0": preload("res://scenes/courses/course_00_nightmare.tscn"),
 	"course_1": preload("res://scenes/courses/course_01_ox_field.tscn"),
@@ -140,8 +139,6 @@ var _checkpoint_retries := 0
 
 func _ready() -> void:
 	GameManager.reset_run()
-	# Persistent hub grade (goose-soft flat light); course ZoneGrades stack-hide it on entry.
-	ZONE_GRADE.create(self, {"saturation": 0.96, "contrast": 0.94, "black_lift": 0.06, "tint_col": Color(1.0, 0.995, 0.97), "tint_amount": 0.3})
 	chase = CHASE_SCRIPT.new()
 	add_child(chase)
 	chase.finished.connect(_on_chase_finished)

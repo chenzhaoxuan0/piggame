@@ -1,11 +1,9 @@
 extends Node3D
 
-# 大院 · 马里奥赛车式白天卡丁竞技场（course_4）。晴朗正午赛道蓝 + 高饱和
-# 红/白/青糖果主色；霓虹 GLB 资产（看板/灯塔/道具箱）保留——白天竞技场 +
-# 发光看板正是马车语言（docs/ZONE_STYLE_ASSET_PLAN.md）：柏油砖/沙砾砖、
-# 红白相间护栏与路缘、亮青箭头加速带、巨胎、橙红交通锥、霓虹扫堂腿、
-# 招牌摆锤、问号道具箱、特技跳台、弹珠柱、黑白格终点线、红白起跑闸杆、
-# 泛光灯塔、轮胎堆。角色恒定大鹅平涂不换装（AGENTS.md §5）。
+# 大院 · 霓虹综艺竞速（course_4）。全场场地要素换成糖豆人×马车霓虹街机资产
+# （docs/ZONE_STYLE_ASSET_PLAN.md）：柏油砖/沙砾砖、发光护栏、箭头加速带、
+# 巨胎、交通锥、霓虹扫堂腿、招牌摆锤、问号道具箱、特技跳台、弹珠柱、终点门、
+# 起点门架、泛光灯塔、轮胎堆。角色恒定大鹅平涂不换装（AGENTS.md §5）。
 
 const ASSETS = preload("res://scripts/art/asset_library.gd")
 const RUNNER_SCRIPT = preload("res://scripts/courses/course_runner.gd")
@@ -35,20 +33,17 @@ const BOOST_SPEED := 13.0
 # course-scoped (same rule as the creek's potatoes - see course_02_creek.gd).
 const STAR_SPEED_FACTOR := 1.6
 const STAR_DURATION := 5.0
-# Mario Kart 8 palette: noon track blue sky (#3E9BFF in the zone preset), candy
-# red/white/cyan primaries, dark-gray asphalt and no dead blacks (black_lift).
-const RACING_ASPHALT := Color("3A3F47") # Asphalt dark gray, reads black without deadening
-const RACING_CURB_RED := Color("E23B2E") # Track red (curbs, rail stripes, boom)
-const RACING_CURB_WHITE := Color("F5F5F0") # Track white (curbs, rail stripes, checker)
-const NEON_CYAN := Color("00E5FF") # Bright boost-pad cyan (glow rim)
-const NEON_YELLOW := Color("F8C822") # Warning yellow (countdown, sweeper signage)
-const NEON_PINK := Color("F472B6") # Rainbow accent (sweeper, sign pendulum)
-const GRAVEL_SAND := Color("D3BA8B") # Warm sandbox tan for the noon light
-const GRAVEL_SAND_DARK := Color("AD9160")
-const TIRE_BLACK := Color("23282F") # Lifted tire black: no crushed shadows
-const CHECKER_BLACK := Color("262B33") # Finish-line checker black, lifted off true black
+const RACING_ASPHALT := Color("1E293B") # Dark asphalt
+const RACING_CURB_RED := Color("DC2626") # Red curb
+const RACING_CURB_WHITE := Color("F8FAFC") # White curb
+const NEON_CYAN := Color("00E5FF")
+const NEON_YELLOW := Color("FACC15")
+const NEON_PINK := Color("F472B6")
+const GRAVEL_SAND := Color("C2A878")
+const GRAVEL_SAND_DARK := Color("9C8257")
+const TIRE_BLACK := Color("111827")
 const CREAM := Color("FFFFFF")
-const DARK := Color("1B2027") # Label outline / steel: lifted, bright-noir free
+const DARK := Color("0F172A")
 
 var runner: CourseRunner
 var meme_layer: MemeLayer
@@ -106,19 +101,7 @@ func _end_golden_star() -> void:
 			player.move_speed = player.move_speed / STAR_SPEED_FACTOR
 
 func _ready() -> void:
-	# 马车 8 白天竞技场精修（preset 已是马车初值，这里只做微调）。亮度靠
-	# 环境光与 grade 抬，绝不抬太阳——红线：sun_energy 必须 ≤ 0.39
-	# （test_level_select 断言 course 4 太阳能量低于 hub 太阳，hub 约 0.42）。
-	ZONE_ENVIRONMENT.apply(self, "neon_courtyard", {
-		"sun_energy": 0.38, # 红线值：留足低于 hub 的余量
-		"ambient_energy": 1.0, # 正午平光再抬一档，糖果色在阴影里也透亮
-		"glow_intensity": 0.55, # 看板/道具箱白天也吃一点 bloom（0.4~0.6）
-		"glow_bloom": 0.09,
-		"grade": {
-			"saturation": 1.22, "contrast": 1.08, "brightness": 0.015,
-			"black_lift": 0.05, "vignette": 0.04,
-		},
-	})
+	ZONE_ENVIRONMENT.apply(self, "neon_courtyard")
 	_build_track_ground()
 	_build_guardrails()
 	_build_start_grid()
@@ -315,18 +298,13 @@ func _track_segment(node_name: String, size: Vector3, pos: Vector3, surface: Col
 		ASSETS.tile_slab_top(body, dress_id, size, Vector3(10, 1, 10), size.y * 0.5)
 	return body
 
-func _ensure_racing_mats() -> void:
-	# Shared track red/white materials: curbs, guardrail stripes, boom stripes
-	# and the finish checker all paint from the same Mario Kart pair.
+func _curb_run(from: Vector3, to: Vector3) -> void:
+	# Alternating red/white curb blocks laid along an axis-aligned run.
 	if _curb_red_mat == null:
 		_curb_red_mat = StandardMaterial3D.new()
 		_curb_red_mat.albedo_color = RACING_CURB_RED
 		_curb_white_mat = StandardMaterial3D.new()
 		_curb_white_mat.albedo_color = RACING_CURB_WHITE
-
-func _curb_run(from: Vector3, to: Vector3) -> void:
-	# Alternating red/white curb blocks laid along an axis-aligned run.
-	_ensure_racing_mats()
 	var span := to - from
 	var length := span.length()
 	if length < 0.01:
@@ -347,24 +325,22 @@ func _curb_run(from: Vector3, to: Vector3) -> void:
 func _build_guardrails() -> void:
 	# Outer barriers only. The infields have no inner wall on purpose: the gravel
 	# is the deterrent, and nobody can ever get boxed in behind a barrier.
-	# Runs alternate track red / track white (the fallback glow tint); the visible
-	# Mario Kart red-white striping comes from the rail cap blocks in _guardrail.
-	_rail_along_x("RailStartCap", 20.0, -5.0, 5.0, RACING_CURB_RED)
-	_rail_along_z("RailWestA", -5.0, -80.0, 20.0, RACING_CURB_WHITE)
-	_rail_along_z("RailEastA", 5.0, -16.0, 20.0, RACING_CURB_RED)
-	_rail_along_x("RailNorthCapB", -16.0, 5.0, 15.0, RACING_CURB_WHITE)
-	_rail_along_z("RailEastOuter", 15.0, -66.0, -16.0, RACING_CURB_RED)
-	_rail_along_x("RailSouthCapC", -66.0, 5.0, 15.0, RACING_CURB_WHITE)
-	_rail_along_z("RailEastLong", 5.0, -160.0, -66.0, RACING_CURB_RED)
-	_rail_along_x("RailNorthCapD", -80.0, -15.0, -5.0, RACING_CURB_WHITE)
-	_rail_along_z("RailWestOuter", -15.0, -130.0, -80.0, RACING_CURB_RED)
-	_rail_along_x("RailSouthCapE", -130.0, -15.0, -5.0, RACING_CURB_WHITE)
-	_rail_along_z("RailWestC", -5.0, -160.0, -130.0, RACING_CURB_RED)
-	_rail_along_z("RailArenaWest", -7.0, -174.0, -160.0, RACING_CURB_WHITE)
-	_rail_along_z("RailArenaEast", 7.0, -174.0, -160.0, RACING_CURB_RED)
-	_rail_along_x("RailArenaSouth", -174.0, -7.0, 7.0, RACING_CURB_WHITE)
-	_rail_along_x("RailArenaShoulderW", -160.0, -7.0, -5.0, RACING_CURB_RED)
-	_rail_along_x("RailArenaShoulderE", -160.0, 5.0, 7.0, RACING_CURB_WHITE)
+	_rail_along_x("RailStartCap", 20.0, -5.0, 5.0, NEON_YELLOW)
+	_rail_along_z("RailWestA", -5.0, -80.0, 20.0, NEON_CYAN)
+	_rail_along_z("RailEastA", 5.0, -16.0, 20.0, NEON_PINK)
+	_rail_along_x("RailNorthCapB", -16.0, 5.0, 15.0, NEON_YELLOW)
+	_rail_along_z("RailEastOuter", 15.0, -66.0, -16.0, NEON_PINK)
+	_rail_along_x("RailSouthCapC", -66.0, 5.0, 15.0, NEON_YELLOW)
+	_rail_along_z("RailEastLong", 5.0, -160.0, -66.0, NEON_PINK)
+	_rail_along_x("RailNorthCapD", -80.0, -15.0, -5.0, NEON_YELLOW)
+	_rail_along_z("RailWestOuter", -15.0, -130.0, -80.0, NEON_CYAN)
+	_rail_along_x("RailSouthCapE", -130.0, -15.0, -5.0, NEON_YELLOW)
+	_rail_along_z("RailWestC", -5.0, -160.0, -130.0, NEON_CYAN)
+	_rail_along_z("RailArenaWest", -7.0, -174.0, -160.0, NEON_CYAN)
+	_rail_along_z("RailArenaEast", 7.0, -174.0, -160.0, NEON_CYAN)
+	_rail_along_x("RailArenaSouth", -174.0, -7.0, 7.0, NEON_YELLOW)
+	_rail_along_x("RailArenaShoulderW", -160.0, -7.0, -5.0, NEON_YELLOW)
+	_rail_along_x("RailArenaShoulderE", -160.0, 5.0, 7.0, NEON_YELLOW)
 
 func _rail_along_z(node_name: String, x: float, z_from: float, z_to: float, color: Color) -> void:
 	_guardrail(node_name, Vector3(0.4, 1.2, absf(z_to - z_from)), Vector3(x, 0.6, (z_from + z_to) * 0.5), color)
@@ -398,31 +374,12 @@ func _guardrail(node_name: String, size: Vector3, pos: Vector3, color: Color) ->
 	body.add_child(mesh)
 
 	add_child(body)
-	# Mario Kart red-white barrier cap: alternating thin blocks riding the rail's
-	# top edge (decoration only, no collision), matching the curb stripe cadence.
-	_ensure_racing_mats()
-	var cap_along_x := size.x >= size.z
-	var cap_len := size.x if cap_along_x else size.z
-	var cap_w := (size.z if cap_along_x else size.x) + 0.08 # Slightly proud of the faces
-	var cap_count := maxi(2, int(ceil(cap_len / 2.0)))
-	var cap_seg := cap_len / float(cap_count)
-	for i in cap_count:
-		var cap := MeshInstance3D.new()
-		cap.name = "RailStripe"
-		var cap_box := BoxMesh.new()
-		cap_box.size = Vector3(cap_seg, 0.1, cap_w) if cap_along_x else Vector3(cap_w, 0.1, cap_seg)
-		cap.mesh = cap_box
-		var at := -cap_len * 0.5 + cap_seg * (float(i) + 0.5)
-		cap.position = Vector3(at, size.y * 0.5 + 0.02, 0) if cap_along_x else Vector3(0, size.y * 0.5 + 0.02, at)
-		cap.material_override = _curb_red_mat if i % 2 == 0 else _curb_white_mat
-		body.add_child(cap)
 	# Glowing rail segment run along the barrier (base sunk to the body's
-	# half-height origin); collision unchanged. The procedural beam hides while
-	# the model covers its exact footprint (z-fight); it only shows as the
-	# fallback when not a single segment was laid (missing asset -> no ghost wall).
+	# half-height origin); collision unchanged. The procedural beam hides - it
+	# occupies the exact same footprint and would z-fight with the model.
 	# Yaw follows the run axis (tile_run's contract): 0 for X runs, 90 for Z.
-	var laid := ASSETS.tile_run(body, "PROP_C4_GUARDRAIL", size, Vector3(4, 0.4, 1.2), 0.0 if size.x >= size.z else 90.0, -0.6)
-	mesh.visible = laid == 0
+	ASSETS.tile_run(body, "PROP_C4_GUARDRAIL", size, Vector3(4, 0.4, 1.2), 0.0 if size.x >= size.z else 90.0, -0.6)
+	mesh.visible = false
 	guardrails.append(body)
 
 func _build_start_grid() -> void:
@@ -450,7 +407,7 @@ func _build_start_grid() -> void:
 
 	start_light_label = _label("准备……", Vector3(0, 4.9, 0), 64, traffic_lights)
 	start_light_label.name = "StartLightLabel"
-	start_light_label.modulate = NEON_YELLOW # Warning-yellow countdown against the noon blue sky
+	start_light_label.modulate = Color("22C55E")
 	add_child(traffic_lights)
 
 	# Boom barrier holding the grid until GO (opened by _on_race_go).
@@ -470,24 +427,12 @@ func _build_start_grid() -> void:
 	barrier_mesh.mesh = barrier_mesh_box
 	barrier_mesh.position.y = 0.2
 	var barrier_mat := StandardMaterial3D.new()
-	barrier_mat.albedo_color = RACING_CURB_RED
+	barrier_mat.albedo_color = NEON_YELLOW
 	barrier_mat.emission_enabled = true
-	barrier_mat.emission = RACING_CURB_RED
-	barrier_mat.emission_energy_multiplier = 0.4 # Daytime: crisp matte red, just a hint of bloom
+	barrier_mat.emission = NEON_YELLOW
+	barrier_mat.emission_energy_multiplier = 1.2
 	barrier_mesh.material_override = barrier_mat
 	start_barrier.add_child(barrier_mesh)
-	# Mario Kart start boom: white blocks laced over the red beam (decoration
-	# only; rides the barrier up on GO - collision shape stays child 0).
-	_ensure_racing_mats()
-	for i in int(barrier_mesh_box.size.x):
-		var boom_stripe := MeshInstance3D.new()
-		boom_stripe.name = "BoomStripe"
-		var boom_box := BoxMesh.new()
-		boom_box.size = Vector3(0.55, 0.37, 0.32) # A hair proud of the beam: no z-fight
-		boom_stripe.mesh = boom_box
-		boom_stripe.position = Vector3(-barrier_mesh_box.size.x * 0.5 + float(i) + 0.5, 0.0, 0.0)
-		boom_stripe.material_override = _curb_white_mat
-		barrier_mesh.add_child(boom_stripe)
 	add_child(start_barrier)
 
 	_label("【大院金牌杯】栏杆抬起就冲！跑进 35 秒打破农场纪录！", Vector3(0, 6.2, 8.0), 24)
@@ -511,22 +456,6 @@ func _boost_pad(node_name: String, pos: Vector3) -> Node3D:
 	pad.boost_speed = BOOST_SPEED
 	pad.lux_asset_id = "PROP_C4_BOOST_PAD"
 	add_child(pad)
-	# Mario Kart bright-cyan boost: an emissive cyan under-plate peeking around
-	# the GLB chevron plate, so the pads glow cyan in full noon light too
-	# (decoration only - the pad's collision box is untouched).
-	var rim := MeshInstance3D.new()
-	rim.name = "BoostGlowRim"
-	var rim_box := BoxMesh.new()
-	rim_box.size = Vector3(pad.pad_size.x + 0.6, 0.04, pad.pad_size.y + 0.5)
-	rim.mesh = rim_box
-	rim.position = Vector3(0, 0.045, 0)
-	var rim_mat := StandardMaterial3D.new()
-	rim_mat.albedo_color = NEON_CYAN
-	rim_mat.emission_enabled = true
-	rim_mat.emission = NEON_CYAN
-	rim_mat.emission_energy_multiplier = 1.6
-	rim.material_override = rim_mat
-	pad.add_child(rim)
 	pad.boost_activated.connect(func(_p):
 		if meme_layer:
 			meme_layer.play("boost_pad")
@@ -582,7 +511,7 @@ func _build_hazards() -> void:
 	sign_pendulum.use_lux_model = true
 	sign_pendulum.lux_asset_id = "PROP_C4_NEON_SIGN" # Zone-neon signboard, not the wrecking ball
 	sign_pendulum.ball_color = NEON_PINK
-	sign_pendulum.gantry_color = RACING_ASPHALT # A-frame posts in asphalt gray, not dead slate
+	sign_pendulum.gantry_color = Color("334155")
 	sign_pendulum.gantry_half_width = 5.0 # Posts stand in the guardrail line: no pocket to get wedged into
 	sign_pendulum.swing_speed = 2.5
 	sign_pendulum.max_angle_deg = 50.0
@@ -625,9 +554,9 @@ func _traffic_cone(pos: Vector3) -> void:
 	cone_mesh.height = 0.7
 	mesh.mesh = cone_mesh
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color("FF6B1F") # Cone orange-red, candy-saturated for noon
+	mat.albedo_color = Color("F97316")
 	mat.emission_enabled = true
-	mat.emission = RACING_CURB_RED
+	mat.emission = Color("EA580C")
 	mat.emission_energy_multiplier = 0.6
 	mesh.material_override = mat
 	cone.add_child(mesh)
@@ -747,24 +676,6 @@ func _build_finish_gate() -> void:
 	finish_gate.record_time = RECORD_TIME
 	finish_gate.position = Vector3(0, 0, -156.0)
 	add_child(finish_gate)
-
-	# Mario Kart finish: a real black/white checker band laid over the line
-	# (decoration only - 8 x 2 cells, lifted checker black so shadows keep their
-	# color; sits above the gate's white strip, above the dressed tile tops).
-	_ensure_racing_mats()
-	var checker_black := StandardMaterial3D.new()
-	checker_black.albedo_color = CHECKER_BLACK
-	var cell_w: float = float(finish_gate.gate_width) / 8.0
-	for col in 8:
-		for row in 2:
-			var cell := MeshInstance3D.new()
-			cell.name = "FinishChecker"
-			var cell_box := BoxMesh.new()
-			cell_box.size = Vector3(cell_w, 0.03, 0.7)
-			cell.mesh = cell_box
-			cell.position = Vector3(-finish_gate.gate_width * 0.5 + cell_w * (float(col) + 0.5), 0.095, -0.35 + 0.7 * float(row))
-			cell.material_override = checker_black if (col + row) % 2 == 0 else _curb_white_mat
-			finish_gate.add_child(cell)
 
 	# The gate pulls the clock itself when the pig crosses, independent of
 	# signal order; stop() freezes the timer at that instant.
