@@ -20,11 +20,12 @@ enum Kind { GRASS, TIPPABLE, CABBAGE, HAYSTACK, BEEHIVE, MAILBOX, HORN, MUDPIT, 
 
 const UI = preload("res://scripts/ui/ui_kit.gd")
 
-# Cabbage punt tuning: horizontal hoof strength (≈3 m of roll per kick after
-# damping) and the upward lift that makes it hop. Struck off-centre so the same
-# impulse also spins the ball - it rolls, not slides.
-const CABBAGE_KICK_SPEED := 2.2
-const CABBAGE_KICK_LIFT := 1.35
+# Cabbage punt tuning: hoof strength and the upward lift that makes it hop.
+# The ball is a light football now (mass 0.4, low damp - see farm_grounds
+# _sphere), so a punt sends it a good few metres down the pitch. Struck
+# off-centre so the same impulse also spins the ball - it rolls, not slides.
+const CABBAGE_KICK_SPEED := 7.0
+const CABBAGE_KICK_LIFT := 2.4
 
 @export var kind: Kind = Kind.GRASS
 ## Rotating gag lines (tippables / grass). Empty = use the per-kind default.

@@ -868,17 +868,18 @@ func _on_cabbage_goal(body: Node3D) -> void:
 func _sphere(parent: Node3D, node_name: String, radius: float, pos: Vector3, color: Color, solid: bool) -> Node3D:
 	var root: Node3D
 	if solid:
-		# 真刚体卷心菜：球形碰撞 + 物理材质（弹跳/摩擦），低角阻尼让被踢出的
-		# 球带着角速度一路滚动。踢球不再是 tween 挪位，而是冲量（见
-		# farm_plaything._react_cabbage）。mask 含 BALL_FENCE_LAYER：猪圈门口
-		# 和球场四周的隐形球闸把球留在场内，猪/狗/NPC 不受影响照旧穿行。
+		# 真刚体卷心菜：轻质足球手感——低质量让猪蹄一碰就走，阻尼只留一点
+		# 兜底（旧值 0.7 的线性阻尼一秒就把速度掐剩三成，球像被吸在地上）。
+		# 踢球是冲量（见 farm_plaything._react_cabbage）。mask 含
+		# BALL_FENCE_LAYER：猪圈门口和球场四周的隐形球闸把球留在场内，
+		# 猪/狗/NPC 不受影响照旧穿行。
 		var body := RigidBody3D.new()
 		body.collision_layer = 1
 		body.collision_mask = 1 | BALL_FENCE_LAYER
-		body.mass = 0.9
+		body.mass = 0.4
 		body.physics_material_override = _cabbage_material()
-		body.linear_damp = 0.7
-		body.angular_damp = 0.25
+		body.linear_damp = 0.45
+		body.angular_damp = 0.15
 		body.continuous_cd = true
 		var shape := CollisionShape3D.new()
 		var sphere := SphereShape3D.new()
@@ -902,11 +903,11 @@ func _sphere(parent: Node3D, node_name: String, radius: float, pos: Vector3, col
 	return root
 
 func _cabbage_material() -> PhysicsMaterial:
-	# A cabbage is not a football: lively bounce so punts rebound off posts and
-	# boards, high friction so it grips and rolls instead of skating.
+	# Football feel: lively bounce so punts rebound off posts and boards,
+	# moderate friction so it grips and rolls without sticking to the turf.
 	var material := PhysicsMaterial.new()
-	material.bounce = 0.42
-	material.friction = 0.9
+	material.bounce = 0.5
+	material.friction = 0.6
 	return material
 
 func _build_pitch_fence() -> void:

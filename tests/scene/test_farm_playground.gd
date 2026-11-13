@@ -178,6 +178,10 @@ func _run() -> void:
 	var phys_ball := farm.get_node("CabbageBall") as RigidBody3D
 	_check(phys_ball.physics_material_override != null and phys_ball.physics_material_override.bounce > 0.0,
 		"The ball carries a bouncy physics material")
+	# Light football contract: a heavy/high-damp ball reads as glued to the turf
+	# (the old mass 0.9 + linear_damp 0.7 killed every punt within a metre).
+	_check(phys_ball.mass <= 0.5, "The ball is light enough to punt around freely (mass <= 0.5)")
+	_check(phys_ball.linear_damp < 0.5, "The ball rolls out instead of sinking into the turf (low linear damp)")
 	_check(farm.get_node_or_null("PenBallFence") != null, "The pen gate gap has a ball-only fence")
 	for fence_name in ["PitchBallFenceN", "PitchBallFenceS", "PitchBallFenceW", "PitchBallFenceE"]:
 		_check(farm.get_node_or_null(fence_name) != null, "%s keeps the pitch ball on the pitch" % fence_name)
