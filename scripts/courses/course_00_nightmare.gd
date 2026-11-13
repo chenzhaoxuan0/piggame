@@ -74,9 +74,21 @@ func _ready() -> void:
 	runner.name = "CourseRunner"
 	runner.config = _make_config()
 	add_child(runner)
+	# 进场节拍期间困雾停步：雾从 _ready 起就在推进，台词没读完不该先催猪
+	#（锁定中的猪躲不开，会被反复「抓回重生点」）。节拍一结束照常追。
+	runner.beat_started.connect(_on_beat_started)
+	runner.beat_finished.connect(_on_beat_finished)
 
 func _process(_delta: float) -> void:
 	_update_fog_pressure()
+
+func _on_beat_started(beat_id: String) -> void:
+	if beat_id == "course_0_intro" and drowsy_fog != null and is_instance_valid(drowsy_fog):
+		drowsy_fog.chasing = false
+
+func _on_beat_finished(beat_id: String) -> void:
+	if beat_id == "course_0_intro" and drowsy_fog != null and is_instance_valid(drowsy_fog):
+		drowsy_fog.chasing = not drowsy_fog.stopped
 
 func _update_fog_pressure() -> void:
 	# Escalating dream-pressure toasts as the fog closes in; the camera faces
@@ -111,6 +123,20 @@ func setup(player: Node3D) -> void:
 	# Deliberately NO course skill loans: the dream pig knows nothing yet, so
 	# every dog grapple resolves as a slapstick escape - that IS the tutorial.
 	runner.setup(player, SPAWN)
+	# 进场对话节拍：锁住猪，先讲清「出了什么事 / 在哪 / 接下来干什么」再开跑。
+	# 出生点在起点 marker 之外，节拍结束后玩家迈步才触发 marker → course_started。
+	runner.begin_beat({
+		"id": "course_0_intro",
+		"title": "序幕 · 噩梦屠宰场",
+		"lines": [
+			"哼嗯……好冷。冰冷的地面，铁锈味，远处有铁链声。",
+			"这里不是猪圈——是梦里的屠宰场。圈栏、铁钩、流水线，全都还在运转。",
+			"醒来之前，先逃出去：一路向前，冲出月台尽头的铁门。",
+			"（W / A / S / D 移动）身后有困意浓雾漫过来——被追上会在梦里睡着的！",
+		],
+		"line_time": 2.6,
+		"accent": STEEL,
+	})
 
 func _make_config() -> CourseConfig:
 	var cfg := CONFIG_SCRIPT.new()
@@ -130,7 +156,6 @@ func _make_config() -> CourseConfig:
 		# suspicion grows in the pens, the hooks land the first real dread in
 		# the plant, and the word 屠宰场 only drops at the mid-factory corner.
 		"course_start": {"title": "醒一醒——先离开这里！", "text": "头顶的灯管白得发亮，空气里有铁锈和消毒水的味道……用 W/A/S/D 移动。身后有困意浓雾在漫过来——快跑！", "duration": 4.5},
-		"reveal_plant": {"title": "这里是——屠宰场！！", "text": "一车间、二车间……挂在铁钩上的是肉。活物被运进来，然后——别想了。找到月台，冲出去，醒来！", "duration": 3.5},
 		"dash_learned": {"title": "梦里的本能觉醒了！", "text": "按住【Shift】冲刺！下方体力条会用尽——逆着传送带冲过去！", "duration": 3.5},
 		"dodge_learned": {"title": "红圈预警！", "text": "屠夫扑击前脚下会亮起红圈——看准时机按【Shift】闪避！", "duration": 3.5},
 		"fog_wake": {"title": "困意……", "text": "身后有什么东西漫过来了。别回头，跑。", "duration": 2.0},
@@ -146,7 +171,6 @@ func _make_config() -> CourseConfig:
 		"prod_zap": {"title": "滋啦！电击棍！", "text": "浑身酥麻原地跳了一段舞……离黄色立柱远点！", "duration": 2.2},
 		"fake_sun": {"title": "这扇门上画着太阳……", "text": "你一头撞上去——是墙。画出来的太阳不发光。", "duration": 2.5},
 		"fake_sun_again": {"title": "（还是那扇画着太阳的门）", "text": "它还是墙。真正的出口在月台尽头的铁门。", "duration": 2.0},
-		"butcher_chase": {"title": "梦里的农场主出现了！", "text": "他手里的电击棍闪着光——别回头，冲向月台铁门！！", "duration": 3.0},
 		"dog_bonk": {"title": "滋啦——！", "text": "被电得浑身抽搐……但你还在跑！梦里的疼不算数！", "duration": 2.0},
 		"respawn": {"title": "噩梦重演……", "text": "你回到上一个亮着灯的地方。深呼吸，再来。", "duration": 2.2},
 	}
@@ -502,7 +526,20 @@ func _on_turn_entered(body: Node3D, area: Area3D) -> void:
 		return
 	_turn_shots[area.name] = true
 	var meme: String = area.get_meta("turn_meme", "")
-	if not meme.is_empty() and meme_layer:
+	if meme == "reveal_plant" and runner != null:
+		# 剧情点节拍 ①（升级自 toast）：车间拐角「屠宰场」揭晓——锁 1.3s/句。
+		# 拐角是实心地板，雾在圈栏门外早已停摆，锁定不与任何推进型机关叠加。
+		runner.begin_beat({
+			"id": "course_0_reveal",
+			"title": "这里是——屠宰场！！",
+			"lines": [
+				"一车间、二车间……挂在铁钩上的是肉。",
+				"别想了。找到月台，冲出去，醒来！",
+			],
+			"line_time": 1.3,
+			"accent": EMBER,
+		})
+	elif not meme.is_empty() and meme_layer:
 		meme_layer.play(meme)
 	var office_root := get_parent()
 	if office_root == null:
@@ -613,8 +650,20 @@ func _on_dock_entered(body: Node3D) -> void:
 	if not body.is_in_group("player") and not body.name.to_lower().contains("pig"):
 		return
 	_dock_chase_triggered = true
+	# 剧情点节拍 ②（升级自 toast）：装卸月台追逐开场。闪避教学 toast 同帧
+	# 照常弹出（toast 在屏幕顶部、台词卡在底部，互不遮挡）。
+	if runner != null:
+		runner.begin_beat({
+			"id": "course_0_dock",
+			"title": "梦里的农场主出现了！",
+			"lines": [
+				"哐当——梦里的农场主提着电击棍堵在月台那头！",
+				"别回头！铁门就在尽头——红圈亮起按 Shift 闪避，跑！！",
+			],
+			"line_time": 1.3,
+			"accent": HAZARD_AMBER,
+		})
 	if meme_layer:
-		meme_layer.play("butcher_chase")
 		meme_layer.play("dodge_learned")
 
 func _build_exit() -> void:

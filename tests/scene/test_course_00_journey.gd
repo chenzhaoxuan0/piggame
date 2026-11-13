@@ -75,6 +75,16 @@ func _run() -> void:
 	_check(absf(course.fake_sun_door.position.z - course.belt_d.position.z) < 1.5 and course.fake_sun_door.position.x > course.belt_d.position.x + course.belt_d.belt_size.x * 0.5 - 1.0, "The decoy door sits where the transfer belt flings you")
 	_check(course.has_node("DockCrateA") and course.has_node("RollerDoorTop"), "Loading dock has crates and the roller door")
 
+	# 进场对话节拍：入关先锁住猪讲剧情（出了什么事/在哪/干什么），快进放行
+	# 后玩家迈步才触发起点 marker → course_started（出生点在 marker 之外）。
+	_check(runner.beat_active() and runner.active_beat_id() == "course_0_intro", "Intro dialogue beat shows on nightmare entry")
+	_check(office.player.control_mode == "cinematic", "Pig is locked while the intro beat talks")
+	_check(not runner.started, "Beat plays before the start marker (course_started timing preserved)")
+	runner.skip_beats()
+	await create_timer(0.15).timeout
+	_check(not runner.beat_active(), "Intro beat ends via the shared skip path")
+	_check(office.player.control_mode != "cinematic", "Pig control restored after the beat")
+
 	# Start + checkpoints + exit along the serpentine.
 	runner._on_start(office.player)
 	await process_frame
@@ -127,10 +137,14 @@ func _run() -> void:
 	for i in 5: await physics_frame
 	_check(runner.respawn_count >= 1 and office.player.global_position.y > -12.0, "Watchdog respawned the dreaming pig (non-lethal)")
 
-	# Dock trigger plays the butcher alarm once.
+	# Dock trigger plays the butcher alarm once - now as a pause beat.
 	var dock_area: Area3D = course.get_node("DockChaseTrigger")
 	dock_area.body_entered.emit(office.player)
 	_check(course._dock_chase_triggered, "Stepping onto the dock arms the butcher alarm")
+	_check(runner.beat_active() and runner.active_beat_id() == "course_0_dock", "Butcher chase upgraded to a dialogue beat")
+	runner.skip_beats()
+	await create_timer(0.15).timeout
+	_check(not runner.beat_active() and office.player.control_mode != "cinematic", "Dock beat releases the pig")
 
 	# TUTORIAL: hurdles block walking (0.4..0.7 m) and are jump-clearable.
 	for hurdle_name in ["TutorialHurdle1", "TutorialHurdle2"]:

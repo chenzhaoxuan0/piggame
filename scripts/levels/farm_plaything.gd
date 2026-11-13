@@ -20,6 +20,12 @@ enum Kind { GRASS, TIPPABLE, CABBAGE, HAYSTACK, BEEHIVE, MAILBOX, HORN, MUDPIT, 
 
 const UI = preload("res://scripts/ui/ui_kit.gd")
 
+# Cabbage punt tuning: horizontal hoof strength (≈3 m of roll per kick after
+# damping) and the upward lift that makes it hop. Struck off-centre so the same
+# impulse also spins the ball - it rolls, not slides.
+const CABBAGE_KICK_SPEED := 2.2
+const CABBAGE_KICK_LIFT := 1.35
+
 @export var kind: Kind = Kind.GRASS
 ## Rotating gag lines (tippables / grass). Empty = use the per-kind default.
 @export var gag_lines: Array[String] = []
@@ -117,7 +123,11 @@ func _react_tippable(body: Node3D) -> void:
 	played.emit("tippable", name)
 
 func _react_cabbage(body: Node3D) -> void:
-	# The kick: hop away from the pig with a little roll. One hop per touch.
+	# The kick: a punt impulse on the rigid ball - horizontal away from the pig
+	# plus a touch of lift, struck a touch below the equator so the same
+	# impulse also applies torque (the ball comes off the hoof spinning and
+	# rolls). One punt per touch. The old tween-hop path is gone: tweens and
+	# physics fought over the body every frame.
 	if not _ready_cool():
 		return
 	var away := global_position - body.global_position
@@ -125,13 +135,16 @@ func _react_cabbage(body: Node3D) -> void:
 	if away.length_squared() < 0.01:
 		away = Vector3.BACK
 	away = away.normalized()
-	var hop := away * 1.7
 	var ball := get_parent() # the cabbage body this plaything rides in
-	var tween := create_tween()
-	_prop_tween = tween
-	tween.tween_property(ball, "position:y", ball.position.y + 0.55, 0.12)
-	tween.tween_property(ball, "position", ball.position + hop, 0.16)
-	tween.parallel().tween_property(ball, "rotation:x", ball.rotation.x + TAU, 0.28)
+	if ball is RigidBody3D:
+		var rigid := ball as RigidBody3D
+		var radius := 0.4
+		var shape_node := rigid.get_node_or_null("CollisionShape3D")
+		if shape_node != null and shape_node.shape is SphereShape3D:
+			radius = shape_node.shape.radius
+		rigid.sleeping = false # a resting ball must still take the punt
+		var impulse := (away * CABBAGE_KICK_SPEED + Vector3.UP * CABBAGE_KICK_LIFT) * rigid.mass
+		rigid.apply_impulse(impulse, Vector3(0.0, -radius * 0.2, 0.0))
 	_gag("咚！（卷心菜被踢出去一大步）", 1.2)
 
 func _react_haystack(body: Node3D) -> void:
@@ -355,5 +368,11 @@ func reset_prop() -> void:
 	var parent := get_parent() as Node3D
 	if parent != null:
 		parent.transform = _home_transform
+		if parent is RigidBody3D:
+			# A rigid prop (the cabbage balls) keeps its momentum after the
+			# transform snap - zero it, or the "reset" ball rolls straight
+			# back out of its home spot.
+			parent.linear_velocity = Vector3.ZERO
+			parent.angular_velocity = Vector3.ZERO
 	_one_shot_done = false
 	_cool_timer = 0.0

@@ -482,6 +482,32 @@ func _run() -> void:
 	_check(not guard.is_stunned, "PatrolGuardDog recovers from a stun")
 	guard.queue_free()
 
+	# DialogueBeat: bottom-card story pause - locks the pig, auto-advances each
+	# line, restores control at the end, and skip_all() fast-forwards (the path
+	# tests and mash-skipping players share).
+	var beat = preload("res://scripts/courses/components/dialogue_beat.gd").new()
+	root.add_child(beat)
+	await process_frame
+	pig.reset_at(Vector3(0, 0.6, 0))
+	pig.set_control_mode("chase")
+	beat.play({"id": "unit_intro", "title": "单元测试", "lines": ["第一句。", "第二句。"], "line_time": 0.6, "player": pig})
+	_check(beat.is_active(), "Beat is active the moment play() is called")
+	await create_timer(0.25).timeout # deferred begin lands; line 1 still on screen
+	_check(beat.locking() and pig.control_mode == "cinematic", "Deferred lock holds the pig in cinematic mode")
+	await create_timer(0.8).timeout # line 1 auto-advanced at 0.6 s, line 2 playing
+	_check(beat.locking() and pig.control_mode == "cinematic", "Beat still holds the pig on line 2 (auto-advance, no release)")
+	await create_timer(0.9).timeout # line 2 also auto-advanced -> beat ends on its own
+	_check(not beat.is_active() and not beat.locking(), "Beat ends by itself after the last line (nothing can be wedged)")
+	_check(pig.control_mode == "chase", "Control restored to the pre-beat mode")
+	beat.play({"id": "unit_skip", "title": "跳过", "lines": ["没人读得到这句。"], "line_time": 2.0, "player": pig})
+	await create_timer(0.25).timeout
+	_check(beat.locking() and pig.control_mode == "cinematic", "Second beat locks again")
+	beat.skip_all()
+	await process_frame
+	_check(not beat.is_active() and pig.control_mode == "chase", "skip_all() ends the beat at once and restores control")
+	beat.queue_free()
+	await process_frame
+
 	await process_frame
 	print("\nALL COURSE COMPONENT TESTS DONE: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

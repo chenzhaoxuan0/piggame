@@ -4,7 +4,12 @@ extends SceneTree
 # over a sky (the floating key-test pen is gone - it had no fall rescue, the
 # 架空层 bug), and the "farm" boot drops the pig into its REAL pigpen in a
 # pre-game tutorial sandbox: keys work, trough snorts, NPCs won't talk, the
-# pen gate stays bolted, and F on the goat starts the day.
+# pen gate stays bolted. Both "start the game" doors (the title card's
+# 开始游戏 button and F on the goat in the sandbox) funnel into the SAME
+# brain-hole quiz → fall-asleep beat → course_0 dream - no door hard-cuts
+# into the nightmare or opens the red-road dialogue early. The goat's
+# cliff_goat_intro story beat only plays AFTER the dream, when the sandbox
+# is over (narrative order restored).
 
 var failures := 0
 var game: Node
@@ -72,6 +77,7 @@ func _run() -> void:
 		var quiz: Control = office.find_child("BrainHoleQuiz", true, false)
 		_check(quiz != null and quiz.visible, "Brain-hole quiz appears only after clicking 开始游戏")
 		_check(office.player.control_mode == "locked", "Pig waits while the quiz owns the centre")
+		_check("无厘头" in office._brain_hint.text, "The quiz hint admits this is a useless absurd-comedy game")
 		var wrong_btn: Button = _quiz_button(quiz, "好玩")
 		var right_btn: Button = _quiz_button(quiz, "不")
 		if wrong_btn != null and right_btn != null:
@@ -79,9 +85,9 @@ func _run() -> void:
 			await process_frame
 			_check(office.find_child("BrainHoleQuiz", true, false) != null, "Answering 好玩 is rejected - the quiz stays")
 			_check(office.player.control_mode == "locked", "The pig stays locked after a wrong answer")
-			_check("不" in office._brain_hint.text, "The hint tells the pig only 「不」 passes")
-		# Park the quiz unanswered so the goat-flow section below still has its sandbox;
-		# the accept-into-dream path is exercised end-to-end by the dream-boot section.
+			_check("不" in office._brain_hint.text, "The wrong-answer hint still says only 「不」 passes")
+		# Park the quiz unanswered so the sandbox sections below keep their pen;
+		# the accept-into-dream path runs end-to-end in section 5.
 		office._quiz_next = ""
 		quiz.queue_free()
 		await process_frame
@@ -128,20 +134,71 @@ func _run() -> void:
 	_check(not office.dialogue_open, "Non-goat interactions stay blocked in the sandbox")
 	_check(game.tutorial_free_roam, "Blocked interaction does not end the tutorial")
 
-	# --- 5. F on the goat starts the day: tutorial ends, story dialogue opens
+	# --- 4b. F on the goat in the sandbox: the dream door, not the story dialogue
 	office.player.global_position = goat.global_position + Vector3(1.2, 0.1, 0.8)
 	await physics_frame
 	office.player._try_interact(goat)
 	await process_frame
-	_check(not game.tutorial_free_roam, "Goat interaction ends the tutorial sandbox")
-	_check(office.find_child("TitleCard", true, false) == null, "Title card leaves with the tutorial sandbox")
-	_check(office.dialogue_open, "Goat interaction opens the story dialogue")
-	_check(not office.player.dash_enabled, "Dash returns to story gating after the sandbox")
-	_check(not office.player.force_dodge_available, "Free dodge disarms after the sandbox")
-	_check(not strip.visible, "Key strip hides once the game starts")
-	_check(pigpen_gate.collision_layer == 1, "Gate is still bolted - the red/blue choice opens it, not the sandbox")
-	office.close_dialogue()
-	await process_frame
+	_check(not office.dialogue_open, "Sandbox F on the goat does NOT open cliff_goat_intro or the red-road choice")
+	_check(game.tutorial_free_roam, "The sandbox survives the goat interaction - the dream comes first")
+	var funnel_quiz: Control = office.find_child("BrainHoleQuiz", true, false)
+	_check(funnel_quiz != null and funnel_quiz.visible, "F on the goat funnels into the brain-hole quiz (dream intent)")
+	_check(office._quiz_next == "dream", "The goat door routes the quiz answer into the dream flow")
+	_check(not office.sleep_playing, "The pig is not asleep yet - the quiz gates the fall-asleep beat")
+	# Park it again: the end-to-end accept path runs through the title card below.
+	if funnel_quiz != null:
+		office._quiz_next = ""
+		funnel_quiz.queue_free()
+		await process_frame
+	office.player.set_control_mode("explore")
+
+	# --- 5. Title card 开始游戏 + 「不」: quiz → fall-asleep beat → course_0 (no hard cut)
+	var tcard2: Control = office.find_child("TitleCard", true, false)
+	start_btn = _quiz_button(tcard2, "▶  开始游戏（入梦序章）") if tcard2 != null else null
+	if start_btn != null:
+		start_btn.pressed.emit()
+		await process_frame
+		var quiz2: Control = office.find_child("BrainHoleQuiz", true, false)
+		_check(quiz2 != null, "A second 开始游戏 click reopens the still-unanswered quiz")
+		var no_btn: Button = _quiz_button(quiz2, "不") if quiz2 != null else null
+		if no_btn != null:
+			no_btn.pressed.emit()
+			await process_frame
+			_check(not game.tutorial_free_roam, "Answering 不 ends the sandbox and starts the dream flow")
+			_check(office.sleep_playing, "The fall-asleep beat owns the flow (no instant cut into the nightmare)")
+			_check(office.active_course == null, "No course entered on the answer frame - the pig falls asleep first")
+			_check(not office.dialogue_open, "The dream door never opens the goat story dialogue")
+			_check(office.find_child("TitleCard", true, false) == null, "Title card leaves with the tutorial sandbox")
+			_check(not office.player.dash_enabled, "Dash returns to story gating after the sandbox")
+			_check(not office.player.force_dodge_available, "Free dodge disarms after the sandbox")
+			_check(not strip.visible, "Key strip hides once the game starts")
+			_check(pigpen_gate.collision_layer == 1, "Gate is still bolted - the red/blue choice opens it, not the dream door")
+			var waited := 0.0
+			while office.active_course == null and waited < 8.0:
+				await create_timer(0.2).timeout
+				waited += 0.2
+			_check(is_instance_valid(office.active_course) and office.active_course.runner.config.course_id == "course_0",
+				"After the fall-asleep beat the pig is inside course_0")
+			_check(office.current_chase_id == "intro", "Dream runs under the intro chase id")
+			_check(not office.sleep_playing and not office.cinematic, "The sleep sequence hands control to the dream")
+
+			# End the dream (same teardown as the dream-boot section), then the
+			# goat becomes the post-dream story beat.
+			office.active_course.runner._on_start(office.player)
+			await process_frame
+			office.active_course.runner._on_exit(office.player)
+			await create_timer(3.4).timeout
+			_check(office.active_course == null and office.farm.get_parent() == office, "Dream unloaded, farm restored on waking")
+
+			# --- 5b. AFTER the dream, F on the goat finally opens cliff_goat_intro
+			office.player.global_position = goat.global_position + Vector3(1.2, 0.1, 0.8)
+			await physics_frame
+			office.player._try_interact(goat)
+			await process_frame
+			_check(office.dialogue_open and office.current_dialogue == "cliff_goat_intro",
+				"Post-dream F on the goat opens cliff_goat_intro (narrative order restored)")
+			office.close_dialogue()
+			await process_frame
 
 	office.queue_free()
 	await process_frame

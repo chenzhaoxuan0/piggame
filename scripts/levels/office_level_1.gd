@@ -468,14 +468,19 @@ func _place_toast() -> void:
 		toast_panel.offset_top = -142
 		toast_panel.offset_bottom = -78
 
+var _toast_tween: Tween = null
+
 func _show_toast(title_text: String, desc_text: String) -> void:
 	if not is_instance_valid(toast_panel): return
 	toast_title.text = title_text
 	toast_desc.text = desc_text
 	_place_toast()
+	if _toast_tween != null and _toast_tween.is_valid():
+		_toast_tween.kill() # 新一拍顶掉旧一拍：两条 toast 不再抢同一个 modulate
 	toast_panel.visible = true
 	toast_panel.modulate.a = 0.0
 	var tween := create_tween()
+	_toast_tween = tween
 	tween.tween_property(toast_panel, "modulate:a", 1.0, 0.25)
 	tween.tween_interval(2.5)
 	tween.tween_property(toast_panel, "modulate:a", 0.0, 0.35)
@@ -570,6 +575,12 @@ func start_game() -> void:
 	_start_game()
 
 func start_dream_intro() -> void:
+	# In-game 开始菜单按钮（menus.gd 绑定）。猪圈语境（教程沙盒在跑）走统一
+	# 入口：脑洞问答 → 睡着演出 → 入梦；其余语境（直连实例的经典开始菜单，
+	# 测试与截图用）维持直接入梦——那里没有可以睡的猪圈演出。
+	if GameManager.tutorial_free_roam:
+		_begin_dream_from_pigpen()
+		return
 	_start_dream_intro()
 
 func skip_dream_intro() -> void:
@@ -582,7 +593,8 @@ func _start_pigpen_tutorial() -> void:
 	# pending_boot == "farm": the game has NOT started yet. No more floating
 	# key-test pen - the pig wakes up in its real pigpen on the farm: roam,
 	# hop, dash, snuffle the trough, but NPCs won't talk and the pen gate stays
-	# bolted. F on the goat is the "start the day" button and ends the sandbox.
+	# bolted. "Starting the game" (title card button or F on the goat) now means
+	# falling asleep into the dream prologue - see _begin_dream_from_pigpen.
 	GameManager.mark_intro_dream_done()
 	GameManager.tutorial_free_roam = true
 	in_start_menu = false
@@ -594,7 +606,13 @@ func _start_pigpen_tutorial() -> void:
 	camera.snap_to_target()
 	if is_instance_valid(key_strip):
 		key_strip.visible = true
-	_show_toast("山顶猪圈 · 演出开始前", "蹄子还听使唤吗？先在猪圈里练练——练好了就去找山羊，按 [ F ] 开始今天的农场。")
+	_show_toast("山顶猪圈 · 演出开始前", "蹄子还听使唤吗？先在猪圈里练练——练累了就回窝眯一觉：点左上『开始游戏』，或来找山羊按 [ F ] 入梦。")
+	if is_instance_valid(key_strip):
+		# 键位条的默认引导写在 game_hud.gd（「按 F 开始今天的农场」），这里
+		# 覆盖成入梦指引：两条入口（标题卡 / F 山羊）都通向「睡着→入梦」。
+		var caption: Label = key_strip.find_child("KeyTestCaption", true, false) as Label
+		if caption != null:
+			caption.text = "开演前先试试蹄子——按键当场生效 ｜ 练累了回窝眯一觉：左上『开始游戏』或找山羊按 [ F ] 入梦"
 	_build_title_card()
 	_refresh_hud()
 
@@ -627,7 +645,7 @@ func _show_brain_hole_quiz() -> void:
 	var question := UI.label("这个游戏好玩吗？", 19, UI.INK)
 	question.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	column.add_child(question)
-	_brain_hint = UI.label("（请凭第一感觉作答）", 15, Color("8A8177"))
+	_brain_hint = UI.label("（友情提示：这是一款毫无用处的无厘头搞笑游戏，请据此作答）", 15, Color("8A8177"))
 	_brain_hint.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	column.add_child(_brain_hint)
 	var row := HBoxContainer.new()
@@ -654,7 +672,7 @@ func _answer_brain_hole(lower: bool) -> void:
 		_brain_shake.tween_property(_brain_quiz, "position:x", _brain_quiz_x + 10.0, 0.05)
 		_brain_shake.tween_property(_brain_quiz, "position:x", _brain_quiz_x - 10.0, 0.05)
 		_brain_shake.tween_property(_brain_quiz, "position:x", _brain_quiz_x, 0.05)
-		_brain_hint.text = "不对，再想想——这个游戏好不好玩？你只需要选『不』。"
+		_brain_hint.text = "不对，再想想——这么个没用的搞笑游戏，怎么会『好玩』呢？选『不』就对啦。"
 		return
 	_brain_hole_done = true
 	_brain_quiz.queue_free()
@@ -662,7 +680,7 @@ func _answer_brain_hole(lower: bool) -> void:
 		player.set_control_mode("explore")
 	else:
 		_restore_control() # paused/cinematic/ending states win over a blind explore
-	_show_toast("脑洞已校准", "预期已放到地板上。从现在起，每一秒都是惊喜。")
+	_show_toast("脑洞已校准", "预期已放到地板上。从现在起，每一秒都是惊喜——反正这只是头猪的一场毫无用处的美梦。")
 	if _quiz_next == "dream":
 		_quiz_next = ""
 		_proceed_dream()
@@ -725,8 +743,17 @@ func _dismiss_title_card() -> void:
 		_title_card.queue_free()
 
 func _title_start_dream() -> void:
-	# 开始游戏：先过脑洞校准（只有这时才出题，开场猪圈随时可玩），
-	# 答完「不」再入梦。已答过的会话直接进。
+	# 开始游戏（标题卡按钮）：走统一入口——先过脑洞校准（只有这时才出题，
+	# 开场猪圈随时可玩），答完「不」再睡着入梦。已答过的会话直接入睡。
+	_begin_dream_from_pigpen()
+
+func _begin_dream_from_pigpen() -> void:
+	# 三扇「开始游戏」门的统一入口：标题卡按钮、猪圈里 F 山羊、（猪圈语境下的）
+	# in-game 开始菜单按钮。都先过脑洞校准（每会话一次），再走同一场睡着演出
+	# 入梦——谁也不能绕过入睡直接改写叙事顺序（旧行为：硬切噩梦 / 直开红路对话）。
+	if is_instance_valid(start_menu):
+		start_menu.visible = false
+		in_start_menu = false
 	if not _brain_hole_done:
 		_quiz_next = "dream"
 		_show_brain_hole_quiz()
@@ -736,7 +763,107 @@ func _title_start_dream() -> void:
 func _proceed_dream() -> void:
 	_end_pigpen_tutorial()
 	_dismiss_title_card()
-	_start_dream_intro()
+	_play_sleep_then_dream()
+
+# ------------------------------------------------------------- sleep beat
+# 睡着演出（总长约 3.5 秒，趴下之后可 F/点击快进）：锁操作 → 就地趴下打呼 →
+# 画面淡黑 → 入梦 → 梦境淡入。梦醒的「弹起身」在 _finish_course_deferred 的
+# intro 分支里反向播放，呼应入睡。
+var sleep_playing := false
+var _sleep_skip := false
+var _sleep_skip_allowed := false
+var _sleep_fade: ColorRect = null
+
+func _play_sleep_then_dream() -> void:
+	if sleep_playing or is_instance_valid(active_course):
+		return
+	sleep_playing = true
+	_sleep_skip = false
+	_sleep_skip_allowed = false
+	cinematic = true
+	player.set_control_mode("cinematic")
+	if is_instance_valid(notice_feed): notice_feed.visible = false
+	_show_toast("困意上来了……", "蹄子练开了，眼皮却越来越沉——就地一歪，眯一觉。（F / 点击可快进）")
+	await _sleep_beat(0.3, false) # 打哈欠的半拍，太短不值得跳
+	_sleep_skip_allowed = true
+	# 趴下：身体侧倾下沉（tween 做可见的放倒），Z z z 挂到猪身上
+	var lie := player.play_sleep_pose(0.85)
+	player.show_zzz(true)
+	await _sleep_tween_or_skip(lie)
+	if _sleep_skip:
+		player.snap_sleep_pose()
+	await _sleep_beat(0.8)
+	_show_toast("呼——噜——", "呼——噜——（泥窝里传出均匀的鼾声）")
+	await _sleep_beat(0.6)
+	# 淡黑 → 全黑时换场进噩梦（reset_at 会把猪拉正，观众只看见黑场后的梦）
+	var fade := _get_sleep_fade()
+	fade.color.a = 0.0
+	fade.visible = true
+	var fade_out := create_tween()
+	fade_out.tween_property(fade, "color:a", 1.0, 0.7)
+	await _sleep_tween_or_skip(fade_out)
+	fade.color.a = 1.0
+	_start_game()
+	current_chase_id = "intro"
+	_enter_course("course_0")
+	cinematic = false
+	sleep_playing = false
+	player.show_zzz(false)
+	# course_0 的进场对话节拍自带"冰冷的地面"台词卡；有节拍时不再弹同款
+	# toast，避免两张卡叠着把同一句话说两遍。
+	if not (is_instance_valid(active_course) and active_course.runner.beat_active()):
+		_show_toast("……（入梦）", "冰冷的地面，铁锈味，远处有铁链声。……这里是哪？")
+	var fade_in := create_tween()
+	fade_in.tween_property(fade, "color:a", 0.0, 0.7)
+	await fade_in.finished
+	if is_instance_valid(fade):
+		fade.visible = false
+	_refresh_hud()
+
+func _sleep_beat(seconds: float, skippable := true) -> void:
+	# 睡着序列里的定时停顿；快进（F/点击）时立即塌缩。
+	var tree := get_tree()
+	if tree == null:
+		return
+	var timer := tree.create_timer(seconds)
+	if not skippable:
+		await timer.timeout
+		return
+	while timer.time_left > 0.0 and not _sleep_skip:
+		tree = get_tree()
+		if tree == null:
+			return
+		await tree.process_frame
+
+func _sleep_tween_or_skip(tween: Tween) -> void:
+	# 等 tween 放完；中途快进则杀掉并交还调用方落位。
+	if tween == null:
+		return
+	while tween.is_valid() and not _sleep_skip:
+		var tree := get_tree()
+		if tree == null:
+			return
+		await tree.process_frame
+	if tween.is_valid():
+		tween.kill()
+
+func _get_sleep_fade() -> ColorRect:
+	if not is_instance_valid(_sleep_fade):
+		_sleep_fade = ColorRect.new()
+		_sleep_fade.name = "SleepFade"
+		_sleep_fade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_sleep_fade.color = Color(0.02, 0.02, 0.05, 0.0)
+		_sleep_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hud.add_child(_sleep_fade)
+		# 盖住整个 HUD 但让位于 toast 横幅：「……（入梦）」要在黑场上可读。
+		if is_instance_valid(toast_panel):
+			hud.move_child(_sleep_fade, toast_panel.get_index())
+	return _sleep_fade
+
+func fast_forward_sleep() -> void:
+	# 测试/自动化钩子：等效于玩家的 F/点击快进。
+	if sleep_playing:
+		_sleep_skip = true
 
 func _end_pigpen_tutorial() -> void:
 	if not GameManager.tutorial_free_roam:
@@ -758,7 +885,9 @@ func _snuffle_trough(target: Node3D) -> void:
 	squash.tween_property(target, "scale", Vector3.ONE, 0.18)
 
 func _start_dream_intro() -> void:
-	# Boot path: close the start menu, fall asleep, and enter the nightmare.
+	# Direct dream entry (no sleep beat): the "dream" boot intent from the
+	# opening menu and the classic start menu outside the pigpen context.
+	# The pigpen's 开始游戏 doors all go through _play_sleep_then_dream() instead.
 	# Tests keep calling start_game() directly (straight to the farm); the skip
 	# button goes through skip_dream_intro().
 	if is_instance_valid(active_course):
@@ -766,7 +895,9 @@ func _start_dream_intro() -> void:
 	_start_game()
 	current_chase_id = "intro"
 	_enter_course("course_0")
-	_show_toast("……（入梦）", "冰冷的地面，铁锈味，远处有铁链声。……这里是哪？")
+	# 同 _play_sleep_then_dream：有进场节拍时节拍卡已说这句话，别再叠一张 toast。
+	if not (is_instance_valid(active_course) and active_course.runner.beat_active()):
+		_show_toast("……（入梦）", "冰冷的地面，铁锈味，远处有铁链声。……这里是哪？")
 	_refresh_hud()
 
 func _start_game() -> void:
@@ -953,6 +1084,16 @@ func _process(delta: float) -> void:
 	prompt.visible = not prompt.text.is_empty()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if sleep_playing and _sleep_skip_allowed:
+		# 睡着演出的后半段（趴下之后）可快进：F/空格/回车/点击任一即跳。
+		var fast_forward: bool = event.is_action_pressed("action_interact") or event.is_action_pressed("action_jump") \
+			or event.is_action_pressed("ui_accept") \
+			or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed)
+		if fast_forward:
+			_sleep_skip = true
+			get_viewport().set_input_as_handled()
+			return
+
 	if in_skill_card:
 		var dismiss: bool = event.is_action_pressed("ui_accept") or event.is_action_pressed("action_jump") \
 			or event.is_action_pressed("action_interact") \
@@ -1027,13 +1168,14 @@ func _on_interact(target: Node3D) -> void:
 		_snuffle_trough(target)
 		return
 	if GameManager.tutorial_free_roam:
-		# Pre-game sandbox: nobody talks, nothing opens. Talking to the goat IS
-		# the "start the game" button (the key strip hint says so).
+		# Pre-game sandbox: nobody talks, nothing opens. F on the goat routes into
+		# the SAME door as the title card's 开始游戏 (brain-hole quiz → fall asleep
+		# → dream); the cliff_goat_intro story beat only plays AFTER the dream,
+		# when tutorial_free_roam is already false - the narrative order survives.
 		if id == "goat":
-			_end_pigpen_tutorial()
-			open_dialogue(DialogueManager.get_entry_for("goat"))
+			_begin_dream_from_pigpen()
 		else:
-			_show_notice("（现在还不能对话——先在猪圈里把蹄子练开，走近山羊按 [ F ] 开始今天的农场。）")
+			_show_notice("（现在还不能对话——先在猪圈里把蹄子练开，练累了回窝眯一觉：点左上『开始游戏』，或来找山羊按 [ F ] 入梦。）")
 		return
 	if id == "farmer":
 		if GameManager.stage == "showdown" or (GameManager.has_pin and GameManager.npc_completed.get("horse", false) and GameManager.stage != "cablecar_ready" and GameManager.stage != "ending"):
@@ -1392,6 +1534,11 @@ func _finish_course_deferred() -> void:
 		# Wake up in the pen: cold sweat, hooks still flashing, decision made.
 		# The prologue story beat lands on the to-do notebook's first line.
 		GameManager.mark_intro_dream_done()
+		# 弹起身（入睡演出的反向 tween）：_exit_course 的 reset_at 已把猪拉回
+		# 站姿，这里先瞬间摆回趴姿再弹起——下面两条故事 toast 讲「从泥窝里
+		# 弹起来」时，画面里真的在弹。
+		player.snap_sleep_pose()
+		player.play_wake_pose(0.55)
 		_show_toast("……！！", "你一身冷汗地从泥窝里弹起来。梦里的铁钩还在眼前晃。")
 		await get_tree().create_timer(2.7).timeout
 		_show_toast("天快亮了。", "运牲车，明早六点就到。今晚——就今晚。（山顶残墙上的老岩羊在等你，它见过外面的事。）")

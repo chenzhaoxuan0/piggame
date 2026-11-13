@@ -68,6 +68,7 @@ var guardrails: Array[StaticBody3D] = []
 var _curb_red_mat: StandardMaterial3D
 var _curb_white_mat: StandardMaterial3D
 var _final_straight_triggered := false
+var _clock_held_for_beat := false # 终点直道宣言节拍期间冻结比赛计时
 var _star_active: bool = false
 var _star_until_msec: int = 0
 
@@ -127,6 +128,7 @@ func _ready() -> void:
 	runner.name = "CourseRunner"
 	runner.config = _make_config()
 	add_child(runner)
+	runner.beat_finished.connect(_on_course_beat_finished)
 
 func setup(player: Node3D) -> void:
 	player.reset_at(SPAWN)
@@ -139,9 +141,26 @@ func setup(player: Node3D) -> void:
 		# the farm story's horse/ox quests stay unfinished until really done.
 		gm.grant_course_skills(["struggle", "dash"])
 	runner.setup(player, SPAWN)
+	# 进场对话节拍：荧光综艺大院的「入口消化」。3-2-1 倒计时顺延到节拍结束
+	# 才开始——发车灯与栏杆的既有逻辑不动，只是不让台词吃掉比赛时间。
+	runner.begin_beat({
+		"id": "course_4_intro",
+		"title": "终章 · 大院金牌杯",
+		"lines": [
+			"灯！霓虹！解说席的欢呼？！这是农场主后院的综艺赛场——大院金牌杯！",
+			"最后的直线：踩加速带、扔西瓜皮、飞大跳台，35 秒农场纪录等你打破。",
+			"撞开终点线后的大铁门——那是通往自由的最后一跑！",
+		],
+		"line_time": 2.4,
+		"accent": NEON_PINK,
+	})
+	runner.beat_finished.connect(_on_intro_beat_done, CONNECT_ONE_SHOT)
+
+func _on_intro_beat_done(_beat_id: String) -> void:
 	# Lights out and away we go: the boom barrier holds the grid until GO, and
 	# the race clock only starts then, so there is no head start to farm.
-	race_timer.start_countdown(start_light_label)
+	if is_instance_valid(race_timer) and race_timer.state == "idle":
+		race_timer.start_countdown(start_light_label)
 
 func _on_race_go() -> void:
 	if not is_instance_valid(start_barrier):
@@ -177,7 +196,6 @@ func _make_config() -> CourseConfig:
 		"gravel_trap": {"title": "想抄近道？沙坑欢迎你！", "text": "内场是减速沙坑！偷鸡不成，恶犬的口水都滴到屁股上了！", "duration": 2.5},
 		"sweeper_hit": {"title": "霓虹扫堂腿！", "text": "呼——啪！起跳慢了半拍，小猪被扫成了陀螺！", "duration": 2.0},
 		"signboard_wham": {"title": "招牌摆锤大摆荡！", "text": "哐！被霓虹招牌一巴掌拍飞！看准节奏再冲！", "duration": 2.0},
-		"horse_dash": {"title": "野马【疾风之步】全开！", "text": "终点直道体力回满！按住 Shift 冲刺，打破 35 秒纪录的唯一机会！", "duration": 2.5},
 		"record_broken": {"title": "🏁 新世界纪录诞生！ 🏁", "text": "一口猪成功打破农场 35 秒纪录！欢呼声中一头撞破大门！", "duration": 3.5},
 		"record_miss": {"title": "🏁 完赛！差一点点！", "text": "没能跑进 35 秒……恶犬在终点线笑出了声，下次哼哼！", "duration": 3.5},
 		"dog_bonk": {"title": "恶犬扑空", "text": "恶犬被甩在身后吃尾气！", "duration": 2.0},
@@ -731,8 +749,29 @@ func _on_final_straight_entered(body: Node3D) -> void:
 	# Horse dash payoff: a full stamina bar for the sprint to the line.
 	if "stamina" in body and "max_stamina" in body:
 		body.stamina = body.max_stamina
-	if meme_layer:
-		meme_layer.play("horse_dash")
+	# 剧情点节拍（升级自 horse_dash toast）：终点直道冲刺宣言。宣言期间比赛
+	# 计时整体冻结（倒计时或累计都暂停），不偷吃 35 秒纪录。
+	if runner != null:
+		if is_instance_valid(race_timer):
+			race_timer.set_process(false)
+			_clock_held_for_beat = true
+		runner.begin_beat({
+			"id": "course_4_final_straight",
+			"title": "终点直道 · 疾风之步全开！",
+			"lines": [
+				"体力已回满——按住 Shift，风就是你的了！",
+				"躲开霓虹招牌、飞上大跳台——撞线！",
+			],
+			"line_time": 1.2,
+			"accent": NEON_YELLOW,
+		})
+
+func _on_course_beat_finished(beat_id: String) -> void:
+	# 宣言节拍结束：比赛计时继续走。
+	if beat_id == "course_4_final_straight" and _clock_held_for_beat:
+		_clock_held_for_beat = false
+		if is_instance_valid(race_timer):
+			race_timer.set_process(true)
 
 func _checkpoint(node_name: String, index: int, pos: Vector3, respawn: Vector3) -> void:
 	var area := _area(node_name, "course_checkpoint", pos, Vector3(10, 3, 2))

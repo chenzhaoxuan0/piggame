@@ -41,10 +41,17 @@ func _run() -> void:
 	await create_timer(0.5).timeout
 	_check(is_instance_valid(office.active_course), "Secret pipe S-key trigger loaded course_1")
 	_check(office.farm.get_parent() == null, "Farm removed from tree during course")
-	_check(office.player.control_mode == "explore", "Entrance is explore mode so ox dialogue works")
 	var runner: CourseRunner = office.active_course.runner
 	_check(runner.config.course_id == "course_1", "Course config wired")
 	_check(runner._dogs.size() == 1, "Rubber-band dog spawned")
+
+	# 进场对话节拍：入关先锁住讲剧情，快进放行后回到 explore（牛对话照常可用）。
+	_check(runner.beat_active() and runner.active_beat_id() == "course_1_intro", "Intro dialogue beat shows on course 1 entry")
+	_check(office.player.control_mode == "cinematic", "Pig locked during the intro beat")
+	_check(not runner.started, "Beat plays before the start marker")
+	runner.skip_beats()
+	await create_timer(0.15).timeout
+	_check(not runner.beat_active() and office.player.control_mode == "explore", "Beat released the pig back to explore so ox dialogue works")
 
 	# 2. Ox dialogue at entrance grants struggle skill
 	game.complete_npc("ox")

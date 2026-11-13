@@ -7,8 +7,13 @@ signal course_completed
 signal player_respawned(pos: Vector3)
 signal qte_requested(dog: ChaseDog)
 signal pressure_changed(distance: float)
+# 对话节拍（进场剧情 / 关键剧情点）：开始与结束各广播一次 beat id，
+# 关卡用它挂后续台词或倒计时（只增不改既有信号契约）。
+signal beat_started(beat_id: String)
+signal beat_finished(beat_id: String)
 
 const DOG_SCRIPT = preload("res://scripts/chase/chase_dog.gd")
+const DIALOGUE_BEAT_SCRIPT = preload("res://scripts/courses/components/dialogue_beat.gd")
 
 @export var config: CourseConfig
 
@@ -23,6 +28,7 @@ var exit_position: Vector3 = Vector3.INF
 
 var _dogs: Array[ChaseDog] = []
 var _meme_layer: Node = null
+var _beat_layer: Node = null
 var _stuck_time := 0.0
 var _last_pos: Vector3 = Vector3.INF
 var _alert_time := 0.0 # Stealth alarm: dogs sprint at boosted max speed while active
@@ -65,12 +71,53 @@ func _ready() -> void:
 			break
 	if _meme_layer and _meme_layer.has_method("configure"):
 		_meme_layer.configure(config.memes)
+	# Dialogue beats: shared bottom-card pauses (intro + key story points).
+	# Owned here so every course gets the same skip/test fast-forward path.
+	_beat_layer = DIALOGUE_BEAT_SCRIPT.new()
+	_beat_layer.name = "DialogueBeat"
+	add_child(_beat_layer)
+	_beat_layer.beat_started.connect(func(id: String): beat_started.emit(id))
+	_beat_layer.beat_finished.connect(_on_beat_finished)
 
 func setup(p: Node3D, spawn_pos: Vector3) -> void:
 	player = p
 	last_checkpoint = spawn_pos
 	_last_pos = spawn_pos
 	_spawn_dogs()
+
+# -------------------------------------------------------------
+# 对话节拍 API（进场剧情 / 关键剧情点共用）
+# -------------------------------------------------------------
+func begin_beat(spec: Dictionary) -> void:
+	# spec 见 dialogue_beat.gd 头注释；player 由 runner 注入。关卡在 setup()
+	# 里调它播进场台词，或在剧情触发器里把原 toast 升级成带暂停的节拍。
+	var resolved: Dictionary = spec.duplicate()
+	resolved["player"] = player
+	_beat_layer.play(resolved)
+
+func beat_active() -> bool:
+	return _beat_layer != null and is_instance_valid(_beat_layer) and _beat_layer.is_active()
+
+func active_beat_id() -> String:
+	if _beat_layer == null or not is_instance_valid(_beat_layer):
+		return ""
+	return _beat_layer.active_id()
+
+func skip_beats() -> void:
+	# 快进当前与排队的全部节拍：跳过键（连按）与测试共用这一条路。
+	if _beat_layer != null and is_instance_valid(_beat_layer):
+		_beat_layer.skip_all()
+
+func _beat_locking() -> bool:
+	return _beat_layer != null and is_instance_valid(_beat_layer) and _beat_layer.locking()
+
+func _on_beat_finished(beat_id: String) -> void:
+	beat_finished.emit(beat_id)
+	# 节拍若在 course_started 之后结束（测试直调 _on_start 等边缘路径），
+	# 结束时把猪放回 "chase" 而不是进场时的 "explore"。
+	if started and not completed and not in_qte and is_instance_valid(player) \
+			and str(player.get("control_mode")) == "explore":
+		player.set_control_mode("chase")
 
 func _spawn_dogs() -> void:
 	var route: Array[Vector3] = checkpoints.duplicate()
@@ -136,6 +183,10 @@ func _watchdog(delta: float) -> void:
 	if not started or in_qte or completed:
 		_last_pos = pos
 		return
+	if _beat_locking():
+		# 台词节拍故意按住猪：站桩不算挂机，空中滞留（锁定期无重力）也不算。
+		_last_pos = pos
+		return
 	if player.has_method("is_knocked_back") and player.is_knocked_back():
 		_last_pos = pos
 		_stuck_time = 0.0
@@ -184,7 +235,9 @@ func _rubber_band() -> void:
 	pressure_changed.emit(nearest)
 
 func can_dog_grapple() -> bool:
-	return started and not completed and not in_qte
+	# 台词节拍期间恶犬不得起扭打（同 in_qte 的抑制）：暂停卡不该把玩家
+	# 拖进 QTE，锁定中的猪也无法响应。
+	return started and not completed and not in_qte and not _beat_locking()
 
 func set_dogs_active(enabled: bool) -> void:
 	for dog in _dogs:

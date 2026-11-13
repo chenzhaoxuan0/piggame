@@ -473,6 +473,12 @@ func _on_log_charge(body: Node3D, log: Node3D) -> void:
 const PLAYTIP_TARGET := 5
 const PLAYGRASS_TARGET := 6
 const PLAYPOTATO_TARGET := 5
+# Ball-only containment: invisible StaticBodies on this layer bounce the rigid
+# cabbage balls back (their collision_mask includes it) while the pig, dogs and
+# NPCs ignore it entirely (nobody else's mask lists layer 8). Used for the
+# pigpen gate gap and the boards around the ox-terrace pitch, so a punted
+# cabbage can never roll out of its field and get lost.
+const BALL_FENCE_LAYER := 8
 var _play_counts := {"tippable": 0, "grass": 0, "potato": 0}
 var _cabbage_goal_cool := 0.0
 
@@ -511,22 +517,38 @@ func _build_pigpen_play() -> void:
 		["咣当！水桶滚出去老远。", "哗啦——桶里还真有水。"]))
 	_register_pen_prop(bucket)
 
-	# Kickable cabbage ball: the pitch ball's little sibling, confined to the pen.
-	var pen_ball := _sphere(self, "PenCabbageBall", 0.35, Vector3(-3, 32.4, 102), Color("7DB874"), true)
+	# Kickable cabbage ball: the pitch ball's little sibling, a real rigid body
+	# punted by impulse (see _sphere / farm_plaything._react_cabbage). Spawned a
+	# hair above rest height so the fresh body never starts half-inside the
+	# floor. Contained by the pen walls plus the ball-only gate-gap fence below.
+	var pen_ball := _sphere(self, "PenCabbageBall", 0.35, Vector3(-3, 32.36, 102), Color("7DB874"), true)
 	pen_ball.add_child(_plaything(PLAYTHING.Kind.CABBAGE, Vector3(2.0, 1.8, 2.0), 0.45))
 	_register_pen_prop(pen_ball)
 
-	# Hay-stack dive against the east wall: jump off the fence-side rise.
-	var stack := _box(self, "PenHaystack", Vector3(1.8, 0.9, 1.8), Vector3(5, 32.45, 104.5), Color("D9B45A"), false)
-	stack.add_child(_plaything(PLAYTHING.Kind.HAYSTACK, Vector3(2.4, 2.6, 2.4), 1.2))
+	# Hay-stack dive against the east wall: jump off the fence-side rise. Solid
+	# since 2026-11 - the pig used to fall straight through the visual, so the
+	# dive gag never had a landing. Now it lands ON the stack and squashes it
+	# (_on_hay_dive); the gag/score lines still come from the plaything.
+	var stack := _box(self, "PenHaystack", Vector3(1.8, 0.9, 1.8), Vector3(5, 32.45, 104.5), Color("D9B45A"), true)
+	var stack_thing: FarmPlaything = _plaything(PLAYTHING.Kind.HAYSTACK, Vector3(2.4, 2.6, 2.4), 1.2)
+	stack.add_child(stack_thing)
+	stack_thing.played.connect(_on_hay_dive.bind(stack, 0.45, stack.position.y))
 	_label(stack, "HaystackLabel", "从高处跳下 · 草垛跳水！", Vector3(0, 1.5, 0), 18)
 	_register_pen_prop(stack)
 
-	# The red reset button by the north wall.
+	# The red reset button by the north wall. The cooldown covers exactly one
+	# meteor cycle (1.1 s fall + dust), so the button re-arms right after the
+	# impact and can be pressed again indefinitely - one meteor at a time, but
+	# never a dead button.
 	var button := _box(self, "MeteorButton", Vector3(1.0, 0.3, 1.0), Vector3(0, 32.15, 106.5), Color("8B3A2E"), true)
 	_box(button, "ButtonCap", Vector3(0.7, 0.14, 0.7), Vector3(0, 0.22, 0), Color("E4573D"), false)
-	button.add_child(_plaything(PLAYTHING.Kind.METEOR_BUTTON, Vector3(1.6, 1.8, 1.6), 8.0))
+	button.add_child(_plaything(PLAYTHING.Kind.METEOR_BUTTON, Vector3(1.6, 1.8, 1.6), 1.8))
 	_label(button, "MeteorButtonLabel", "危险按钮 · 踩上去召唤陨石重置猪圈", Vector3(0, 1.5, 0), 18)
+
+	# Ball-only fence across the pigpen gate gap: the stone walls already stop
+	# the ball on three sides, but the story later opens this gate and a punted
+	# cabbage must not escape down the mountain road.
+	_ball_fence("PenBallFence", Vector3(0, 32.9, 88), Vector3(4.6, 2.6, 0.3))
 
 func _launch_meteor_reset() -> void:
 	# One meteor at a time: a second press mid-fall just clicks the cap.
@@ -584,15 +606,62 @@ func _launch_meteor_reset() -> void:
 
 func _reset_pen_props() -> void:
 	for thing in _pen_playthings:
-		if is_instance_valid(thing):
-			thing.reset_prop()
+		if not is_instance_valid(thing):
+			continue
+		# Kill an in-flight hay squash before the snap-home - a live tween would
+		# re-squash the stack a frame later (reset_prop kills topple tweens the
+		# same way). The rigid cabbage's momentum is zeroed inside reset_prop.
+		var prop := thing.get_parent() as Node3D
+		if prop != null:
+			var squash = prop.get_meta("squash_tween", null)
+			if squash is Tween and squash.is_valid():
+				squash.kill()
+		thing.reset_prop()
+
+func _on_hay_dive(kind: String, _score, stack: Node3D, half_h: float, home_y: float) -> void:
+	# A scored hay dive drives the level-side visual: the stack compresses
+	# under the pig and springs back. The dive score/gag lines stay in the
+	# plaything (they reach the HUD via playground_event as before).
+	if kind == "dive" or kind == "perfect_dive":
+		_squash_haystack(stack, half_h, home_y)
+
+func _squash_haystack(stack: Node3D, half_h: float, home_y: float) -> void:
+	if not is_instance_valid(stack):
+		return
+	var prev = stack.get_meta("squash_tween", null)
+	if prev is Tween and prev.is_valid():
+		prev.kill()
+	# The bottom stays planted while the stack compresses: the origin drops by
+	# exactly the amount the half-height shrinks, so the box never floats.
+	var t := create_tween()
+	stack.set_meta("squash_tween", t)
+	t.set_parallel(true)
+	t.tween_property(stack, "scale:y", 0.55, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	t.tween_property(stack, "position:y", home_y - 0.45 * half_h, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	t.chain().tween_property(stack, "scale:y", 1.0, 0.55).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(stack, "position:y", home_y, 0.55).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+
+func _ball_fence(node_name: String, center: Vector3, size: Vector3) -> void:
+	# Invisible ball-only wall (BALL_FENCE_LAYER): bounces the rigid cabbages,
+	# lets the pig, dogs and NPCs walk straight through.
+	var wall := StaticBody3D.new()
+	wall.name = node_name
+	wall.collision_layer = BALL_FENCE_LAYER
+	wall.collision_mask = 0
+	wall.position = center
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	shape.shape = box
+	wall.add_child(shape)
+	add_child(wall)
 
 func _build_playground() -> void:
 	_build_pigpen_play()
 	# --- Ox terrace: the cabbage pitch beside the (relocated) vegetable field
-	var ball := _sphere(self, "CabbageBall", 0.4, Vector3(46, 24.4, 30), Color("7DB874"), true)
+	var ball := _sphere(self, "CabbageBall", 0.4, Vector3(46, 24.41, 30), Color("7DB874"), true)
 	# Lux3D PROP_08_CABBAGE (0.8 m, flat leaf palette) replaces the plain green
-	# sphere visual; the AnimatableBody3D sphere collision keeps driving the kicks.
+	# sphere visual; the RigidBody3D sphere collision keeps driving the kicks.
 	var cabbage := ASSETS.make("PROP_08_CABBAGE")
 	if cabbage != null:
 		var ball_mesh := ball.get_node_or_null("VisualMesh")
@@ -616,7 +685,9 @@ func _build_playground() -> void:
 	_box(goal, "PostL", Vector3(0.22, goal_post_h, 0.22), Vector3(-1.7, goal_post_h / 2, 0), Color("5A442E"), true)
 	_box(goal, "PostR", Vector3(0.22, goal_post_h, 0.22), Vector3(1.7, goal_post_h / 2, 0), Color("5A442E"), true)
 	_box(goal, "CrossBar", Vector3(3.6, 0.22, 0.22), Vector3(0, goal_post_h, 0), Color("5A442E"), true)
-	_box(goal, "NetBack", Vector3(3.3, goal_post_h * 0.8, 0.06), Vector3(0, goal_post_h * 0.4, -1.45), Color("E8E2CE"), false)
+	# Net back is solid now: the rigid ball rebounds off the net instead of
+	# rolling through the visual and vanishing behind the goal.
+	_box(goal, "NetBack", Vector3(3.3, goal_post_h * 0.8, 0.06), Vector3(0, goal_post_h * 0.4, -1.45), Color("E8E2CE"), true)
 	if goal_frame != null:
 		goal_frame.name = "GoalFrameLux"
 		goal_frame.scale = Vector3.ONE * (3.4 / 2.406)
@@ -642,6 +713,7 @@ func _build_playground() -> void:
 	goal_area.add_child(shape)
 	goal.add_child(goal_area)
 	goal_area.body_entered.connect(_on_cabbage_goal)
+	_build_pitch_fence()
 
 	# --- Five tippables scattered down the mountain (sprint to topple)
 	_tipple("Barrel_Zigzag", Vector3(-34, 25.8, 101), Vector3(0.9, 1.1, 0.9), Color("8F6A42"))
@@ -671,8 +743,12 @@ func _build_playground() -> void:
 		tuft.add_child(_plaything(PLAYTHING.Kind.GRASS, Vector3(2.6, 2.0, 2.6), 2.5))
 
 	# --- Hay dive at the bottom of the west zigzag (clear of the roadside fence)
-	var hay := _box(self, "HayDiveStack", Vector3(2.8, 1.5, 2.8), Vector3(-60.5, 23.9, 72.5), Color("E8C86A"), false)
-	hay.add_child(_plaything(PLAYTHING.Kind.HAYSTACK, Vector3(2.8, 2.6, 2.8), 2.0))
+	# Solid like the pen stack: the diving pig lands in it (and squashes it)
+	# instead of ghosting through the visual.
+	var hay := _box(self, "HayDiveStack", Vector3(2.8, 1.5, 2.8), Vector3(-60.5, 23.9, 72.5), Color("E8C86A"), true)
+	var hay_thing: FarmPlaything = _plaything(PLAYTHING.Kind.HAYSTACK, Vector3(2.8, 2.6, 2.8), 2.0)
+	hay.add_child(hay_thing)
+	hay_thing.played.connect(_on_hay_dive.bind(hay, 0.75, hay.position.y))
 	_label(self, "HayDiveLabel", "草垛跳水 · 跳进来！", Vector3(-60.5, 26.1, 72.5), 18)
 
 	# --- Beehive by the orchard (sting = speed)
@@ -792,12 +868,18 @@ func _on_cabbage_goal(body: Node3D) -> void:
 func _sphere(parent: Node3D, node_name: String, radius: float, pos: Vector3, color: Color, solid: bool) -> Node3D:
 	var root: Node3D
 	if solid:
-		var body := AnimatableBody3D.new()
+		# 真刚体卷心菜：球形碰撞 + 物理材质（弹跳/摩擦），低角阻尼让被踢出的
+		# 球带着角速度一路滚动。踢球不再是 tween 挪位，而是冲量（见
+		# farm_plaything._react_cabbage）。mask 含 BALL_FENCE_LAYER：猪圈门口
+		# 和球场四周的隐形球闸把球留在场内，猪/狗/NPC 不受影响照旧穿行。
+		var body := RigidBody3D.new()
 		body.collision_layer = 1
-		body.collision_mask = 0
-		# Tweens move this body (the cabbage ball); physics sync would fight
-		# them every frame and rewind the kick to a fraction of its hop.
-		body.sync_to_physics = false
+		body.collision_mask = 1 | BALL_FENCE_LAYER
+		body.mass = 0.9
+		body.physics_material_override = _cabbage_material()
+		body.linear_damp = 0.7
+		body.angular_damp = 0.25
+		body.continuous_cd = true
 		var shape := CollisionShape3D.new()
 		var sphere := SphereShape3D.new()
 		sphere.radius = radius
@@ -818,6 +900,24 @@ func _sphere(parent: Node3D, node_name: String, radius: float, pos: Vector3, col
 	mesh.material_override = _material(color)
 	root.add_child(mesh)
 	return root
+
+func _cabbage_material() -> PhysicsMaterial:
+	# A cabbage is not a football: lively bounce so punts rebound off posts and
+	# boards, high friction so it grips and rolls instead of skating.
+	var material := PhysicsMaterial.new()
+	material.bounce = 0.42
+	material.friction = 0.9
+	return material
+
+func _build_pitch_fence() -> void:
+	# Invisible ball-only boards around the cabbage pitch (x 39.5..52.5,
+	# z 22.8..36.5): the ox terrace is a huge open meadow, and without boards
+	# one hard punt sends the ball rolling off across it forever. Tall enough
+	# (3 m) that even a lofted punt stays in; the goal and its posts sit inside.
+	_ball_fence("PitchBallFenceN", Vector3(46.0, 25.5, 22.8), Vector3(13.3, 3.0, 0.3))
+	_ball_fence("PitchBallFenceS", Vector3(46.0, 25.5, 36.5), Vector3(13.3, 3.0, 0.3))
+	_ball_fence("PitchBallFenceW", Vector3(39.5, 25.5, 29.65), Vector3(0.3, 3.0, 14.0))
+	_ball_fence("PitchBallFenceE", Vector3(52.5, 25.5, 29.65), Vector3(0.3, 3.0, 14.0))
 
 func _gag_at(world_pos: Vector3, text: String, life := 2.0) -> void:
 	var label := preload("res://scripts/ui/ui_kit.gd").world_label(text, 24, Color("FFFDF6"), Color("2C6E7A"))
