@@ -65,5 +65,24 @@ func _run() -> void:
 	_check(office.farm.get_parent() == office and office.player.control_mode == "explore", "Farm open and pig in control after skipping")
 	_check(game.tutorial_free_roam, "In-menu skip also lands in the pigpen tutorial")
 
+	# --- 4. Start-menu 开始游戏 while the pigpen sandbox is live: converge, no hard cut
+	# (menus.gd binds the button to host.start_dream_intro; in the pigpen context
+	# it must funnel through the quiz + fall-asleep beat like the title card does.)
+	office._show_start_menu()
+	await process_frame
+	var pen_start_btn: Button = office.start_menu.find_child("StartButton", true, false)
+	_check(pen_start_btn != null, "Start button exists for the pigpen-context check")
+	if pen_start_btn != null:
+		pen_start_btn.pressed.emit()
+		await process_frame
+		_check(office.find_child("BrainHoleQuiz", true, false) != null, "Pigpen-context 开始游戏 funnels through the brain-hole quiz")
+		_check(office.active_course == null and not office.sleep_playing, "No hard cut: the sleep beat only starts after the quiz")
+	office._quiz_next = ""
+	var parked: Control = office.find_child("BrainHoleQuiz", true, false)
+	if parked != null:
+		parked.queue_free()
+	office.queue_free()
+	await process_frame
+
 	print("\nALL DREAM INTRO TESTS DONE: %d failures" % failures)
 	quit(0 if failures == 0 else 1)
