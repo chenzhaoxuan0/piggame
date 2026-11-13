@@ -2,6 +2,10 @@ extends SceneTree
 
 # Zone-style QA screenshots: load each hidden-course scene, shoot a few fixed
 # camera angles with the real renderer, and save PNGs for visual inspection.
+# Each course mounts inside a holder that carries the neutral base
+# WorldEnvironment + Sun as siblings - exactly like the office hub - so the
+# course's own ZoneEnvironment swap AND its ZoneGrade filter both apply: the
+# captures show the REAL zone look (fog, tonemap, pixelation, grading).
 # Run with the GUI engine binary (headless uses the dummy renderer, no image):
 #   Godot_v4.3-stable_win64.exe --path . -s scripts/art/capture_zone_screens.gd
 
@@ -11,6 +15,12 @@ const SHOTS := [
 			{"pos": Vector3(0, 4, 14), "look": Vector3(0, 1, 0)},        # pens + cages + fog lane
 			{"pos": Vector3(20, 2.5, -27.2), "look": Vector3(27, 1, -30)}, # L2 belts + hooks inside
 			{"pos": Vector3(43, 4, -56), "look": Vector3(46, 1, -68)},   # dock + crates
+		]},
+	{"scene": "res://scenes/courses/course_01_ox_field.tscn", "tag": "C1",
+		"cams": [
+			{"pos": Vector3(0, 5, 12), "look": Vector3(0, 1, -12)},      # start field + checker line
+			{"pos": Vector3(12, 7, -34), "look": Vector3(0, 1, -48)},    # door dash + pendulum alley
+			{"pos": Vector3(0, 5, -82), "look": Vector3(0, 2, -95)},     # hammer bridge + finish arch
 		]},
 	{"scene": "res://scenes/courses/course_02_creek.tscn", "tag": "C2",
 		"cams": [
@@ -42,8 +52,14 @@ func _init() -> void:
 		if packed == null:
 			push_error("cannot load " + str(shot["scene"]))
 			continue
-		var course: Node3D = packed.instantiate()
-		root.add_child(course)
+		# The holder mirrors the office root (WorldEnvironment + Sun + course as
+		# direct children of one child-of-root node): ZoneEnvironment walks up
+		# from the course to exactly this node and scans its children, so the
+		# swap finds the env/sun and the zone look - including the ZoneGrade
+		# full-screen filter - lands in the captures.
+		var holder := Node3D.new()
+		holder.name = "CaptureHolder"
+		root.add_child(holder)
 		var world_env := WorldEnvironment.new()
 		var env := Environment.new()
 		env.background_mode = Environment.BG_COLOR
@@ -52,11 +68,13 @@ func _init() -> void:
 		env.ambient_light_color = Color(0.9, 0.92, 1.0)
 		env.ambient_light_energy = 0.9
 		world_env.environment = env
-		root.add_child(world_env)
+		holder.add_child(world_env)
 		var sun := DirectionalLight3D.new()
 		sun.rotation_degrees = Vector3(-50, -35, 0)
 		sun.light_energy = 0.8
-		root.add_child(sun)
+		holder.add_child(sun)
+		var course: Node3D = packed.instantiate()
+		holder.add_child(course)
 		await process_frame
 		await process_frame
 		var index := 0
@@ -73,8 +91,7 @@ func _init() -> void:
 			print("saved ", path)
 			cam.queue_free()
 			index += 1
-		root.remove_child(world_env)
-		root.remove_child(course)
-		world_env.queue_free()
-		course.free()
+		root.remove_child(holder)
+		holder.queue_free()
+		await process_frame
 	quit(0)
