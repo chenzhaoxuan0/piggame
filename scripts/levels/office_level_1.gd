@@ -809,7 +809,10 @@ func _play_sleep_then_dream() -> void:
 	cinematic = false
 	sleep_playing = false
 	player.show_zzz(false)
-	_show_toast("……（入梦）", "冰冷的地面，铁锈味，远处有铁链声。……这里是哪？")
+	# course_0 的进场对话节拍自带"冰冷的地面"台词卡；有节拍时不再弹同款
+	# toast，避免两张卡叠着把同一句话说两遍。
+	if not (is_instance_valid(active_course) and active_course.runner.beat_active()):
+		_show_toast("……（入梦）", "冰冷的地面，铁锈味，远处有铁链声。……这里是哪？")
 	var fade_in := create_tween()
 	fade_in.tween_property(fade, "color:a", 0.0, 0.7)
 	await fade_in.finished
@@ -892,7 +895,9 @@ func _start_dream_intro() -> void:
 	_start_game()
 	current_chase_id = "intro"
 	_enter_course("course_0")
-	_show_toast("……（入梦）", "冰冷的地面，铁锈味，远处有铁链声。……这里是哪？")
+	# 同 _play_sleep_then_dream：有进场节拍时节拍卡已说这句话，别再叠一张 toast。
+	if not (is_instance_valid(active_course) and active_course.runner.beat_active()):
+		_show_toast("……（入梦）", "冰冷的地面，铁锈味，远处有铁链声。……这里是哪？")
 	_refresh_hud()
 
 func _start_game() -> void:
