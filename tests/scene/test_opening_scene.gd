@@ -76,6 +76,7 @@ func _run() -> void:
 		await process_frame
 	_check(office.find_child("BrainHoleQuiz", true, false) == null, "Answering 不 frees the pig")
 	_check(office.player.control_mode == "explore", "Pig can roam during the tutorial")
+	_check(office.find_child("TitleCard", true, false) != null, "The boot title card (开始游戏 etc.) stays over the pen during the tutorial")
 	_check(office.player.dash_enabled and office.player.force_dodge_available, "Shift sprint and dodge are armed for the sandbox")
 	var spawn_dist: float = office.player.global_position.distance_to(office.farm.get_spawn_position())
 	_check(spawn_dist < 1.0, "Pig wakes at the real pigpen spawn")
@@ -111,6 +112,7 @@ func _run() -> void:
 	office.player._try_interact(goat)
 	await process_frame
 	_check(not game.tutorial_free_roam, "Goat interaction ends the tutorial sandbox")
+	_check(office.find_child("TitleCard", true, false) == null, "Title card leaves with the tutorial sandbox")
 	_check(office.dialogue_open, "Goat interaction opens the story dialogue")
 	_check(not office.player.dash_enabled, "Dash returns to story gating after the sandbox")
 	_check(not office.player.force_dodge_available, "Free dodge disarms after the sandbox")

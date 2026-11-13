@@ -449,8 +449,11 @@ func _on_player_dodge_succeeded(_dog: Node3D) -> void:
 # -------------------------------------------------------------
 func _place_toast() -> void:
 	if not is_instance_valid(toast_panel): return
-	# 对话打开时横幅上移到对话面板上方，避免盖住台词与选项。
-	if is_instance_valid(dialogue_panel) and dialogue_panel.visible:
+	# 对话打开或键位教学条占着底部时，横幅上移到对话面板那一行，
+	# 避免盖住台词、选项或键位条（键位条随 HUD 增长，恰好在同一格）。
+	var lifted := (is_instance_valid(dialogue_panel) and dialogue_panel.visible) \
+		or (is_instance_valid(key_strip) and key_strip.visible)
+	if lifted:
 		toast_panel.offset_top = -386
 		toast_panel.offset_bottom = -322
 	else:
@@ -584,7 +587,10 @@ func _start_pigpen_tutorial() -> void:
 	if is_instance_valid(key_strip):
 		key_strip.visible = true
 	_show_brain_hole_quiz()
-	_show_toast("山顶猪圈 · 演出开始前", "蹄子还听使唤吗？先在猪圈里练练——练好了就去找山羊，按 [ F ] 开始今天的农场。")
+	if _brain_hole_done:
+		# 已答过题的重开流程：没有答题卡压着，横幅直接弹。
+		_show_toast("山顶猪圈 · 演出开始前", "蹄子还听使唤吗？先在猪圈里练练——练好了就去找山羊，按 [ F ] 开始今天的农场。")
+	_build_title_card()
 	_refresh_hud()
 
 # ------------------------------------------------------------- brain hole
@@ -603,7 +609,9 @@ func _show_brain_hole_quiz() -> void:
 		_brain_quiz.queue_free()
 	var panel: PanelContainer = UI.patch_panel(18, UI.PAPER, UI.PINK, Vector2(28, 22))
 	panel.name = "BrainHoleQuiz"
-	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	# 顶部中央：屏幕中心会和键位条/横幅叠在底部一格，右上是待办本，左上是标题卡。
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	panel.offset_top = 90
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 12)
@@ -647,12 +655,81 @@ func _answer_brain_hole(lower: bool) -> void:
 		player.set_control_mode("explore")
 	else:
 		_restore_control() # paused/cinematic/ending states win over a blind explore
-	_show_toast("脑洞已校准", "预期已放到地板上。从现在起，每一秒都是惊喜。")
+	# 答题时压着没弹的猪圈引导横幅，在这里合并成一条一起弹。
+	if GameManager.tutorial_free_roam:
+		_show_toast("脑洞已校准 · 山顶猪圈", "预期已放到地板上。蹄子还听使唤吗？练好了就去找山羊，按 [ F ] 开始今天的农场。")
+	else:
+		_show_toast("脑洞已校准", "预期已放到地板上。从现在起，每一秒都是惊喜。")
+
+# ------------------------------------------------------------- title card
+# 开场标题卡：boot 直进猪圈后，主菜单的标题与四个入口（入梦序章 / 跳过序章 /
+# 成就墙 / 退出）作为左上角悬浮卡留在画面里——猪照常跑动，菜单随时可点。
+var _title_card: Control = null
+
+func _build_title_card() -> void:
+	if is_instance_valid(_title_card):
+		return
+	var column := VBoxContainer.new()
+	column.name = "TitleCard"
+	column.set_anchors_and_offsets_preset(Control.PRESET_CENTER_LEFT)
+	column.offset_left = 24
+	column.offset_top = -240
+	column.add_theme_constant_override("separation", 14)
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE # 只有按钮本身吃鼠标，跑动点击照常
+	var title := UI.banner("一口猪在金牌农场", 38)
+	title.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	column.add_child(title)
+	var subtitle := UI.name_tag("A PIG IN GOLDEN FARM · 今晚就逃离农场", UI.SUNNY, UI.INK, 14)
+	subtitle.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	column.add_child(subtitle)
+	var card := UI.patch_panel(18, UI.PAPER, UI.PINK, Vector2(20, 16))
+	card.custom_minimum_size = Vector2(330, 0)
+	column.add_child(card)
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	card.add_child(vbox)
+	var btn_start := UI.button("▶  开始游戏（入梦序章）", _title_start_dream, true)
+	btn_start.name = "TitleStartButton"
+	btn_start.custom_minimum_size.y = 46
+	vbox.add_child(btn_start)
+	var btn_skip := UI.button("收起菜单 · 就在猪圈里玩", _dismiss_title_card)
+	btn_skip.name = "TitleSkipButton"
+	btn_skip.custom_minimum_size.y = 34
+	btn_skip.add_theme_font_size_override("font_size", 15)
+	vbox.add_child(btn_skip)
+	var btn_achv := UI.button("🏅  成就墙", func(): _open_achievements(false))
+	btn_achv.name = "TitleAchievementsButton"
+	btn_achv.custom_minimum_size.y = 38
+	vbox.add_child(btn_achv)
+	var btn_quit := UI.button("✕  退出游戏", func(): get_tree().quit())
+	btn_quit.name = "TitleQuitButton"
+	btn_quit.custom_minimum_size.y = 38
+	vbox.add_child(btn_quit)
+	var hint := UI.label("菜单随时可点，不影响跑动 🐷", 13, UI.INK_SOFT)
+	vbox.add_child(hint)
+	for btn in [btn_start, btn_skip, btn_achv, btn_quit]:
+		btn.focus_mode = Control.FOCUS_NONE # F/Enter/Space belong to the pig, never the card
+	hud.add_child(column)
+	_title_card = column
+
+func _dismiss_title_card() -> void:
+	if is_instance_valid(_title_card):
+		_title_card.queue_free()
+
+func _title_start_dream() -> void:
+	# 从标题卡入梦：未答的脑洞题一并收掉（不再锁定猪），标记本会话已校准。
+	if is_instance_valid(_brain_quiz):
+		_brain_quiz.queue_free()
+	_brain_hole_done = true
+	_end_pigpen_tutorial()
+	_dismiss_title_card()
+	_start_dream_intro()
 
 func _end_pigpen_tutorial() -> void:
 	if not GameManager.tutorial_free_roam:
 		return
 	GameManager.tutorial_free_roam = false
+	_dismiss_title_card()
 	if not GameManager.has_dash_skill:
 		player.set_dash_enabled(false) # dash belongs to 追风's loan again
 	player.force_dodge_available = false
