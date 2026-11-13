@@ -11,6 +11,8 @@ extends Node
 # apply() 额外接受 overrides 深合并到 preset 之上，各关卡的最终观感由各自
 # 脚本自己微调，避免六个任务并发改这个共享文件：
 #   ZONE_ENVIRONMENT.apply(self, "voxel_creek", {"grade": {"pixel_size": 5.0}})
+# 注意 overrides 是深合并：传 "grade": {} 清不掉 preset 的 grade，要关掉某个
+# 调色键请逐键覆盖（例如 "grade": {"pixel_size": 1.0}）。
 #
 # 2026-11 分区画风强化（写实序章 / 大鹅下山路 / 糖豆人牛耕地 / 我的世界
 # 溪流 / 合金弹头林间 / 马里奥赛车大院）：preset 除天空/环境光/雾/太阳外

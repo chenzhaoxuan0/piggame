@@ -28,7 +28,7 @@ const MUD := Color("8B6242")
 const STRAW := Color("F59E0B")
 const PIPE_PINK := Color("FF6FAE")
 const HAZARD_YELLOW := Color("FFD54F")
-const HAZARD_DARK := Color("5D4D9E")
+const HAZARD_PLUM := Color("5D4D9E")
 
 var runner: CourseRunner
 var meme_layer: MemeLayer
@@ -198,7 +198,7 @@ func _platform(node_name: String, size: Vector3, pos: Vector3, top_color: Color)
 func _build_checker_line(z: float, width: float) -> void:
 	for row in 2:
 		for i in int(width):
-			var color := Color("FFF8E7") if (i + row) % 2 == 0 else HAZARD_DARK
+			var color := Color("FFF8E7") if (i + row) % 2 == 0 else HAZARD_PLUM
 			var mesh := MeshInstance3D.new()
 			var box := BoxMesh.new()
 			box.size = Vector3(1, 0.06, 1)
@@ -503,7 +503,7 @@ func _build_chevron_arrow(pos: Vector3) -> void:
 	arrow.position = pos
 	arrow.rotation.x = -PI * 0.5
 	arrow.modulate = HAZARD_YELLOW
-	arrow.outline_modulate = HAZARD_DARK
+	arrow.outline_modulate = HAZARD_PLUM
 	arrow.outline_size = 4
 	add_child(arrow)
 

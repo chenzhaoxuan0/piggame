@@ -28,9 +28,15 @@ static func create(host: Node, params: Dictionary) -> CanvasLayer:
 	return grade
 
 func _ready() -> void:
+	# Idempotence guard: if this node is ever removed and re-added to the tree
+	# (reparent path), _ready runs again - don't stack a second GradeRect or
+	# push a duplicate stack entry, just re-assert top position.
+	if get_child_count() > 0:
+		_become_top()
+		return
 	var rect := ColorRect.new()
 	rect.name = "GradeRect"
-	rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var material := ShaderMaterial.new()
 	material.shader = SHADER
