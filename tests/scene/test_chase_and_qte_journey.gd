@@ -55,9 +55,8 @@ func _run() -> void:
 	var runner: CourseRunner = office.active_course.runner
 	_check(runner._dogs.size() >= 1, "Course rubber-band dog spawned")
 
-	# 进场对话节拍：入关先锁住讲剧情（同 test_course_01_journey 的模式），
-	# 快进放行后才能跨起点 marker —— 不跳过的话猪仍是 cinematic，跳跃与
-	# chase 断言都会被节拍卡住。
+	# 进场对话节拍：台词不暂停游戏（纯字幕），但机器人照旧快进收场，
+	# 让起跑时序保持确定。
 	_check(runner.beat_active() and runner.active_beat_id() == "course_1_intro", "Intro dialogue beat shows on course 1 entry")
 	runner.skip_beats()
 	await create_timer(0.15).timeout

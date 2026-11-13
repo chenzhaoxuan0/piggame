@@ -47,7 +47,7 @@ func _run() -> void:
 
 	# 进场对话节拍：入关先锁住讲剧情，快进放行后回到 explore（牛对话照常可用）。
 	_check(runner.beat_active() and runner.active_beat_id() == "course_1_intro", "Intro dialogue beat shows on course 1 entry")
-	_check(office.player.control_mode == "cinematic", "Pig locked during the intro beat")
+	_check(office.player.control_mode != "cinematic", "Pig stays playable during the intro beat (non-blocking)")
 	_check(not runner.started, "Beat plays before the start marker")
 	runner.skip_beats()
 	await create_timer(0.15).timeout

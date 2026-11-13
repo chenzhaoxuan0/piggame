@@ -1,25 +1,23 @@
 extends Node
 
-# 关卡对话节拍（dialogue beat）：底部台词卡 + 暂停猪的操作，讲清剧情再开跑。
+# 关卡对话节拍（dialogue beat）：底部台词卡，播台词但不暂停游戏。
 # 五条赛道共用，由 CourseRunner 持有并转发（runner.begin_beat()），关卡只给
 # 台词 spec，不依赖 office 层的任何 UI：
 #   spec = {
 #     "id": "course_0_intro", "title": "序幕 · 噩梦",
-#     "lines": ["第一句", "第二句", ...],        # 2-4 句；进场 2.4-2.8s/句，剧情点 1.2-1.4s/句
-#     "line_time": 2.6,                          # 每句自动推进秒数
-#     "lock": true,                              # 是否锁住猪（剧情点也是 true）
+#     "lines": ["第一句", "第二句", ...],        # 2-4 句
+#     "line_time": 3.0,                          # 每句停留秒数（下限 LINE_HOLD_MIN）
 #     "accent": Color("8C99A8"),                 # 缝线补丁的分区主题色
-#     "player": pig,                             # runner 注入
 #   }
-# 行为契约（与 runner 的配合见 course_runner.gd）：
-#   - 锁 = control_mode "cinematic"：控制器每帧把速度清零并提前返回，重力、
-#     击退、输入全部停摆；上场击退先结清，避免解锁后补飞。
-#   - 锁定期由 runner 的 watchdog 跳过（站着不动不算挂机）、恶犬不得起扭打
-#     （runner.can_dog_grapple() 为 false）。
-#   - 点击 / F / 空格 / 回车推进一句（连按即整段跳过）；skip_all() 供测试与
-#     暂停菜单快进；每句有 line_time 自动推进，卡不住任何人。
-#   - 起点时序不受影响：出生点都在起点 marker 之外，节拍先锁住猪，结束后
-#     玩家走一步才触发 marker → course_started（锁定期内物理上碰不到 marker）。
+# 行为契约：
+#   - 不锁猪、不停任何系统：卡片只是一条屏幕字幕，玩家照常跑跳打闹，
+#     对话绝不打断游玩节奏。
+#   - 每句停留至少 LINE_HOLD_MIN（3s）后自动换下一句；最后一句停留期满，
+#     整卡淡出。配音时代 line_time 可以按语音时长写更长。
+#   - 只有 F（action_interact）推进一句（连按即整段跳过）。空格/回车/鼠标
+#     都不推进——空格是跳跃键，不能让一跳顺走一句台词。
+#   - 卡片 mouse IGNORE：点击走位穿透卡片，不会被字幕截走。
+#   - skip_all() 供测试与机器人快进（beats 照常 fire，但永远卡不住任何人）。
 # （不注册 class_name：headless 测试跑在全局类缓存重扫之前，preload 才稳，
 # 见 race_timer.gd 的同类注释。）
 
@@ -28,18 +26,12 @@ signal beat_finished(beat_id: String)
 
 const UI = preload("res://scripts/ui/ui_kit.gd")
 
-const LOCK_MODE := "cinematic"
-# 别的系统在节拍期间合法接管猪的模式（QTE、暂停、office 对话……）：
-# 节拍既不覆盖它们，解锁时也不抢回来。
-const FOREIGN_MODES := ["qte", "paused", "dialogue", "locked", "ending"]
-const MOVABLE_MODES := ["explore", "chase"]
+# 每句台词的最短停留：读一句中文台词 + 将来的一条配音，3 秒是下限。
+const LINE_HOLD_MIN := 3.0
 
 var _queue: Array[Dictionary] = []
 var _active: Dictionary = {}
 var _begun := false
-var _lock_held := false
-var _locked_player: Node = null
-var _saved_mode := ""
 var _line_index := 0
 var _line_left := 0.0
 
@@ -52,11 +44,6 @@ var _hint_label: Label
 
 func is_active() -> bool:
 	return not _active.is_empty()
-
-func locking() -> bool:
-	# True while a beat both shows and holds the pig (runner gates dogs and the
-	# watchdog on this).
-	return is_active() and _lock_held
 
 func active_id() -> String:
 	return str(_active.get("id", ""))
@@ -83,9 +70,8 @@ func _start_next() -> void:
 	# 快进可能在延迟帧之前就把节拍结掉（测试 tick / 玩家狂按），监听
 	# beat_started 的统计与断言不能漏掉这种节拍。
 	beat_started.emit(active_id())
-	# 首次锁定延迟一帧：关卡在 setup() 里调 begin_beat()，而 office 层在
-	# setup() 返回后立刻写 control_mode "explore"——同步上锁会在同一调用栈
-	# 里被覆盖。call_deferred 一定排在它之后。
+	# 建卡延迟一帧：关卡在 setup() 里调 begin_beat()，此时关卡自己的节点树
+	# 还在搭建中；call_deferred 让卡片在这一帧收尾后再上屏。
 	_do_begin.call_deferred()
 
 func _do_begin() -> void:
@@ -93,8 +79,6 @@ func _do_begin() -> void:
 		return
 	_begun = true
 	_line_index = 0
-	if bool(_active.get("lock", true)):
-		_lock()
 	_build_card()
 	_apply_line()
 	_card.visible = true
@@ -103,46 +87,11 @@ func _do_begin() -> void:
 	fade.tween_property(_card, "modulate:a", 1.0, 0.16)
 
 func _line_time() -> float:
-	return maxf(0.4, float(_active.get("line_time", 2.5)))
-
-func _lock() -> void:
-	var player: Node = _active.get("player")
-	if not is_instance_valid(player) or not ("control_mode" in player):
-		return
-	_locked_player = player
-	_saved_mode = str(player.control_mode)
-	if _saved_mode in FOREIGN_MODES:
-		_saved_mode = "explore" # 没有更合理的回归模式
-	# 结清在途击退：锁定期控制器不推进 knockback_timer，留着的击退会在
-	# 解锁后突然续飞半秒。
-	if "knockback_timer" in player:
-		player.knockback_timer = 0.0
-	if "knockback_velocity" in player:
-		player.knockback_velocity = Vector3.ZERO
-	player.set_control_mode(LOCK_MODE)
-	_lock_held = true
-
-func _unlock() -> void:
-	if not _lock_held:
-		return
-	_lock_held = false
-	var player := _locked_player
-	_locked_player = null
-	if not is_instance_valid(player) or not ("control_mode" in player):
-		return
-	if str(player.control_mode) != LOCK_MODE:
-		return # 已被 QTE/暂停等接管，交给对方
-	player.set_control_mode(_saved_mode)
+	return maxf(LINE_HOLD_MIN, float(_active.get("line_time", LINE_HOLD_MIN)))
 
 func _process(delta: float) -> void:
 	if not _begun:
 		return
-	# 复锁：若别的系统在节拍播放中把猪拨回可动模式（测试直接调 _on_start、
-	# office 的 course_started 回调都会写 "chase"），台词没讲完猪就得站着。
-	if _lock_held:
-		var player := _locked_player
-		if is_instance_valid(player) and "control_mode" in player and str(player.control_mode) in MOVABLE_MODES:
-			player.set_control_mode(LOCK_MODE)
 	_line_left -= delta
 	if _line_left <= 0.0:
 		_advance()
@@ -167,7 +116,6 @@ func _finish() -> void:
 	var finished_id := active_id()
 	_active = {}
 	_begun = false
-	_unlock()
 	if _card != null and is_instance_valid(_card):
 		_card.visible = false
 	if not finished_id.is_empty():
@@ -176,19 +124,14 @@ func _finish() -> void:
 		_start_next()
 
 func _exit_tree() -> void:
-	# 关卡在节拍中途被卸下（完成、设置跳转）时不能把猪永远锁在原地。
-	_unlock()
 	_queue.clear()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not _begun:
 		return
-	var advance := false
-	if (event.is_action_pressed("action_interact") or event.is_action_pressed("action_jump") or event.is_action_pressed("ui_accept")) and not event.is_echo():
-		advance = true
-	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		advance = true
-	if advance:
+	# 只认 F（action_interact）推进。空格（跳跃）、回车、鼠标都不算：游戏在
+	# 字幕期间照常进行，这些键属于玩法，不能顺手带走台词。
+	if event.is_action_pressed("action_interact") and not event.is_echo():
 		_advance()
 		get_viewport().set_input_as_handled()
 
@@ -216,10 +159,8 @@ func _build_card() -> void:
 	_card.offset_bottom -= 40.0
 	_card.custom_minimum_size = Vector2(560, 0)
 	_card.visible = false
-	_card.gui_input.connect(func(event: InputEvent):
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-			_advance()
-	)
+	# 字幕不吃鼠标：游戏照常进行，点击走位必须穿透卡片（推进只认 F）。
+	_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_layer.add_child(_card)
 
 	# patch_panel 是 PanelContainer：它把【每一个】子节点都拉伸到同一块内容
@@ -227,14 +168,17 @@ func _build_card() -> void:
 	# 否则三层文字全部叠印在同一块区域（全库 patch_panel 用法同此惯例）。
 	var layout := VBoxContainer.new()
 	layout.add_theme_constant_override("separation", 6)
+	layout.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_card.add_child(layout)
 
 	var head := HBoxContainer.new()
+	head.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_title_label = UI.label("", 20, UI.TEAL_DEEP, true)
 	_title_label.text = str(_active.get("title", ""))
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_counter_label = UI.label("", 14, UI.INK_SOFT)
 	_counter_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	head.add_child(_title_label)
@@ -247,6 +191,6 @@ func _build_card() -> void:
 	_text_label.custom_minimum_size = Vector2(560, 0)
 	layout.add_child(_text_label)
 
-	_hint_label = UI.label("点击 / F / 空格：下一句（连按跳过）", 13, UI.INK_SOFT)
+	_hint_label = UI.label("按 F 下一句（连按跳过）", 13, UI.INK_SOFT)
 	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	layout.add_child(_hint_label)

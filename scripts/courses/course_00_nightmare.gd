@@ -74,8 +74,8 @@ func _ready() -> void:
 	runner.name = "CourseRunner"
 	runner.config = _make_config()
 	add_child(runner)
-	# 进场节拍期间困雾停步：雾从 _ready 起就在推进，台词没读完不该先催猪
-	#（锁定中的猪躲不开，会被反复「抓回重生点」）。节拍一结束照常追。
+	# 进场节拍期间困雾停步：给站着读台词的玩家一个喘息窗口（台词不锁猪，
+	# 想跑的照跑）。节拍一结束雾照常追。
 	runner.beat_started.connect(_on_beat_started)
 	runner.beat_finished.connect(_on_beat_finished)
 

@@ -108,16 +108,8 @@ func skip_beats() -> void:
 	if _beat_layer != null and is_instance_valid(_beat_layer):
 		_beat_layer.skip_all()
 
-func _beat_locking() -> bool:
-	return _beat_layer != null and is_instance_valid(_beat_layer) and _beat_layer.locking()
-
 func _on_beat_finished(beat_id: String) -> void:
 	beat_finished.emit(beat_id)
-	# 节拍若在 course_started 之后结束（测试直调 _on_start 等边缘路径），
-	# 结束时把猪放回 "chase" 而不是进场时的 "explore"。
-	if started and not completed and not in_qte and is_instance_valid(player) \
-			and str(player.get("control_mode")) == "explore":
-		player.set_control_mode("chase")
 
 func _spawn_dogs() -> void:
 	var route: Array[Vector3] = checkpoints.duplicate()
@@ -183,10 +175,6 @@ func _watchdog(delta: float) -> void:
 	if not started or in_qte or completed:
 		_last_pos = pos
 		return
-	if _beat_locking():
-		# 台词节拍故意按住猪：站桩不算挂机，空中滞留（锁定期无重力）也不算。
-		_last_pos = pos
-		return
 	if player.has_method("is_knocked_back") and player.is_knocked_back():
 		_last_pos = pos
 		_stuck_time = 0.0
@@ -235,9 +223,8 @@ func _rubber_band() -> void:
 	pressure_changed.emit(nearest)
 
 func can_dog_grapple() -> bool:
-	# 台词节拍期间恶犬不得起扭打（同 in_qte 的抑制）：暂停卡不该把玩家
-	# 拖进 QTE，锁定中的猪也无法响应。
-	return started and not completed and not in_qte and not _beat_locking()
+	# 台词节拍不再暂停游戏，只是屏幕字幕：恶犬照常扑咬，玩法不被字幕改写。
+	return started and not completed and not in_qte
 
 func set_dogs_active(enabled: bool) -> void:
 	for dog in _dogs:

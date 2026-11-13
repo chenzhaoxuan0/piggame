@@ -61,17 +61,17 @@ func _run() -> void:
 	_check(runner._dogs.size() == 1, "Rubber-band dog spawned")
 	var course = office.active_course
 
-	# 1.0 进场对话节拍：大院入口先锁住讲剧情，3-2-1 倒计时顺延到节拍结束——
-	# 台词不吃比赛时间。快进（玩家连按跳过与测试共用）后倒计时立即接管。
+	# 1.0 进场对话节拍：台词不暂停游戏，3-2-1 倒计时与台词同时开跑——
+	# 横杆照旧拦到 GO，谁也偷不了跑。快进只是让字幕早收场。
 	_check(runner.beat_active() and runner.active_beat_id() == "course_4_intro", "Intro dialogue beat shows on courtyard entry")
-	_check(office.player.control_mode == "cinematic", "Pig locked during the intro beat")
-	_check(course.race_timer.state == "idle", "Countdown waits for the intro beat (dialogue never eats race time)")
+	_check(office.player.control_mode != "cinematic", "Pig stays playable during the intro beat (non-blocking)")
+	_check(course.race_timer.state == "countdown", "Countdown runs while the intro beat talks (dialogue never pauses the game)")
 	runner.skip_beats()
 	await create_timer(0.15).timeout
 	_check(not runner.beat_active() and office.player.control_mode != "cinematic", "Beat released the pig")
 
 	# 1.1 Race start: the clock counts down behind a closed boom barrier
-	_check(course.race_timer != null and course.race_timer.state == "countdown", "Race clock counts down after the intro beat")
+	_check(course.race_timer != null and course.race_timer.state == "countdown", "Race clock keeps counting down past the intro beat")
 	_check(is_instance_valid(course.start_barrier) and not course.start_barrier.get_child(0).disabled, "Boom barrier holds the grid during the countdown")
 	_check(course.start_light_label.text in ["3", "2", "1"], "Start gantry mirrors the countdown")
 	_check(not runner.started, "Dogs stay asleep until the pig crosses the line after GO")
@@ -156,13 +156,13 @@ func _run() -> void:
 	office.player.stamina = 0.5
 	course._on_final_straight_entered(office.player)
 	_check(is_equal_approx(office.player.stamina, office.player.max_stamina), "Final straight refills dash stamina for the sprint to the line")
-	# The sprint callout is a pause beat now, and it freezes the race clock for
-	# its lines so the declaration never eats the 35 s record budget.
+	# The sprint callout is a non-blocking beat now: the declaration plays as a
+	# subtitle while the clock keeps running - the 35 s record is honest.
 	_check(runner.beat_active() and runner.active_beat_id() == "course_4_final_straight", "Final straight upgraded to a dialogue beat")
-	_check(not course.race_timer.is_processing(), "Race clock is frozen while the beat talks")
+	_check(course.race_timer.is_processing(), "Race clock keeps running while the beat talks (no pause)")
 	runner.skip_beats()
 	await create_timer(0.15).timeout
-	_check(not runner.beat_active() and course.race_timer.is_processing(), "Beat released the pig and the clock resumes")
+	_check(not runner.beat_active(), "Sprint callout beat skipped cleanly")
 	_check(course.stunt_ramp.position.z > course.finish_gate.position.z, "Stunt ramp sits before the finish line")
 
 	# No stuck pocket beside the pendulum gantry. Reproduces the exact pose a

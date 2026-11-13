@@ -78,7 +78,7 @@ func _run() -> void:
 	# 进场对话节拍：入关先锁住猪讲剧情（出了什么事/在哪/干什么），快进放行
 	# 后玩家迈步才触发起点 marker → course_started（出生点在 marker 之外）。
 	_check(runner.beat_active() and runner.active_beat_id() == "course_0_intro", "Intro dialogue beat shows on nightmare entry")
-	_check(office.player.control_mode == "cinematic", "Pig is locked while the intro beat talks")
+	_check(office.player.control_mode != "cinematic", "Pig stays playable while the intro beat talks (non-blocking)")
 	_check(not runner.started, "Beat plays before the start marker (course_started timing preserved)")
 	runner.skip_beats()
 	await create_timer(0.15).timeout

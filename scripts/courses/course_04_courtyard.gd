@@ -68,7 +68,6 @@ var guardrails: Array[StaticBody3D] = []
 var _curb_red_mat: StandardMaterial3D
 var _curb_white_mat: StandardMaterial3D
 var _final_straight_triggered := false
-var _clock_held_for_beat := false # 终点直道宣言节拍期间冻结比赛计时
 var _star_active: bool = false
 var _star_until_msec: int = 0
 
@@ -128,7 +127,6 @@ func _ready() -> void:
 	runner.name = "CourseRunner"
 	runner.config = _make_config()
 	add_child(runner)
-	runner.beat_finished.connect(_on_course_beat_finished)
 
 func setup(player: Node3D) -> void:
 	player.reset_at(SPAWN)
@@ -154,11 +152,8 @@ func setup(player: Node3D) -> void:
 		"line_time": 2.4,
 		"accent": NEON_PINK,
 	})
-	runner.beat_finished.connect(_on_intro_beat_done, CONNECT_ONE_SHOT)
-
-func _on_intro_beat_done(_beat_id: String) -> void:
-	# Lights out and away we go: the boom barrier holds the grid until GO, and
-	# the race clock only starts then, so there is no head start to farm.
+	# 台词不暂停游戏：发车倒计时与台词同时开跑——横杆照旧拦到 GO 为止，
+	# 猪在栏后磨蹭也不偷吃比赛时间。
 	if is_instance_valid(race_timer) and race_timer.state == "idle":
 		race_timer.start_countdown(start_light_label)
 
@@ -749,12 +744,9 @@ func _on_final_straight_entered(body: Node3D) -> void:
 	# Horse dash payoff: a full stamina bar for the sprint to the line.
 	if "stamina" in body and "max_stamina" in body:
 		body.stamina = body.max_stamina
-	# 剧情点节拍（升级自 horse_dash toast）：终点直道冲刺宣言。宣言期间比赛
-	# 计时整体冻结（倒计时或累计都暂停），不偷吃 35 秒纪录。
+	# 剧情点节拍（升级自 horse_dash toast）：终点直道冲刺宣言。台词不暂停
+	# 游戏也不冻结计时——猪边听边冲，35 秒纪录照实算。
 	if runner != null:
-		if is_instance_valid(race_timer):
-			race_timer.set_process(false)
-			_clock_held_for_beat = true
 		runner.begin_beat({
 			"id": "course_4_final_straight",
 			"title": "终点直道 · 疾风之步全开！",
@@ -765,13 +757,6 @@ func _on_final_straight_entered(body: Node3D) -> void:
 			"line_time": 1.2,
 			"accent": NEON_YELLOW,
 		})
-
-func _on_course_beat_finished(beat_id: String) -> void:
-	# 宣言节拍结束：比赛计时继续走。
-	if beat_id == "course_4_final_straight" and _clock_held_for_beat:
-		_clock_held_for_beat = false
-		if is_instance_valid(race_timer):
-			race_timer.set_process(true)
 
 func _checkpoint(node_name: String, index: int, pos: Vector3, respawn: Vector3) -> void:
 	var area := _area(node_name, "course_checkpoint", pos, Vector3(10, 3, 2))

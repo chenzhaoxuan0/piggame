@@ -51,7 +51,7 @@ func _lap(hold_dash: bool, check_barrier: bool) -> float:
 	# 进场节拍：先锁住讲剧情，快进放行后 3-2-1 倒计时才接管——台词不吃比赛时间。
 	if check_barrier:
 		_check(runner.beat_active() and runner.active_beat_id() == "course_4_intro", "Intro dialogue beat holds the grid (%s)" % label)
-		_check(office.player.control_mode == "cinematic", "Pig locked during the intro beat")
+		_check(office.player.control_mode != "cinematic", "Pig stays playable during the intro beat (non-blocking)")
 	runner.skip_beats()
 	await create_timer(0.15).timeout
 	if check_barrier:

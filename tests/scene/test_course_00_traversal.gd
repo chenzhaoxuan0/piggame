@@ -70,7 +70,7 @@ func _run() -> void:
 
 	# 进场节拍出现并锁住猪；走共享快进接口放行（与玩家连按跳过同一条路）。
 	_check(runner.beat_active() and runner.active_beat_id() == "course_0_intro", "Intro dialogue beat shows on nightmare entry")
-	_check(office.player.control_mode == "cinematic", "Pig locked during the intro beat")
+	_check(office.player.control_mode != "cinematic", "Pig stays playable during the intro beat (non-blocking)")
 	runner.skip_beats()
 	await create_timer(0.15).timeout
 	_check(not runner.beat_active() and office.player.control_mode != "cinematic", "Beat released the pig for the walk")
