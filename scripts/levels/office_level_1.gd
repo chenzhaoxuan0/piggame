@@ -1498,6 +1498,14 @@ func _start_chase() -> void:
 # -------------------------------------------------------------
 # Course Mode (Fall Guys-style obstacle courses)
 # -------------------------------------------------------------
+func _notification(what: int) -> void:
+	# 赛道期间农场被 remove_child 暂存在树外（见 _enter_course）。这时关游戏、
+	# 回主菜单或重开，引擎的树清理够不着这棵脱树子树：整座农场的物理体、
+	# 网格、贴图全成孤儿——退出时刷出数千行 RID 泄漏报错，甚至直接崩溃。
+	# 本节点销毁前亲手把它释放掉。
+	if what == NOTIFICATION_PREDELETE and _farm_removed and is_instance_valid(farm) and not farm.is_inside_tree():
+		farm.free()
+
 func _enter_course(stage_id: String) -> void:
 	if is_instance_valid(active_course): return
 	var scene_res = COURSE_SCENES.get(stage_id, COURSE_SCENES.get("course_1"))

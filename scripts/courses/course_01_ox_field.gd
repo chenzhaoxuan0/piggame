@@ -415,12 +415,17 @@ func _build_decoy_wall() -> void:
 	add_child(painted)
 	_label("出口 EXIT", Vector3(-3.5, 2.4, -60.3), 40)
 	var hint := _label("真出口 → 直走缺口", Vector3(0, 1.8, -60), 22)
+	hint.name = "RealExitHint"
 	var decoy := DECOY_GOAL.new()
 	decoy.name = "PaintedDoor"
 	decoy.position = Vector3(-3.5, 0, -60)
 	decoy.meme_id = "decoy_goal"
 	decoy.telegraph_meme_id = "decoy_again"
-	decoy.real_exit_hint_path = decoy.get_path_to(hint)
+	# Sibling-relative path, set BEFORE add_child: the decoy's _ready() reads it
+	# to hide the hint until the fake door is hit. get_path_to() on a node that
+	# is not in the tree yet errors out and returns an empty path - the hint
+	# then stayed visible from the start and spoiled the gag.
+	decoy.real_exit_hint_path = NodePath("../RealExitHint")
 	add_child(decoy)
 
 func _build_hammer_bridge() -> void:

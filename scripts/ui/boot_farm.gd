@@ -9,4 +9,8 @@ func _ready() -> void:
 	var game: Node = get_node("/root/GameManager")
 	if game != null:
 		game.pending_boot = "farm"
-	get_tree().change_scene_to_file("res://scenes/levels/office_level_1.tscn")
+	# Deferred on purpose: change_scene_to_file removes the current scene from
+	# root right away, and inside _ready() root is still busy adding this very
+	# node - a direct call logs "Parent node is busy adding/removing children"
+	# on every single boot.
+	get_tree().change_scene_to_file.call_deferred("res://scenes/levels/office_level_1.tscn")
