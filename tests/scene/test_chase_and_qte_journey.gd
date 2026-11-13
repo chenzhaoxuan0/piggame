@@ -55,6 +55,14 @@ func _run() -> void:
 	var runner: CourseRunner = office.active_course.runner
 	_check(runner._dogs.size() >= 1, "Course rubber-band dog spawned")
 
+	# 进场对话节拍：入关先锁住讲剧情（同 test_course_01_journey 的模式），
+	# 快进放行后才能跨起点 marker —— 不跳过的话猪仍是 cinematic，跳跃与
+	# chase 断言都会被节拍卡住。
+	_check(runner.beat_active() and runner.active_beat_id() == "course_1_intro", "Intro dialogue beat shows on course 1 entry")
+	runner.skip_beats()
+	await create_timer(0.15).timeout
+	_check(not runner.beat_active(), "Beat skipped so the run can start")
+
 	# Ox at course entrance grants Struggle QTE skill
 	game.complete_npc("ox")
 	await process_frame
