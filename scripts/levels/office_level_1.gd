@@ -592,9 +592,12 @@ func _start_pigpen_tutorial() -> void:
 # 通过——预期被放到地板上，后面每一秒都是惊喜（选「好玩」会被告知答错）。
 var _brain_quiz: Control = null
 var _brain_hint: Label = null
+var _brain_hole_done := false
+var _brain_quiz_x := 0.0
+var _brain_shake: Tween = null
 
 func _show_brain_hole_quiz() -> void:
-	if is_instance_valid(_brain_quiz) and is_instance_valid(_brain_hint) and _brain_hint.text != "":
+	if _brain_hole_done:
 		return # already answered once this session - the hole stays calibrated
 	if is_instance_valid(_brain_quiz):
 		_brain_quiz.queue_free()
@@ -622,22 +625,28 @@ func _show_brain_hole_quiz() -> void:
 	player.set_control_mode("locked")
 	hud.add_child(panel)
 	_brain_quiz = panel
+	_brain_quiz_x = panel.position.x # shake baseline - a re-shake mid-shake restarts from home, never drifts
 
 func _answer_brain_hole(lower: bool) -> void:
 	if not is_instance_valid(_brain_quiz):
 		return
 	if not lower:
 		# 答错了。预期没有降下来，不能开演——面板抖一下，提示只有「不」是对的。
-		var shake := create_tween()
-		shake.tween_property(_brain_quiz, "position:x", _brain_quiz.position.x + 10.0, 0.05)
-		shake.tween_property(_brain_quiz, "position:x", _brain_quiz.position.x - 10.0, 0.05)
-		shake.tween_property(_brain_quiz, "position:x", _brain_quiz.position.x, 0.05)
+		# 抖动始终以 _brain_quiz_x 为基准且先杀上一个：连点两次也不会把面板抖离中心。
+		if _brain_shake != null and _brain_shake.is_valid():
+			_brain_shake.kill()
+		_brain_shake = create_tween()
+		_brain_shake.tween_property(_brain_quiz, "position:x", _brain_quiz_x + 10.0, 0.05)
+		_brain_shake.tween_property(_brain_quiz, "position:x", _brain_quiz_x - 10.0, 0.05)
+		_brain_shake.tween_property(_brain_quiz, "position:x", _brain_quiz_x, 0.05)
 		_brain_hint.text = "不对，再想想——这个游戏好不好玩？你只需要选『不』。"
 		return
-	_brain_hint.text = "。" # answered marker for the once-per-session guard
+	_brain_hole_done = true
 	_brain_quiz.queue_free()
 	if GameManager.tutorial_free_roam:
 		player.set_control_mode("explore")
+	else:
+		_restore_control() # paused/cinematic/ending states win over a blind explore
 	_show_toast("脑洞已校准", "预期已放到地板上。从现在起，每一秒都是惊喜。")
 
 func _end_pigpen_tutorial() -> void:
@@ -873,6 +882,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 			
 	if event.is_action_pressed("ui_cancel") and not cinematic and GameManager.stage != "ending":
+		# The brain-hole quiz owns the screen centre until it is answered - ESC
+		# cannot open the pause menu underneath it (its buttons sit under the
+		# quiz panel, and unpausing later would un-lock the pig mid-question).
+		if is_instance_valid(_brain_quiz):
+			return
 		if achievements_menu != null and is_instance_valid(achievements_menu) and achievements_menu.visible:
 			_close_achievements()
 			get_viewport().set_input_as_handled()
@@ -1146,6 +1160,10 @@ func _restore_control() -> void:
 	if in_start_menu: player.set_control_mode("cinematic")
 	elif in_skill_card: player.set_control_mode("cinematic")
 	elif cinematic: player.set_control_mode("cinematic")
+	# The brain-hole quiz keeps the pig locked while it is up - falling through
+	# to "explore" here (ESC pause/resume, settings level jumps) would free the
+	# pig behind the panel that still blocks the screen centre.
+	elif is_instance_valid(_brain_quiz): player.set_control_mode("locked")
 	elif paused: player.set_control_mode("paused")
 	elif in_qte: player.set_control_mode("qte")
 	elif GameManager.stage == "ending" or (overlay.visible and not paused): player.set_control_mode("ending")

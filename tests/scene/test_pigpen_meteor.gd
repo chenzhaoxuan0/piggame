@@ -82,6 +82,15 @@ func _run() -> void:
 	_check(not bucket.basis.is_equal_approx(bucket_basis),
 		"Re-armed by the reset, the bucket topples again")
 
+	# --- reset_prop kills an in-flight kick tween (a meteor landing mid-kick
+	# must not leave the dying tween overwriting the restored transform)
+	var thing: Node = ball.get_node("Plaything")
+	thing._react_cabbage(pig) # kick starts, 0.28s roll tween in flight
+	thing.reset_prop() # impact lands the same frame
+	await create_timer(0.5).timeout # long enough for a live tween to have written
+	_check(ball.global_position.distance_to(ball_home) < 0.1,
+		"A reset mid-kick leaves the cabbage home (in-flight tween killed)")
+
 	office.queue_free()
 	await create_timer(0.2).timeout
 	print("PIGPEN_METEOR_TEST assertions done, failures=%d" % failures)

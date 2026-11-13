@@ -38,6 +38,10 @@ var _apples_eaten := 0
 # The visual prop (this node's parent) as built - the meteor reset snaps every
 # pen prop back here and re-arms its one-shot gag.
 var _home_transform := Transform3D.IDENTITY
+# The prop's in-flight motion tween (topple / kick): a meteor landing mid-
+# animation must kill it first, or the dying tween overwrites the reset
+# transform a frame later and the prop stays wrecked forever.
+var _prop_tween: Tween = null
 
 func _ready() -> void:
 	var parent := get_parent() as Node3D
@@ -106,6 +110,7 @@ func _react_tippable(body: Node3D) -> void:
 	var yaw := atan2(away.x, away.z) if away.length_squared() > 0.01 else prop.rotation.y
 	var fall := Basis(Vector3.RIGHT, PI * 0.5)
 	var tween := create_tween()
+	_prop_tween = tween
 	tween.tween_property(prop, "basis", Basis(Vector3.UP, yaw) * fall, 0.4)\
 		.set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 	_gag(_gag_or(["咣当！它滚了三圈。", "哗啦——另一件农具殉职。", "轰隆。农场主不知道，猪知道。"]))
@@ -123,6 +128,7 @@ func _react_cabbage(body: Node3D) -> void:
 	var hop := away * 1.7
 	var ball := get_parent() # the cabbage body this plaything rides in
 	var tween := create_tween()
+	_prop_tween = tween
 	tween.tween_property(ball, "position:y", ball.position.y + 0.55, 0.12)
 	tween.tween_property(ball, "position", ball.position + hop, 0.16)
 	tween.parallel().tween_property(ball, "rotation:x", ball.rotation.x + TAU, 0.28)
@@ -340,7 +346,12 @@ func _react_meteor_button() -> void:
 func reset_prop() -> void:
 	# Meteor impact: snap the parent prop back to its built transform and
 	# re-arm one-shot gags (a toppled bucket stands back up, kicked cabbage
-	# returns home, the mailbox flag re-lowers next time).
+	# returns home, the mailbox flag re-lowers next time). Kill any in-flight
+	# motion first - a living topple/kick tween would overwrite this transform
+	# on its next step and leave the prop wrecked with its gag re-armed-dead.
+	if _prop_tween != null and _prop_tween.is_valid():
+		_prop_tween.kill()
+	_prop_tween = null
 	var parent := get_parent() as Node3D
 	if parent != null:
 		parent.transform = _home_transform

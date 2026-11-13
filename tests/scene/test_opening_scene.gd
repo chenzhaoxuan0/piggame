@@ -37,6 +37,9 @@ func _run() -> void:
 	_check(opening.get("trough") == null, "The floating pen trough is gone from the boot menu")
 	_check(opening.find_child("Pig", true, false) == null, "No PigController node in the boot menu")
 	_check(opening.find_child("KeyTestStrip", true, false) == null, "No key-test strip in the boot menu")
+	_check(opening.find_child("BackdropPen", true, false) != null, "The boot menu backdrop is the pigpen diorama")
+	_check(opening.find_child("BackdropPig", true, false) != null, "The backdrop pig waits in the pen")
+	_check(opening.find_child("BackdropTrough", true, false) != null, "The backdrop trough stands in the pen")
 	for btn_name in ["StartButton", "SkipIntroButton", "QuitButton"]:
 		var btn: Button = opening.find_child(btn_name, true, false)
 		_check(btn != null, "Menu button exists: " + btn_name)
@@ -67,6 +70,7 @@ func _run() -> void:
 		wrong_btn.pressed.emit()
 		await process_frame
 		_check(office.find_child("BrainHoleQuiz", true, false) != null, "Answering 好玩 is rejected - the quiz stays")
+		_check(office.player.control_mode == "locked", "The pig stays locked after a wrong answer")
 		_check("不" in office._brain_hint.text, "The hint tells the pig only 「不」 passes")
 		right_btn.pressed.emit()
 		await process_frame
