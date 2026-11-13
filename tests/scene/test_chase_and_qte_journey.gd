@@ -33,7 +33,8 @@ func _run() -> void:
 	# 1. Start game and verify To-Do Notebook
 	office.start_game()
 	await process_frame
-	_check(office.todo_notebook != null and office.todo_notebook.visible, "To-Do notebook is created and visible")
+	_check(office.todo_hub != null and office.todo_hub.visible, "To-Do hub is created and visible")
+	_check(office.todo_notebook != null and not office.todo_notebook.visible, "To-Do notebook starts folded behind its toggle button")
 	var todo_items: Array[Dictionary] = game.get_to_do_items()
 	_check(todo_items.size() >= 8, "To-Do checklist contains all milestone tasks")
 	# Index 0 is the crossed-out prologue-dream entry; the escape plan starts at 1.

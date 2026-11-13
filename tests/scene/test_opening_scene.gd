@@ -95,58 +95,91 @@ func _run() -> void:
 	_check(office.find_child("BrainHoleQuiz", true, false) == null, "The parked quiz is gone")
 	_check(office.player.control_mode == "explore", "Pig roams again")
 	_check(office.find_child("TitleCard", true, false) != null, "The boot title card (开始游戏 etc.) stays over the pen during the tutorial")
+	var todo_hub: Control = office.find_child("TodoHub", true, false)
 	var notebook: Control = office.find_child("TodoNotebook", true, false)
-	if tcard != null and notebook != null:
-		_check(absf(tcard.get_global_rect().position.y - notebook.get_global_rect().position.y) < 6.0,
-			"Title card top edge aligns with the to-do notebook top edge") # the notebook's pop-in scale gives it a ~4px top offset
-	if notebook != null:
+	var todo_btn: Button = office.find_child("TodoToggleButton", true, false)
+	var keys_btn: Button = office.find_child("KeysToggleButton", true, false)
+	_check(todo_hub != null and todo_hub.visible, "Todo hub (今日待办 + 键位说明 buttons) lives top-right")
+	_check(notebook != null and not notebook.visible, "To-do notebook starts folded - only the toggle buttons show")
+	_check(todo_btn != null and keys_btn != null, "今日待办 and 键位说明 toggle buttons exist beside each other")
+	if todo_btn != null and notebook != null:
+		todo_btn.pressed.emit()
+		await process_frame
+		_check(notebook.visible, "Clicking 今日待办 unfolds the notebook")
 		await process_frame # let the auto-height layout settle before measuring
 		var nb_rect := notebook.get_global_rect()
 		_check(nb_rect.size.x > 300.0, "To-do notebook keeps its ~330px width (no corner sliver)")
 		_check(nb_rect.size.y > 60.0 and nb_rect.size.y < 260.0,
 			"To-do notebook height fits its entries (auto-height, capped)")
+		todo_btn.pressed.emit()
+		await process_frame
+		_check(not notebook.visible, "Clicking 今日待办 again folds the notebook back")
+	if tcard != null and todo_hub != null:
+		_check(absf(tcard.get_global_rect().position.y - todo_hub.get_global_rect().position.y) < 6.0,
+			"Title card top edge aligns with the todo hub top edge")
 	_check(office.player.dash_enabled and office.player.force_dodge_available, "Shift sprint and dodge are armed for the sandbox")
 	var spawn_dist: float = office.player.global_position.distance_to(office.farm.get_spawn_position())
 	_check(spawn_dist < 1.0, "Pig wakes at the real pigpen spawn")
 	var strip: Control = office.find_child("KeyTestStrip", true, false)
-	_check(strip != null and strip.visible, "Key-test strip lives in the farm HUD during the tutorial")
-	if strip != null:
+	_check(strip != null and not strip.visible, "Key-test strip starts hidden - 键位说明 opens it on demand")
+	if keys_btn != null and strip != null:
+		keys_btn.pressed.emit()
+		await process_frame
+		_check(strip.visible, "键位说明 click expands the key strip")
 		await process_frame
 		var viewport_rect := Rect2(Vector2.ZERO, strip.get_viewport_rect().size)
 		_check(viewport_rect.encloses(strip.get_global_rect()), "Key-test strip fully inside the viewport")
+		office._key_strip_time_left = 0.2 # shorten the 10s window - real _process ticks it down
+		await create_timer(0.5).timeout
+		_check(not strip.visible, "Key strip closes itself once the 10s window elapses")
 	var pigpen_gate: StaticBody3D = office.farm._pigpen_gate
 	_check(pigpen_gate.collision_layer == 1, "Pen gate stays bolted during the tutorial")
 
-	# --- 2b. Persistent widgets clear the screen while the pig moves and fade
-	# back once it has stood still ~3s (to-do notebook, title card, key strip).
-	# Driven through _update_ui_auto_hide with injected deltas, so the suite
-	# never sleeps the real 3 seconds.
-	if notebook != null and tcard != null and strip != null:
+	# --- 2b. The title card fades out while the pig moves and fades back once it
+	# has stood still ~3s; the to-do notebook folds away on movement (its toggle
+	# button never fades), blinks while the pig stands still, and auto-expands
+	# after the 3s idle window if nobody clicked. Driven through
+	# _update_ui_auto_hide with injected deltas, so the suite never sleeps the
+	# real 3 seconds.
+	if notebook != null and tcard != null and todo_hub != null and todo_btn != null:
 		office.player.velocity = Vector3(3.0, 0.0, 0.0)
 		office._update_ui_auto_hide(0.016)
 		await create_timer(0.4).timeout # 0.25s fade
-		_check(notebook.modulate.a < 0.05, "To-do notebook fades out while the pig is moving")
-		_check(tcard.modulate.a < 0.05 and strip.modulate.a < 0.05, "Title card and key strip fade out with it")
+		_check(tcard.modulate.a < 0.05, "Title card fades out while the pig is moving")
+		_check(not notebook.visible, "Running folds the to-do notebook away")
+		_check(todo_hub.visible and todo_btn.mouse_filter != Control.MOUSE_FILTER_IGNORE,
+			"The toggle buttons never fade - 待办 stays reachable while running")
 		var hide_btn: Button = tcard.find_child("TitleStartButton", true, false)
 		_check(hide_btn != null and hide_btn.mouse_filter == Control.MOUSE_FILTER_IGNORE,
 			"Faded title-card buttons stop eating clicks (click-to-move stays free)")
 		office.player.velocity = Vector3.ZERO
 		office._update_ui_auto_hide(1.0)
-		await create_timer(0.4).timeout
-		_check(notebook.modulate.a < 0.05, "Widgets stay hidden before the 3s idle window elapses")
+		await create_timer(0.45).timeout
+		_check(not notebook.visible, "Notebook stays folded before the 3s idle window elapses")
+		_check(todo_btn.modulate.a < 0.9, "The folded todo button blinks while the pig stands still")
+		_check(tcard.modulate.a < 0.05, "Title card stays faded before the 3s idle window elapses")
 		office.player.velocity = Vector3.ZERO
 		office._update_ui_auto_hide(2.1) # cumulative idle past the 3s window
 		await create_timer(0.4).timeout
-		_check(notebook.modulate.a > 0.95 and tcard.modulate.a > 0.95 and strip.modulate.a > 0.95,
-			"Widgets fade back in after ~3s standing still")
+		_check(tcard.modulate.a > 0.95, "Title card fades back in after ~3s standing still")
+		_check(notebook.visible, "To-do auto-expands after 3s idle without a click")
+		_check(todo_btn.modulate.a > 0.95, "Blink stops once the notebook is unfolded")
 		_check(hide_btn != null and hide_btn.mouse_filter == Control.MOUSE_FILTER_STOP,
 			"Title-card buttons clickable again once shown")
+		# Manual fold resets the blink window: standing still must not instantly
+		# re-expand what the player just folded.
+		todo_btn.pressed.emit()
+		await process_frame
+		_check(not notebook.visible, "Clicking the toggle folds the auto-expanded notebook again")
+		office._update_ui_auto_hide(0.5)
+		_check(not notebook.visible, "A fresh 3s window starts after a manual fold (no instant re-expand)")
 		# Menus/pause own the screen: movement must not auto-hide under them.
 		office.paused = true
 		office.player.velocity = Vector3(3.0, 0.0, 0.0)
 		office._update_ui_auto_hide(0.016)
 		await create_timer(0.4).timeout
-		_check(notebook.modulate.a > 0.95, "Auto-hide stands down while paused")
+		_check(tcard.modulate.a > 0.95, "Auto-hide stands down while paused")
+		_check(todo_btn.modulate.a == 1.0, "Blink stops while paused")
 		office.paused = false
 		office.player.velocity = Vector3.ZERO
 
