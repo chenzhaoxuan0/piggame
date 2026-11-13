@@ -27,6 +27,62 @@ static func build_all(host: Node) -> void:
 	_build_notice_feed(host)
 	_build_skill_card(host)
 	_build_loan_card(host)
+	_build_key_strip(host)
+
+static func _build_key_strip(host: Node) -> void:
+	# Key-test strip, ported from the old opening pen: keycap per bound key,
+	# lights up while held (office_level_1._process drives the highlight).
+	# Built hidden - only the pigpen tutorial boot turns it on.
+	var strip := UI.patch_panel(18, UI.PAPER, UI.TEAL, Vector2(20, 12))
+	strip.name = "KeyTestStrip"
+	# MINSIZE preset is applied while the strip is still empty (min size 0), so
+	# the keycap rows added below grow the panel afterwards - that growth must
+	# go UP, or the strip sinks past the bottom edge (default grow_vertical is
+	# END/down; same trap the achievement popup's grow-directions dodge).
+	strip.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE)
+	strip.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	strip.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	strip.offset_top -= 24
+	strip.offset_bottom -= 24
+	strip.visible = false
+	host.hud.add_child(strip)
+	host.key_strip = strip
+	var caps := {}
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 8)
+	strip.add_child(rows)
+	var caption := UI.label("开演前先试试蹄子——按键当场生效 ｜ 走到山羊旁按 [ F ] 开始今天的农场", 16, UI.TEAL_DEEP, true)
+	caption.name = "KeyTestCaption"
+	rows.add_child(caption)
+	var line1 := HBoxContainer.new()
+	line1.add_theme_constant_override("separation", 12)
+	rows.add_child(line1)
+	_key_group(line1, ["W", "A", "S", "D"], "移动", ["move_up", "move_left", "move_down", "move_right"], caps)
+	_key_group(line1, ["空格"], "跳跃+哼哼", ["action_jump"], caps)
+	var line2 := HBoxContainer.new()
+	line2.add_theme_constant_override("separation", 12)
+	rows.add_child(line2)
+	_key_group(line2, ["Shift"], "长按冲刺 · 点按闪避", ["action_dash"], caps)
+	_key_group(line2, ["Shift+空格"], "惨叫跳", ["__squeal__"], caps)
+	_key_group(line2, ["F", "E", "K"], "拱食槽 / 交互", ["action_interact", "action_interact", "action_interact"], caps)
+	_key_group(line2, ["🖱+"], "点击走位", ["__mouse__"], caps)
+	host.key_strip_caps = caps
+
+static func _key_group(row: HBoxContainer, keys: Array, desc: String, actions: Array, caps: Dictionary) -> void:
+	var group := HBoxContainer.new()
+	group.add_theme_constant_override("separation", 5)
+	row.add_child(group)
+	for i in keys.size():
+		var cap := UI.keycap(keys[i], 15, UI.TEAL)
+		cap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		group.add_child(cap)
+		var tag: String = actions[i]
+		if not caps.has(tag):
+			caps[tag] = []
+		caps[tag].append(cap)
+	var label := UI.label(" " + desc, 15, UI.INK)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	group.add_child(label)
 
 static func _center_pivot(node: Control) -> void:
 	node.resized.connect(func(): node.pivot_offset = node.size * 0.5)

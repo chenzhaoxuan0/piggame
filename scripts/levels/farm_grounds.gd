@@ -68,6 +68,28 @@ func _ready() -> void:
 	_pigpen_gate.get_node("VisualMesh").hide()
 	_named_gates["pigpen"] = _pigpen_gate
 
+	# The pigpen trough: the tutorial's one true interactable (拱食槽 gag +
+	# trough_sniff achievement - it used to live in the floating boot pen).
+	var trough := _interaction("PigpenTrough", "trough", Vector3(3.6, 32.35, 96.5), Vector3(1.8, 0.7, 0.9))
+	trough.get_node("CollisionShape3D").position.y = 0.35
+	var trough_mesh := MeshInstance3D.new()
+	var trough_box := BoxMesh.new()
+	trough_box.size = Vector3(1.8, 0.7, 0.9)
+	trough_mesh.mesh = trough_box
+	var trough_mat := StandardMaterial3D.new()
+	trough_mat.albedo_color = Color("8F6A42")
+	trough_mat.roughness = 0.9
+	trough_mesh.material_override = trough_mat
+	trough_mesh.position.y = 0.35
+	trough.add_child(trough_mesh)
+	# The stone trough model (ENV_01_TROUGH, 1.8 x 0.9 x 0.42 m) is the visual;
+	# the box keeps the collision. Same model the art line tagged 猪圈和赛道复用.
+	var trough_art := ASSETS.make("ENV_01_TROUGH")
+	if trough_art != null:
+		trough_mesh.visible = false
+		trough.add_child(trough_art)
+	_label(trough, "TroughLabel", "食槽 · 按 F / E / K 拱一下", Vector3(0, 1.5, 0), 20)
+
 	_build_all_gates()
 	_build_road_obstacles()
 	_build_playground()

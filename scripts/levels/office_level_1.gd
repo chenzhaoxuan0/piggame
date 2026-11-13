@@ -56,6 +56,8 @@ var portrait: TextureRect
 var ending_art: TextureRect
 
 var in_start_menu := true
+var key_strip: Control = null
+var key_strip_caps := {}
 var in_settings := false
 var settings_from_start := false
 var achievements_from_start := false
@@ -176,7 +178,7 @@ func _ready() -> void:
 			_start_dream_intro()
 		"farm":
 			GameManager.pending_boot = ""
-			skip_dream_intro()
+			_start_pigpen_tutorial()
 		_:
 			_show_start_menu()
 
@@ -559,6 +561,43 @@ func skip_dream_intro() -> void:
 	GameManager.mark_intro_dream_done()
 	_start_game()
 
+func _start_pigpen_tutorial() -> void:
+	# pending_boot == "farm": the game has NOT started yet. No more floating
+	# key-test pen - the pig wakes up in its real pigpen on the farm: roam,
+	# hop, dash, snuffle the trough, but NPCs won't talk and the pen gate stays
+	# bolted. F on the goat is the "start the day" button and ends the sandbox.
+	GameManager.mark_intro_dream_done()
+	GameManager.tutorial_free_roam = true
+	in_start_menu = false
+	if is_instance_valid(start_menu):
+		start_menu.visible = false
+	player.set_dash_enabled(true) # try Shift freely; story gating resumes on start
+	player.force_dodge_available = true
+	player.set_control_mode("explore")
+	camera.snap_to_target()
+	if is_instance_valid(key_strip):
+		key_strip.visible = true
+	_show_toast("山顶猪圈 · 演出开始前", "蹄子还听使唤吗？先在猪圈里练练——练好了就去找山羊，按 [ F ] 开始今天的农场。")
+	_refresh_hud()
+
+func _end_pigpen_tutorial() -> void:
+	if not GameManager.tutorial_free_roam:
+		return
+	GameManager.tutorial_free_roam = false
+	if not GameManager.has_dash_skill:
+		player.set_dash_enabled(false) # dash belongs to 追风's loan again
+	player.force_dodge_available = false
+	if is_instance_valid(key_strip):
+		key_strip.visible = false
+
+func _snuffle_trough(target: Node3D) -> void:
+	# The trough gag from the old floating pen, now living in the real pigpen.
+	AchievementManager.unlock("trough_sniff")
+	_show_notice("哼哼！（拱得食槽哐当响）")
+	var squash := create_tween()
+	squash.tween_property(target, "scale", Vector3(1.12, 0.72, 1.12), 0.08)
+	squash.tween_property(target, "scale", Vector3.ONE, 0.18)
+
 func _start_dream_intro() -> void:
 	# Boot path: close the start menu, fall asleep, and enter the nightmare.
 	# Tests keep calling start_game() directly (straight to the farm); the skip
@@ -714,6 +753,19 @@ func _resume() -> void:
 	_refresh_hud()
 
 func _process(delta: float) -> void:
+	# Key-test strip highlight (pigpen tutorial): bound actions light their keycaps.
+	if is_instance_valid(key_strip) and key_strip.visible:
+		for tag in key_strip_caps:
+			var pressed := false
+			if tag == "__mouse__":
+				pressed = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+			elif tag == "__squeal__":
+				pressed = Input.is_action_pressed("action_dash") and Input.is_action_pressed("action_jump")
+			else:
+				pressed = Input.is_action_pressed(tag)
+			var tint := UI.SUNNY if pressed else UI.WHITE
+			for cap in key_strip_caps[tag]:
+				cap.modulate = tint
 	if in_qte:
 		qte_time_remaining -= delta
 		if is_instance_valid(qte_timer_bar):
@@ -735,7 +787,7 @@ func _process(delta: float) -> void:
 		var target := player.get_nearest_interactable()
 		if is_instance_valid(target):
 			var id: String = str(target.get_meta("interaction_id", ""))
-			var names := {"goat": "老岩羊", "ox": "老牛", "sheep": "小羊", "horse": "追风", "farmer": "农场主", "record_board": "纪录牌", "cablecar": "索道"}
+			var names := {"goat": "老岩羊", "ox": "老牛", "sheep": "小羊", "horse": "追风", "farmer": "农场主", "record_board": "纪录牌", "cablecar": "索道", "trough": "食槽"}
 			prompt.text = "[ F ]  " + str(names.get(id, "调查"))
 		else:
 			prompt.text = ""
@@ -793,7 +845,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _refresh_hud() -> void:
 	# The skill getter (not npc_completed) so a course-scoped dash loan also enables sprint.
-	player.set_dash_enabled(GameManager.has_dash_skill)
+	# The pigpen tutorial sandbox arms dash too - otherwise every refresh here
+	# would re-lock it mid-tutorial (it did, before the flag existed).
+	player.set_dash_enabled(GameManager.has_dash_skill or GameManager.tutorial_free_roam)
 	if is_instance_valid(pin_visual): pin_visual.visible = GameManager.has_pin
 	if is_instance_valid(todo_notebook):
 		var battle_on: bool = is_instance_valid(pokemon_battle) and pokemon_battle.battle_active
@@ -805,6 +859,18 @@ func _on_interact(target: Node3D) -> void:
 	if dialogue_open or overlay.visible or cinematic or GameManager.is_in_chase() or GameManager.stage == "ending": return
 	if not is_instance_valid(target): return
 	var id := str(target.get_meta("interaction_id", ""))
+	if id == "trough":
+		_snuffle_trough(target)
+		return
+	if GameManager.tutorial_free_roam:
+		# Pre-game sandbox: nobody talks, nothing opens. Talking to the goat IS
+		# the "start the game" button (the key strip hint says so).
+		if id == "goat":
+			_end_pigpen_tutorial()
+			open_dialogue(DialogueManager.get_entry_for("goat"))
+		else:
+			_show_notice("（现在还不能对话——先在猪圈里把蹄子练开，走近山羊按 [ F ] 开始今天的农场。）")
+		return
 	if id == "farmer":
 		if GameManager.stage == "showdown" or (GameManager.has_pin and GameManager.npc_completed.get("horse", false) and GameManager.stage != "cablecar_ready" and GameManager.stage != "ending"):
 			if GameManager.stage != "showdown":
