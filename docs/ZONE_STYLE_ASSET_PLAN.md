@@ -13,7 +13,7 @@
    | C0 噩梦屠宰场 | 写实屠宰厂/工厂 | photorealistic：磨损钢材、 stained 混凝土、工业管道 | `photorealistic` |
    | C1 牛耕地 | 《糖豆人》 | 荧光综艺+大鹅平涂（已完成 13 件 PROP_C1_*，作为完成度基准） | `cartoon`（已产） |
    | C2 溪流 | 《我的世界》 | 体素方块：整块立方、像素平色 | `cartoon` + 体素提示词 |
-   | C3 林间 | 童话手绘 | 柔和手绘：圆润造型、绘本笔触 | `hand_painted` |
+   | C3 林间 | 《合金弹头》 | 军事丛林：军绿/橄榄/卡其/锈红战场色，像素+硬色阶+扫描线街机滤镜（环境光与调色已上线，存量 hand_painted 资产待美术线换代） | `hand_painted`（存量，后续军风） |
    | C4 大院 | 《马里奥赛车》×糖豆人综艺 | 霓虹街机：糖果色、发光霓虹、玩具感 | `cartoon` + 霓虹提示词 |
 3. **原资产先行落盘**（用户硬性要求）：MCP 直出无法从后台找回，任务完成后**立即**把原始导出存入
    `assets/models/aholo/<ASSET_ID>/`（`<ASSET_ID>.glb` 原始模型 + `<ASSET_ID>.png` 官方预览图），
@@ -33,6 +33,18 @@ Blender 加工（`process_zone_models.py`）按风格区分材质处理：
 - `flat`：同 C1（Roughness=1、金属度 0、断开法线贴图）。
 - `pbr`：保留 Roughness/Metallic 贴图（写实质感），仅归一化变换与缩放。
 - `neon`：Roughness=1、金属度 0，另把高饱和度主色烘焙进贴图亮度（发光在 shader 侧提取）。
+
+### 2.1 环境调色层（2026-11 分区画风 pass：调色/渲染/光线）
+
+每个关卡进场时由 `scripts/courses/components/zone_environment.gd` 把 hub 的
+WorldEnvironment/Sun 换成该区环境（天空/环境光/雾/太阳/tonemap，退出时精确还原），
+并可带 `grade` 参数——`scripts/courses/components/zone_grade.gd` 在 canvas layer -1
+挂一层全屏调色 shader（`zone_grade.gdshader`：像素化/色阶量化/饱和/对比/色调/抬黑/
+暗角/扫描线），位于全部 UI 之下，中文 HUD 与弹幕不吃滤镜。农场 hub（下山路大鹅
+基准世界）常驻一层大鹅柔光滤镜（office_level_1），进关卡自动压栈隐藏、出关卡复显。
+各区最终观感由各自 course 脚本以 overrides 深合并精修，不集中改共享文件。
+C0=写实（ACES+冷钢厂光）· C1=糖豆人糖果综艺 · C2=我的世界像素 · C3=合金弹头
+街机 · C4=马里奥赛车白天竞技场。
 
 ## 3. 资产清单（各区）
 

@@ -14,17 +14,21 @@ const SPINNING_SWEEPER = preload("res://scripts/courses/components/spinning_swee
 const BUMPER_PILLAR = preload("res://scripts/courses/components/bumper_pillar.gd")
 const DOOR_DASH = preload("res://scripts/courses/components/door_dash_gate.gd")
 const PENDULUM_BALL = preload("res://scripts/courses/components/pendulum_ball.gd")
+const ZONE_ENVIRONMENT = preload("res://scripts/courses/components/zone_environment.gd")
 
 const SPAWN := Vector3(0, 0.6, 6)
-const CREAM := Color("E1DDC5")
-const GRASS := Color("74A87C")
-const LOAM := Color("3E2723")
-const WOOD := Color("8D7B68")
-const MUD := Color("5D4037")
+# 糖豆人糖果调色板：奶油黄跑道 / 薄荷糖草地 / 可可奶咖土层 / 泡泡糖粉终点管，
+# 障碍物统一粉·青·柠檬黄高纯点缀。牛耕地本是大鹅平涂基准世界，闯关时整体
+# 叠加综艺糖果滤镜，明快无死黑（环境层见 zone_environment.gd "fall_guys_field"）。
+const CREAM := Color("FFF6C9")
+const GRASS := Color("76E0A3")
+const LOAM := Color("A98467")
+const WOOD := Color("E8C37A")
+const MUD := Color("8B6242")
 const STRAW := Color("F59E0B")
-const PIPE_GREEN := Color("2E7D32")
-const HAZARD_YELLOW := Color("F1C40F")
-const HAZARD_DARK := Color("2C3E50")
+const PIPE_PINK := Color("FF6FAE")
+const HAZARD_YELLOW := Color("FFD54F")
+const HAZARD_PLUM := Color("5D4D9E")
 
 var runner: CourseRunner
 var meme_layer: MemeLayer
@@ -33,6 +37,15 @@ var _bridge_beat_fired := false
 var _hammer_beat_fired := false
 
 func _ready() -> void:
+	# 糖豆人综艺滤镜：糖果高饱和、无死黑、轻微辉光；数值精修在 preset 之上深合并。
+	ZONE_ENVIRONMENT.apply(self, "fall_guys_field", {
+		"grade": {
+			"saturation": 1.26,
+			"contrast": 1.07,
+			"black_lift": 0.07,
+			"vignette": 0.05,
+		},
+	})
 	_build_ground()
 	_build_dressing()
 	_build_surroundings()
@@ -200,7 +213,7 @@ func _platform(node_name: String, size: Vector3, pos: Vector3, top_color: Color)
 func _build_checker_line(z: float, width: float) -> void:
 	for row in 2:
 		for i in int(width):
-			var color := Color("FFF8E7") if (i + row) % 2 == 0 else HAZARD_DARK
+			var color := Color("FFF8E7") if (i + row) % 2 == 0 else HAZARD_PLUM
 			var mesh := MeshInstance3D.new()
 			var box := BoxMesh.new()
 			box.size = Vector3(1, 0.06, 1)
@@ -208,7 +221,7 @@ func _build_checker_line(z: float, width: float) -> void:
 			mesh.position = Vector3(-width * 0.5 + 0.5 + i, 0.03, z - row)
 			var mat := StandardMaterial3D.new()
 			mat.albedo_color = color
-			mat.roughness = 1.0
+			mat.roughness = 0.55
 			mesh.material_override = mat
 			add_child(mesh)
 
@@ -322,6 +335,7 @@ func _build_door_dash() -> void:
 	door_gate.name = "DoorDashGate"
 	door_gate.position = Vector3(0, 0, -26.5)
 	door_gate.breakable_index = 1 # Center door is breakable
+	door_gate.door_colors = [Color("FF6F9E"), Color("FFD54F"), Color("4FC9F5")] # 粉·柠檬·青
 	add_child(door_gate)
 
 func _build_fake_floor_bridge() -> void:
@@ -368,6 +382,7 @@ func _build_sweepers() -> void:
 	sweeper1.bar_elevation = 0.35
 	sweeper1.knockback_power = 7.5
 	sweeper1.knockback_up = 3.0
+	sweeper1.sweeper_color = Color("FF6F9E")
 	sweeper1.meme_id = "sweeper_hit"
 	add_child(sweeper1)
 
@@ -380,7 +395,7 @@ func _build_sweepers() -> void:
 	sweeper2.bar_elevation = 0.35
 	sweeper2.knockback_power = 8.0
 	sweeper2.knockback_up = 3.5
-	sweeper2.sweeper_color = Color("E74C3C")
+	sweeper2.sweeper_color = Color("3ED1F0")
 	sweeper2.meme_id = "sweeper_hit"
 	add_child(sweeper2)
 
@@ -394,6 +409,7 @@ func _build_pendulums() -> void:
 	pendulum.max_angle_deg = 45.0
 	pendulum.knockback_power = 8.0
 	pendulum.knockback_up = 4.0
+	pendulum.ball_color = Color("9B59B6")
 	pendulum.meme_id = "pendulum_hit"
 	add_child(pendulum)
 	_label("★ 悬挂大摆锤 ★", Vector3(0, 3.8, -54.5), 18)
@@ -409,7 +425,7 @@ func _build_decoy_wall() -> void:
 	painted.mesh = quad
 	painted.position = Vector3(-3.5, 1.5, -60.55)
 	var glow := StandardMaterial3D.new()
-	glow.albedo_color = Color("52B788")
+	glow.albedo_color = Color("FF6FAE")
 	glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	painted.material_override = glow
 	add_child(painted)
@@ -444,7 +460,7 @@ func _build_hammer_bridge() -> void:
 		hammer.phase_offset = cfg["phase"]
 		hammer.knockback_power = 7.0
 		hammer.knockback_up = 2.5
-		hammer.hammer_color = Color("E67E22") if i % 2 == 0 else Color("E74C3C")
+		hammer.hammer_color = Color("FF6F9E") if i % 2 == 0 else Color("3ED1F0")
 		hammer.meme_id = "hammer_hit"
 		add_child(hammer)
 
@@ -497,15 +513,15 @@ func _build_decorations() -> void:
 		lux_arch.position = Vector3(0, 0, -94.0)
 		finish_arch.add_child(lux_arch)
 	else:
-		_add_box_mesh(finish_arch, Vector3(0.4, 4.0, 0.4), Vector3(-4.5, 2.0, -94.0), Color("F39C12"))
-		_add_box_mesh(finish_arch, Vector3(0.4, 4.0, 0.4), Vector3(4.5, 2.0, -94.0), Color("F39C12"))
-		_add_box_mesh(finish_arch, Vector3(9.4, 0.5, 0.5), Vector3(0, 4.0, -94.0), Color("E74C3C"))
+		_add_box_mesh(finish_arch, Vector3(0.4, 4.0, 0.4), Vector3(-4.5, 2.0, -94.0), Color("FFD54F"))
+		_add_box_mesh(finish_arch, Vector3(0.4, 4.0, 0.4), Vector3(4.5, 2.0, -94.0), Color("FFD54F"))
+		_add_box_mesh(finish_arch, Vector3(9.4, 0.5, 0.5), Vector3(0, 4.0, -94.0), Color("FF6F9E"))
 	add_child(finish_arch)
 	_label("★ FINISH · 胜利大冲刺 ★", Vector3(0, 4.6, -94.0), 30)
 
 func _build_flag_garland(pos_a: Vector3, pos_b: Vector3) -> void:
 	var count := 7
-	var colors := [Color("E74C3C"), Color("F1C40F"), Color("2ECC71"), Color("3498DB"), Color("9B59B6"), Color("E67E22")]
+	var colors := [Color("FF6F9E"), Color("FFD54F"), Color("4DE0A0"), Color("4FC9F5"), Color("B48CF7"), Color("FF9E5C")]
 	for i in count:
 		var t := (i + 0.5) / float(count)
 		var p := pos_a.lerp(pos_b, t)
@@ -518,6 +534,7 @@ func _build_flag_garland(pos_a: Vector3, pos_b: Vector3) -> void:
 		flag.position = p
 		var mat := StandardMaterial3D.new()
 		mat.albedo_color = colors[i % colors.size()]
+		mat.roughness = 0.5
 		flag.material_override = mat
 		add_child(flag)
 
@@ -529,7 +546,7 @@ func _build_hazard_stripes(pos: Vector3, size: Vector3) -> void:
 	body.position = pos
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = HAZARD_YELLOW
-	mat.roughness = 0.9
+	mat.roughness = 0.55
 	body.material_override = mat
 	add_child(body)
 
@@ -540,7 +557,7 @@ func _build_chevron_arrow(pos: Vector3) -> void:
 	arrow.position = pos
 	arrow.rotation.x = -PI * 0.5
 	arrow.modulate = HAZARD_YELLOW
-	arrow.outline_modulate = HAZARD_DARK
+	arrow.outline_modulate = HAZARD_PLUM
 	arrow.outline_size = 4
 	add_child(arrow)
 
@@ -552,6 +569,7 @@ func _add_box_mesh(parent: Node3D, size: Vector3, pos: Vector3, color: Color) ->
 	mesh.position = pos
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
+	mat.roughness = 0.6
 	mesh.material_override = mat
 	parent.add_child(mesh)
 
@@ -571,8 +589,12 @@ func _build_exit() -> void:
 		pipe.rotation.x = deg_to_rad(90.0)
 		pipe.position = Vector3(0, 1.4, -98)
 		var pipe_mat := StandardMaterial3D.new()
-		pipe_mat.albedo_color = PIPE_GREEN
-		pipe_mat.roughness = 0.6
+		pipe_mat.albedo_color = PIPE_PINK
+		pipe_mat.roughness = 0.45
+		# 终点水管是全场的关键道具：软糖光泽 + 轻微自发光，远处一眼锁定真出口。
+		pipe_mat.emission_enabled = true
+		pipe_mat.emission = Color("FF4F97")
+		pipe_mat.emission_energy_multiplier = 0.35
 		pipe.material_override = pipe_mat
 		add_child(pipe)
 
@@ -610,7 +632,7 @@ func _solid_box(node_name: String, size: Vector3, pos: Vector3, color: Color) ->
 	mesh.mesh = mesh_box
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = color
-	mat.roughness = 1.0
+	mat.roughness = 0.6
 	mesh.material_override = mat
 	body.add_child(mesh)
 	add_child(body)
@@ -618,7 +640,7 @@ func _solid_box(node_name: String, size: Vector3, pos: Vector3, color: Color) ->
 
 func _label(text: String, pos: Vector3, font_size: int, parent: Node3D = null) -> Label3D:
 	var ui := preload("res://scripts/ui/ui_kit.gd")
-	var label := ui.world_label(text, font_size, CREAM, Color("3A3630"))
+	var label := ui.world_label(text, font_size, CREAM, Color("4A3B6E"))
 	label.position = pos
 	(parent if parent else self).add_child(label)
 	return label

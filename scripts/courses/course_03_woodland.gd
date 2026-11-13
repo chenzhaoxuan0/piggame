@@ -21,16 +21,19 @@ const SPAWN := Vector3(0, 0.6, 12)
 # creek's potatoes - see course_02_creek.gd). No wall-clock timer on the pig.
 const CHEST_SPEED_FACTOR := 1.45
 const CHEST_DURATION := 6.0
-const STORYBOOK_GREEN := Color("86A873") # Fairy green
-const STORYBOOK_GOLD := Color("FDE68A") # Pastel cream gold
-const STORYBOOK_CORAL := Color("E74C3C") # Mushroom red
-const STORYBOOK_PURPLE := Color("A855F7") # Magic wisteria
-const STORYBOOK_WOOD := Color("6D4C41") # Bark brown
-const STORYBOOK_LOAM := Color("4E342E") # Warm soil
-const STORYBOOK_STONE := Color("8D8073") # Mossy maze stone
+# Metal Slug battlefield palette (woodland zone style): army green / olive /
+# khaki / rust red / warning yellow / firelight orange.
+const JUNGLE_GREEN := Color("4E6B3A") # Army green: main turf and tree crowns
+const OLIVE_DRAB := Color("6B7A3A") # Olive: hidden path behind the illusory wall
+const KHAKI := Color("C2B280") # Khaki: grove plaza dirt / mushroom stalks
+const RUST_RED := Color("8C3B2E") # Rust red: poison mushroom caps
+const WARN_YELLOW := Color("E0A83A") # Warning yellow: signal wisps / lure glow / halo
+const FIRE_ORANGE := Color("E8752A") # Firelight orange: extraction portal
+const TRUNK_BROWN := Color("5C4633") # Trunk brown
+const TRENCH_GRAY := Color("3A4038") # Night-ops gray: platform sides and maze stone
 const MAZE_WALL_H := 2.4
-const CREAM := Color("FFFBEB")
-const DARK := Color("292524")
+const CREAM := Color("F0EAD3") # Khaki stencil paper for labels
+const DARK := Color("20261C") # Jungle-dark label outline
 
 var runner: CourseRunner
 var meme_layer: MemeLayer
@@ -78,7 +81,30 @@ func _end_chest_boost() -> void:
 		p.move_speed = p.move_speed / CHEST_SPEED_FACTOR
 
 func _ready() -> void:
-	ZONE_ENVIRONMENT.apply(self, "fairy_woodland")
+	# Metal Slug pass on the fairy_woodland base (already army-green): deepen the
+	# battle fog inside the 0.045-0.06 band (test contract: fog_density > 0.03),
+	# lift the low warm sun half a notch for firelight rims, and push the CRT
+	# layer to the upper half of its band - 3 px pixels, 8-step posterize, 1.18
+	# contrast, 0.055 scanline, 0.14 vignette; saturation back to 1.0 keeps the
+	# army greens honest instead of candy-sweet.
+	ZONE_ENVIRONMENT.apply(self, "fairy_woodland", {
+		"fog_density": 0.055,
+		"sun_energy": 0.38,
+		"sun_color": Color("FFB25E"),
+		"grade": {
+			"pixel_size": 3.0,
+			"posterize_levels": 8.0,
+			"saturation": 1.0,
+			"contrast": 1.18,
+			"scanline": 0.055,
+			"vignette": 0.14,
+			# Army-green tint: the existing hand-painted GLB assets still lean
+			# fairy-forest green; a green-tinted grade pulls the whole frame
+			# toward jungle olive until the art line regenerates the assets.
+			"tint_col": Color(0.9, 1.0, 0.85),
+			"tint_amount": 0.35,
+		},
+	})
 	_build_ground()
 	_build_surroundings()
 	_build_stealth_zone()
@@ -169,25 +195,25 @@ func _make_config() -> CourseConfig:
 
 func _build_ground() -> void:
 	# 1. Entrance Meadow
-	_fairytale_platform("EntranceMeadow", Vector3(14, 1, 14), Vector3(0, -0.5, 9), STORYBOOK_GREEN, STORYBOOK_LOAM, "ENV_C3_MEADOW_TILE")
+	_fairytale_platform("EntranceMeadow", Vector3(14, 1, 14), Vector3(0, -0.5, 9), JUNGLE_GREEN, TRENCH_GRAY, "ENV_C3_MEADOW_TILE")
 
 	# 2. Narrow Stealth Path (Z = 2 to -26, flush with the meadow and the grove:
 	# the old -25/-26 seam left a 1 m pit on the main walking line - the pig fell
 	# in, respawned, and fell in again, forever)
-	_fairytale_platform("StealthPath", Vector3(8, 1, 28), Vector3(0, -0.5, -12), STORYBOOK_GREEN, STORYBOOK_LOAM, "ENV_C3_MEADOW_TILE")
+	_fairytale_platform("StealthPath", Vector3(8, 1, 28), Vector3(0, -0.5, -12), JUNGLE_GREEN, TRENCH_GRAY, "ENV_C3_MEADOW_TILE")
 
 	# 3. Mimic Grove Plaza (Z = -26 to -46)
-	_fairytale_platform("MimicPlaza", Vector3(14, 1, 20), Vector3(0, -0.5, -36), STORYBOOK_GOLD, STORYBOOK_LOAM, "ENV_C3_GOLD_TILE")
+	_fairytale_platform("MimicPlaza", Vector3(14, 1, 20), Vector3(0, -0.5, -36), KHAKI, TRENCH_GRAY, "ENV_C3_GOLD_TILE")
 
 	# 4. Illusion maze strip behind the entry wall (Z = -46 to -78; used to start
 	# at -48, leaving a 2 m pit between the grove and the fairy path)
-	_fairytale_platform("HiddenFairyPath", Vector3(10, 1, 32), Vector3(0, -0.5, -62), STORYBOOK_PURPLE, STORYBOOK_LOAM, "ENV_C3_PURPLE_TILE")
+	_fairytale_platform("HiddenFairyPath", Vector3(10, 1, 32), Vector3(0, -0.5, -62), OLIVE_DRAB, TRENCH_GRAY, "ENV_C3_PURPLE_TILE")
 
 	# 5. Hollow Tree Exit Glade (Z = -79 to -94)
-	_fairytale_platform("ExitGlade", Vector3(14, 1, 16), Vector3(0, -0.5, -86), STORYBOOK_GREEN, STORYBOOK_LOAM, "ENV_C3_MEADOW_TILE")
+	_fairytale_platform("ExitGlade", Vector3(14, 1, 16), Vector3(0, -0.5, -86), JUNGLE_GREEN, TRENCH_GRAY, "ENV_C3_MEADOW_TILE")
 
 func _build_surroundings() -> void:
-	# Dense fairytale tree line
+	# Dense military jungle tree line
 	for z in [-10, -20, -35, -55, -70]:
 		_storybook_tree(Vector3(-7, 0, z))
 		_storybook_tree(Vector3(7, 0, z))
@@ -302,6 +328,11 @@ func _build_mimic_grove() -> void:
 	mushroom.name = "FairytaleMushroom"
 	mushroom.position = Vector3(5.0, 0, -36.0)
 	mushroom.bounce_up = 12.0
+	# Metal Slug pass on the coral fairytale toadstool: rust-red toxic cap,
+	# khaki stalk, warning-yellow spots (exports are read when it enters the tree).
+	mushroom.cap_color = RUST_RED
+	mushroom.stalk_color = KHAKI
+	mushroom.spot_color = WARN_YELLOW
 	add_child(mushroom)
 	mushroom.triggered.connect(func(_trap, _p):
 		if meme_layer:
@@ -344,9 +375,9 @@ func _build_illusory_wall_puzzle() -> void:
 	halo_ring.mesh = tor
 	halo_ring.position = Vector3(0, 1.2, -47.5)
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color("C084FC")
+	mat.albedo_color = WARN_YELLOW
 	mat.emission_enabled = true
-	mat.emission = Color("A855F7")
+	mat.emission = WARN_YELLOW
 	mat.emission_energy_multiplier = 2.0
 	halo_ring.material_override = mat
 	_discern_halo.add_child(halo_ring)
@@ -419,9 +450,9 @@ func _build_illusion_maze() -> void:
 	gold_glow.mesh = glow_box
 	gold_glow.position = Vector3(3.5, 0.04, -72.0)
 	var glow_mat := StandardMaterial3D.new()
-	glow_mat.albedo_color = STORYBOOK_GOLD
+	glow_mat.albedo_color = WARN_YELLOW
 	glow_mat.emission_enabled = true
-	glow_mat.emission = STORYBOOK_GOLD
+	glow_mat.emission = WARN_YELLOW
 	glow_mat.emission_energy_multiplier = 0.9
 	gold_glow.material_override = glow_mat
 	add_child(gold_glow)
@@ -450,7 +481,7 @@ func _build_illusion_maze() -> void:
 			meme_layer.play("dog_alert")
 	)
 
-	# Fireflies: soft motes marking the safe line through the maze.
+	# Warning-yellow signal wisps marking the safe line through the maze.
 	for wisp_pos in [Vector3(3, 1.1, -50), Vector3(-2, 1.1, -58), Vector3(1, 1.1, -66), Vector3(-2, 1.1, -76)]:
 		_firefly(wisp_pos)
 
@@ -492,8 +523,8 @@ func _build_decorations() -> void:
 			add_child(bush)
 
 func _storybook_tree(pos: Vector3) -> void:
-	var trunk := _solid_box("TreeTrunk", Vector3(1.2, 5.0, 1.2), pos + Vector3(0, 2.5, 0), STORYBOOK_WOOD)
-	var foliage := _solid_box("TreeFoliage", Vector3(4.0, 4.0, 4.0), pos + Vector3(0, 5.5, 0), STORYBOOK_GREEN)
+	var trunk := _solid_box("TreeTrunk", Vector3(1.2, 5.0, 1.2), pos + Vector3(0, 2.5, 0), TRUNK_BROWN)
+	var foliage := _solid_box("TreeFoliage", Vector3(4.0, 4.0, 4.0), pos + Vector3(0, 5.5, 0), JUNGLE_GREEN)
 	# Whole whimsical storybook tree dressed on the trunk body; both procedural
 	# boxes hide, collisions stay.
 	ASSETS.replace_visuals(trunk, "ENV_C3_TREE", Vector3(0, -2.5, 0))
@@ -513,7 +544,7 @@ func _maze_wall(node_name: String, size: Vector3, pos: Vector3) -> StaticBody3D:
 	# origin sits at mid-height so the segment base sinks to local -1.2. The
 	# procedural box hides: it sits at the exact same footprint and would
 	# z-fight with the model segments otherwise.
-	var body := _solid_box(node_name, size, pos, STORYBOOK_STONE)
+	var body := _solid_box(node_name, size, pos, TRENCH_GRAY)
 	ASSETS.tile_run(body, "PROP_C3_MAZE_WALL", size, Vector3(6, 0.8, 2.4), 0.0, -MAZE_WALL_H * 0.5)
 	return body
 
@@ -522,9 +553,9 @@ func _build_exit() -> void:
 
 	# Hollow ancient tree arch (collision stays; the giant hollow-trunk model
 	# replaces the three procedural boxes and wraps the glowing doorway)
-	var arch_l := _solid_box("ArchL", Vector3(1.4, 6.0, 1.4), portal_pos + Vector3(-2.6, 3.0, 0), STORYBOOK_WOOD)
-	var arch_r := _solid_box("ArchR", Vector3(1.4, 6.0, 1.4), portal_pos + Vector3(2.6, 3.0, 0), STORYBOOK_WOOD)
-	var arch_top := _solid_box("ArchTop", Vector3(6.6, 1.4, 1.4), portal_pos + Vector3(0, 6.6, 0), STORYBOOK_WOOD)
+	var arch_l := _solid_box("ArchL", Vector3(1.4, 6.0, 1.4), portal_pos + Vector3(-2.6, 3.0, 0), TRUNK_BROWN)
+	var arch_r := _solid_box("ArchR", Vector3(1.4, 6.0, 1.4), portal_pos + Vector3(2.6, 3.0, 0), TRUNK_BROWN)
+	var arch_top := _solid_box("ArchTop", Vector3(6.6, 1.4, 1.4), portal_pos + Vector3(0, 6.6, 0), TRUNK_BROWN)
 	for arch in [arch_l, arch_r, arch_top]:
 		ASSETS.hide_procedural_visuals(arch)
 	var hollow_tree := ASSETS.make("PROP_C3_HOLLOW_TREE")
@@ -532,7 +563,7 @@ func _build_exit() -> void:
 		hollow_tree.position = portal_pos
 		add_child(hollow_tree)
 
-	# Green fairy portal interior
+	# Firelight extraction curtain inside the hollow tree (was fairy green)
 	var portal_mesh := MeshInstance3D.new()
 	portal_mesh.name = "FairyPortalMesh"
 	var quad := BoxMesh.new()
@@ -541,9 +572,9 @@ func _build_exit() -> void:
 	portal_mesh.position = portal_pos + Vector3(0, 3.2, 0)
 	var mat := StandardMaterial3D.new()
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.albedo_color = Color("22C55EAA")
+	mat.albedo_color = Color(FIRE_ORANGE, 0.67)
 	mat.emission_enabled = true
-	mat.emission = Color("4ADE80")
+	mat.emission = FIRE_ORANGE
 	portal_mesh.material_override = mat
 	add_child(portal_mesh)
 
@@ -559,9 +590,9 @@ func _firefly(pos: Vector3) -> void:
 	wisp.mesh = sphere
 	wisp.position = pos
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = STORYBOOK_GOLD
+	mat.albedo_color = WARN_YELLOW
 	mat.emission_enabled = true
-	mat.emission = STORYBOOK_GOLD
+	mat.emission = WARN_YELLOW
 	mat.emission_energy_multiplier = 1.6
 	wisp.material_override = mat
 	add_child(wisp)
