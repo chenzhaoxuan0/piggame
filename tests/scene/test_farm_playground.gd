@@ -33,7 +33,7 @@ func _run() -> void:
 	_check(farm.get_node_or_null("CabbageBall") != null and farm.get_node_or_null("CabbageGoal") != null,
 		"Cabbage pitch is built (ball + goal)")
 	_check(farm.get_node_or_null("Log_Summit_1") != null, "Summit log obstacle exists")
-	_check(get_nodes_in_group("interactable").size() == 7, "Playground props stay out of the story interactables")
+	_check(get_nodes_in_group("interactable").size() == 8, "Playground props stay out of the story interactables (5 NPCs + record board + cablecar + pigpen trough)")
 
 	# --- Cabbage kick: contact hops the ball away from the pig
 	var ball: Node3D = farm.get_node("CabbageBall")
