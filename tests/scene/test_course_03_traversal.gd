@@ -58,9 +58,25 @@ func _run() -> void:
 	_check(is_instance_valid(course) and runner.config.course_id == "course_3", "Course 3 loaded")
 	runner.course_started.connect(func(): runner.set_dogs_active(false)) # Keep the bot out of QTEs
 
-	var result: Dictionary = await TRAVERSAL.walk(self, office.player, _route(), func(): return runner.completed, 110.0)
+	# 进场节拍出现并锁住猪；快进放行后 bot 才开跑（与玩家连按跳过同一条路）。
+	_check(runner.beat_active() and runner.active_beat_id() == "course_3_intro", "Intro dialogue beat shows on woodland entry")
+	_check(office.player.control_mode == "cinematic", "Pig locked during the intro beat")
+	runner.skip_beats()
+	await create_timer(0.15).timeout
+	_check(not runner.beat_active() and office.player.control_mode != "cinematic", "Beat released the pig for the walk")
+
+	# 沿途剧情节拍（幻墙碎裂 / 迷宫入口）在跑全程时必须真的出现；bot 与玩家
+	# 共用 skip：一出现即快进，节拍卡绝不能卡死 bot（时限预算不变）。
+	var beats_seen := {}
+	runner.beat_started.connect(func(id: String): beats_seen[id] = true)
+	var beat_tick := func() -> void:
+		if runner.beat_active():
+			runner.skip_beats()
+
+	var result: Dictionary = await TRAVERSAL.walk(self, office.player, _route(), func(): return runner.completed, 110.0, 1.3, beat_tick)
 	_check(result["ok"], "Pig physically walked the woodland to the exit (waypoint %d at %s, reason: %s)" % [result["index"], result["position"], result["reason"]])
 	print("COURSE_03_TRAVERSAL_TEST INFO: lap splits=%s knocks=%d" % [result["splits"], result["knocks"]])
+	_check(beats_seen.has("course_3_wall_shatter") and beats_seen.has("course_3_maze"), "Mid-course story beats (wall shatter + maze entry) fired along the lap")
 
 	if result["ok"]:
 		await create_timer(0.3).timeout

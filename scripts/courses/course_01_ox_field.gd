@@ -28,6 +28,9 @@ const HAZARD_DARK := Color("2C3E50")
 
 var runner: CourseRunner
 var meme_layer: MemeLayer
+# 剧情节拍一次性闸门：疑心桥 / 大锤节奏阵各只播一次。
+var _bridge_beat_fired := false
+var _hammer_beat_fired := false
 
 func _ready() -> void:
 	_build_ground()
@@ -56,6 +59,19 @@ func _ready() -> void:
 func setup(player: Node3D) -> void:
 	player.reset_at(SPAWN)
 	runner.setup(player, SPAWN)
+	# 进场对话节拍：体素牛耕地的「入口消化」——出了什么事 / 在哪 / 干什么。
+	# 出生点在起点 marker 之外，节拍结束玩家迈步才触发 marker → course_started。
+	runner.begin_beat({
+		"id": "course_1_intro",
+		"title": "第一章 · 隐藏试炼 · 牛耕地",
+		"lines": [
+			"哗啦——水管把你吐进了另一个世界：草是方的，云也是方的。",
+			"这是牛耕地里的隐藏试炼道，叼着铜插销逃跑的路上钻进来的——身后的阴影也追进来了！",
+			"跑赢这条糖豆人赛道：弹簧垫、问号砖、大摆锤——出口水管直通牛耕地！",
+		],
+		"line_time": 2.5,
+		"accent": STRAW,
+	})
 
 func _make_config() -> CourseConfig:
 	var cfg := CONFIG_SCRIPT.new()
@@ -82,7 +98,6 @@ func _make_config() -> CourseConfig:
 		"pendulum_hit": {"title": "大摆锤八十！", "text": "左右摇摆的大铁球！抓准时机冲！", "duration": 2.2},
 		"decoy_goal": {"title": "我信你个鬼", "text": "这出口是画上去的！真出口是直走的缺口！", "duration": 3.0},
 		"decoy_again": {"title": "还想撞？", "text": "画饼充不了饥，假门进不去", "duration": 2.0},
-		"hammer_rhythm": {"title": "大锤节奏阵", "text": "跟着节奏走位！", "rhythm": ["退！", "退！", "退！"], "interval": 0.55, "cooldown": 4.0},
 		"hammer_hit": {"title": "大锤八十！", "text": "大锤八十，小锤四十！", "duration": 2.0},
 		"dog_bonk": {"title": "恶犬扑空", "text": "没技能？那就滚一圈再说", "duration": 2.0},
 		"qte_success": {"title": "坚韧挣脱！", "text": "阿牛之力：咬紧牙关，震退恶犬！", "duration": 2.2},
@@ -320,6 +335,28 @@ func _build_fake_floor_bridge() -> void:
 	floor_tile.telegraph_meme_id = "fake_floor_telegraph"
 	add_child(floor_tile)
 	_label("康庄大道 · 直通对面", Vector3(0, 1.6, -31.5), 20)
+	# 剧情点节拍 ①：踏上「康庄大道」前的疑心停顿（实心 PathA 地面上的触发器，
+	# 锁定期不站在会塌的桥上）。塌桥本身的教学 toast 照旧由组件播。
+	var suspicion := _area("FakeBridgeBeatTrigger", "", Vector3(0, 1, -28.5), Vector3(8, 3, 1))
+	suspicion.body_entered.connect(_on_suspicion_entered)
+
+func _on_suspicion_entered(body: Node3D) -> void:
+	if _bridge_beat_fired:
+		return
+	if not body.is_in_group("player") and not body.name.to_lower().contains("pig"):
+		return
+	_bridge_beat_fired = true
+	if runner != null:
+		runner.begin_beat({
+			"id": "course_1_fake_bridge",
+			"title": "这条桥平得可疑……",
+			"lines": [
+				"这条『康庄大道』又宽又平——前面明明是断崖。",
+				"（真塌了也别慌：谷底的超级弹簧会把你弹回跑道。）",
+			],
+			"line_time": 1.3,
+			"accent": HAZARD_YELLOW,
+		})
 
 func _build_sweepers() -> void:
 	# Sweeper 1
@@ -412,11 +449,28 @@ func _build_hammer_bridge() -> void:
 		add_child(hammer)
 
 	var rhythm_trigger := _area("RhythmTrigger", "", Vector3(0, 1, -72), Vector3(4, 3, 2))
-	rhythm_trigger.body_entered.connect(func(body: Node3D):
-		if body is PigController and meme_layer:
-			meme_layer.play("hammer_rhythm", body.global_position)
-	)
+	rhythm_trigger.body_entered.connect(_on_hammer_bridge_entered)
 	_label("大锤节奏阵 · 听节奏走位", Vector3(0, 2.6, -73), 20)
+
+func _on_hammer_bridge_entered(body: Node3D) -> void:
+	# 剧情点节拍 ②（升级自 hammer_rhythm toast）：末段大锤节奏阵。触发器在
+	# 桥头的实心木板上、距第一把大锤 3 m（臂长 2.6 m 扫不到），锁定期安全。
+	if _hammer_beat_fired:
+		return
+	if not body.is_in_group("player") and not body.name.to_lower().contains("pig"):
+		return
+	_hammer_beat_fired = true
+	if runner != null:
+		runner.begin_beat({
+			"id": "course_1_hammer_bridge",
+			"title": "大锤节奏阵 · 八十——八十——",
+			"lines": [
+				"四把大锤排着节奏砸！退——进——退——进！",
+				"桥那头的水管直通牛耕地，冲！",
+			],
+			"line_time": 1.25,
+			"accent": HAZARD_DARK,
+		})
 
 func _build_decorations() -> void:
 	# 1. Bunting flag garlands (三角彩旗链)

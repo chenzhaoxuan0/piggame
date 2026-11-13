@@ -50,6 +50,8 @@ var maze_chest_mimic: Node3D
 var zigzag_dog: Node3D
 var _chest_boost_active: bool = false
 var _chest_boost_until_msec: int = 0
+# 剧情节拍一次性闸门：迷宫入口只播一次（第一堵幻墙由 shattered 信号天然一次性）。
+var _maze_beat_fired := false
 
 func _process(_delta: float) -> void:
 	if _chest_boost_active and Time.get_ticks_msec() >= _chest_boost_until_msec:
@@ -108,6 +110,18 @@ func setup(player: Node3D) -> void:
 		# the farm story's sheep/ox quests stay unfinished until really done.
 		gm.grant_course_skills(["struggle", "discern"])
 	runner.setup(player, SPAWN)
+	# 进场对话节拍：童话林间的「入口消化」——画风第三次突变。
+	runner.begin_beat({
+		"id": "course_3_intro",
+		"title": "第三章 · 迷雾林间寻路",
+		"lines": [
+			"树会发光，蘑菇长着波点——这里是一本童话书里的森林？",
+			"林间隐藏试炼：迷雾里全是恶犬的视线锥，幻象墙挡着去马场的路。",
+			"纸箱隐匿、洞察辨伪——穿过去，马场的灯就挂在林子后面！",
+		],
+		"line_time": 2.5,
+		"accent": STORYBOOK_PURPLE,
+	})
 	if plunger_launcher != null:
 		plunger_launcher.setup(player, 3) # three rounds in the pocket at the gate
 	_update_discern_visuals()
@@ -305,8 +319,19 @@ func _build_illusory_wall_puzzle() -> void:
 	add_child(illusory_wall)
 
 	illusory_wall.wall_shattered.connect(func(_w):
-		if meme_layer:
-			meme_layer.play("illusory_shatter")
+		# 剧情点节拍 ①（升级自 illusory_shatter toast，仅第一堵幻墙）：
+		# 「死胡同」碎裂成隐藏道路的瞬间。破幻迷宫里的第二堵幻墙照旧走 toast。
+		if runner != null:
+			runner.begin_beat({
+				"id": "course_3_wall_shatter",
+				"title": "石壁——碎了？！",
+				"lines": [
+					"看似死胡同的石壁像玻璃一样碎了一地——原来它是幻象！",
+					"（洞察之眸小抄：会微微发光的墙，都能撞穿。）",
+				],
+				"line_time": 1.3,
+				"accent": STORYBOOK_PURPLE,
+			})
 	)
 
 	# Discern halo guide
@@ -428,6 +453,29 @@ func _build_illusion_maze() -> void:
 	# Fireflies: soft motes marking the safe line through the maze.
 	for wisp_pos in [Vector3(3, 1.1, -50), Vector3(-2, 1.1, -58), Vector3(1, 1.1, -66), Vector3(-2, 1.1, -76)]:
 		_firefly(wisp_pos)
+
+	# 剧情点节拍 ②：末段冲刺——破幻迷宫入口的宣告（实心 HiddenFairyPath
+	# 地面上，检查点 2 旁）。锁定期巡逻犬照常走位，但咬不到锁着的猪。
+	var maze_gate := _area("MazeBeatTrigger", "", Vector3(0, 1, -49.3), Vector3(8, 3, 1.2))
+	maze_gate.body_entered.connect(_on_maze_entered)
+
+func _on_maze_entered(body: Node3D) -> void:
+	if _maze_beat_fired:
+		return
+	if not body.is_in_group("player") and not body.name.to_lower().contains("pig"):
+		return
+	_maze_beat_fired = true
+	if runner != null:
+		runner.begin_beat({
+			"id": "course_3_maze",
+			"title": "破幻迷宫 · 末段冲刺",
+			"lines": [
+				"石墙为实，幻墙可破——萤火虫标着安全线。",
+				"小心巡逻恶犬的视线，直穿到底就是空心神木！",
+			],
+			"line_time": 1.25,
+			"accent": STORYBOOK_GOLD,
+		})
 
 func _build_decorations() -> void:
 	# Mushroom clusters + storybook bushes along the path (visual-only dressing)
