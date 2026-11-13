@@ -50,7 +50,9 @@ func _setup_visual() -> void:
 	var quad := BoxMesh.new()
 	quad.size = Vector3(patch_size.x, 0.06, patch_size.y)
 	puddle.mesh = quad
-	puddle.position.y = 0.03
+	# 0.055 keeps the puddle (0.06 thick) fully above the dressed tile tops
+	# (0.02) - at 0.03 its body straddled the tile plane and shimmered.
+	puddle.position.y = 0.055
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = surface_color
 	mat.roughness = 0.25

@@ -166,7 +166,10 @@ func _build_ground() -> void:
 	_floor_slab("FloorL1", Vector3(12, 1, 54), Vector3(0, -0.5, -7))
 	_floor_slab("FloorL2", Vector3(28, 1, 8), Vector3(20, -0.5, -30))
 	_floor_slab("FloorL3", Vector3(8, 1, 24), Vector3(30, -0.5, -46))
-	_floor_slab("FloorL4", Vector3(12, 1, 8), Vector3(40, -0.5, -54))
+	# 2026-11-13: trimmed to x 34..40 - the old 34..46 span double-covered the
+	# L5 corner (x 40..46) with a second tile grid at the same height, flickering
+	# across the whole corner; L5 still floors x 40..52 there.
+	_floor_slab("FloorL4", Vector3(6, 1, 8), Vector3(37, -0.5, -54))
 	_floor_slab("FloorL5", Vector3(12, 1, 38), Vector3(46, -0.5, -69))
 
 	# Outer walls (0.4 thick). Every corner sealed, every leg mouth open.
@@ -198,7 +201,10 @@ func _floor_slab(node_name: String, size: Vector3, pos: Vector3) -> void:
 	body.add_child(shape)
 	var mesh := MeshInstance3D.new()
 	var mesh_box := BoxMesh.new()
-	mesh_box.size = size
+	# Visual slab sits 0.06 under the tile tops and inside their footprint so
+	# no slab face is ever coplanar with the dressed tile faces (z-fight).
+	mesh_box.size = Vector3(size.x - 0.12, size.y - 0.12, size.z - 0.12)
+	mesh.position = Vector3(0, -0.06, 0)
 	mesh.mesh = mesh_box
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = FLOOR_CONCRETE
@@ -530,7 +536,9 @@ func _build_plant_dressing() -> void:
 		for i in 5:
 			var checker := MeshInstance3D.new()
 			var box := BoxMesh.new()
-			box.size = Vector3(0.55, 0.02, 1.2)
+			# 0.3-long plates tile the strip without overlapping their neighbours
+			# (the old 1.2-long plates stacked 4-deep at one height and flickered).
+			box.size = Vector3(0.55, 0.02, 0.3)
 			checker.mesh = box
 			checker.position = strip_pos + Vector3(0, 0, -0.6 + 0.3 * float(i))
 			var mat := StandardMaterial3D.new()

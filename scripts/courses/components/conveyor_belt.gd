@@ -124,7 +124,9 @@ func _setup_stripes() -> void:
 			box.size = Vector3(belt_size.x * 0.92, 0.03, stripe_gap * 0.45)
 		stripe.mesh = box
 		var along: float = -long_size * 0.5 + stripe_gap * (float(i) + 0.5)
-		stripe.position = Vector3(along, belt_size.y + 0.02, 0) if lateral else Vector3(0, belt_size.y + 0.02, along)
+		# 0.045 lift keeps the stripe bottom clear of the belt surface below
+		# (0.02 left only a 5 mm gap that shimmered against it).
+		stripe.position = Vector3(along, belt_size.y + 0.045, 0) if lateral else Vector3(0, belt_size.y + 0.045, along)
 		stripe.material_override = stripe_mat
 		_stripes_root.add_child(stripe)
 

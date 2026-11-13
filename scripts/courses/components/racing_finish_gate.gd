@@ -67,7 +67,9 @@ func _setup_frame() -> void:
 	var quad := BoxMesh.new()
 	quad.size = Vector3(gate_width, 0.04, 1.4)
 	line.mesh = quad
-	line.position = Vector3(0, 0.02, 0)
+	# Clear the dressed tile tops (0.02): at 0.02 the line's bottom face sat
+	# exactly on the road slab top and flickered along the finish line.
+	line.position = Vector3(0, 0.055, 0)
 	var line_mat := StandardMaterial3D.new()
 	line_mat.albedo_color = Color("F8FAFC")
 	line.material_override = line_mat

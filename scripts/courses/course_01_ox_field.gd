@@ -99,12 +99,12 @@ func _build_ground() -> void:
 	# Ramp top surface runs exactly from LowerPath edge (-43, -3.5) to PathB edge (-49, 0).
 	var ramp := _solid_box("RampBack", Vector3(8, 0.5, 6.95), Vector3(0, -1.966, -46.126), WOOD)
 	ramp.rotation.x = deg_to_rad(30.26)
-	var ramp_deck := ASSETS.replace_visuals(ramp, "PROP_C1_FAKEBRIDGE", Vector3(0, 0.1, 0))
+	var ramp_deck := ASSETS.replace_visuals(ramp, "PROP_C1_FAKEBRIDGE", Vector3(0, 0.15, 0))
 	if ramp_deck:
 		ramp_deck.scale = Vector3(1.0, 1.0, 6.95 / 12.0)
 	_grass_platform("PathB", Vector3(8, 1, 21), Vector3(0, -0.5, -59.5))
 	var bridge := _solid_box("HammerBridge", Vector3(4, 1, 22), Vector3(0, -0.5, -81), WOOD)
-	var bridge_deck := ASSETS.replace_visuals(bridge, "PROP_C1_FAKEBRIDGE", Vector3(0, 0.35, 0))
+	var bridge_deck := ASSETS.replace_visuals(bridge, "PROP_C1_FAKEBRIDGE", Vector3(0, 0.41, 0))
 	if bridge_deck:
 		bridge_deck.scale = Vector3(0.5, 1.0, 22.0 / 12.0)
 	_grass_platform("ExitTerrace", Vector3(12, 1, 12), Vector3(0, -0.5, -98))
@@ -175,8 +175,10 @@ func _platform(node_name: String, size: Vector3, pos: Vector3, top_color: Color)
 	body.add_child(shape)
 	# Soil body + grass rim slab flush with the collision top; x-only overhang
 	# hides the seam without overlapping the next platform's slab.
-	_add_box_mesh(body, Vector3(size.x, size.y - 0.14, size.z), Vector3(0, -0.07, 0), LOAM)
-	_add_box_mesh(body, Vector3(size.x + 0.24, 0.14, size.z), Vector3(0, size.y * 0.5 - 0.07, 0), top_color)
+	# Soil sides stay 0.06 inside the grass-model sides and the rim top sits
+	# 0.06 under the model top (was flush at 0.0003 m -> full-platform flicker).
+	_add_box_mesh(body, Vector3(size.x - 0.12, size.y - 0.14, size.z - 0.12), Vector3(0, -0.07, 0), LOAM)
+	_add_box_mesh(body, Vector3(size.x + 0.24, 0.14, size.z), Vector3(0, size.y * 0.5 - 0.13, 0), top_color)
 	add_child(body)
 	return body
 
@@ -368,13 +370,13 @@ func _build_decoy_wall() -> void:
 	var quad := QuadMesh.new()
 	quad.size = Vector2(2.4, 2.6)
 	painted.mesh = quad
-	painted.position = Vector3(-3.5, 1.5, -60.6)
+	painted.position = Vector3(-3.5, 1.5, -60.55)
 	var glow := StandardMaterial3D.new()
 	glow.albedo_color = Color("52B788")
 	glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	painted.material_override = glow
 	add_child(painted)
-	_label("出口 EXIT", Vector3(-3.5, 2.4, -60.45), 40)
+	_label("出口 EXIT", Vector3(-3.5, 2.4, -60.3), 40)
 	var hint := _label("真出口 → 直走缺口", Vector3(0, 1.8, -60), 22)
 	var decoy := DECOY_GOAL.new()
 	decoy.name = "PaintedDoor"

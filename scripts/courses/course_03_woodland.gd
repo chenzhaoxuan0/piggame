@@ -545,9 +545,11 @@ func _fairytale_platform(node_name: String, size: Vector3, pos: Vector3, top_col
 
 	var top_mesh := MeshInstance3D.new()
 	var top_box := BoxMesh.new()
-	top_box.size = Vector3(size.x, 0.25, size.z)
+	# Turf top 0.06 under the tile tops, footprint 0.06 inside them; dirt base
+	# insets further (same anti-coplanar contract as course_02's platforms).
+	top_box.size = Vector3(size.x - 0.12, 0.25, size.z - 0.12)
 	top_mesh.mesh = top_box
-	top_mesh.position = Vector3(0, size.y * 0.5 - 0.125, 0)
+	top_mesh.position = Vector3(0, size.y * 0.5 - 0.185, 0)
 	var top_mat := StandardMaterial3D.new()
 	top_mat.albedo_color = top_color
 	top_mat.roughness = 0.9
@@ -556,7 +558,7 @@ func _fairytale_platform(node_name: String, size: Vector3, pos: Vector3, top_col
 
 	var base_mesh := MeshInstance3D.new()
 	var base_box := BoxMesh.new()
-	base_box.size = Vector3(size.x, size.y - 0.25, size.z)
+	base_box.size = Vector3(size.x - 0.24, size.y - 0.25, size.z - 0.24)
 	base_mesh.mesh = base_box
 	base_mesh.position = Vector3(0, -0.125, 0)
 	var base_mat := StandardMaterial3D.new()

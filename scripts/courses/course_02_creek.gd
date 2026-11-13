@@ -488,9 +488,12 @@ func _voxel_platform(node_name: String, size: Vector3, pos: Vector3, top_color: 
 	# Top turf
 	var top_mesh := MeshInstance3D.new()
 	var top_box := BoxMesh.new()
-	top_box.size = Vector3(size.x, 0.25, size.z)
+	# Turf top sits 0.06 under the voxel-block tops and 0.06 inside their
+	# footprint; the dirt base insets further so no slab side is coplanar with
+	# a block side (every platform edge used to shimmer).
+	top_box.size = Vector3(size.x - 0.12, 0.25, size.z - 0.12)
 	top_mesh.mesh = top_box
-	top_mesh.position = Vector3(0, size.y * 0.5 - 0.125, 0)
+	top_mesh.position = Vector3(0, size.y * 0.5 - 0.185, 0)
 	var top_mat := StandardMaterial3D.new()
 	top_mat.albedo_color = top_color
 	top_mat.roughness = 0.9
@@ -500,7 +503,7 @@ func _voxel_platform(node_name: String, size: Vector3, pos: Vector3, top_color: 
 	# Dirt base
 	var base_mesh := MeshInstance3D.new()
 	var base_box := BoxMesh.new()
-	base_box.size = Vector3(size.x, size.y - 0.25, size.z)
+	base_box.size = Vector3(size.x - 0.24, size.y - 0.25, size.z - 0.24)
 	base_mesh.mesh = base_box
 	base_mesh.position = Vector3(0, -0.125, 0)
 	var base_mat := StandardMaterial3D.new()
@@ -515,7 +518,9 @@ func _voxel_platform(node_name: String, size: Vector3, pos: Vector3, top_color: 
 	if not dress_id.is_empty():
 		var tile_h := 1.0
 		for layer in dress_layers:
-			ASSETS.tile_slab_top(body, dress_id, size, Vector3(4, tile_h, 4), size.y * 0.5 - tile_h * float(layer))
+			# Swell staggers each cliff layer 0.042 outward so stacked block
+			# layers never share one coplanar cliff face.
+			ASSETS.tile_slab_top(body, dress_id, size, Vector3(4, tile_h, 4), size.y * 0.5 - tile_h * float(layer), 0.02, 0.006 * float(layer))
 	return body
 
 func _voxel_ramp(node_name: String, size: Vector3, pos: Vector3, height: float) -> StaticBody3D:
