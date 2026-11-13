@@ -583,8 +583,62 @@ func _start_pigpen_tutorial() -> void:
 	camera.snap_to_target()
 	if is_instance_valid(key_strip):
 		key_strip.visible = true
+	_show_brain_hole_quiz()
 	_show_toast("山顶猪圈 · 演出开始前", "蹄子还听使唤吗？先在猪圈里练练——练好了就去找山羊，按 [ F ] 开始今天的农场。")
 	_refresh_hud()
+
+# ------------------------------------------------------------- brain hole
+# 开演前的脑洞校准：一个选择题，问「这个游戏好玩吗」。只有选「不」才能
+# 通过——预期被放到地板上，后面每一秒都是惊喜（选「好玩」会被告知答错）。
+var _brain_quiz: Control = null
+var _brain_hint: Label = null
+
+func _show_brain_hole_quiz() -> void:
+	if is_instance_valid(_brain_quiz) and is_instance_valid(_brain_hint) and _brain_hint.text != "":
+		return # already answered once this session - the hole stays calibrated
+	if is_instance_valid(_brain_quiz):
+		_brain_quiz.queue_free()
+	var panel: PanelContainer = UI.patch_panel(18, UI.PAPER, UI.PINK, Vector2(28, 22))
+	panel.name = "BrainHoleQuiz"
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 12)
+	panel.add_child(column)
+	column.add_child(UI.label("开演前 · 脑洞校准", 24, UI.INK, true))
+	var question := UI.label("这个游戏好玩吗？", 19, UI.INK)
+	question.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	column.add_child(question)
+	_brain_hint = UI.label("（请凭第一感觉作答）", 15, Color("8A8177"))
+	_brain_hint.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+	column.add_child(_brain_hint)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.add_child(row)
+	row.add_child(UI.button("好玩", _answer_brain_hole.bind(false)))
+	row.add_child(UI.button("不", _answer_brain_hole.bind(true), true))
+	# The quiz owns the screen centre: hold the pig still until it's answered.
+	player.set_control_mode("locked")
+	hud.add_child(panel)
+	_brain_quiz = panel
+
+func _answer_brain_hole(lower: bool) -> void:
+	if not is_instance_valid(_brain_quiz):
+		return
+	if not lower:
+		# 答错了。预期没有降下来，不能开演——面板抖一下，提示只有「不」是对的。
+		var shake := create_tween()
+		shake.tween_property(_brain_quiz, "position:x", _brain_quiz.position.x + 10.0, 0.05)
+		shake.tween_property(_brain_quiz, "position:x", _brain_quiz.position.x - 10.0, 0.05)
+		shake.tween_property(_brain_quiz, "position:x", _brain_quiz.position.x, 0.05)
+		_brain_hint.text = "不对，再想想——这个游戏好不好玩？你只需要选『不』。"
+		return
+	_brain_hint.text = "。" # answered marker for the once-per-session guard
+	_brain_quiz.queue_free()
+	if GameManager.tutorial_free_roam:
+		player.set_control_mode("explore")
+	_show_toast("脑洞已校准", "预期已放到地板上。从现在起，每一秒都是惊喜。")
 
 func _end_pigpen_tutorial() -> void:
 	if not GameManager.tutorial_free_roam:

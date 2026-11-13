@@ -17,6 +17,12 @@ func _check(ok: bool, message: String) -> void:
 	print("OPENING_TEST %s: %s" % ["PASS" if ok else "FAIL", message])
 	if not ok: failures += 1
 
+func _quiz_button(quiz: Control, text: String) -> Button:
+	for b in quiz.find_children("*", "Button", true, false):
+		if b.text == text:
+			return b
+	return null
+
 func _run() -> void:
 	game = root.get_node("GameManager")
 	am = root.get_node("AchievementManager")
@@ -50,6 +56,21 @@ func _run() -> void:
 	_check(game.tutorial_free_roam, "Pigpen tutorial sandbox is active")
 	_check(game.intro_dream_done, "Skip hand-off still marks the prologue beat as known")
 	_check(office.active_course == null and office.farm.get_parent() == office, "Farm world is live (no floating pen)")
+
+	# --- 2b. The brain-hole quiz gates the sandbox: only 「不」 lowers the bar
+	var quiz: Control = office.find_child("BrainHoleQuiz", true, false)
+	_check(quiz != null and quiz.visible, "Brain-hole quiz is up before free roam")
+	_check(office.player.control_mode == "locked", "Pig waits while the quiz owns the centre")
+	var wrong_btn: Button = _quiz_button(quiz, "好玩")
+	var right_btn: Button = _quiz_button(quiz, "不")
+	if wrong_btn != null and right_btn != null:
+		wrong_btn.pressed.emit()
+		await process_frame
+		_check(office.find_child("BrainHoleQuiz", true, false) != null, "Answering 好玩 is rejected - the quiz stays")
+		_check("不" in office._brain_hint.text, "The hint tells the pig only 「不」 passes")
+		right_btn.pressed.emit()
+		await process_frame
+	_check(office.find_child("BrainHoleQuiz", true, false) == null, "Answering 不 frees the pig")
 	_check(office.player.control_mode == "explore", "Pig can roam during the tutorial")
 	_check(office.player.dash_enabled and office.player.force_dodge_available, "Shift sprint and dodge are armed for the sandbox")
 	var spawn_dist: float = office.player.global_position.distance_to(office.farm.get_spawn_position())
