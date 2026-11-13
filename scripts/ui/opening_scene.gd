@@ -11,6 +11,7 @@ extends Node3D
 # its own start menu.
 
 const UI = preload("res://scripts/ui/ui_kit.gd")
+const ASSETS = preload("res://scripts/art/asset_library.gd")
 const GAME_MENUS = preload("res://scripts/ui/menus.gd")
 
 var _ui_root: Control
@@ -45,12 +46,64 @@ func _build_stage() -> void:
 	sun.light_energy = 0.9
 	add_child(sun)
 
-	# Static camera on the horizon: without any camera the 3D sky never draws
+	# The backdrop IS the pigpen now: grass, stone walls, the trough and the
+	# pig waiting for the curtain - the menu no longer floats over a void.
+	# Static diorama only (no controllers, no interactables - the tutorial
+	# sandbox lives in office_level_1); node names stay clear of "Pig"/"trough"
+	# so the opening-scene contract keeps guarding against the old floating pen.
+	var pen := Node3D.new()
+	pen.name = "BackdropPen"
+	add_child(pen)
+	var grass := MeshInstance3D.new()
+	grass.name = "BackdropGrass"
+	var grass_box := BoxMesh.new()
+	grass_box.size = Vector3(40, 1, 40)
+	grass.mesh = grass_box
+	var grass_mat := StandardMaterial3D.new()
+	grass_mat.albedo_color = Color("79A85C")
+	grass_mat.roughness = 0.95
+	grass.material_override = grass_mat
+	grass.position = Vector3(0, -0.5, 4)
+	pen.add_child(grass)
+	var wall_mat := StandardMaterial3D.new()
+	wall_mat.albedo_color = Color("8E8E86")
+	wall_mat.roughness = 0.9
+	for side in [
+		[Vector3(0, 0.7, -2), Vector3(12.5, 1.4, 0.5)],
+		[Vector3(0, 0.7, 10), Vector3(12.5, 1.4, 0.5)],
+		[Vector3(-6, 0.7, 4), Vector3(0.5, 1.4, 12.5)],
+		[Vector3(6, 0.7, 4), Vector3(0.5, 1.4, 12.5)],
+	]:
+		var wall := MeshInstance3D.new()
+		var wall_box := BoxMesh.new()
+		wall_box.size = side[1]
+		wall.mesh = wall_box
+		wall.material_override = wall_mat
+		wall.position = side[0]
+		pen.add_child(wall)
+	var trough_art: Node3D = ASSETS.make("ENV_01_TROUGH")
+	if trough_art == null:
+		var fallback := MeshInstance3D.new()
+		var trough_box := BoxMesh.new()
+		trough_box.size = Vector3(1.8, 0.5, 0.9)
+		fallback.mesh = trough_box
+		trough_art = fallback
+	trough_art.name = "BackdropTrough"
+	trough_art.position = Vector3(2.2, 0, 2.5)
+	pen.add_child(trough_art)
+	var pig_art := ASSETS.make("CHAR_01")
+	if pig_art != null:
+		pig_art.name = "BackdropPig"
+		pig_art.position = Vector3(0, 0, 4)
+		pig_art.rotation.y = PI # facing the camera/menu
+		pen.add_child(pig_art)
+
+	# Static camera framing the pen: without any camera the 3D sky never draws
 	# and the menu sits on flat grey.
 	var cam := Camera3D.new()
 	cam.name = "MenuCamera"
-	cam.position = Vector3(0, 1.6, 0)
-	cam.rotation_degrees = Vector3(-6, 0, 0)
+	cam.position = Vector3(0, 2.4, -7)
+	cam.rotation_degrees = Vector3(-7, 0, 0)
 	add_child(cam)
 	cam.current = true
 
