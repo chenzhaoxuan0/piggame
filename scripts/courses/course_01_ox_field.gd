@@ -485,7 +485,7 @@ func _on_hammer_bridge_entered(body: Node3D) -> void:
 				"桥那头的水管直通牛耕地，冲！",
 			],
 			"line_time": 1.25,
-			"accent": HAZARD_DARK,
+			"accent": HAZARD_PLUM,
 		})
 
 func _build_decorations() -> void:

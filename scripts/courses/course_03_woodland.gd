@@ -146,7 +146,7 @@ func setup(player: Node3D) -> void:
 			"纸箱隐匿、洞察辨伪——穿过去，马场的灯就挂在林子后面！",
 		],
 		"line_time": 2.5,
-		"accent": STORYBOOK_PURPLE,
+		"accent": FIRE_ORANGE,
 	})
 	if plunger_launcher != null:
 		plunger_launcher.setup(player, 3) # three rounds in the pocket at the gate
@@ -361,7 +361,7 @@ func _build_illusory_wall_puzzle() -> void:
 					"（洞察之眸小抄：会微微发光的墙，都能撞穿。）",
 				],
 				"line_time": 1.3,
-				"accent": STORYBOOK_PURPLE,
+				"accent": FIRE_ORANGE,
 			})
 	)
 
@@ -505,7 +505,7 @@ func _on_maze_entered(body: Node3D) -> void:
 				"小心巡逻恶犬的视线，直穿到底就是空心神木！",
 			],
 			"line_time": 1.25,
-			"accent": STORYBOOK_GOLD,
+			"accent": WARN_YELLOW,
 		})
 
 func _build_decorations() -> void:
