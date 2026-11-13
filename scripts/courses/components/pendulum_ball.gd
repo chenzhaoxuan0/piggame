@@ -43,7 +43,9 @@ func _build_gantry() -> void:
 
 	_add_beam(gantry, Vector3(0.4, arm_length + 1.2, 0.4), Vector3(-gantry_half_width, (arm_length + 1.2) * 0.5, 0), beam_mat)
 	_add_beam(gantry, Vector3(0.4, arm_length + 1.2, 0.4), Vector3(gantry_half_width, (arm_length + 1.2) * 0.5, 0), beam_mat)
-	_add_beam(gantry, Vector3(gantry_half_width * 2.0 + 0.4, 0.45, 0.45), Vector3(0, arm_length + 1.0, 0), beam_mat)
+	# Beam depth 0.3 keeps its faces 0.05 inside the 0.4-deep post faces -
+	# at 0.45 the two near-coplanar side pairs shimmered at every joint.
+	_add_beam(gantry, Vector3(gantry_half_width * 2.0 + 0.4, 0.45, 0.3), Vector3(0, arm_length + 1.0, 0), beam_mat)
 	add_child(gantry)
 
 func _build_pendulum() -> void:

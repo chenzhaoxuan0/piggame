@@ -24,7 +24,7 @@ const TERRACES := [
 ]
 const NPCS := {
 	"goat": Vector3(-3,32,90), "ox": Vector3(41,24,37),
-	"sheep": Vector3(-52,16,-41.5), "horse": Vector3(26,8,-120),
+	"sheep": Vector3(-52,16,-41.5), "horse": Vector3(29,8,-120),
 	"farmer": Vector3(-78,2,-225),
 }
 const RESTS := {"ox": Vector3(38,24,34), "sheep": Vector3(-48,16,-41.5), "horse": Vector3(30,8,-120)}

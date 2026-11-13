@@ -35,7 +35,7 @@ func _run() -> void:
 	_check(office.farm.has_node("SecretCourtyardPipe"), "Farm has SecretCourtyardPipe entrance")
 	_check(office.farm.has_node("SecretCourtyardPipeExit"), "Farm has SecretCourtyardPipeExit at final gate")
 	var pipe: Node3D = office.farm.get_node("SecretCourtyardPipe")
-	_check(pipe.position.distance_to(Vector3(-71.0, 2.0, -217.0)) < 1.0, "Secret courtyard entrance located at the breakout-chase end before the final gate")
+	_check(pipe.position.distance_to(Vector3(-48.0, 2.0, -197.0)) < 1.0, "Secret courtyard entrance at the breakout-chase end, clear of the chase fence")
 	_check(pipe.has_node("PipeBody") and pipe.has_node("PipeTopArea"), "Pipe has solid body and top detection area")
 
 	# Pig standing on pipe rim
@@ -231,8 +231,9 @@ func _run() -> void:
 	_check(office.active_course == null, "Course scene unloaded")
 	_check(office.farm.get_parent() == office, "Farm restored to tree")
 	_check(game.stage == "showdown", "Progressed to showdown stage")
-	_check(office.player.global_position.distance_to(Vector3(-78.0, 2.1, -220.0)) < 1.5, "Pig emerged at final iron gate")
-	_check(office.player.global_position.distance_to(L.GATE_FINAL) < 10.0, "Pig emerged right before Final gate")
+	_check(office.player.global_position.distance_to(Vector3(-75.5, 2.1, -223.5)) < 1.5, "Pig emerged on the gate court beside the farmer")
+	_check(office.player.global_position.distance_to(L.GATE_FINAL) < 10.0, "Pig emerged within walking reach of the Final gate")
+	_check(office.player.global_position.distance_to(Vector3(-48.0, 2.0, -197.0)) > 20.0, "Exit drop is far from the courtyard pipe entrance")
 	_check(office.player.move_speed >= base_speed - 0.001, "No course slowdown leaks back into the farm")
 	_check(is_equal_approx(office.player.move_speed, base_speed), "The star boost is settled at course exit, not carried into the farm")
 

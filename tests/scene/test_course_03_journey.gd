@@ -29,7 +29,7 @@ func _run() -> void:
 	_check(office.farm.has_node("SecretWoodlandPipe"), "Farm has SecretWoodlandPipe entrance")
 	_check(office.farm.has_node("SecretWoodlandPipeExit"), "Farm has SecretWoodlandPipeExit at horse pasture entrance")
 	var pipe: Node3D = office.farm.get_node("SecretWoodlandPipe")
-	_check(pipe.position.distance_to(Vector3(12.0, 8.8, -85.0)) < 1.0, "Secret woodland entrance located at the woodland-chase end before Horse's gate")
+	_check(pipe.position.distance_to(Vector3(8.2, 8.95, -85.3)) < 1.0, "Secret woodland entrance at the woodland-chase end, off the running line")
 	_check(pipe.has_node("PipeBody") and pipe.has_node("PipeTopArea"), "Pipe has solid body and top detection area")
 
 	# Pig standing on pipe rim
@@ -179,8 +179,9 @@ func _run() -> void:
 	_check(office.active_course == null, "Course scene unloaded")
 	_check(office.farm.get_parent() == office, "Farm restored to tree")
 	_check(game.stage == "exploring", "Returned to exploring stage")
-	_check(office.player.global_position.distance_to(Vector3(16.0, 8.1, -88.0)) < 1.5, "Pig emerged at Horse pasture entrance")
-	_check(office.player.global_position.distance_to(L.GATE_HORSE) < 10.0, "Pig emerged near Horse gate")
+	_check(office.player.global_position.distance_to(Vector3(27.0, 8.1, -103.5)) < 1.5, "Pig emerged deep inside the horse pasture (far from the hidden entrance)")
+	_check(office.player.global_position.distance_to(L.GATE_HORSE) > 10.0, "Exit drop keeps clear distance from the Horse gate")
+	_check(office.player.global_position.distance_to(Vector3(8.2, 8.95, -85.3)) > 20.0, "Exit drop is far from the woodland pipe entrance")
 	_check(is_equal_approx(office.player.move_speed, chest_base), "Chest boost is settled at course exit, not carried into the farm")
 
 	print("\nALL COURSE 03 JOURNEY TESTS DONE: %d failures" % failures)

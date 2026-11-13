@@ -124,7 +124,7 @@ static func hide_procedural_visuals(parent: Node3D) -> void:
 ## The tile asset is Blender-normalized to `tile_size` (X,Y,Z metres); copies
 ## sink `sink` metres into the slab so seams never z-fight. Tiles stretch on
 ## X/Z by at most one grid step - keep `slab_size` a near multiple of the tile.
-static func tile_slab_top(parent: Node3D, asset_id: String, slab_size: Vector3, tile_size: Vector3, top_y: float, sink := 0.02) -> int:
+static func tile_slab_top(parent: Node3D, asset_id: String, slab_size: Vector3, tile_size: Vector3, top_y: float, sink := 0.02, swell := 0.0) -> int:
 	var cols := maxi(1, int(round(slab_size.x / tile_size.x)))
 	var rows := maxi(1, int(round(slab_size.z / tile_size.z)))
 	var step_x := slab_size.x / float(cols)
@@ -135,7 +135,7 @@ static func tile_slab_top(parent: Node3D, asset_id: String, slab_size: Vector3, 
 			var tile := make(asset_id)
 			if tile == null: return count
 			parent.add_child(tile)
-			tile.scale = Vector3(step_x / tile_size.x, 1.0, step_z / tile_size.z)
+			tile.scale = Vector3(step_x / tile_size.x, 1.0, step_z / tile_size.z) * (1.0 + swell)
 			tile.position = Vector3(
 				-slab_size.x * 0.5 + step_x * (float(cx) + 0.5),
 				top_y - tile_size.y + sink,

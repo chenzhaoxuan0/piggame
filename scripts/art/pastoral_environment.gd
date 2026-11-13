@@ -272,14 +272,17 @@ func _pigpen() -> void:
 func _fields() -> void:
 	_district = "OxFurrowsAndIrrigation"
 	# 2026-11-12: the furrow field used to sprawl across the ox-gate main lane
-	# and the ox-NPC spur; trimmed to 12 columns and shifted west so the crops
-	# sit fully off the road corridor (world x 10..29, z 37..52 vs lanes at
-	# z 55+ and x 41+), with the irrigation ditch moving along with it.
-	_patch(Vector3(-25, .044, 58.3), Vector2(16.0, 10.4), SOIL, 16, .025)
+	# and the ox-NPC spur; trimmed and shifted west so the crops sit off the road
+	# corridor. 2026-11-13 follow-up: the loose dirt patch still reached world
+	# x 41 / z 55 and ran under the summit road's gate-corner quad, and the
+	# irrigation ditch cut straight through the barn — patch hugs the furrow
+	# rectangle now (world x ~6..32, z ~34..54, >=1.3 m clear of every road
+	# boundary), furrows trimmed to 11x8, ditch re-routed east of the barn.
+	_patch(Vector3(-31.2, .044, 57.9), Vector2(13.0, 10.0), SOIL, 16, .025)
 	# Low trapezoidal furrows: actual raised soil volumes, not a row of boxes.
-	for row in 9:
+	for row in 8:
 		var z := 51.4 + row * 1.85
-		for col in 12:
+		for col in 11:
 			var x := -40.0 + col * 1.6
 			var h := .17 + sin(col * .8 + row) * .025
 			var shade := SOIL_LIGHT.lightened(float(row % 3) * .012)
@@ -288,12 +291,13 @@ func _fields() -> void:
 			_quad(Vector3(x, h, z + .3), Vector3(x + 1.61, h, z + .3), Vector3(x + 1.61, .06, z + .6), Vector3(x, .06, z + .6), SOIL, Vector3(0, 1, 1))
 			if row > 4 and col % 2 == 0:
 				_tuft(Vector3(x + .7, h, z), .40, LEAF_LIGHT)
-	# Stone-lined irrigation ditch connects the field edge and watering area.
-	_box(Vector3(-27, .056, 48.5), Vector3(25, .03, .95), WATER)
-	for z in [47.94, 49.06]: _stone_wall(Vector3(-39.5, 0, z), Vector3(-14.5, 0, z), .22, .30)
-	for i in 4: _box(Vector3(-31.4 + i * .35, .34, 48.5), Vector3(.32, .12, 1.9), WOOD)
-	for i in 16:
-		_box(Vector3(-38 + i * 1.5, .081, 48.4 + sin(i) * .15), Vector3(.6, .01, .035), Color("B1C8B7"))
+	# Stone-lined irrigation ditch runs along the field edge, east of the barn
+	# (the old line crossed the barn footprint) with a plank footbridge.
+	_box(Vector3(-20.75, .056, 48.5), Vector3(12.5, .03, .95), WATER)
+	for z in [47.94, 49.06]: _stone_wall(Vector3(-27, 0, z), Vector3(-14.5, 0, z), .22, .30)
+	for i in 4: _box(Vector3(-21.4 + i * .35, .34, 48.5), Vector3(.32, .12, 1.9), WOOD)
+	for i in 8:
+		_box(Vector3(-26 + i * 1.5, .081, 48.4 + sin(i) * .15), Vector3(.6, .01, .035), Color("B1C8B7"))
 	_barn(Vector3(-33, 0, 46), Vector3(11, 5, 8), false)
 	# Keep the original silo/windmill footprint, but give them architectural detail.
 	for i in 18:
@@ -302,17 +306,20 @@ func _fields() -> void:
 		var center := Vector3(-41.5, 0, 38)
 		_quad(center + Vector3(cos(a) * 2.5, 0, sin(a) * 2.5), center + Vector3(cos(b) * 2.5, 0, sin(b) * 2.5), center + Vector3(cos(b) * 2.1, 8.8, sin(b) * 2.1), center + Vector3(cos(a) * 2.1, 8.8, sin(a) * 2.1), Color("A8AEAB"), Vector3(cos(a), 0, sin(a)))
 		_tri(center + Vector3(cos(a) * 2.3, 8.8, sin(a) * 2.3), center + Vector3(cos(b) * 2.3, 8.8, sin(b) * 2.3), center + Vector3(0, 10, 0), ROOF, Vector3.UP)
-	_tree(Vector3(-40, 0, 58), 1.35)
+	_tree(Vector3(-42, 0, 58), 1.35)
 	_bucket(Vector3(-24.5, 0, 41))
-	_feed_rack(Vector3(-27, 0, 42), 2.6)
+	_feed_rack(Vector3(-25, 0, 42), 2.6)
 	# Right side is an orchard/pasture with rows of fruit trees and smaller beds.
 	for x in [18, 25, 32]:
 		for z in [48, 57, 65]:
 			_tree(Vector3(x, 0, z), 1.0)
 			_collider("OrchardTrunk", Vector3(x, 1, z), Vector3(.5, 2, .5))
+	# 2026-11-13: the four small beds used to straddle the ox->creek lane (world
+	# z ~28, one dead-center on it); moved into the orchard interior between the
+	# tree rows (world z ~46), fully off the lane.
 	for i in 4:
-		_patch(Vector3(12 + i * 3, .05, 42), Vector2(1.05, 2.0), SOIL, 8, .03)
-		for j in 5: _tuft(Vector3(12 + i * 3, .08, 40.5 + j * .65), .5, LEAF_LIGHT)
+		_patch(Vector3(12 + i * 3, .05, 60), Vector2(1.05, 2.0), SOIL, 8, .03)
+		for j in 5: _tuft(Vector3(12 + i * 3, .08, 58.5 + j * .65), .5, LEAF_LIGHT)
 
 func _barn(p: Vector3, size: Vector3, add_collision: bool = true) -> void:
 	var w := size.x

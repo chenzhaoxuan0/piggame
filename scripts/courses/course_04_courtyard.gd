@@ -263,7 +263,10 @@ func _track_segment(node_name: String, size: Vector3, pos: Vector3, surface: Col
 
 	var tarmac := MeshInstance3D.new()
 	var tarmac_box := BoxMesh.new()
-	tarmac_box.size = size
+	# Tarmac top 0.06 under the asphalt tile tops, footprint inside them -
+	# the old flush slab flickered against every tile face on the track.
+	tarmac_box.size = Vector3(size.x - 0.12, size.y - 0.12, size.z - 0.12)
+	tarmac.position = Vector3(0, -0.06, 0)
 	tarmac.mesh = tarmac_box
 	var tarmac_mat := StandardMaterial3D.new()
 	tarmac_mat.albedo_color = surface

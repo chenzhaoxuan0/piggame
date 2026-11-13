@@ -69,7 +69,9 @@ func _verges() -> void:
 		_root(["OAK","BIRCH","PINE"][i%3],q,.8+rng.randf()*.55,i*1.4)
 		if i%2==0: _cluster(q,0)
 	# Sign boards remain blank; the existing localized trail captions give directions.
-	for p in [Vector3(2,32,89),Vector3(-50,25,101),Vector3(54,22,2),Vector3(72,24,23),Vector3(-63,16,-59),Vector3(-4,8,-134),Vector3(-79,2,-237)]:
+	# Positions follow the captioned trail signs (the jump-log and post-gate boards
+	# were relocated off the roadside fences, so their blank twins move too).
+	for p in [Vector3(2,32,89),Vector3(-58.5,25,100),Vector3(54,22,2),Vector3(72,24,23),Vector3(-63,16,-59),Vector3(-4,8,-134),Vector3(-77.2,2,-236.6)]:
 		_put("SIGN",p,.85,-.3)
 
 func _near_lane(p: Vector3,clearance: float) -> bool:
@@ -100,20 +102,24 @@ func _fields() -> void:
 	_put("WHEELBARROW",Vector3(40,24,43),1,1.4)
 	_put("PUMP",Vector3(38,24,30.8),1,-.4)
 	_put("BARREL",Vector3(36.8,24,30),1)
-	_put("CART",Vector3(23,24,29),1,-.7)
+	# 2026-11-13: the cart used to embed in the OxBarn east wall and the reed row
+	# sprouted through it; both moved clear to the ditch's east stretch.
+	_put("CART",Vector3(25.5,24,29),1,-.7)
 	for p in [Vector3(67,24,35),Vector3(77,24,44),Vector3(84,24,51)]:
 		e._dressing.place("ENV_06_CRATE",p,Vector3.ONE*.65,.4)
 		_put("BARREL",p+Vector3(1.2,0,0),.65)
 	# Raised vegetable beds beyond the story lane, with broad readable crop heads.
-	for row in 4:
-		var p:=Vector3(55+row*3,24.09,29)
+	# Trimmed to three rows south of the diagonal lane: the fourth sat dead-center
+	# on the ox->creek lane where it crosses z=29 at x=64.
+	for row in 3:
+		var p:=Vector3(55+row*3,24.09,26)
 		e._patch(p,Vector2(1.1,3.5),e.SOIL,12,.02)
 		for j in 6:
 			var q:=p+Vector3(0,.15,-2.8+j*1.1)
 			e._boulder(q,Vector3(.38,.34,.4),e.LEAF_LIGHT,j)
 			e._tuft(q+Vector3.UP*.1,.35,e.LEAF)
 	for i in 5:
-		_put("REEDS",Vector3(18+i*3,24,33.3),.65,i)
+		_put("REEDS",Vector3(24+i*3,24,33.3),.65,i)
 	for i in 4:
 		_put("WALL",Vector3(55+i*5,24,57),.85)
 		_put("HAWTHORN",Vector3(57+i*5,24,57.5),.75,i)
@@ -122,7 +128,9 @@ func _sheep() -> void:
 	e._district="ShearingAndWetMeadow"
 	for p in [Vector3(-58,16,-39),Vector3(-59,16,-43),Vector3(-54,16,-43)]: _put("WOOL",p,1.1,p.x)
 	_put("BARREL",Vector3(-61,16,-37),.85)
-	_put("CART",Vector3(-62,16,-30),.85,1.2)
+	# 2026-11-13: the cart sat on the holding-pen's west fence corner; nudged south
+	# onto open meadow, clear of every fence rail.
+	_put("CART",Vector3(-62,16,-26),.85,1.2)
 	# Grazing paddock uses airy rails instead of a continuous green wall.
 	for i in 5:
 		_put("RAIL",Vector3(-37+i*5,16,-56),.9)
@@ -144,7 +152,8 @@ func _horses() -> void:
 			e._box(Vector3(42+i*10+sign_side*2.5,8.22,-123),Vector3(.35,.44,.35),e.CREAM)
 	_put("PUMP",Vector3(77,8,-129),1)
 	_put("BARREL",Vector3(78.2,8,-128),1)
-	_put("WHEELBARROW",Vector3(78,8,-133),1,.5)
+	# 2026-11-13: the wheelbarrow used to poke into the track barn's west wall.
+	_put("WHEELBARROW",Vector3(74.5,8,-133.5),1,.5)
 	for i in 9:
 		_put("RAIL",Vector3(12+i*7.5,8,-141),1.05)
 		if i%3==1: _put("HAWTHORN",Vector3(14+i*7.5,8,-142),1,i)
@@ -155,14 +164,19 @@ func _horses() -> void:
 func _workyard() -> void:
 	e._district="WorkingFarmCourts"
 	_put("CART",Vector3(-62,2,-169),.95,.9)
-	_put("BARREL",Vector3(-55,2,-170),1.0)
-	_put("WHEELBARROW",Vector3(-55,2,-177),1,-.7)
+	# 2026-11-13: barrel and wheelbarrow used to clip the court barn's east/north
+	# faces; both nudged onto open court ground.
+	_put("BARREL",Vector3(-53.5,2,-170),1.0)
+	_put("WHEELBARROW",Vector3(-54.5,2,-179.5),1,-.7)
 	for p in [Vector3(-57,2,-168),Vector3(-58.3,2,-168.4)]:
 		e._dressing.place("ENV_06_CRATE",p,Vector3.ONE*.85,.2)
 	# Existing obstacle collisions keep their dimensions; round bales decorate only
 	# the separate work court, never conceal the actual avoidance corridor.
 	for i in 3: e._dressing.place("ENV_06_HAY",Vector3(-64+i*1.4,2,-179),Vector3.ONE,0)
-	for p in [Vector3(-86,2,-224),Vector3(-76,2,-220)]:
+	# Gate-court pair: the old east-corner spot put the barrel inside the chase
+	# road's final-leg corridor (and its hawthorn on the running line); both moved
+	# to the court's west strip, clear of the hedge and the exit stub.
+	for p in [Vector3(-86,2,-224),Vector3(-88,2,-219)]:
 		_put("BARREL",p,.85)
 		_put("HAWTHORN",p+Vector3(-1.4,0,1.2),.8)
 
