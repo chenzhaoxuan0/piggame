@@ -48,6 +48,16 @@ func _lap(hold_dash: bool, check_barrier: bool) -> float:
 	var runner: CourseRunner = course.runner
 	_check(is_instance_valid(course) and runner.config.course_id == "course_4", "Course 4 loaded (%s)" % label)
 
+	# 进场节拍：先锁住讲剧情，快进放行后 3-2-1 倒计时才接管——台词不吃比赛时间。
+	if check_barrier:
+		_check(runner.beat_active() and runner.active_beat_id() == "course_4_intro", "Intro dialogue beat holds the grid (%s)" % label)
+		_check(office.player.control_mode == "cinematic", "Pig locked during the intro beat")
+	runner.skip_beats()
+	await create_timer(0.15).timeout
+	if check_barrier:
+		_check(not runner.beat_active() and office.player.control_mode != "cinematic", "Beat released the pig")
+		_check(course.race_timer.state == "countdown", "3-2-1 countdown starts after the intro beat")
+
 	if check_barrier:
 		# The boom barrier must physically hold the pig while the 3 s countdown
 		# runs: order the pig down the track and make sure it gets nowhere.
@@ -102,11 +112,20 @@ func _lap(hold_dash: bool, check_barrier: bool) -> float:
 		elif not dash["held"] and stamina >= office.player.max_stamina * 0.98 and not near_hazard:
 			Input.action_press("action_dash")
 			dash["held"] = true
-	var result: Dictionary = await TRAVERSAL.walk(self, office.player, _racing_line(), func(): return runner.completed, 110.0, 1.3, dash_tick)
+	# 剧情节拍一出现即快进（bot 与玩家连按跳过共用 runner.skip_beats()）：
+	# 终直道宣言照样出现并冻结计时，但绝不卡死 bot。
+	var beats_seen := {}
+	runner.beat_started.connect(func(id: String): beats_seen[id] = true)
+	var beat_tick := func() -> void:
+		if runner.beat_active():
+			runner.skip_beats()
+		dash_tick.call()
+	var result: Dictionary = await TRAVERSAL.walk(self, office.player, _racing_line(), func(): return runner.completed, 110.0, 1.3, beat_tick)
 	if dash["held"]:
 		Input.action_release("action_dash")
 		dash["held"] = false
 	_check(result["ok"], "Pig physically ran the whole circuit to the finish line, %s (waypoint %d at %s, reason: %s)" % [label, result["index"], result["position"], result["reason"]])
+	_check(beats_seen.has("course_4_final_straight"), "Final-straight sprint beat fired along the lap (%s)" % label)
 	print("COURSE_04_TRAVERSAL_TEST INFO: %s splits=%s knocks=%d" % [label, result["splits"], result["knocks"]])
 	await create_timer(0.3).timeout # Let the deferred course exit land
 	if not result["ok"]:

@@ -50,7 +50,15 @@ func _exit_tick() -> void:
 		_tap_jump()
 
 func _walk(course: Node, waypoints: Array[Vector3], done: Callable, tick: Callable) -> bool:
-	var result: Dictionary = await TRAVERSAL.walk(self, office.player, waypoints, done, 90.0, 1.3, tick)
+	# 剧情节拍一出现即快进（bot 与玩家连按跳过共用 runner.skip_beats()），
+	# 节拍卡绝不能卡死 bot，各段 walk 的时限预算不变。
+	var runner: CourseRunner = course.runner
+	var beat_tick := func() -> void:
+		if runner.beat_active():
+			runner.skip_beats()
+		if tick.is_valid():
+			tick.call()
+	var result: Dictionary = await TRAVERSAL.walk(self, office.player, waypoints, done, 90.0, 1.3, beat_tick)
 	if not result["ok"]:
 		_check(false, "Walk stalled at waypoint %d (%s), reason: %s" % [result["index"], result["position"], result["reason"]])
 		if is_instance_valid(course) and is_instance_valid(office.active_course):
@@ -74,6 +82,17 @@ func _run() -> void:
 	var runner: CourseRunner = course.runner
 	_check(is_instance_valid(course) and runner.config.course_id == "course_2", "Course 2 loaded")
 	runner.course_started.connect(func(): runner.set_dogs_active(false)) # Keep the bot out of QTEs
+
+	# 进场节拍出现并锁住猪；快进放行后 bot 才开跑。
+	_check(runner.beat_active() and runner.active_beat_id() == "course_2_intro", "Intro dialogue beat shows on creek entry")
+	_check(office.player.control_mode == "cinematic", "Pig locked during the intro beat")
+	runner.skip_beats()
+	await create_timer(0.15).timeout
+	_check(not runner.beat_active() and office.player.control_mode != "cinematic", "Beat released the pig for the walk")
+
+	# 沿途剧情节拍（崖顶起跳 / TNT 爆破）在跑全程时必须真的出现。
+	var beats_seen := {}
+	runner.beat_started.connect(func(id: String): beats_seen[id] = true)
 
 	# Phase 1: stepping stones across the creek (x = 3.6 lane)
 	if not await _walk(course, [Vector3(3.6, 0.6, 6.0), Vector3(3.6, 0.6, -6.0)],
@@ -129,6 +148,7 @@ func _run() -> void:
 	await create_timer(0.3).timeout
 	_check(office.active_course == null and office.farm.get_parent() == office, "Course exited and farm restored after the portal")
 	_check(game.chase_completed.get("chase_2", false), "chase_2 completed by physically finishing the creek")
+	_check(beats_seen.has("course_2_slide_crest") and beats_seen.has("course_2_tnt_blast"), "Mid-course story beats (slide crest + TNT blast) fired along the run")
 
 	print("\nALL COURSE 02 TRAVERSAL TESTS DONE: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

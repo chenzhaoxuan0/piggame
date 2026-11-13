@@ -68,6 +68,22 @@ func _run() -> void:
 	_check(is_instance_valid(course) and runner.config.course_id == "course_0", "Nightmare course loaded")
 	runner.course_started.connect(func(): runner.set_dogs_active(false)) # Keep the bot out of grapples
 
+	# 进场节拍出现并锁住猪；走共享快进接口放行（与玩家连按跳过同一条路）。
+	_check(runner.beat_active() and runner.active_beat_id() == "course_0_intro", "Intro dialogue beat shows on nightmare entry")
+	_check(office.player.control_mode == "cinematic", "Pig locked during the intro beat")
+	runner.skip_beats()
+	await create_timer(0.15).timeout
+	_check(not runner.beat_active() and office.player.control_mode != "cinematic", "Beat released the pig for the walk")
+
+	# 沿途剧情节拍（屠宰场揭晓 / 月台追逐）在跑全程时必须真的出现；bot 与玩家
+	# 共用 skip：一出现即快进，节拍卡绝不能卡死 bot（walk 的时限预算不变）。
+	var beats_seen := {}
+	runner.beat_started.connect(func(id: String): beats_seen[id] = true)
+	var beat_tick := func() -> void:
+		if runner.beat_active():
+			runner.skip_beats()
+		_jump_tick()
+
 	var result: Dictionary = await TRAVERSAL.walk(self, office.player, [
 		Vector3(0.0, 0.6, 9.0),     # cross the start line into the dream
 		Vector3(0.0, 0.6, -6.0),    # pens: between the patrol cages
@@ -97,9 +113,10 @@ func _run() -> void:
 		Vector3(46.0, 0.6, -63.0),  # dock crates
 		Vector3(46.0, 0.6, -75.0),
 		Vector3(46.0, 0.6, -84.0),  # into the waking light
-	], func(): return runner.completed, 130.0, 1.3, _jump_tick)
+	], func(): return runner.completed, 130.0, 1.3, beat_tick)
 	_check(result["ok"], "Pig physically walked the serpentine dream to the door (waypoint %d at %s, reason: %s)" % [result["index"], result["position"], result["reason"]])
 	print("COURSE_00_TRAVERSAL_TEST INFO: dream lap = %.1f s, knocks = %d (design target for players: 90-150 s)" % [result["seconds"], result["knocks"]])
+	_check(beats_seen.has("course_0_reveal") and beats_seen.has("course_0_dock"), "Mid-course story beats (plant reveal + dock chase) fired along the lap")
 	if result["ok"]:
 		await create_timer(0.3).timeout
 		_check(office.active_course == null and office.farm.get_parent() == office, "Course exited and farm restored (the dream ends)")

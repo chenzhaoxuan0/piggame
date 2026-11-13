@@ -45,6 +45,8 @@ var canyon_dog_buried: bool = false
 var potatoes_collected: int = 0
 var _potato_boost_active: bool = false
 var _potato_boost_until_msec: int = 0
+# 剧情节拍一次性闸门：崖顶起跳只播一次（TNT 由 wall_demolished 信号天然一次性）。
+var _crest_beat_fired := false
 
 func _process(_delta: float) -> void:
 	if _potato_boost_active and Time.get_ticks_msec() >= _potato_boost_until_msec:
@@ -98,6 +100,18 @@ func _ready() -> void:
 func setup(player: Node3D) -> void:
 	player.reset_at(SPAWN)
 	runner.setup(player, SPAWN)
+	# 进场对话节拍：像素溪谷的「入口消化」——画风突变本身是笑点。
+	runner.begin_beat({
+		"id": "course_2_intro",
+		"title": "第二章 · 溪谷犬群突围",
+		"lines": [
+			"叮——世界变成了一格一格的像素块？！云是方的，溪水是蓝格子。",
+			"这是溪谷里的隐藏试炼：狗群在峡谷尽头嚎叫，就等着包饺子。",
+			"像《我的世界》一样干活：推方块填河架桥、引爆 TNT，从下界传送门突围！",
+		],
+		"line_time": 2.5,
+		"accent": VOXEL_BLUE,
+	})
 	# Lend the Ox struggle skill for this course only: the farm story's ox quest
 	# must not tick itself just because the pig jumped into a hidden pipe.
 	var gm = get_tree().root.get_node_or_null("GameManager")
@@ -123,7 +137,6 @@ func _make_config() -> CourseConfig:
 		"sand_drop": {"title": "重力沙下坠！", "text": "物理定律生效！沙子方块垂直砸落！", "duration": 2.2},
 		"dog_buried": {"title": "恶犬被活埋！", "text": "重力沙盖顶！恶犬懵逼打喷嚏，峡谷道路畅通！", "duration": 3.0},
 		"plate_click": {"title": "红石信号触发！", "text": "压力板咔哒一响！TNT开始急促膨胀！", "duration": 2.2},
-		"tnt_blast": {"title": "艺术就是爆炸！", "text": "轰！黑曜石碎裂！通向下界传送门的道路打开了！", "duration": 3.0},
 		"portal_enter": {"title": "穿过下界之门！", "text": "嗡……紫光闪烁，小猪成功打破次元离开溪流！", "duration": 2.5},
 		"potato_power": {"title": "红薯能量全满！", "text": "三块黄金红薯下肚！小猪浑身冒热气，跑出了残影！", "duration": 2.5},
 		"dog_bonk": {"title": "恶犬扑空", "text": "像素狗咬到了方块空气！", "duration": 2.0},
@@ -213,6 +226,29 @@ func _build_water_slide(pos: Vector3) -> void:
 
 	add_child(slide)
 	_label("【瀑布急流滑梯】踩上水流极速俯冲峡谷！", pos + Vector3(0, 2.8, 0), 20)
+	# 剧情点节拍 ①：崖顶起跳前的「深呼吸」。触发器贴在 HighCliff 实心顶面
+	# （z -31.25..-29.75），不与滑梯的俯冲加速区（z -31.4 起）重叠——锁定期
+	# 猪稳站在崖顶，解锁后才一跃而下。
+	var crest := _area("SlideCrestBeatTrigger", "", Vector3(0, 4.0, -30.5), Vector3(8, 3, 1.5))
+	crest.body_entered.connect(_on_slide_crest_entered)
+
+func _on_slide_crest_entered(body: Node3D) -> void:
+	if _crest_beat_fired:
+		return
+	if not body.is_in_group("player") and not body.name.to_lower().contains("pig"):
+		return
+	_crest_beat_fired = true
+	if runner != null:
+		runner.begin_beat({
+			"id": "course_2_slide_crest",
+			"title": "前面没有路了——",
+			"lines": [
+				"只有一条瀑布急流滑梯，直坠峡谷。",
+				"跳！咻——的一下就到底了（大概）。",
+			],
+			"line_time": 1.3,
+			"accent": VOXEL_BLUE,
+		})
 
 func _build_creek_puzzle() -> void:
 	# Creek water stream at Z = -2.5, spanning between start bank and mid island
@@ -379,8 +415,19 @@ func _build_tnt_obsidian_puzzle() -> void:
 	add_child(obsidian_wall)
 
 	obsidian_wall.wall_demolished.connect(func(_w):
-		if meme_layer:
-			meme_layer.play("tnt_blast")
+		# 剧情点节拍 ②（升级自 tnt_blast toast）：黑曜石之壁炸裂的瞬间。
+		# 在途爆炸击退由节拍上锁时结清，解锁不会补飞。
+		if runner != null:
+			runner.begin_beat({
+				"id": "course_2_tnt_blast",
+				"title": "艺术就是爆炸！！",
+				"lines": [
+					"轰——！！黑曜石之壁当场碎裂！",
+					"紫光就在前面：下界传送门，冲！",
+				],
+				"line_time": 1.3,
+				"accent": VOXEL_PURPLE,
+			})
 	)
 
 	# Pressure plate at Z = -56

@@ -54,6 +54,14 @@ func _run() -> void:
 	_check(runner._dogs.size() == 1, "Rubber-band dog spawned")
 	_check(office.active_course._discern_halo.visible, "Discern skill halo visible in Course 3")
 
+	# 进场对话节拍：童话林间入口先锁住讲剧情，快进放行后再开跑。
+	_check(runner.beat_active() and runner.active_beat_id() == "course_3_intro", "Intro dialogue beat shows on woodland entry")
+	_check(office.player.control_mode == "cinematic", "Pig locked during the intro beat")
+	_check(not runner.started, "Beat plays before the start marker")
+	runner.skip_beats()
+	await create_timer(0.15).timeout
+	_check(not runner.beat_active() and office.player.control_mode != "cinematic", "Beat released the pig")
+
 	# 2. Start trigger
 	runner._on_start(office.player)
 	await process_frame
@@ -72,6 +80,16 @@ func _run() -> void:
 	for i in 5: await physics_frame
 	_check(runner.respawn_count >= 1, "Watchdog respawned pig after falling out of bounds")
 	_check(office.player.global_position.y > -12.0, "Pig respawned above kill_y (not dead)")
+
+	# The respawn landed inside the maze-entry beat trigger band (checkpoint 2
+	# sits at its mouth): the story card fires there too (one-shot), the pig is
+	# held while it talks, and the shared skip path releases it - the lock must
+	# never swallow the slapstick checks below.
+	_check(runner.beat_active() and runner.active_beat_id() == "course_3_maze", "Maze-entry beat fires when the respawn lands on its trigger")
+	_check(office.player.control_mode == "cinematic", "Pig locked during the maze beat")
+	runner.skip_beats()
+	await create_timer(0.15).timeout
+	_check(not runner.beat_active() and office.player.control_mode != "cinematic", "Maze beat skipped cleanly")
 
 	# 4.1 Stealth & Souls Illusory Mechanics
 	var course = office.active_course
@@ -149,6 +167,17 @@ func _run() -> void:
 	course.illusory_wall.shatter()
 	await create_timer(0.3).timeout
 	_check(course.illusory_wall == null or course.illusory_wall.is_shattered, "Illusory wall shattered into hidden fairy passage")
+	# The first wall's shatter is a pause beat now (the signal rides the
+	# shatter tween, so wait bounded for the card): pig locks, shared skip
+	# releases it before the QTE section below.
+	var shatter_wait := 0
+	while not runner.beat_active() and shatter_wait < 30:
+		await create_timer(0.1).timeout
+		shatter_wait += 1
+	_check(runner.beat_active() and runner.active_beat_id() == "course_3_wall_shatter", "Illusory wall shatter upgraded to a dialogue beat")
+	runner.skip_beats()
+	await create_timer(0.15).timeout
+	_check(not runner.beat_active() and office.player.control_mode != "cinematic", "Shatter beat releases the pig")
 
 	# 5. QTE struggle in course
 	var test_dog: ChaseDog = runner._dogs[0]

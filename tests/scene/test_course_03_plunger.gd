@@ -56,6 +56,13 @@ func _run() -> void:
 			pickups.append(child)
 	_check(pickups.size() == 3, "Three resupply caches placed along the track")
 
+	# 进场对话节拍：先锁住讲剧情；走共享快进接口放行后 Q 才能开火
+	# （launcher.fire() 只在 explore/chase 模式下生效）。
+	_check(course.runner.beat_active() and course.runner.active_beat_id() == "course_3_intro", "Intro dialogue beat shows on woodland entry")
+	course.runner.skip_beats()
+	await create_timer(0.15).timeout
+	_check(not course.runner.beat_active() and office.player.control_mode != "cinematic", "Beat released the pig for the plunger drill")
+
 	# --- 1. Real input fires: Q with the pig in explore mode
 	var ammo_before: int = launcher.ammo
 	_ev("action_shoot")
@@ -79,6 +86,13 @@ func _run() -> void:
 	await create_timer(0.6).timeout
 	_check(dog.is_stunned, "Plunger hit knocks the patrol dog down (stunned)")
 	_check(launcher._knockdowns == 1, "Knockdown counter ticks")
+
+	# The zigzag placement above can land the pig on the maze-entry beat
+	# trigger band (its first patrol leg runs along it): the story card fires
+	# there by design. Skip it so the drill's remaining shots are fired with a
+	# movable pig - launcher.fire() only works in explore/chase.
+	course.runner.skip_beats()
+	await create_timer(0.15).timeout
 
 	# --- 3. Two more knockdowns mint the achievement (aim assist correctly
 	# skips already-stunned dogs, so each shot takes a fresh victim)

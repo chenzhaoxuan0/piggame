@@ -46,6 +46,14 @@ func _run() -> void:
 	_check(runner.config.course_id == "course_2", "Course 2 config wired")
 	_check(runner._dogs.size() == 1, "Rubber-band dog spawned")
 
+	# 进场对话节拍：像素溪谷入口先锁住讲剧情，快进放行后再开跑。
+	_check(runner.beat_active() and runner.active_beat_id() == "course_2_intro", "Intro dialogue beat shows on creek entry")
+	_check(office.player.control_mode == "cinematic", "Pig locked during the intro beat")
+	_check(not runner.started, "Beat plays before the start marker")
+	runner.skip_beats()
+	await create_timer(0.15).timeout
+	_check(not runner.beat_active() and office.player.control_mode != "cinematic", "Beat released the pig")
+
 	# Grant Ox struggle skill
 	game.complete_npc("ox")
 	await process_frame
@@ -138,6 +146,13 @@ func _run() -> void:
 	_check(course.obsidian_wall == null or course.obsidian_wall.is_demolished, "TNT pushed onto the plate demolished the obsidian wall")
 	_check(fx_seen, "TNT explosion pays an on-screen FX burst")
 	_check(not is_instance_valid(course.tnt_block), "Ignited TNT is gone after the blast")
+
+	# The blast is a pause beat now: the card shows, the pig locks, the shared
+	# skip path releases it before the QTE section below.
+	_check(runner.beat_active() and runner.active_beat_id() == "course_2_tnt_blast", "TNT blast upgraded to a dialogue beat")
+	runner.skip_beats()
+	await create_timer(0.15).timeout
+	_check(not runner.beat_active() and office.player.control_mode != "cinematic", "Blast beat releases the pig")
 
 	# Sweet potatoes on the cliff stairs are real pickups now: one modest,
 	# non-stacking, course-scoped boost (three used to stack to 2.2x and the
