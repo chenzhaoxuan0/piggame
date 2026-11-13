@@ -1197,6 +1197,90 @@
       "remote_status": 3,
       "raw_model": "assets/models/aholo/PROP_C3_PLUNGER/PROP_C3_PLUNGER.glb",
       "sha256": "d549a12676a6094c002977afbd771621b860d8610896cb9e6b5cd34e52ec9856"
+    },
+    "PROP_19_FALLEN_LOG": {
+      "task_id": 7194489,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One fallen tree log lying flat on its side: a thick felled trunk with one or two short cut branch stubs, pale cut wood visible at both end faces, rough bark as broad bands along its length. The trunk is long, clearly three times longer than its diameter. Matte solid color blocks, chunky low polygon construction. Freestanding single object resting on the ground, no ground plane.",
+        "style": "cartoon",
+        "version": "G1",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-13T18:59:38.035369+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_19_FALLEN_LOG/PROP_19_FALLEN_LOG.glb",
+      "sha256": "bdb51442ffaa6473638b276cdfae5b1b5a03603de3780bf5dcc5b3eb58ff8890"
+    },
+    "PROP_20_PATROL_HOUND": {
+      "task_id": 7194511,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One alert guard hound standing on four straight legs: a chunky short-haired dog with pointed upright ears, a curled tail over its back, a broad chest and a simple dark collar. Matte solid red-brown body with a cream chest patch, softly rounded chunky low polygon construction, simple black dot eyes, no fur texture. Freestanding single animal, complete all around, no ground plane.",
+        "style": "cartoon",
+        "version": "G1",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-13T18:59:40.767518+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_20_PATROL_HOUND/PROP_20_PATROL_HOUND.glb",
+      "sha256": "f52215dc9d8e33d11e0f60553a06eafffa9d0ce45001fae7abcb865f4d41b6a7"
+    },
+    "PROP_21_LOW_HURDLE": {
+      "task_id": 7203099,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One low wide jumping bar for farm animals: two short upright timber posts with broad flat feet, connected near the top by two horizontal round poles, the whole bar much wider than it is tall. Muted terracotta red and cream alternating broad color bands. Complete freestanding assembly, no ground plane.",
+        "style": "cartoon",
+        "version": "G1",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-13T19:29:59.525039+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_21_LOW_HURDLE/PROP_21_LOW_HURDLE.glb",
+      "sha256": "567c4f06a2a119ea6b41bd34b420cf2f07eaf68a06837ebb66ebbe93c1c54b70"
+    },
+    "PROP_22_CABLECAR_LEVER": {
+      "task_id": 7194556,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One heavy cable car brake lever: a squat square timber post with a long steel lever arm sticking out diagonally from a pivot joint on its front face, ending in a rounded grip knob. Toy-like chunky low polygon construction, matte solid color blocks. Complete freestanding object with intact base, no ground plane.",
+        "style": "cartoon",
+        "version": "G1",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-13T18:59:46.210746+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_22_CABLECAR_LEVER/PROP_22_CABLECAR_LEVER.glb",
+      "sha256": "63ce3dd64872d37e15348e42a20ff5e6ea13faf8de9f0b8a539c96e09b443652"
     }
   }
 }

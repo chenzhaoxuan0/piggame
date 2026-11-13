@@ -379,5 +379,52 @@
       "8B5A2B",
       "665A48"
     ]
+  },
+  "PROP_19_FALLEN_LOG": {
+    "name": "山路倒木",
+    "subject": "One fallen tree log lying flat on its side: a thick felled trunk with one or two short cut branch stubs, pale cut wood visible at both end faces, rough bark as broad bands along its length. The trunk is long, clearly three times longer than its diameter. Matte solid color blocks, chunky low polygon construction. Freestanding single object resting on the ground, no ground plane.",
+    "height": 0.55,
+    "budget": 1200,
+    "palette": [
+      "5A442E",
+      "4D3A27",
+      "8F6A42",
+      "665A48"
+    ]
+  },
+  "PROP_20_PATROL_HOUND": {
+    "name": "农场巡逻猎犬",
+    "subject": "One alert guard hound standing on four straight legs: a chunky short-haired dog with pointed upright ears, a curled tail over its back, a broad chest and a simple dark collar. Matte solid red-brown body with a cream chest patch, softly rounded chunky low polygon construction, simple black dot eyes, no fur texture. Freestanding single animal, complete all around, no ground plane.",
+    "height": 0.9,
+    "budget": 1800,
+    "palette": [
+      "8C2F2F",
+      "5A442E",
+      "E1DDC5",
+      "515A5A"
+    ]
+  },
+  "PROP_21_LOW_HURDLE": {
+    "name": "路边低跳栏",
+    "subject": "One low wide jumping bar for farm animals: two short upright timber posts with broad flat feet, connected near the top by two horizontal round poles, the whole bar much wider than it is tall. Muted terracotta red and cream alternating broad color bands. Complete freestanding assembly, no ground plane.",
+    "height": 0.7,
+    "budget": 1000,
+    "palette": [
+      "A96550",
+      "E1DDC5",
+      "9C805E"
+    ]
+  },
+  "PROP_22_CABLECAR_LEVER": {
+    "name": "索道制动操纵杆",
+    "subject": "One heavy cable car brake lever: a squat square timber post with a long steel lever arm sticking out diagonally from a pivot joint on its front face, ending in a rounded grip knob. Toy-like chunky low polygon construction, matte solid color blocks. Complete freestanding object with intact base, no ground plane.",
+    "height": 0.9,
+    "budget": 900,
+    "palette": [
+      "9C805E",
+      "A96550",
+      "515A5A",
+      "665A48"
+    ]
   }
 }

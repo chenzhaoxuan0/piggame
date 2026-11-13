@@ -1051,6 +1051,42 @@
       "category": "environment_dressing",
       "triangle_budget": 2600,
       "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-14"
+    },
+    "PROP_19_FALLEN_LOG": {
+      "path": "res://assets/models/aholo/PROP_19_FALLEN_LOG/PROP_19_FALLEN_LOG_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 1200,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-14"
+    },
+    "PROP_20_PATROL_HOUND": {
+      "path": "res://assets/models/aholo/PROP_20_PATROL_HOUND/PROP_20_PATROL_HOUND_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 1800,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-14"
+    },
+    "PROP_22_CABLECAR_LEVER": {
+      "path": "res://assets/models/aholo/PROP_22_CABLECAR_LEVER/PROP_22_CABLECAR_LEVER_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 900,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-14"
+    },
+    "PROP_21_LOW_HURDLE": {
+      "path": "res://assets/models/aholo/PROP_21_LOW_HURDLE/PROP_21_LOW_HURDLE_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 1000,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-14"
     }
   }
 }

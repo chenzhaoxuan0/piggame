@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_21_LOW_HURDLE",
+  "raw_triangles": 9220,
+  "triangles": 1000,
+  "size_blender_xyz": [
+    0.9307721853256226,
+    0.45348885655403137,
+    0.699999988079071
+  ],
+  "file_bytes": 80760,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_21_LOW_HURDLE/PROP_21_LOW_HURDLE_game.glb"
+}
