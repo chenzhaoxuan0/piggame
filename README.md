@@ -37,4 +37,13 @@ powershell -File scripts/art/run_demo.ps1 -PackCheck
 - `tests/scene/test_mountain_controls.gd`：跳跃、断桥跌落恢复、追逐暂停/失败/重试。
 - [山地地图与操作规格](docs/art/MOUNTAIN_MAP.md)：路线尺度、地形高度、检查点和测试命令。
 
-`.env` 只供本地生成管线使用，不参与游戏运行或导出。新 ENV_09 资产的原始 ZIP 和拒收试验保存在本机、不入 Git；原始 GLB、最终运行模型、Blender 源文件和任务溯源记录入库。
+`.env` 只供本地生成管线使用，不参与游戏运行或导出。新 ENV_09 资产的原始 ZIP 和拒收试验保存在本机、不入 Git；原始 GLB、最终运行模型、Blender 源文件和任务溯源记录入库（这些大文件只进本地全量仓库；GitHub 镜像仅保留运行时资产，见下节）。
+
+## GitHub 镜像说明
+
+本仓库在 GitHub 有一份公开瘦身镜像：https://github.com/chenzhaoxuan0/piggame 。克隆镜像即可直接运行游戏与全部测试（`run_tests.bat` / `-PackCheck` 均可用），与本地全量仓库的差异如下：
+
+- **保留**：`master` 全部代码、场景、测试与文档的提交历史，以及运行时资产——106 件 `_game.glb` 模型、配套贴图与 `runtime_catalog.json`（以后续快照提交的形式内联，非逐版本历史）。
+- **仅存本地**：原始高清 GLB、渲染验收图、`source/` Blender 源文件、Lux3D ZIP、`_input/` 再生成输入，以及上述二进制的历史版本。
+- **无 Git LFS 依赖**：本地仓库用 LFS 管理 `*.glb` / `*.png` 等大文件；镜像已整体去 LFS 化为普通 git blob（约 0.9 GB），克隆方无需安装 LFS 客户端，也不占用 LFS 配额。
+- **不要从本地直接 `git push` 镜像**：两边历史不同（本地全量、镜像瘦身），直接推送会被拒绝；更新镜像需重跑「临时克隆 → filter-repo 剔除 → 资产快照提交 → 强推」流水线。
