@@ -1012,7 +1012,67 @@ func _resume() -> void:
 	_restore_control()
 	_refresh_hud()
 
+# ------------------------------------------------------------- ui auto-hide
+# 农场枢纽的常驻挂件（标题卡 / 待办本 / 教程键位条）在猪跑动时淡出，停稳
+# UI_SHOW_IDLE 秒后淡回：跑动时把画面还给玩家，停下 3 秒任务自然可见——
+# 这就是待办的「随时可查」途径，不加常驻展开按钮。只动 modulate、不碰
+# visible（进关/暂停等状态自己管 visible，两边不打架）；淡出期间标题卡
+# 按钮停止吃鼠标，点击走位不会被看不见的按钮截走。
+const UI_HIDE_SPEED := 0.5
+const UI_SHOW_IDLE := 3.0
+var _ui_auto_hidden := false
+var _ui_idle_time := 0.0
+var _ui_fade_tween: Tween = null
+
+func _update_ui_auto_hide(delta: float) -> void:
+	if not is_instance_valid(player):
+		return
+	var eligible: bool = not is_instance_valid(active_course) and not in_start_menu and not paused \
+		and not in_settings and not dialogue_open and not cinematic
+	if not eligible:
+		_ui_idle_time = 0.0
+		if _ui_auto_hidden:
+			_set_ui_auto_hidden(false)
+		return
+	var speed := Vector2(player.velocity.x, player.velocity.z).length()
+	if speed > UI_HIDE_SPEED:
+		_ui_idle_time = 0.0
+		if not _ui_auto_hidden:
+			_set_ui_auto_hidden(true)
+	elif _ui_auto_hidden:
+		_ui_idle_time += delta
+		if _ui_idle_time >= UI_SHOW_IDLE:
+			_set_ui_auto_hidden(false)
+
+func _set_ui_auto_hidden(hidden: bool) -> void:
+	_ui_auto_hidden = hidden
+	_ui_idle_time = 0.0
+	var group := _ui_auto_hide_group()
+	if group.is_empty():
+		return
+	if _ui_fade_tween != null and _ui_fade_tween.is_valid():
+		_ui_fade_tween.kill()
+	_ui_fade_tween = create_tween().set_parallel(true)
+	for widget in group:
+		_ui_fade_tween.tween_property(widget, "modulate:a", 0.0 if hidden else 1.0, 0.25)
+		if widget == _title_card:
+			_title_card_buttons_clickable(not hidden)
+
+func _ui_auto_hide_group() -> Array:
+	var group: Array = []
+	for widget in [todo_notebook, _title_card, key_strip]:
+		if is_instance_valid(widget):
+			group.append(widget)
+	return group
+
+func _title_card_buttons_clickable(clickable: bool) -> void:
+	if not is_instance_valid(_title_card):
+		return
+	for btn in _title_card.find_children("*", "Button", true, false):
+		btn.mouse_filter = Control.MOUSE_FILTER_STOP if clickable else Control.MOUSE_FILTER_IGNORE
+
 func _process(delta: float) -> void:
+	_update_ui_auto_hide(delta)
 	# Key-test strip highlight (pigpen tutorial): bound actions light their keycaps.
 	if is_instance_valid(key_strip) and key_strip.visible:
 		for tag in key_strip_caps:

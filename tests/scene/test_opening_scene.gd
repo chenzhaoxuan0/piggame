@@ -117,6 +117,39 @@ func _run() -> void:
 	var pigpen_gate: StaticBody3D = office.farm._pigpen_gate
 	_check(pigpen_gate.collision_layer == 1, "Pen gate stays bolted during the tutorial")
 
+	# --- 2b. Persistent widgets clear the screen while the pig moves and fade
+	# back once it has stood still ~3s (to-do notebook, title card, key strip).
+	# Driven through _update_ui_auto_hide with injected deltas, so the suite
+	# never sleeps the real 3 seconds.
+	if notebook != null and tcard != null and strip != null:
+		office.player.velocity = Vector3(3.0, 0.0, 0.0)
+		office._update_ui_auto_hide(0.016)
+		await create_timer(0.4).timeout # 0.25s fade
+		_check(notebook.modulate.a < 0.05, "To-do notebook fades out while the pig is moving")
+		_check(tcard.modulate.a < 0.05 and strip.modulate.a < 0.05, "Title card and key strip fade out with it")
+		var hide_btn: Button = tcard.find_child("TitleStartButton", true, false)
+		_check(hide_btn != null and hide_btn.mouse_filter == Control.MOUSE_FILTER_IGNORE,
+			"Faded title-card buttons stop eating clicks (click-to-move stays free)")
+		office.player.velocity = Vector3.ZERO
+		office._update_ui_auto_hide(1.0)
+		await create_timer(0.4).timeout
+		_check(notebook.modulate.a < 0.05, "Widgets stay hidden before the 3s idle window elapses")
+		office.player.velocity = Vector3.ZERO
+		office._update_ui_auto_hide(2.1) # cumulative idle past the 3s window
+		await create_timer(0.4).timeout
+		_check(notebook.modulate.a > 0.95 and tcard.modulate.a > 0.95 and strip.modulate.a > 0.95,
+			"Widgets fade back in after ~3s standing still")
+		_check(hide_btn != null and hide_btn.mouse_filter == Control.MOUSE_FILTER_STOP,
+			"Title-card buttons clickable again once shown")
+		# Menus/pause own the screen: movement must not auto-hide under them.
+		office.paused = true
+		office.player.velocity = Vector3(3.0, 0.0, 0.0)
+		office._update_ui_auto_hide(0.016)
+		await create_timer(0.4).timeout
+		_check(notebook.modulate.a > 0.95, "Auto-hide stands down while paused")
+		office.paused = false
+		office.player.velocity = Vector3.ZERO
+
 	# --- 3. The trough snorts: gag + achievement, no dialogue
 	var trough: StaticBody3D = office.farm.get_node("PigpenTrough")
 	_check(trough.is_in_group("interactable"), "Pigpen trough is a real interactable")
