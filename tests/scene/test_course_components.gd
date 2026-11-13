@@ -476,6 +476,9 @@ func _run() -> void:
 	root.add_child(guard)
 	await process_frame
 	_check(guard.is_in_group("chase_dogs") and guard.has_node("GuardShape"), "PatrolGuardDog is a solid body tagged as a dog")
+	var hound: Node = guard.get_node_or_null("HoundLux")
+	_check(hound != null and hound.visible and hound.get_meta("source", "") == "Aholo Lux3D",
+		"PatrolGuardDog wears its Lux3D hound (the cylinder stays as fallback collision only)")
 	guard.stun(0.1)
 	_check(guard.is_stunned, "PatrolGuardDog stuns like a chase dog (box bowling)")
 	await create_timer(0.3).timeout

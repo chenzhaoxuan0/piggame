@@ -101,6 +101,10 @@ func _ready() -> void:
 	var lever := _interaction("CablecarLever","cablecar",L.LEVER+Vector3.UP*.4,Vector3(.65,.8,.65))
 	_box(lever,"LeverPost",Vector3(.2,.8,.2),Vector3.ZERO,Color("9C805E"))
 	_box(lever,"LeverHandle",Vector3(.6,.12,.12),Vector3.UP*.45,Color("A96550"))
+	# Lux3D PROP_22_CABLECAR_LEVER draws post + brake arm as one model.
+	if _mount_lux(lever, "PROP_22_CABLECAR_LEVER", Vector3(0.65, 0.8, 0.65), "LeverLux") != null:
+		lever.get_node("LeverPost/VisualMesh").visible = false
+		lever.get_node("LeverHandle/VisualMesh").visible = false
 	_label(lever,"LeverLabel","E · 启动索道",Vector3(0,1.2,0),22)
 	# Record board faces the horse track from the north-east (the old spot stood
 	# in the middle of the gate-to-court walking lane).
@@ -185,7 +189,7 @@ func _prop(id: String,p: Vector3) -> void:
 ## without the asset - offline runs keep the box (same contract as the
 ## NibbleGrass tufts). `centered` matches how the body root was placed: true
 ## for _box/_sphere roots (origin at box centre), false for ground-level roots.
-func _mount_lux(body: Node3D, asset_id: String, box_size: Vector3, lux_name := "", centered := true) -> Node3D:
+func _mount_lux(body: Node3D, asset_id: String, box_size: Vector3, lux_name := "", centered := true, fit_axis := "y") -> Node3D:
 	var art := ASSETS.make(asset_id)
 	if art == null:
 		return null
@@ -193,11 +197,25 @@ func _mount_lux(body: Node3D, asset_id: String, box_size: Vector3, lux_name := "
 	if mesh != null:
 		mesh.visible = false
 	var aabb := _model_aabb(art)
-	var fit := box_size.y / aabb.size.y if aabb.size.y > 0.001 else 1.0
-	art.scale = Vector3.ONE * fit
+	# fit_axis picks the fitted dimension: height for standing props, width for
+	# wide-assembled props, or the full per-axis box when the art's aspect
+	# differs from its collider (the low hurdle's posts stay put while its
+	# poles and feet stretch along the road - all X-aligned prisms).
+	var scale_vec := Vector3.ONE
+	if fit_axis == "box" and aabb.size.x > 0.001 and aabb.size.y > 0.001:
+		scale_vec = Vector3(
+			box_size.x / aabb.size.x,
+			box_size.y / aabb.size.y,
+			box_size.z / maxf(aabb.size.z, 0.001))
+	else:
+		var target: float = box_size.y if fit_axis == "y" else box_size.x
+		var authored: float = aabb.size.y if fit_axis == "y" else aabb.size.x
+		var fit := target / authored if authored > 0.001 else 1.0
+		scale_vec = Vector3.ONE * fit
+	art.scale = scale_vec
 	# Models are metre-normalized with the base at the origin; drop the scaled
 	# base onto the bottom face of the collision box it dresses.
-	art.position = Vector3(0, (-box_size.y * 0.5 if centered else 0.0) - aabb.position.y * fit, 0)
+	art.position = Vector3(0, (-box_size.y * 0.5 if centered else 0.0) - aabb.position.y * scale_vec.y, 0)
 	if lux_name != "":
 		art.name = lux_name
 	body.add_child(art)
@@ -454,19 +472,28 @@ func _build_road_obstacles() -> void:
 	# Summit road logs aligned with L.LOGS[0]
 	var log_pos_1: Vector3 = L.LOGS[0].a.lerp(L.LOGS[0].b, L.LOGS[0].t)
 	var log1 := _box(self, "Log_Summit_1", Vector3(3.6, 0.55, 0.55), log_pos_1 + Vector3.UP * 0.25, Color("5A442E"), true)
+	# The baked JumpLog beam already draws this barrier in the environment's
+	# shared mesh (the JumpLog body is collision-only) - the box here was only
+	# ever its duplicate. Keep the collider, drop the twin visual. PROP_19
+	# FALLEN_LOG stays catalogued for future 1.2 m-scale log dressing.
+	log1.get_node("VisualMesh").visible = false
 	var hay1 := _box(self, "Hay_Summit_Side", Vector3(1.6, 0.75, 1.6), Vector3(-49, 24.3, 85), Color("C9A35E"), true)
 	_mount_lux(hay1, "PROP_11_HAY_STACK", Vector3(1.6, 0.75, 1.6), "HaystackLux")
 
-	# Creek road logs aligned with creek bridge / L.LOGS. The hurdle stays a
-	# plain box on purpose: its collider is a 0.65 m low jump bar and the 1.6 m
-	# hurdle model would dwarf it - a knee-high miniature reads worse.
+	# Creek road logs aligned with creek bridge / L.LOGS. The hurdle model is
+	# authored knee-height; its poles and feet are X-aligned prisms, so the
+	# per-axis box fit stretches the span across the 2.5 m jump-bar collider
+	# while posts keep their height.
 	var hurdle1 := _box(self, "Hurdle_Creek_Side", Vector3(2.5, 0.65, 0.25), Vector3(48, 22.2, 3), Color("8B6846"), true)
+	_mount_lux(hurdle1, "PROP_21_LOW_HURDLE", Vector3(2.5, 0.65, 0.25), "HurdleLux", true, "box")
 	var rock1 := _box(self, "Rock_Creek_Side", Vector3(2.2, 0.6, 0.8), Vector3(14, 20.2, 6), Color("6C7A72"), true)
 	_mount_lux(rock1, "ENV_09_ROCK", Vector3(2.2, 0.6, 0.8), "RockLux")
 
 	# Woodland road logs aligned with L.LOGS[1]
 	var log_pos_2: Vector3 = L.LOGS[1].a.lerp(L.LOGS[1].b, L.LOGS[1].t)
 	var log2 := _box(self, "Log_Woodland_1", Vector3(3.6, 0.55, 0.55), log_pos_2 + Vector3.UP * 0.25, Color("4D3A27"), true)
+	# Same baked-beam duplicate as the summit log - collider stays, twin box goes.
+	log2.get_node("VisualMesh").visible = false
 	# Woodland road cart: the old miter-bulge spot wedged it into the roadside
 	# fence; it now rests on the shoulder south of the woodland road.
 	var cart1 := _box(self, "Cart_Woodland_Side", Vector3(1.8, 0.7, 1.2), Vector3(-43.2, 13.85, -79.2), Color("6B523A"), true)

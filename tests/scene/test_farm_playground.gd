@@ -239,6 +239,7 @@ func _run() -> void:
 		["BroadcastHorn", "HornLux"], ["HenNest", "HenNestLux"],
 		["AppleTree", "AppleTreeLux"], ["Scarecrow_Field", "ScarecrowLux"],
 		["TrailSignPost", "TrailSignLux"], ["PotatoMound0", "MoundLux"],
+		["Hurdle_Creek_Side", "HurdleLux"], ["CablecarLever", "LeverLux"],
 	]:
 		var lux: Node = farm.get_node(mounted[0]).get_node_or_null(mounted[1])
 		_check(lux != null and lux.visible and lux.get_meta("source", "") == "Aholo Lux3D",
