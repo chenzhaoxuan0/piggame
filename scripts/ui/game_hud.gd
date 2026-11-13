@@ -206,10 +206,14 @@ static func _build_todo_notebook(host: Node) -> void:
 	# 上限由 _refresh_todo_list 的条目数封顶控制（3 条进行中 + 最近 2 条已完成）。
 	host.todo_notebook.custom_minimum_size = Vector2(330, 0)
 	host.todo_notebook.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE)
-	host.todo_notebook.offset_left -= 24
-	host.todo_notebook.offset_right -= 24
-	host.todo_notebook.offset_top += 24
-	host.todo_notebook.offset_bottom += 24
+	# MINSIZE leaves a zero-width rect at the corner anchor: the panel must grow
+	# LEFT-and-down from that point, or it collapses into an edge sliver.
+	host.todo_notebook.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	host.todo_notebook.grow_vertical = Control.GROW_DIRECTION_END
+	host.todo_notebook.offset_left = -24
+	host.todo_notebook.offset_right = -24
+	host.todo_notebook.offset_top = 24
+	host.todo_notebook.offset_bottom = 24
 	host.todo_notebook.mouse_filter = Control.MOUSE_FILTER_PASS
 	host.todo_notebook.rotation_degrees = -1.4
 	_center_pivot(host.todo_notebook)

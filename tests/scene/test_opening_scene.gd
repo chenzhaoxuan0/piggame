@@ -93,6 +93,12 @@ func _run() -> void:
 	if tcard != null and notebook != null:
 		_check(absf(tcard.get_global_rect().position.y - notebook.get_global_rect().position.y) < 6.0,
 			"Title card top edge aligns with the to-do notebook top edge") # the notebook's pop-in scale gives it a ~4px top offset
+	if notebook != null:
+		await process_frame # let the auto-height layout settle before measuring
+		var nb_rect := notebook.get_global_rect()
+		_check(nb_rect.size.x > 300.0, "To-do notebook keeps its ~330px width (no corner sliver)")
+		_check(nb_rect.size.y > 60.0 and nb_rect.size.y < 260.0,
+			"To-do notebook height fits its entries (auto-height, capped)")
 	_check(office.player.dash_enabled and office.player.force_dodge_available, "Shift sprint and dodge are armed for the sandbox")
 	var spawn_dist: float = office.player.global_position.distance_to(office.farm.get_spawn_position())
 	_check(spawn_dist < 1.0, "Pig wakes at the real pigpen spawn")
