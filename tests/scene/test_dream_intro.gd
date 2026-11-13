@@ -63,6 +63,7 @@ func _run() -> void:
 	await create_timer(0.5).timeout
 	_check(not office.in_start_menu and office.active_course == null, "Skip goes straight to the farm, no dream")
 	_check(office.farm.get_parent() == office and office.player.control_mode == "explore", "Farm open and pig in control after skipping")
+	_check(game.tutorial_free_roam, "In-menu skip also lands in the pigpen tutorial")
 
 	print("\nALL DREAM INTRO TESTS DONE: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

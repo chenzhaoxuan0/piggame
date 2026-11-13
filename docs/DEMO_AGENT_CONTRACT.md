@@ -6,6 +6,17 @@
 > 供主控使用；旅程布局 x=-46..46、z=+102..-108：猪圈→路线→耕作区→路线→剪毛棚→路线→泥圈赛道→路线→
 > 开阔地（追逐）→铁门→索道旷野，区域由带缺口分界栅栏分隔，路线为两侧围合走廊。
 > 白模场景 farm_greybox 仅保留给 headless 测试使用。
+>
+> 2026-11-13 更新（feat/pigpen-start-polish）：
+> - 开局：opening_scene 只剩纯菜单（悬浮键位测试台已删除——无坠落救援，跳出围栏即无限下坠）。
+>   "farm" 开局改为山顶猪圈教学态（GameManager.tutorial_free_roam）：键位条进 HUD、NPC 不对话、
+>   木栓门不开；对山羊按 F = 开始游戏（走 cliff_goat_intro）。食槽交互（拱食槽 + trough_sniff）移进猪圈。
+> - 追逐：QTE 加压为 8 次 / 2.2 秒；未挣脱不再弹"被犬队追上了"，SimpleChase 路径回到 farm._checkpoint
+>   尾随检查点重跑，CourseRunner 路径回到最近课程检查点重跑；无技能的喜剧自动脱身保留。
+> - 音频：猪叫 SFX 落地 assets/audio/pig（CC0，见该目录 CREDITS.md）；空格跳跃哼哼、Shift+空格 惨叫跳、
+>   QTE 敲击哼哼、食槽拱拱。
+> - 林间：新增 action_shoot（Q）马桶搋子战斗（PlungerLauncher / PlungerProp），击倒巡逻犬计成就 plunger_knight。
+> - 彩蛋：卷心菜联赛换上 Lux3D 模型 PROP_08_CABBAGE / PROP_09_GOAL（dressing_production.json 留痕）。
 
 本轮只做程序与几何白模，不创建正式美术或调用 Lux3D。主控管理根场景、项目配置、UI 与集成；worker 独占各自文件，不覆盖他人修改。所有路径为 res:// 相对路径。
 

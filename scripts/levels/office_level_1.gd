@@ -556,10 +556,10 @@ func start_dream_intro() -> void:
 	_start_dream_intro()
 
 func skip_dream_intro() -> void:
-	# Skip path: the dream never plays, but the 6am truck deadline is still the
-	# story's inciting incident - mark the prologue beat as known.
-	GameManager.mark_intro_dream_done()
-	_start_game()
+	# Skip path (the in-game start menu's 跳过序章 button): the dream never
+	# plays, and "starting the game" now means the pigpen tutorial - same
+	# landing as the boot menu's skip.
+	_start_pigpen_tutorial()
 
 func _start_pigpen_tutorial() -> void:
 	# pending_boot == "farm": the game has NOT started yet. No more floating
