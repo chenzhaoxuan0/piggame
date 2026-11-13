@@ -132,6 +132,9 @@ func reset_at(pos: Vector3) -> void:
 	cooldown_remaining = 0.0
 	_dodge_animated = false
 	_hit_animated = false
+	_kill_sleep_pose_tween()
+	_sleep_pose_active = false
+	show_zzz(false)
 	if is_instance_valid(visual_mesh):
 		visual_mesh.position.y = 0.0
 		visual_mesh.rotation.z = 0.0
@@ -193,6 +196,71 @@ func notify_dodge_success(dog: Node3D = null) -> void:
 ## celebrate clip when the dressed model has one.
 func play_victory_animation() -> void:
 	_play_action("celebrate", 1.0)
+
+# ------------------------------------------------------------- sleep pose
+# 开场入梦/梦醒的可见姿态：趴下（侧倾+下沉）与起身（反向弹回）。tween 写的是
+# VisualMesh 的变换（与被击飞时的 rotation.x 同一层），期间程序化姿态
+# _update_pose 让位，两套系统不抢同一组属性；reset_at 会撤掉姿态并清标记，
+# 所以赛道 setup 的 reset_at 之后猪一定是站着的。
+const SLEEP_TILT_Z := 1.25
+const SLEEP_SINK_Y := -0.10
+
+var _sleep_pose_active := false
+var _sleep_pose_tween: Tween = null
+var _zzz_label: Label3D = null
+
+func play_sleep_pose(duration := 0.85) -> Tween:
+	# 趴下：就地侧倾下沉。返回 tween 供关卡 await / 快进。
+	if not is_instance_valid(visual_mesh):
+		return null
+	_kill_sleep_pose_tween()
+	_sleep_pose_active = true
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(visual_mesh, "rotation:z", SLEEP_TILT_Z, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(visual_mesh, "position:y", SLEEP_SINK_Y, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	_sleep_pose_tween = tween
+	return tween
+
+func play_wake_pose(duration := 0.55) -> Tween:
+	# 起身（梦醒弹起）：趴姿反向弹回站姿，BACK 缓动给出「弹」的感觉。
+	if not is_instance_valid(visual_mesh):
+		return null
+	_kill_sleep_pose_tween()
+	_sleep_pose_active = false
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(visual_mesh, "rotation:z", 0.0, duration).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(visual_mesh, "position:y", 0.0, duration).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_sleep_pose_tween = tween
+	return tween
+
+func snap_sleep_pose() -> void:
+	# 瞬间摆成趴姿（不做 tween）：梦醒「弹起身」的起始帧用它落位。
+	_kill_sleep_pose_tween()
+	_sleep_pose_active = false
+	if is_instance_valid(visual_mesh):
+		visual_mesh.rotation.z = SLEEP_TILT_Z
+		visual_mesh.position.y = SLEEP_SINK_Y
+
+func show_zzz(on: bool) -> void:
+	# 「Z z z」悬浮字：趴下打呼期间挂在猪身上（BILLBOARD 保证面向镜头）。
+	if on and is_instance_valid(visual_mesh) and not is_instance_valid(_zzz_label):
+		_zzz_label = Label3D.new()
+		_zzz_label.name = "SleepZzz"
+		_zzz_label.text = "Z z z"
+		_zzz_label.font_size = 44
+		_zzz_label.outline_size = 10
+		_zzz_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_zzz_label.no_depth_test = true
+		_zzz_label.modulate = Color(1.0, 0.98, 0.85, 0.95)
+		_zzz_label.position = Vector3(0.3, 1.05, 0)
+		visual_mesh.add_child(_zzz_label)
+	if is_instance_valid(_zzz_label):
+		_zzz_label.visible = on
+
+func _kill_sleep_pose_tween() -> void:
+	if _sleep_pose_tween != null and _sleep_pose_tween.is_valid():
+		_sleep_pose_tween.kill()
+	_sleep_pose_tween = null
 
 func _perform_dodge() -> void:
 	dodge_timer = dodge_duration
@@ -492,6 +560,8 @@ func _physics_process(delta: float) -> void:
 	dash_state_changed.emit(stamina, cooldown_remaining)
 
 func _update_pose(direction: Vector3, delta: float) -> void:
+	if _sleep_pose_active:
+		return # 趴下中：姿态归入睡 tween，程序化 bob 让位
 	var skeletal := _has_skeletal_locomotion()
 	if direction.length_squared() > 0.001 or dodge_timer > 0.0:
 		var dir := _dodge_direction if dodge_timer > 0.0 else direction
