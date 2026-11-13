@@ -21,12 +21,12 @@ const SPAWN := Vector3(0, 0.6, 12)
 # boost, refreshed per potato, handed back the moment the course ends.
 const POTATO_SPEED_FACTOR := 1.2
 const POTATO_DURATION := 4.0
-const VOXEL_BLUE := Color("38BDF8") # Water cyan
-const VOXEL_GREEN := Color("4ADE80") # Pixel grass
-const VOXEL_DIRT := Color("5A3E28") # Pixel dirt
-const VOXEL_STONE := Color("78909C") # Cobblestone
-const VOXEL_SAND := Color("FBBF24") # Gravity sand
-const VOXEL_PURPLE := Color("8B5CF6") # Nether portal
+const VOXEL_BLUE := Color("3F76E4") # MC water
+const VOXEL_GREEN := Color("7FB238") # MC grass top
+const VOXEL_DIRT := Color("866043") # MC dirt
+const VOXEL_STONE := Color("7F7F7F") # MC stone
+const VOXEL_SAND := Color("DBD3A0") # MC sand
+const VOXEL_PURPLE := Color("884EC3") # MC nether portal
 const CREAM := Color("FFF8E7")
 const DARK := Color("1E293B")
 
@@ -71,7 +71,19 @@ func _end_potato_boost() -> void:
 		player.move_speed = player.move_speed / POTATO_SPEED_FACTOR
 
 func _ready() -> void:
-	ZONE_ENVIRONMENT.apply(self, "voxel_creek")
+	# 我的世界正午精修（深合并到 voxel_creek 地基之上）：暖白太阳 + 近白高
+	# 环境光的平直高照度，雾换成 MC 天光雾色（fog 由 ZoneEnvironment 恒开）。
+	# grade 保持「像素块面 + 硬色阶」语言，posterize 提到 12 更贴近 16x16
+	# 方块贴图的量化观感。
+	ZONE_ENVIRONMENT.apply(self, "voxel_creek", {
+		"ambient_color": Color("FFFFFF"), "ambient_energy": 1.05,
+		"fog_color": Color("A7C8FF"),
+		"sun_energy": 0.82, "sun_color": Color("FFFBE8"),
+		"grade": {
+			"pixel_size": 4.0, "posterize_levels": 12.0,
+			"saturation": 1.15, "contrast": 1.05,
+		},
+	})
 	_build_ground_and_structures()
 	_build_creek_puzzle()
 	_build_slime_blocks()
@@ -186,7 +198,7 @@ func _build_water_slide(pos: Vector3) -> void:
 		mesh.position = col.position
 		var mat := StandardMaterial3D.new()
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		mat.albedo_color = Color("38BDF8BB")
+		mat.albedo_color = Color("3F76E4BB")
 		mat.roughness = 0.1
 		mesh.material_override = mat
 		slide.add_child(mesh)
@@ -363,7 +375,7 @@ func _bury_dog() -> void:
 	var lbl: Label3D = canyon_dog.get_node_or_null("DogLabel")
 	if lbl != null:
 		lbl.text = "✖ 已被沙子活埋 (晕厥中)"
-		lbl.modulate = Color("FBBF24")
+		lbl.modulate = Color("DBD3A0")
 	canyon_dog.bury()
 	if meme_layer:
 		meme_layer.play("dog_buried")
@@ -413,10 +425,10 @@ func _build_nether_portal_exit() -> void:
 
 	# Obsidian frame (collision stays; visuals replaced by the voxel portal
 	# model whose frame wraps its own swirling violet interior)
-	var frame_l := _solid_box("PortalFrameL", Vector3(1.2, 6.0, 1.2), portal_pos + Vector3(-2.4, 3.0, 0), Color("1E1B4B"))
-	var frame_r := _solid_box("PortalFrameR", Vector3(1.2, 6.0, 1.2), portal_pos + Vector3(2.4, 3.0, 0), Color("1E1B4B"))
-	var frame_top := _solid_box("PortalFrameTop", Vector3(6.0, 1.2, 1.2), portal_pos + Vector3(0, 6.6, 0), Color("1E1B4B"))
-	var frame_bottom := _solid_box("PortalFrameBottom", Vector3(6.0, 0.6, 1.2), portal_pos + Vector3(0, 0.3, 0), Color("1E1B4B"))
+	var frame_l := _solid_box("PortalFrameL", Vector3(1.2, 6.0, 1.2), portal_pos + Vector3(-2.4, 3.0, 0), Color("1B1029"))
+	var frame_r := _solid_box("PortalFrameR", Vector3(1.2, 6.0, 1.2), portal_pos + Vector3(2.4, 3.0, 0), Color("1B1029"))
+	var frame_top := _solid_box("PortalFrameTop", Vector3(6.0, 1.2, 1.2), portal_pos + Vector3(0, 6.6, 0), Color("1B1029"))
+	var frame_bottom := _solid_box("PortalFrameBottom", Vector3(6.0, 0.6, 1.2), portal_pos + Vector3(0, 0.3, 0), Color("1B1029"))
 	for frame in [frame_l, frame_r, frame_top, frame_bottom]:
 		ASSETS.hide_procedural_visuals(frame)
 	var portal_model := ASSETS.make("PROP_C2_NETHER_PORTAL")
@@ -433,9 +445,9 @@ func _build_nether_portal_exit() -> void:
 	portal_mesh.position = portal_pos + Vector3(0, 3.3, 0)
 	var mat := StandardMaterial3D.new()
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.albedo_color = Color("8B5CF6DD")
+	mat.albedo_color = Color("884EC3DD")
 	mat.emission_enabled = true
-	mat.emission = Color("A855F7")
+	mat.emission = Color("884EC3")
 	mat.emission_energy_multiplier = 1.5
 	portal_mesh.material_override = mat
 	add_child(portal_mesh)
@@ -453,8 +465,8 @@ func _build_decorations() -> void:
 	_voxel_tree(Vector3(7, 0, -78))
 
 func _voxel_tree(pos: Vector3) -> void:
-	var trunk := _solid_box("Trunk", Vector3(1.0, 4.0, 1.0), pos + Vector3(0, 2.0, 0), Color("795548"))
-	var leaves := _solid_box("Leaves", Vector3(3.2, 3.2, 3.2), pos + Vector3(0, 4.8, 0), Color("16A34A"))
+	var trunk := _solid_box("Trunk", Vector3(1.0, 4.0, 1.0), pos + Vector3(0, 2.0, 0), Color("A08050"))
+	var leaves := _solid_box("Leaves", Vector3(3.2, 3.2, 3.2), pos + Vector3(0, 4.8, 0), Color("4C9128"))
 	# Whole-tree voxel model dressed on the trunk body (origin at trunk mid
 	# height); the trunk + leaf box meshes hide, collisions stay.
 	ASSETS.replace_visuals(trunk, "ENV_C2_OAK_TREE", Vector3(0, -2.0, 0))
@@ -550,7 +562,7 @@ func _voxel_ramp(node_name: String, size: Vector3, pos: Vector3, height: float) 
 		mesh.mesh = mesh_box
 		mesh.position = step_col.position
 		var mat := StandardMaterial3D.new()
-		mat.albedo_color = VOXEL_STONE if (i % 2 == 0 or i == steps - 1) else Color("64748B")
+		mat.albedo_color = VOXEL_STONE if (i % 2 == 0 or i == steps - 1) else Color("8A8A8A")
 		mesh.material_override = mat
 		body.add_child(mesh)
 
