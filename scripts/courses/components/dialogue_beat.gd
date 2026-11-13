@@ -162,7 +162,6 @@ func _apply_line() -> void:
 	_text_label.text = str(lines[_line_index])
 	_counter_label.text = "%d / %d" % [_line_index + 1, lines.size()]
 	_line_left = _line_time()
-	_card.reset_size()
 
 func _finish() -> void:
 	var finished_id := active_id()
@@ -207,13 +206,14 @@ func _build_card() -> void:
 	var accent: Color = _active.get("accent", UI.PINK)
 	_card = UI.patch_panel(20, UI.PAPER, accent, Vector2(26, 16))
 	_card.name = "BeatCard"
-	_card.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	# MINSIZE 锚定 + 向上生长（game_hud key strip 同款手法）：卡片随行数自动
+	# 长高。旧实现的固定 offset（top -212 / bottom -40 的 172px 定高）把换行
+	# 文本压回卡片里。
+	_card.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE)
 	_card.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_card.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_card.offset_left = -320.0
-	_card.offset_right = 320.0
-	_card.offset_top = -212.0
-	_card.offset_bottom = -40.0
+	_card.offset_top -= 40.0
+	_card.offset_bottom -= 40.0
 	_card.custom_minimum_size = Vector2(560, 0)
 	_card.visible = false
 	_card.gui_input.connect(func(event: InputEvent):
@@ -221,6 +221,13 @@ func _build_card() -> void:
 			_advance()
 	)
 	_layer.add_child(_card)
+
+	# patch_panel 是 PanelContainer：它把【每一个】子节点都拉伸到同一块内容
+	# 矩形，不做纵向堆叠——标题行/正文/提示必须收进唯一的 VBox 子节点，
+	# 否则三层文字全部叠印在同一块区域（全库 patch_panel 用法同此惯例）。
+	var layout := VBoxContainer.new()
+	layout.add_theme_constant_override("separation", 6)
+	_card.add_child(layout)
 
 	var head := HBoxContainer.new()
 	_title_label = UI.label("", 20, UI.TEAL_DEEP, true)
@@ -233,13 +240,13 @@ func _build_card() -> void:
 	head.add_child(_title_label)
 	head.add_child(spacer)
 	head.add_child(_counter_label)
-	_card.add_child(head)
+	layout.add_child(head)
 
 	_text_label = UI.label("", 19, UI.INK)
 	_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_text_label.custom_minimum_size = Vector2(560, 0)
-	_card.add_child(_text_label)
+	layout.add_child(_text_label)
 
 	_hint_label = UI.label("点击 / F / 空格：下一句（连按跳过）", 13, UI.INK_SOFT)
 	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_card.add_child(_hint_label)
+	layout.add_child(_hint_label)

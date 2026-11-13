@@ -490,18 +490,32 @@ func _run() -> void:
 	await process_frame
 	pig.reset_at(Vector3(0, 0.6, 0))
 	pig.set_control_mode("chase")
-	beat.play({"id": "unit_intro", "title": "单元测试", "lines": ["第一句。", "第二句。"], "line_time": 0.6, "player": pig})
+	var long_line := "这句台词特别长，长到必须在五百六十像素宽的卡片里折成三行，用来验证卡片会跟着文字行数自动长高，而不是把好几行字压进同一行的空间里叠在一起。"
+	beat.play({"id": "unit_intro", "title": "单元测试", "lines": ["第一句。", long_line], "line_time": 0.6, "player": pig})
 	_check(beat.is_active(), "Beat is active the moment play() is called")
 	await create_timer(0.25).timeout # deferred begin lands; line 1 still on screen
 	_check(beat.locking() and pig.control_mode == "cinematic", "Deferred lock holds the pig in cinematic mode")
-	await create_timer(0.8).timeout # line 1 auto-advanced at 0.6 s, line 2 playing
+	await create_timer(0.8).timeout # line 1 auto-advanced at 0.6 s, long line 2 playing
 	_check(beat.locking() and pig.control_mode == "cinematic", "Beat still holds the pig on line 2 (auto-advance, no release)")
+	# 布局回归网：旧实现把标题/正文/提示三个节点直接塞进 PanelContainer（每
+	# 个子节点被拉伸到同一块矩形，三层文字叠印），且 172px 定高不随换行生长。
+	# 现在三层必须纵向错开，换行正文必须把文本区撑高。
+	var beat_card: Control = beat._card
+	_check(beat_card != null and beat_card.visible, "Beat card is built and visible while a line plays")
+	var title_rect: Rect2 = beat._title_label.get_global_rect()
+	var body_rect: Rect2 = beat._text_label.get_global_rect()
+	var hint_rect: Rect2 = beat._hint_label.get_global_rect()
+	_check(title_rect.end.y <= body_rect.position.y + 1.0, "Title row sits above the body text (no stacked overlap)")
+	_check(body_rect.end.y <= hint_rect.position.y + 1.0, "Body text sits above the hint row (no stacked overlap)")
+	var tall_body_height: float = body_rect.size.y
 	await create_timer(0.9).timeout # line 2 also auto-advanced -> beat ends on its own
 	_check(not beat.is_active() and not beat.locking(), "Beat ends by itself after the last line (nothing can be wedged)")
 	_check(pig.control_mode == "chase", "Control restored to the pre-beat mode")
 	beat.play({"id": "unit_skip", "title": "跳过", "lines": ["没人读得到这句。"], "line_time": 2.0, "player": pig})
 	await create_timer(0.25).timeout
 	_check(beat.locking() and pig.control_mode == "cinematic", "Second beat locks again")
+	var short_body_height: float = beat._text_label.get_global_rect().size.y
+	_check(tall_body_height > short_body_height + 40.0, "Wrapped multi-line body grows the text area (auto-height card)")
 	beat.skip_all()
 	await process_frame
 	_check(not beat.is_active() and pig.control_mode == "chase", "skip_all() ends the beat at once and restores control")
