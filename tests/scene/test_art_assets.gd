@@ -45,10 +45,10 @@ func _run() -> void:
 			course += 1
 		else:
 			core += 1
-	_check(core == 73, "73 core assets delivered (got %d)" % core)
+	_check(core == 75, "75 core assets delivered (got %d)" % core)
 	_check(dressing == 18, "18 diverse dressing modules delivered (got %d)" % dressing)
 	_check(course == 13, "13 course-1 props delivered (got %d)" % course)
-	_check(catalog.assets.size() == 104, "catalog total 104 (got %d)" % catalog.assets.size())
+	_check(catalog.assets.size() == 106, "catalog total 106 (got %d)" % catalog.assets.size())
 	for id in catalog.assets:
 		var visual := ASSETS.make(id)
 		_check(visual != null, "accepted model loads: " + id)
@@ -94,7 +94,7 @@ func _run() -> void:
 	_check(farm.get_node_or_null("CableCarCabin/Deck") == null, "placeholder cabin removed")
 	var ox_art := farm.get_node_or_null("NPC_ox/CHAR_03")
 	_check(ox_art != null and ox_art.visible, "accepted ox model mounted on story body")
-	_check(get_nodes_in_group("interactable").size() == 7, "art keeps interaction roots")
+	_check(get_nodes_in_group("interactable").size() == 8, "art keeps interaction roots (incl. the pigpen trough)")
 	var gate := farm.get_node("Gate")
 	var left := gate.find_child("GateLeft", true, false) as Node3D
 	var right := gate.find_child("GateRight", true, false) as Node3D
