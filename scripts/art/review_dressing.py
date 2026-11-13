@@ -1,6 +1,7 @@
 """Create a contact sheet; register only explicitly reviewed IDs with --accept."""
 import argparse
 import json
+from datetime import date
 from pathlib import Path
 from PIL import Image, ImageDraw
 
@@ -22,7 +23,7 @@ if args.accept:
         catalog['assets'][asset_id]={'path':resource,'accepted':True,'yaw_degrees':0,
             'triangles':report['triangles'],'category':'environment_dressing',
             'triangle_budget':budget,
-            'validation':'Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-02'}
+            'validation':'Isolated Lux3D subject and flat palette game preview visually reviewed; '+date.today().isoformat()}
         if '"'+resource+'"' not in text: text=text.replace('export_files=PackedStringArray(', 'export_files=PackedStringArray("'+resource+'", ',1)
     path.write_text(json.dumps(catalog,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     export.write_text(text,encoding='utf-8')

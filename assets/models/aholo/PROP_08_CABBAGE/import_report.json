@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_08_CABBAGE",
+  "raw_triangles": 7430,
+  "triangles": 1499,
+  "size_blender_xyz": [
+    0.804228663444519,
+    0.7962894439697266,
+    0.800000011920929
+  ],
+  "file_bytes": 119760,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_08_CABBAGE/PROP_08_CABBAGE_game.glb"
+}

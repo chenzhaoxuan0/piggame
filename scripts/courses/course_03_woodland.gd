@@ -13,6 +13,8 @@ const MIMIC_CHEST = preload("res://scripts/courses/components/mimic_chest.gd")
 const BOUNCY_MUSHROOM = preload("res://scripts/courses/components/bouncy_mushroom.gd")
 const PATROL_GUARD_DOG = preload("res://scripts/courses/components/patrol_guard_dog.gd")
 const ZONE_ENVIRONMENT = preload("res://scripts/courses/components/zone_environment.gd")
+const PLUNGER_LAUNCHER = preload("res://scripts/courses/components/plunger_launcher.gd")
+const PLUNGER_PROP = preload("res://scripts/courses/components/plunger_prop.gd")
 
 const SPAWN := Vector3(0, 0.6, 12)
 # Real-chest speed buff: course-owned and course-scoped (same rule as the
@@ -33,6 +35,7 @@ const DARK := Color("292524")
 var runner: CourseRunner
 var meme_layer: MemeLayer
 var _discern_halo: Node3D
+var plunger_launcher: PlungerLauncher
 
 var stealth_box: Node3D
 var patrol_dog: Node3D
@@ -83,6 +86,7 @@ func _ready() -> void:
 	_build_decorations()
 	_build_exit()
 	_build_markers()
+	_build_plunger_armory()
 
 	meme_layer = MEME_SCRIPT.new()
 	meme_layer.name = "MemeLayer"
@@ -104,6 +108,8 @@ func setup(player: Node3D) -> void:
 		# the farm story's sheep/ox quests stay unfinished until really done.
 		gm.grant_course_skills(["struggle", "discern"])
 	runner.setup(player, SPAWN)
+	if plunger_launcher != null:
+		plunger_launcher.setup(player, 3) # three rounds in the pocket at the gate
 	_update_discern_visuals()
 
 func _update_discern_visuals() -> void:
@@ -522,6 +528,21 @@ func _build_markers() -> void:
 	_checkpoint("Checkpoint2", 2, Vector3(0, 1, -50), Vector3(0, 0.6, -50))
 	_checkpoint("Checkpoint3", 3, Vector3(0, 1, -72.5), Vector3(0, 0.6, -72.4))
 	_area("CourseExit", "course_exit", Vector3(0, 2, -88), Vector3(8, 5, 3))
+
+func _build_plunger_armory() -> void:
+	# The woodland's one weapon: pig fires toilet plungers (Q) to knock patrol
+	# dogs down. Three rounds in the pocket, three resupply caches along the
+	# track. The launcher owns ammo/HUD/hit resolution; the course only places it.
+	plunger_launcher = PLUNGER_LAUNCHER.new()
+	plunger_launcher.name = "PlungerLauncher"
+	add_child(plunger_launcher)
+	for pos in [Vector3(2.6, 0.25, -6.5), Vector3(-6.2, 0.25, -44.0), Vector3(4.5, 0.25, -68.0)]:
+		var pickup := PLUNGER_PROP.new()
+		pickup.name = "PlungerPickup"
+		add_child(pickup)
+		pickup.global_position = pos
+		pickup.collected.connect(func(): plunger_launcher.add_ammo(1))
+	_label("搋子军械库 · 按 [ Q ] 发射，把恶犬吸在地上！", Vector3(0, 2.4, -4.0), 20)
 
 func _checkpoint(node_name: String, index: int, pos: Vector3, respawn: Vector3) -> void:
 	var area := _area(node_name, "course_checkpoint", pos, Vector3(8, 3, 3))

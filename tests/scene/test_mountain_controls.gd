@@ -73,13 +73,30 @@ func _run() -> void:
 	_check(office.paused and not office.chase.active,"pause suspends chase")
 	for i in dogs.size(): _check(dogs[i]==office.chase._dogs[i].position,"paused dog stays still")
 	office._resume()
-	for i in 720:
+	# Standing still gets the pig grappled into the struggle QTE; with no taps
+	# the clock runs out and the 2026-11 contract reruns the checkpoint leg -
+	# no game-over menu, no fixed-position retry any more.
+	var qte_seen := false
+	var rerun_done := false
+	for i in 1200:
 		await physics_frame
-		if office.overlay.visible: break
-	_check(office.overlay.visible and not office.chase.running,"standing still is caught on actual mountain course")
-	office._retry()
-	_check(game.stage=="exploring" and game.npc_completed.ox,"retry preserves companion progress")
-	_check(office.player.position==L.RETRY and office.chase._dogs.is_empty(),"retry resets to approach and clears dogs")
-	_check(not office.camera.test_high_view and office.camera.size==8,"gameplay camera stays close after retry")
+		if not qte_seen and office.in_qte:
+			qte_seen = true
+		if qte_seen and not office.in_qte and not office.qte_panel.visible and not office.chase.running:
+			rerun_done = true
+			break
+	_check(qte_seen,"standing still is grappled into the struggle QTE on the actual mountain course")
+	_check(rerun_done and not office.overlay.visible,"failing the struggle reruns the checkpoint leg with no game-over menu")
+	_check(game.npc_completed.ox,"checkpoint rerun preserves companion progress")
+	_check(not office.player.control_mode=="ending","player is never locked into the ending state")
+	_check(office.player.position.distance_to(office.farm._checkpoint)<.5,"pig dropped back at the journey trail checkpoint")
+	# The same leg re-arms itself after a short beat, full dog pack back on spawn.
+	await create_timer(1.8).timeout
+	await physics_frame
+	_check(office.chase.running and office.chase.active,"chase stage re-armed itself after the rerun")
+	_check(office.chase._dogs.size()==6,"re-armed chase respawns the full dog pack (3 dogs + 3 phantoms)")
+	office.chase.stop_chase()
+	_check(office.chase._dogs.is_empty(),"manual stop still clears the dog pack")
+	_check(not office.camera.test_high_view and office.camera.size==8,"gameplay camera stays close after rerun")
 	print("MOUNTAIN_CONTROLS failures=%d" % failures)
 	quit(0 if failures==0 else 1)

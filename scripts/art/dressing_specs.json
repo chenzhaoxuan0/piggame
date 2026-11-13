@@ -1,244 +1,267 @@
 {
- "ENV_09_OAK": {
-  "name": "山地阔冠橡树",
-  "subject": "One mature oak tree, thick branching brown trunk, asymmetrical broad crown made of five large rounded angular olive green foliage masses, visible lower trunk and compact roots. No individual leaves.",
-  "height": 6.2,
-  "budget": 2200,
-  "palette": [
-   "526E49",
-   "698553",
-   "80965D",
-   "665A48"
-  ]
- },
- "ENV_09_BIRCH": {
-  "name": "白桦树",
-  "subject": "One slender birch tree with two forked ivory trunks, sparse dark bark bands, airy oval sage green crown in three solid clumps. No individual leaves.",
-  "height": 5.8,
-  "budget": 1800,
-  "palette": [
-   "709478",
-   "91AB80",
-   "D8D7C3",
-   "665A48"
-  ]
- },
- "ENV_09_PINE": {
-  "name": "山路层叠松树",
-  "subject": "One mountain pine tree, visible brown trunk, irregular layered umbrella boughs of dark sage green solid foliage, bent silhouette. No needles or individual leaves.",
-  "height": 6.8,
-  "budget": 2000,
-  "palette": [
-   "405F51",
-   "56765C",
-   "6E8A66",
-   "665A48"
-  ]
- },
- "ENV_09_APPLE": {
-  "name": "牧场苹果树",
-  "subject": "One short orchard apple tree, crooked forked brown trunk, broad low green solid crown with eight large muted red apples attached among the foliage. No individual leaves.",
-  "height": 4.2,
-  "budget": 2000,
-  "palette": [
-   "698553",
-   "80965D",
-   "A96550",
-   "665A48"
-  ]
- },
- "ENV_09_HAWTHORN": {
-  "name": "开花山楂灌木",
-  "subject": "One low asymmetrical hawthorn shrub, three connected rounded sage green foliage masses, a few simple large cream flower clusters, broad spreading silhouette. No pot.",
-  "height": 1.25,
-  "budget": 1200,
-  "palette": [
-   "526E49",
-   "80965D",
-   "E1DDC5",
-   "665A48"
-  ]
- },
- "ENV_09_FERN": {
-  "name": "林下阔叶蕨",
-  "subject": "One stylized fern plant with six broad solid curved fronds spreading from a central crown, very simplified large leaf silhouettes without tiny leaflets, moss green. No pot or base.",
-  "height": 0.7,
-  "budget": 800,
-  "palette": [
-   "526E49",
-   "80965D"
-  ]
- },
- "ENV_09_REEDS": {
-  "name": "溪岸香蒲丛",
-  "subject": "One compact clump of seven broad green reed leaves and three brown cattail seed heads, simple thick silhouettes suitable for a low polygon game, no water or ground.",
-  "height": 1.45,
-  "budget": 1000,
-  "palette": [
-   "698553",
-   "95A96A",
-   "795A43"
-  ]
- },
- "ENV_09_ROCK": {
-  "name": "苔石岩块",
-  "subject": "One squat asymmetrical granite boulder with large broad smooth angular faces, blue grey stone, a single smooth olive green moss patch covering the top, no cracks texture.",
-  "height": 1.4,
-  "budget": 900,
-  "palette": [
-   "777F8D",
-   "A5A69F",
-   "708651"
-  ]
- },
- "ENV_09_STUMP": {
-  "name": "伐木树桩",
-  "subject": "One old tree stump, broad cut top in pale wood with one simple concentric ring, dark brown short bark cylinder, three chunky roots and a single broken branch, no ground.",
-  "height": 0.75,
-  "budget": 1000,
-  "palette": [
-   "665A48",
-   "9C805E",
-   "C2AE85"
-  ]
- },
- "ENV_09_WHEELBARROW": {
-  "name": "农用独轮车",
-  "subject": "One simple sage green metal farm wheelbarrow with empty deep tray, single dark wheel, two wooden handles and two support feet. Chunky legible proportions, no load.",
-  "height": 0.95,
-  "budget": 1600,
-  "palette": [
-   "56765C",
-   "91AB80",
-   "9C805E",
-   "515A5A"
-  ]
- },
- "ENV_09_CART": {
-  "name": "木制运草板车",
-  "subject": "One small empty rustic farm cart, two large solid wooden spoked wheels, open wooden rectangular plank bed, short side rails and long tow bar. Rounded chunky low polygon construction.",
-  "height": 1.45,
-  "budget": 2000,
-  "palette": [
-   "9C805E",
-   "B39A70",
-   "665A48",
-   "515A5A"
-  ]
- },
- "ENV_09_BARREL": {
-  "name": "木制储水桶",
-  "subject": "One upright open wooden rain barrel with two broad dark iron hoops, pale brown staves, visible dark interior, broad simple geometry, no wood grain texture.",
-  "height": 1.0,
-  "budget": 900,
-  "palette": [
-   "9C805E",
-   "B39A70",
-   "665A48",
-   "515A5A"
-  ]
- },
- "ENV_09_PUMP": {
-  "name": "绿色手压水泵",
-  "subject": "One freestanding vintage cast iron hand water pump, muted sage green vertical column, curved spout, long arched pumping lever, small circular foot. Thick simple sturdy geometry, no basin.",
-  "height": 1.45,
-  "budget": 1600,
-  "palette": [
-   "56765C",
-   "91AB80",
-   "515A5A"
-  ]
- },
- "ENV_09_WOOL": {
-  "name": "剪毛棚羊毛篮",
-  "subject": "One low oval wicker farm basket filled with three large cream wool bundles, two thick loop handles. Solid broad woven bands, soft simple lumps, no individual hair or fabric texture.",
-  "height": 0.7,
-  "budget": 1400,
-  "palette": [
-   "9C805E",
-   "B39A70",
-   "E1DDC5",
-   "C6C4AC"
-  ]
- },
- "ENV_09_HURDLE": {
-  "name": "马场训练跨栏",
-  "subject": "One complete horse jumping hurdle, two thick upright timber standards, two horizontal poles, broad feet. Muted terracotta red and cream alternating broad color bands. Freestanding single assembly.",
-  "height": 1.6,
-  "budget": 1400,
-  "palette": [
-   "A96550",
-   "E1DDC5",
-   "9C805E"
-  ]
- },
- "ENV_09_RAIL": {
-  "name": "牧场交叉木栏模块",
-  "subject": "One straight rustic split rail fence module, two square wooden posts, two horizontal rails and a single diagonal cross brace. Four metres wide compared with 1.2 metres tall, ends stop exactly at posts. Chunky plain wood.",
-  "height": 1.2,
-  "budget": 1000,
-  "palette": [
-   "9C805E",
-   "B39A70",
-   "665A48"
-  ]
- },
- "ENV_09_WALL": {
-  "name": "乡野干砌石墙模块",
-  "subject": "One straight low dry stone wall module, three courses of large irregular rounded grey stones, broad flat coping stones, four metres wide compared with 1.1 metres tall. No arch, no ground or vegetation.",
-  "height": 1.1,
-  "budget": 1600,
-  "palette": [
-   "8B9093",
-   "A5A69F",
-   "777F8D"
-  ]
- },
- "ENV_09_SIGN": {
-  "name": "山路木质路标",
-  "subject": "One rustic wooden trail signpost with two broad arrow shaped boards pointing in opposite directions, thick single vertical timber post. Blank boards without text, pale tan wood, simple dark end grain.",
-  "height": 1.8,
-  "budget": 1000,
-  "palette": [
-   "9C805E",
-   "B39A70",
-   "665A48"
-  ]
- },
- "ENV_06_CRATE": {
-  "name": "农场木箱",
-  "subject": "One wooden farm crate, slatted sides with visible gaps, solid top rails, chunky corner posts. Flat cartoon proportions.",
-  "height": 1.0,
-  "budget": 2600,
-  "palette": [
-   "AA8658",
-   "C19C6B",
-   "896E4C"
-  ]
- },
- "ENV_06_HAY": {
-  "name": "圆形草捆",
-  "subject": "One round hay bale lying on its side, tightly rolled straw bands with slight irregularity, flat cartoon proportions.",
-  "height": 0.9,
-  "budget": 2600,
-  "palette": [
-   "E3BD57",
-   "CDA23F",
-   "F1CF75"
-  ]
- },
- "ENV_06_TRACTOR": {
-  "name": "绿色农用拖拉机",
-  "subject": "One very simple compact toy-like farm tractor: a single rounded green engine hood block, a flat black seat on a short chassis, two big smooth black cylinder rear wheels and two small front wheels. Chunky minimal shapes, very few parts, smooth closed surfaces, no grille, no exhaust, no steering wheel, no fenders.",
-  "height": 2.2,
-  "budget": 2600,
-  "palette": [
-   "4C793C",
-   "709454",
-   "2D522B",
-   "353937",
-   "E4BE56",
-   "BBC8C1"
-  ]
- }
+  "ENV_09_OAK": {
+    "name": "山地阔冠橡树",
+    "subject": "One mature oak tree, thick branching brown trunk, asymmetrical broad crown made of five large rounded angular olive green foliage masses, visible lower trunk and compact roots. No individual leaves.",
+    "height": 6.2,
+    "budget": 2200,
+    "palette": [
+      "526E49",
+      "698553",
+      "80965D",
+      "665A48"
+    ]
+  },
+  "ENV_09_BIRCH": {
+    "name": "白桦树",
+    "subject": "One slender birch tree with two forked ivory trunks, sparse dark bark bands, airy oval sage green crown in three solid clumps. No individual leaves.",
+    "height": 5.8,
+    "budget": 1800,
+    "palette": [
+      "709478",
+      "91AB80",
+      "D8D7C3",
+      "665A48"
+    ]
+  },
+  "ENV_09_PINE": {
+    "name": "山路层叠松树",
+    "subject": "One mountain pine tree, visible brown trunk, irregular layered umbrella boughs of dark sage green solid foliage, bent silhouette. No needles or individual leaves.",
+    "height": 6.8,
+    "budget": 2000,
+    "palette": [
+      "405F51",
+      "56765C",
+      "6E8A66",
+      "665A48"
+    ]
+  },
+  "ENV_09_APPLE": {
+    "name": "牧场苹果树",
+    "subject": "One short orchard apple tree, crooked forked brown trunk, broad low green solid crown with eight large muted red apples attached among the foliage. No individual leaves.",
+    "height": 4.2,
+    "budget": 2000,
+    "palette": [
+      "698553",
+      "80965D",
+      "A96550",
+      "665A48"
+    ]
+  },
+  "ENV_09_HAWTHORN": {
+    "name": "开花山楂灌木",
+    "subject": "One low asymmetrical hawthorn shrub, three connected rounded sage green foliage masses, a few simple large cream flower clusters, broad spreading silhouette. No pot.",
+    "height": 1.25,
+    "budget": 1200,
+    "palette": [
+      "526E49",
+      "80965D",
+      "E1DDC5",
+      "665A48"
+    ]
+  },
+  "ENV_09_FERN": {
+    "name": "林下阔叶蕨",
+    "subject": "One stylized fern plant with six broad solid curved fronds spreading from a central crown, very simplified large leaf silhouettes without tiny leaflets, moss green. No pot or base.",
+    "height": 0.7,
+    "budget": 800,
+    "palette": [
+      "526E49",
+      "80965D"
+    ]
+  },
+  "ENV_09_REEDS": {
+    "name": "溪岸香蒲丛",
+    "subject": "One compact clump of seven broad green reed leaves and three brown cattail seed heads, simple thick silhouettes suitable for a low polygon game, no water or ground.",
+    "height": 1.45,
+    "budget": 1000,
+    "palette": [
+      "698553",
+      "95A96A",
+      "795A43"
+    ]
+  },
+  "ENV_09_ROCK": {
+    "name": "苔石岩块",
+    "subject": "One squat asymmetrical granite boulder with large broad smooth angular faces, blue grey stone, a single smooth olive green moss patch covering the top, no cracks texture.",
+    "height": 1.4,
+    "budget": 900,
+    "palette": [
+      "777F8D",
+      "A5A69F",
+      "708651"
+    ]
+  },
+  "ENV_09_STUMP": {
+    "name": "伐木树桩",
+    "subject": "One old tree stump, broad cut top in pale wood with one simple concentric ring, dark brown short bark cylinder, three chunky roots and a single broken branch, no ground.",
+    "height": 0.75,
+    "budget": 1000,
+    "palette": [
+      "665A48",
+      "9C805E",
+      "C2AE85"
+    ]
+  },
+  "ENV_09_WHEELBARROW": {
+    "name": "农用独轮车",
+    "subject": "One simple sage green metal farm wheelbarrow with empty deep tray, single dark wheel, two wooden handles and two support feet. Chunky legible proportions, no load.",
+    "height": 0.95,
+    "budget": 1600,
+    "palette": [
+      "56765C",
+      "91AB80",
+      "9C805E",
+      "515A5A"
+    ]
+  },
+  "ENV_09_CART": {
+    "name": "木制运草板车",
+    "subject": "One small empty rustic farm cart, two large solid wooden spoked wheels, open wooden rectangular plank bed, short side rails and long tow bar. Rounded chunky low polygon construction.",
+    "height": 1.45,
+    "budget": 2000,
+    "palette": [
+      "9C805E",
+      "B39A70",
+      "665A48",
+      "515A5A"
+    ]
+  },
+  "ENV_09_BARREL": {
+    "name": "木制储水桶",
+    "subject": "One upright open wooden rain barrel with two broad dark iron hoops, pale brown staves, visible dark interior, broad simple geometry, no wood grain texture.",
+    "height": 1.0,
+    "budget": 900,
+    "palette": [
+      "9C805E",
+      "B39A70",
+      "665A48",
+      "515A5A"
+    ]
+  },
+  "ENV_09_PUMP": {
+    "name": "绿色手压水泵",
+    "subject": "One freestanding vintage cast iron hand water pump, muted sage green vertical column, curved spout, long arched pumping lever, small circular foot. Thick simple sturdy geometry, no basin.",
+    "height": 1.45,
+    "budget": 1600,
+    "palette": [
+      "56765C",
+      "91AB80",
+      "515A5A"
+    ]
+  },
+  "ENV_09_WOOL": {
+    "name": "剪毛棚羊毛篮",
+    "subject": "One low oval wicker farm basket filled with three large cream wool bundles, two thick loop handles. Solid broad woven bands, soft simple lumps, no individual hair or fabric texture.",
+    "height": 0.7,
+    "budget": 1400,
+    "palette": [
+      "9C805E",
+      "B39A70",
+      "E1DDC5",
+      "C6C4AC"
+    ]
+  },
+  "ENV_09_HURDLE": {
+    "name": "马场训练跨栏",
+    "subject": "One complete horse jumping hurdle, two thick upright timber standards, two horizontal poles, broad feet. Muted terracotta red and cream alternating broad color bands. Freestanding single assembly.",
+    "height": 1.6,
+    "budget": 1400,
+    "palette": [
+      "A96550",
+      "E1DDC5",
+      "9C805E"
+    ]
+  },
+  "ENV_09_RAIL": {
+    "name": "牧场交叉木栏模块",
+    "subject": "One straight rustic split rail fence module, two square wooden posts, two horizontal rails and a single diagonal cross brace. Four metres wide compared with 1.2 metres tall, ends stop exactly at posts. Chunky plain wood.",
+    "height": 1.2,
+    "budget": 1000,
+    "palette": [
+      "9C805E",
+      "B39A70",
+      "665A48"
+    ]
+  },
+  "ENV_09_WALL": {
+    "name": "乡野干砌石墙模块",
+    "subject": "One straight low dry stone wall module, three courses of large irregular rounded grey stones, broad flat coping stones, four metres wide compared with 1.1 metres tall. No arch, no ground or vegetation.",
+    "height": 1.1,
+    "budget": 1600,
+    "palette": [
+      "8B9093",
+      "A5A69F",
+      "777F8D"
+    ]
+  },
+  "ENV_09_SIGN": {
+    "name": "山路木质路标",
+    "subject": "One rustic wooden trail signpost with two broad arrow shaped boards pointing in opposite directions, thick single vertical timber post. Blank boards without text, pale tan wood, simple dark end grain.",
+    "height": 1.8,
+    "budget": 1000,
+    "palette": [
+      "9C805E",
+      "B39A70",
+      "665A48"
+    ]
+  },
+  "ENV_06_CRATE": {
+    "name": "农场木箱",
+    "subject": "One wooden farm crate, slatted sides with visible gaps, solid top rails, chunky corner posts. Flat cartoon proportions.",
+    "height": 1.0,
+    "budget": 2600,
+    "palette": [
+      "AA8658",
+      "C19C6B",
+      "896E4C"
+    ]
+  },
+  "ENV_06_HAY": {
+    "name": "圆形草捆",
+    "subject": "One round hay bale lying on its side, tightly rolled straw bands with slight irregularity, flat cartoon proportions.",
+    "height": 0.9,
+    "budget": 2600,
+    "palette": [
+      "E3BD57",
+      "CDA23F",
+      "F1CF75"
+    ]
+  },
+  "ENV_06_TRACTOR": {
+    "name": "绿色农用拖拉机",
+    "subject": "One very simple compact toy-like farm tractor: a single rounded green engine hood block, a flat black seat on a short chassis, two big smooth black cylinder rear wheels and two small front wheels. Chunky minimal shapes, very few parts, smooth closed surfaces, no grille, no exhaust, no steering wheel, no fenders.",
+    "height": 2.2,
+    "budget": 2600,
+    "palette": [
+      "4C793C",
+      "709454",
+      "2D522B",
+      "353937",
+      "E4BE56",
+      "BBC8C1"
+    ]
+  },
+  "PROP_08_CABBAGE": {
+    "name": "卷心菜联赛用球",
+    "subject": "One round head of fresh green cabbage, tightly layered outer leaves wrapping over each other into a compact sphere-like bulb, short cut stem base, faint leaf veins as broad smooth folds. Freestanding single vegetable, complete all around.",
+    "height": 0.8,
+    "budget": 1500,
+    "palette": [
+      "5E9E55",
+      "7DB874",
+      "93C98B",
+      "DCEBC8"
+    ]
+  },
+  "PROP_09_GOAL": {
+    "name": "牛耕地球会球门",
+    "subject": "One small freestanding football goal FRAME only: two white round vertical posts joined at the top by one round white horizontal crossbar, two slim white round ground bars along the back base. Open frame with nothing between the posts, no net, no mesh panel, no back wall, no board. Very wide low practice goal, the span between the two posts is clearly larger than the goal height. Complete freestanding assembly, no ground plane.",
+    "height": 1.55,
+    "budget": 2400,
+    "palette": [
+      "FFFFFF",
+      "E8E2CE",
+      "5A442E"
+    ]
+  }
 }

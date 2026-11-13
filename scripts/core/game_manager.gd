@@ -35,6 +35,10 @@ var pending_boot: String = ""
 # dream (or skipped it - the 6am truck deadline is known either way), so the
 # to-do notebook can show the prologue as a crossed-out story entry.
 var intro_dream_done: bool = false
+# Pre-game pigpen sandbox ("farm" boot): the pig can roam/hop/dash/snuffle in
+# its pen to learn the keys, but NPCs won't talk and the pen gate stays
+# bolted. F on the goat is the "start the game" button and clears this.
+var tutorial_free_roam: bool = false
 
 # Companions' granted powers (meaningful forward momentum).
 # Setters write npc_completed: assignments from level select must be visible to
@@ -79,6 +83,7 @@ func reset_run() -> void:
 	has_read_record = false
 	ending = ""
 	intro_dream_done = false
+	tutorial_free_roam = false
 	clear_course_skills()
 	state_changed.emit()
 

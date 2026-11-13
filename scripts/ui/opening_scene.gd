@@ -1,38 +1,26 @@
 extends Node3D
 
-# Opening key-test scene - the boot main menu. A cozy hilltop pen where the
-# REAL PigController answers every key live (WASD walk, Space hop, Shift
-# sprint/dodge, F/E/K trough snorts, click-to-move) so players learn the
-# controls before the nightmare. The menu cards stay on the mouse: every
-# button is FOCUS_NONE and never grabs focus, so the keyboard reaches the pig
-# (a focused button would swallow Space/Enter as ui_accept).
+# Opening boot menu. The old floating key-test pen lived here - it was a
+# 12x12 platform with no ground below and no fall rescue, so hopping out of
+# the fence meant falling forever (the 架空层 bug). The pig now learns its
+# keys in the REAL pigpen instead: "farm" boot drops it into the pen with a
+# key-test strip in the HUD (office_level_1._start_pigpen_tutorial), and this
+# scene is a plain menu over a sky.
 # Hand-off: buttons set GameManager.pending_boot ("dream"/"farm") and switch
 # to office_level_1, which consumes the flag in its _ready instead of showing
 # its own start menu.
 
 const UI = preload("res://scripts/ui/ui_kit.gd")
 const GAME_MENUS = preload("res://scripts/ui/menus.gd")
-const PIG_SCENE = preload("res://scenes/characters/pig.tscn")
-const ISO_CAMERA = preload("res://scripts/core/isometric_camera.gd")
 
-const MUD := Color("8A6F4D")
-const WOOD := Color("B98A5A")
-const WOOD_DARK := Color("8F6A42")
-const STRAW := Color("E8C86A")
-
-var pig: PigController
-var trough: StaticBody3D
-var _keycaps := {} # action/key tag -> Array[PanelContainer]
 var _ui_root: Control
 var achievements_panel: Control
 
 func _ready() -> void:
 	_build_stage()
-	_build_pig()
-	_build_camera()
 	_build_ui()
 
-# ------------------------------------------------------------- stage
+# ------------------------------------------------------------- backdrop
 func _build_stage() -> void:
 	var world := WorldEnvironment.new()
 	var env := Environment.new()
@@ -55,120 +43,16 @@ func _build_stage() -> void:
 	sun.rotation_degrees = Vector3(-42, -55, 0)
 	sun.light_color = Color(1.0, 0.9, 0.72)
 	sun.light_energy = 0.9
-	sun.shadow_enabled = true
 	add_child(sun)
 
-	# Mud platform (collision layer 1: the pig's floor mask).
-	_solid("PenFloor", Vector3(12, 1, 12), Vector3(0, -0.5, 0), MUD)
-	# Low fence ring: tall enough to keep the pig in, low enough to see over.
-	for rail in [
-		{"name": "FenceN", "size": Vector3(12.4, 0.8, 0.4), "pos": Vector3(0, 0.4, -6.0)},
-		{"name": "FenceS", "size": Vector3(12.4, 0.8, 0.4), "pos": Vector3(0, 0.4, 6.0)},
-		{"name": "FenceW", "size": Vector3(0.4, 0.8, 12.4), "pos": Vector3(-6.0, 0.4, 0)},
-		{"name": "FenceE", "size": Vector3(0.4, 0.8, 12.4), "pos": Vector3(6.0, 0.4, 0)},
-	]:
-		_solid(rail["name"], rail["size"], rail["pos"], WOOD)
-	# Fence posts on the corners for a hand-built look (no collision needed,
-	# they sit inside the rail line).
-	for post in [Vector3(-6, 0.55, -6), Vector3(6, 0.55, -6), Vector3(-6, 0.55, 6), Vector3(6, 0.55, 6)]:
-		_solid("FencePost", Vector3(0.55, 1.1, 0.55), post, WOOD_DARK)
-	# Straw piles to hop over.
-	for straw in [Vector3(-2.5, 0.28, -1.5), Vector3(3.2, 0.22, -2.8), Vector3(-3.4, 0.24, 2.8)]:
-		var pile := _solid("Straw", Vector3(1.4, 0.55, 1.1), straw, STRAW)
-		pile.rotation.y = randf() * TAU
-
-	# The food trough: the one true interactable, so F/E/K get a real snort.
-	trough = StaticBody3D.new()
-	trough.name = "Trough"
-	trough.position = Vector3(3.8, 0.35, 3.8)
-	trough.collision_layer = 1
-	trough.collision_mask = 0
-	trough.set_meta("interaction_id", "trough")
-	trough.add_to_group("interactable")
-	var shape := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	box.size = Vector3(1.8, 0.7, 0.9)
-	shape.shape = box
-	trough.add_child(shape)
-	var mesh := MeshInstance3D.new()
-	var mesh_box := BoxMesh.new()
-	mesh_box.size = box.size
-	mesh.mesh = mesh_box
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = WOOD_DARK
-	mat.roughness = 0.9
-	mesh.material_override = mat
-	trough.add_child(mesh)
-	add_child(trough)
-	var tag := UI.world_label("食槽 · 按 F / E / K 拱一下", 22, UI.WHITE, UI.TEAL_DEEP)
-	tag.position = Vector3(0, 1.5, 0)
-	trough.add_child(tag)
-
-func _solid(node_name: String, size: Vector3, pos: Vector3, color: Color) -> StaticBody3D:
-	var body := StaticBody3D.new()
-	body.name = node_name
-	body.position = pos
-	body.collision_layer = 1
-	body.collision_mask = 0
-	var shape := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	box.size = size
-	shape.shape = box
-	body.add_child(shape)
-	var mesh := MeshInstance3D.new()
-	var mesh_box := BoxMesh.new()
-	mesh_box.size = size
-	mesh.mesh = mesh_box
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.roughness = 0.95
-	mesh.material_override = mat
-	body.add_child(mesh)
-	add_child(body)
-	return body
-
-# ------------------------------------------------------------- pig & camera
-func _build_pig() -> void:
-	pig = PIG_SCENE.instantiate() as PigController
-	pig.position = Vector3(0, 0.6, 0)
-	add_child(pig)
-	# reset_at clears both flags, so arm them after the pig settles in.
-	pig.set_dash_enabled(true) # Shift sprint with no skill gate - it's a demo pen
-	pig.force_dodge_available = true # Tap-Shift dodge without a dog threat
-	pig.reached_interactable.connect(_on_pig_interacted)
-	pig.dodge_succeeded.connect(func(_dog):
-		_snort("闪避！好身手！")
-	)
-
-func _build_camera() -> void:
-	# No target_path needed: the isometric camera falls back to the first node
-	# in the "player" group, and the pig is it.
+	# Static camera on the horizon: without any camera the 3D sky never draws
+	# and the menu sits on flat grey.
 	var cam := Camera3D.new()
-	cam.name = "OpeningCamera"
-	cam.set_script(ISO_CAMERA)
+	cam.name = "MenuCamera"
+	cam.position = Vector3(0, 1.6, 0)
+	cam.rotation_degrees = Vector3(-6, 0, 0)
 	add_child(cam)
-
-# ------------------------------------------------------------- reactions
-func _on_pig_interacted(target: Node3D) -> void:
-	if target != trough:
-		return
-	AchievementManager.unlock("trough_sniff") # Before the dream even starts
-	_snort("哼哼！（拱得食槽哐当响）")
-	var squash := create_tween()
-	squash.tween_property(trough, "scale", Vector3(1.12, 0.72, 1.12), 0.08)
-	squash.tween_property(trough, "scale", Vector3.ONE, 0.18)
-
-func _snort(text: String) -> void:
-	var popup := UI.world_label(text, 26, UI.WHITE, UI.TEAL_DEEP)
-	popup.position = pig.global_position + Vector3(0, 1.8, 0)
-	popup.modulate.a = 0.0
-	add_child(popup)
-	var t := create_tween()
-	t.set_parallel(true)
-	t.tween_property(popup, "position:y", popup.position.y + 0.8, 0.8)
-	t.tween_property(popup, "modulate:a", 1.0, 0.15)
-	t.chain().tween_property(popup, "modulate:a", 0.0, 0.35)
-	t.chain().tween_callback(popup.queue_free)
+	cam.current = true
 
 # ------------------------------------------------------------- UI
 func _build_ui() -> void:
@@ -182,7 +66,7 @@ func _build_ui() -> void:
 	layer.add_child(root)
 	_ui_root = root
 
-	# Menu card, left of centre - the pen stage stays visible behind it.
+	# Menu card, centred left - the sky backdrop stays visible behind it.
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 14)
 	column.set_anchors_and_offsets_preset(Control.PRESET_CENTER_LEFT)
@@ -221,72 +105,12 @@ func _build_ui() -> void:
 	btn_quit.name = "QuitButton"
 	btn_quit.custom_minimum_size.y = 40
 	vbox.add_child(btn_quit)
-	var hint := UI.label("菜单用鼠标点——键盘留给场上的猪 🐷", 14, UI.INK_SOFT)
+	var hint := UI.label("菜单用鼠标点——键位教学搬进了开场猪圈 🐷", 14, UI.INK_SOFT)
 	vbox.add_child(hint)
-	# The whole point of this scene: keys must reach the pig, so no button
-	# ever takes focus (a focused button eats Space/Enter as ui_accept).
+	# Keyboard reaches nothing here any more, but keep buttons focus-free so
+	# Enter/Space can never double-fire a focused button mid-click.
 	for btn in [btn_start, btn_skip, btn_achv, btn_quit]:
 		btn.focus_mode = Control.FOCUS_NONE
-
-	# Key-test strip along the bottom: keycap per bound key, lights up while
-	# held (see _process).
-	var strip := UI.patch_panel(18, UI.PAPER, UI.TEAL, Vector2(20, 12))
-	strip.name = "KeyTestStrip"
-	# MINSIZE preset is applied while the strip is still empty (min size 0), so
-	# the keycap rows added below grow the panel afterwards - that growth must
-	# go UP, or the strip sinks past the bottom edge (default grow_vertical is
-	# END/down; same trap the achievement popup's grow-directions dodge).
-	strip.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE)
-	strip.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	strip.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	strip.offset_top -= 24
-	strip.offset_bottom -= 24
-	root.add_child(strip)
-	var rows := VBoxContainer.new()
-	rows.add_theme_constant_override("separation", 8)
-	strip.add_child(rows)
-	var caption := UI.label("开演前先试试蹄子——按键当场生效", 16, UI.TEAL_DEEP, true)
-	caption.name = "KeyTestCaption"
-	rows.add_child(caption)
-	var line1 := HBoxContainer.new()
-	line1.add_theme_constant_override("separation", 12)
-	rows.add_child(line1)
-	_key_group(line1, ["W", "A", "S", "D"], "移动", ["move_up", "move_left", "move_down", "move_right"])
-	_key_group(line1, ["空格"], "跳跃", ["action_jump"])
-	var line2 := HBoxContainer.new()
-	line2.add_theme_constant_override("separation", 12)
-	rows.add_child(line2)
-	_key_group(line2, ["Shift"], "长按冲刺 · 点按闪避", ["action_dash"])
-	_key_group(line2, ["F", "E", "K"], "拱食槽", ["action_interact", "action_interact", "action_interact"])
-	_key_group(line2, ["🖱+"], "点击走位", ["__mouse__"])
-
-func _key_group(row: HBoxContainer, keys: Array, desc: String, actions: Array) -> void:
-	var group := HBoxContainer.new()
-	group.add_theme_constant_override("separation", 5)
-	row.add_child(group)
-	for i in keys.size():
-		var cap := UI.keycap(keys[i], 15, UI.TEAL)
-		cap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		group.add_child(cap)
-		var tag: String = actions[i] if actions[i] != "__mouse__" else "__mouse__"
-		if not _keycaps.has(tag):
-			_keycaps[tag] = []
-		_keycaps[tag].append(cap)
-	var label := UI.label(" " + desc, 15, UI.INK)
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	group.add_child(label)
-
-func _process(_delta: float) -> void:
-	# Held-key highlight: every bound action lights its keycaps while down.
-	for tag in _keycaps:
-		var pressed := false
-		if tag == "__mouse__":
-			pressed = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-		else:
-			pressed = Input.is_action_pressed(tag)
-		var tint := UI.SUNNY if pressed else UI.WHITE
-		for cap in _keycaps[tag]:
-			cap.modulate = tint
 
 # ------------------------------------------------------------- hand-off
 func _open_achievements_panel() -> void:

@@ -259,10 +259,12 @@ func resolve_qte(dog: ChaseDog, success: bool) -> void:
 		dog.stun(2.8, dir * 6.0)
 		_meme("qte_success", player.global_position)
 	else:
-		if player.has_method("apply_knockback"):
-			player.apply_knockback(-dir * 5.0 + Vector3.UP * 4.0, 0.6)
+		# Failed to break free: the catch now costs the segment. Back to the
+		# last course checkpoint and re-run it (2026-11 pressure tuning; the
+		# old knockback-and-continue read as "failures are free").
 		dog.stun(1.2)
 		_meme("qte_fail", player.global_position)
+		_respawn()
 
 func _gm() -> Node:
 	var tree := get_tree()

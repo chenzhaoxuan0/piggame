@@ -921,6 +921,72 @@
       "remote_status": 3,
       "raw_model": "assets/models/aholo/ENV_06_TRACTOR/ENV_06_TRACTOR.glb",
       "sha256": "b14a69d6560a3a3337146d47c9af0c739c8b2a2f59d522defd8397431fb7bfcc"
+    },
+    "PROP_08_CABBAGE": {
+      "task_id": 6932258,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One round head of fresh green cabbage, tightly layered outer leaves wrapping over each other into a compact sphere-like bulb, short cut stem base, faint leaf veins as broad smooth folds. Freestanding single vegetable, complete all around.",
+        "style": "cartoon",
+        "version": "G1",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-12T23:13:14.272904+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_08_CABBAGE/PROP_08_CABBAGE.glb",
+      "sha256": "9a29035b1d94ed541a1153d697768c8e11f9fff355e4a4a84cd5026753181bd4"
+    },
+    "PROP_09_GOAL": {
+      "rejected_candidates": [
+        {
+          "task_id": 6932263,
+          "parameters": {
+            "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One small freestanding practice football goal, two round white posts and one round white crossbar, a flat cream-colored rectangular net panel hanging from the crossbar and sloping down to a slim ground frame at the back. Goal frame about 2.4 times as wide as it is tall. Freestanding single assembly, no ground plane.",
+            "style": "cartoon",
+            "version": "G1",
+            "faceCount": 10000,
+            "outputFormat": [
+              "zip",
+              "glb"
+            ],
+            "enablePbr": true,
+            "aiPredictSize": false,
+            "wait": false
+          },
+          "status": "downloaded",
+          "generated_at": "2026-11-12T23:13:16.787179+00:00",
+          "remote_status": 3,
+          "raw_model": "assets/models/aholo/PROP_09_GOAL/PROP_09_GOAL.glb",
+          "sha256": "23e21c8aee1d1d84c5def3a711f78a352175b6b0b275485de8eb4b3f4442fea8",
+          "reason": "Fragmented overlapping surfaces in runtime preview; retry with G1 quality model"
+        }
+      ],
+      "task_id": 6932569,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One small freestanding football goal FRAME only: two white round vertical posts joined at the top by one round white horizontal crossbar, two slim white round ground bars along the back base. Open frame with nothing between the posts, no net, no mesh panel, no back wall, no board. Very wide low practice goal, the span between the two posts is clearly larger than the goal height. Complete freestanding assembly, no ground plane.",
+        "style": "cartoon",
+        "version": "G1",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-12T23:25:17.196078+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_09_GOAL/PROP_09_GOAL.glb",
+      "sha256": "2356ebe6326ecb6b03719838b0acddd6c341e7f86a27ee1ccbdadc98de12bffc"
     }
   }
 }

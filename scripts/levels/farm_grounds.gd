@@ -68,6 +68,28 @@ func _ready() -> void:
 	_pigpen_gate.get_node("VisualMesh").hide()
 	_named_gates["pigpen"] = _pigpen_gate
 
+	# The pigpen trough: the tutorial's one true interactable (拱食槽 gag +
+	# trough_sniff achievement - it used to live in the floating boot pen).
+	var trough := _interaction("PigpenTrough", "trough", Vector3(3.6, 32.35, 96.5), Vector3(1.8, 0.7, 0.9))
+	trough.get_node("CollisionShape3D").position.y = 0.35
+	var trough_mesh := MeshInstance3D.new()
+	var trough_box := BoxMesh.new()
+	trough_box.size = Vector3(1.8, 0.7, 0.9)
+	trough_mesh.mesh = trough_box
+	var trough_mat := StandardMaterial3D.new()
+	trough_mat.albedo_color = Color("8F6A42")
+	trough_mat.roughness = 0.9
+	trough_mesh.material_override = trough_mat
+	trough_mesh.position.y = 0.35
+	trough.add_child(trough_mesh)
+	# The stone trough model (ENV_01_TROUGH, 1.8 x 0.9 x 0.42 m) is the visual;
+	# the box keeps the collision. Same model the art line tagged 猪圈和赛道复用.
+	var trough_art := ASSETS.make("ENV_01_TROUGH")
+	if trough_art != null:
+		trough_mesh.visible = false
+		trough.add_child(trough_art)
+	_label(trough, "TroughLabel", "食槽 · 按 F / E / K 拱一下", Vector3(0, 1.5, 0), 20)
+
 	_build_all_gates()
 	_build_road_obstacles()
 	_build_playground()
@@ -472,16 +494,45 @@ func _plaything(kind: int, sense: Vector3, cool: float,
 func _build_playground() -> void:
 	# --- Ox terrace: the cabbage pitch beside the (relocated) vegetable field
 	var ball := _sphere(self, "CabbageBall", 0.4, Vector3(46, 24.4, 30), Color("7DB874"), true)
+	# Lux3D PROP_08_CABBAGE (0.8 m, flat leaf palette) replaces the plain green
+	# sphere visual; the AnimatableBody3D sphere collision keeps driving the kicks.
+	var cabbage := ASSETS.make("PROP_08_CABBAGE")
+	if cabbage != null:
+		var ball_mesh := ball.get_node_or_null("VisualMesh")
+		if ball_mesh != null:
+			ball_mesh.visible = false
+		cabbage.name = "CabbageLux"
+		cabbage.position = Vector3(0, -0.4, 0) # model pivot is bottom-centre, ball origin is centre
+		ball.add_child(cabbage)
 	ball.add_child(_plaything(PLAYTHING.Kind.CABBAGE, Vector3(2.4, 2.0, 2.4), 0.45))
 	var goal := Node3D.new()
 	goal.name = "CabbageGoal"
 	goal.position = Vector3(46, 24, 24.6)
 	add_child(goal)
-	_box(goal, "PostL", Vector3(0.22, 1.5, 0.22), Vector3(-1.7, 0.75, 0), Color("5A442E"), true)
-	_box(goal, "PostR", Vector3(0.22, 1.5, 0.22), Vector3(1.7, 0.75, 0), Color("5A442E"), true)
-	_box(goal, "CrossBar", Vector3(3.6, 0.22, 0.22), Vector3(0, 1.5, 0), Color("5A442E"), true)
-	_box(goal, "NetBack", Vector3(3.4, 1.3, 0.12), Vector3(0, 0.7, -0.7), Color("E8E2CE"), false)
-	_label(goal, "GoalTitle", "牛耕地球会 · 卷心菜联赛", Vector3(0, 2.2, 0), 20)
+	# Lux3D PROP_09_GOAL (netless frame, 2.406 m wide / 1.55 m tall) is the
+	# visual; the procedural posts stay on as colliders, rescaled to hug the
+	# stretched frame so the ball bounces where the goal looks like it ends.
+	var goal_post_h := 1.5
+	var goal_frame := ASSETS.make("PROP_09_GOAL")
+	if goal_frame != null:
+		goal_post_h = 1.55 * (3.4 / 2.406)
+	_box(goal, "PostL", Vector3(0.22, goal_post_h, 0.22), Vector3(-1.7, goal_post_h / 2, 0), Color("5A442E"), true)
+	_box(goal, "PostR", Vector3(0.22, goal_post_h, 0.22), Vector3(1.7, goal_post_h / 2, 0), Color("5A442E"), true)
+	_box(goal, "CrossBar", Vector3(3.6, 0.22, 0.22), Vector3(0, goal_post_h, 0), Color("5A442E"), true)
+	_box(goal, "NetBack", Vector3(3.3, goal_post_h * 0.8, 0.06), Vector3(0, goal_post_h * 0.4, -1.45), Color("E8E2CE"), false)
+	if goal_frame != null:
+		goal_frame.name = "GoalFrameLux"
+		goal_frame.scale = Vector3.ONE * (3.4 / 2.406)
+		# Model pivot sits at depth-middle; shift back so the post plane (the
+		# +z face after export) lands on the procedural collider plane at z=0.
+		goal_frame.position = Vector3(0, 0, -0.616 * (3.4 / 2.406))
+		goal.add_child(goal_frame)
+		# The frame now draws the goal; the procedural boxes keep only their collision.
+		for post_name in ["PostL", "PostR", "CrossBar"]:
+			var post_mesh := goal.get_node_or_null(NodePath("%s/VisualMesh" % post_name))
+			if post_mesh != null:
+				post_mesh.visible = false
+	_label(goal, "GoalTitle", "牛耕地球会 · 卷心菜联赛", Vector3(0, goal_post_h + 0.7, 0), 20)
 	var goal_area := Area3D.new()
 	goal_area.name = "CabbageGoalArea"
 	goal_area.collision_layer = 0

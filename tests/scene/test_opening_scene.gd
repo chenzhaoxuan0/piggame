@@ -1,13 +1,14 @@
 extends SceneTree
 
-# Opening key-test scene guard: the boot menu is a real playground - the pig
-# answers WASD / Space / Shift live, the trough reacts to F/E/K, buttons never
-# steal focus, and GameManager.pending_boot hands off to office_level_1 which
-# auto-enters the dream (or the farm) instead of its own start menu.
+# Opening boot menu + pigpen tutorial guard: the boot menu is a plain menu
+# over a sky (the floating key-test pen is gone - it had no fall rescue, the
+# 架空层 bug), and the "farm" boot drops the pig into its REAL pigpen in a
+# pre-game tutorial sandbox: keys work, trough snorts, NPCs won't talk, the
+# pen gate stays bolted, and F on the goat starts the day.
 
 var failures := 0
 var game: Node
-var _snorted := false # member on purpose: lambda captures copy local vars
+var am: Node
 
 func _initialize() -> void:
 	call_deferred("_run")
@@ -16,104 +17,94 @@ func _check(ok: bool, message: String) -> void:
 	print("OPENING_TEST %s: %s" % ["PASS" if ok else "FAIL", message])
 	if not ok: failures += 1
 
-func _ev(action: String, pressed: bool = true) -> void:
-	var ev := InputEventAction.new()
-	ev.action = action
-	ev.pressed = pressed
-	Input.parse_input_event(ev)
-
-func _on_snort(_target: Node3D) -> void:
-	_snorted = true
-
 func _run() -> void:
 	game = root.get_node("GameManager")
+	am = root.get_node("AchievementManager")
 	game.pending_boot = ""
 
-	# --- 1. Scene builds: pig on stage, trough interactable, menu buttons
+	# --- 1. Opening scene is a plain menu: no stage, no pig, no strip
 	var opening: Node = load("res://scenes/ui/opening_scene.tscn").instantiate()
 	root.add_child(opening)
-	await create_timer(0.5).timeout
+	await create_timer(0.4).timeout
 
-	var pig: PigController = opening.pig
-	_check(pig != null and pig.is_in_group("player"), "The real pig controller is on stage")
-	_check(pig.control_mode == "explore", "Pig answers keys immediately (explore mode)")
-	_check(pig.dash_enabled and pig.force_dodge_available, "Shift sprint and dodge are armed for the demo")
-	_check(opening.trough != null and opening.trough.is_in_group("interactable"), "Trough is a real interactable")
-
+	_check(opening.get("pig") == null, "The floating pen pig is gone from the boot menu")
+	_check(opening.get("trough") == null, "The floating pen trough is gone from the boot menu")
+	_check(opening.find_child("Pig", true, false) == null, "No PigController node in the boot menu")
+	_check(opening.find_child("KeyTestStrip", true, false) == null, "No key-test strip in the boot menu")
 	for btn_name in ["StartButton", "SkipIntroButton", "QuitButton"]:
 		var btn: Button = opening.find_child(btn_name, true, false)
 		_check(btn != null, "Menu button exists: " + btn_name)
 		if btn != null:
-			_check(btn.focus_mode == Control.FOCUS_NONE, "Button never steals keyboard focus: " + btn_name)
-	var strip: Control = opening.find_child("KeyTestStrip", true, false)
-	_check(strip != null, "Key-test strip is on screen")
-	if strip != null:
-		# The strip is laid out while still empty, then grown by its keycap rows:
-		# growth must stay inside the viewport (grow_vertical BEGIN, or it sinks
-		# past the bottom edge - the bug the capture screenshot caught).
-		await process_frame
-		var viewport_rect := Rect2(Vector2.ZERO, strip.get_viewport_rect().size)
-		_check(viewport_rect.encloses(strip.get_global_rect()), "Key-test strip fully inside the viewport")
-
-	# --- 2. Keys move the pig: WASD walking (polled, first input used)
-	var origin: Vector3 = pig.global_position
-	Input.action_press("move_right")
-	for i in 30: await physics_frame
-	Input.action_release("move_right")
-	_check(pig.global_position.distance_to(origin) > 0.5, "Holding D walks the pig across the pen")
-
-	# --- 3. Space hops (event-driven input)
-	var jumps_before: int = pig.jumps
-	_ev("action_jump")
-	for i in 12: await physics_frame
-	_ev("action_jump", false)
-	_check(pig.jumps > jumps_before, "Space hops the pig")
-
-	# --- 4. Hold-Shift sprint: sample DURING the hold (mixed synthetic input
-	# sources can drop the polled state mid-hold, so don't check afterwards).
-	_ev("move_up")
-	_ev("action_dash")
-	var sprint_seen := false
-	var stamina_spent := false
-	for i in 20:
-		await physics_frame
-		if pig.is_sprinting: sprint_seen = true
-		if pig.stamina < pig.max_stamina: stamina_spent = true
-	_ev("move_up", false)
-	_ev("action_dash", false)
-	_check(sprint_seen or stamina_spent, "Hold-Shift sprints while moving")
-
-	# --- 5. F/E/K near the trough: the interact chain fires end to end
-	pig.global_position = opening.trough.global_position + Vector3(-0.9, 0.25, -0.9)
-	await physics_frame
-	pig.reached_interactable.connect(_on_snort)
-	_ev("action_interact")
-	for i in 8: await physics_frame
-	_ev("action_interact", false)
-	_check(_snorted, "F/E/K at the trough emits the interaction (snort chain)")
-
+			_check(btn.focus_mode == Control.FOCUS_NONE, "Button never grabs focus: " + btn_name)
 	opening.queue_free()
 	await process_frame
 
-	# --- 6. Hand-off "farm": office consumes the flag, no start menu stop
+	# --- 2. "farm" boot lands in the pigpen tutorial sandbox
+	game.reset_run()
 	game.pending_boot = "farm"
-	var office_farm: Node = load("res://scenes/levels/office_level_1.tscn").instantiate()
-	root.add_child(office_farm)
+	var office: Node = load("res://scenes/levels/office_level_1.tscn").instantiate()
+	root.add_child(office)
 	await create_timer(0.5).timeout
-	_check(not office_farm.in_start_menu and office_farm.active_course == null, "Skip intent lands straight on the farm")
-	_check(office_farm.farm.get_parent() == office_farm and office_farm.player.control_mode == "explore", "Farm open and pig in control after skip hand-off")
-	_check(game.pending_boot == "", "Boot flag consumed after use")
-	_check(game.intro_dream_done, "Skip hand-off marks the prologue beat as known")
-	office_farm.queue_free()
+
+	_check(not office.in_start_menu and game.pending_boot == "", "farm boot consumed, no start menu")
+	_check(game.tutorial_free_roam, "Pigpen tutorial sandbox is active")
+	_check(game.intro_dream_done, "Skip hand-off still marks the prologue beat as known")
+	_check(office.active_course == null and office.farm.get_parent() == office, "Farm world is live (no floating pen)")
+	_check(office.player.control_mode == "explore", "Pig can roam during the tutorial")
+	_check(office.player.dash_enabled and office.player.force_dodge_available, "Shift sprint and dodge are armed for the sandbox")
+	var spawn_dist: float = office.player.global_position.distance_to(office.farm.get_spawn_position())
+	_check(spawn_dist < 1.0, "Pig wakes at the real pigpen spawn")
+	var strip: Control = office.find_child("KeyTestStrip", true, false)
+	_check(strip != null and strip.visible, "Key-test strip lives in the farm HUD during the tutorial")
+	if strip != null:
+		await process_frame
+		var viewport_rect := Rect2(Vector2.ZERO, strip.get_viewport_rect().size)
+		_check(viewport_rect.encloses(strip.get_global_rect()), "Key-test strip fully inside the viewport")
+	var pigpen_gate: StaticBody3D = office.farm._pigpen_gate
+	_check(pigpen_gate.collision_layer == 1, "Pen gate stays bolted during the tutorial")
+
+	# --- 3. The trough snorts: gag + achievement, no dialogue
+	var trough: StaticBody3D = office.farm.get_node("PigpenTrough")
+	_check(trough.is_in_group("interactable"), "Pigpen trough is a real interactable")
+	office._on_interact(trough)
+	await process_frame
+	_check(not office.dialogue_open, "Trough never opens dialogue")
+	_check(am.is_unlocked("trough_sniff"), "trough_sniff unlocks at the real pigpen trough")
+
+	# --- 4. NPCs won't talk during the sandbox
+	var goat: StaticBody3D = office.farm.get_node("NPC_goat")
+	var fake_npc := StaticBody3D.new()
+	fake_npc.set_meta("interaction_id", "ox")
+	office._on_interact(fake_npc)
+	await process_frame
+	_check(not office.dialogue_open, "Non-goat interactions stay blocked in the sandbox")
+	_check(game.tutorial_free_roam, "Blocked interaction does not end the tutorial")
+
+	# --- 5. F on the goat starts the day: tutorial ends, story dialogue opens
+	office.player.global_position = goat.global_position + Vector3(1.2, 0.1, 0.8)
+	await physics_frame
+	office.player._try_interact(goat)
+	await process_frame
+	_check(not game.tutorial_free_roam, "Goat interaction ends the tutorial sandbox")
+	_check(office.dialogue_open, "Goat interaction opens the story dialogue")
+	_check(not office.player.dash_enabled, "Dash returns to story gating after the sandbox")
+	_check(not office.player.force_dodge_available, "Free dodge disarms after the sandbox")
+	_check(not strip.visible, "Key strip hides once the game starts")
+	_check(pigpen_gate.collision_layer == 1, "Gate is still bolted - the red/blue choice opens it, not the sandbox")
+	office.close_dialogue()
 	await process_frame
 
-	# --- 7. Hand-off "dream": office auto-enters the nightmare prologue
+	office.queue_free()
+	await process_frame
+
+	# --- 6. "dream" hand-off still auto-enters the nightmare prologue
 	game.reset_run()
 	game.pending_boot = "dream"
 	var office_dream: Node = load("res://scenes/levels/office_level_1.tscn").instantiate()
 	root.add_child(office_dream)
 	await create_timer(0.6).timeout
 	_check(not office_dream.in_start_menu, "Dream intent skips the start menu too")
+	_check(not game.tutorial_free_roam, "Dream boot does not enter the pigpen sandbox")
 	_check(is_instance_valid(office_dream.active_course) and office_dream.active_course.runner.config.course_id == "course_0", "Start intent falls asleep into the nightmare")
 	# End the dream before quitting: tearing the tree down with a live course
 	# crashes the headless teardown (test_dream_intro ends the same way).

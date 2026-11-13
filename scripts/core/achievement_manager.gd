@@ -38,6 +38,7 @@ const DEFS := [
 	{"id": "perfect_dive", "title": "满分入坑", "desc": "从山坡跳进草垛，麻雀评委打出了 10 分。"},
 	{"id": "potato_harvest", "title": "春耕的馈赠", "desc": "在牛耕地的犁沟里拱出了全部五颗土豆。"},
 	{"id": "apple_rain", "title": "牛顿的苹果", "desc": "撞下马场苹果树的苹果雨，并当场吃完三颗。"},
+	{"id": "plunger_knight", "title": "马桶骑士", "desc": "在迷雾林间用马桶搋子正中面门，把三只恶犬吸倒在地。"},
 ]
 
 var unlocked := {} # id -> true

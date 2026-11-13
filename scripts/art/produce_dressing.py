@@ -23,6 +23,9 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('operation', choices=['generate','collect','revise'])
     parser.add_argument('ids', nargs='*')
+    parser.add_argument('--version', default='G1-Turbo', choices=['G1','G1-Turbo'],
+                        help='Lux3D quality for `generate` (default G1-Turbo). Use G1 directly when the '
+                             'subject is error-prone: the 2026-11 G1-Turbo batch was rejected for fragmented surfaces.')
     args=parser.parse_args()
     data=json.loads(MANIFEST.read_text(encoding='utf-8')) if MANIFEST.exists() else {
         'schema':1,'source':'Aholo Lux3D text_to_3d; new subjects without a matching 2D reference',
@@ -47,7 +50,8 @@ def main():
             if active>=5:
                 print('Five tasks in flight; collect them before submitting the next batch.',flush=True)
                 break
-            settings=dict(prompt=STYLE+spec['subject'],style='cartoon',version='G1' if args.operation=='revise' else 'G1-Turbo',faceCount=10000,
+            settings=dict(prompt=STYLE+spec['subject'],style='cartoon',
+                          version='G1' if args.operation=='revise' else args.version,faceCount=10000,
                           outputFormat=['zip','glb'],enablePbr=True,aiPredictSize=False,wait=False)
             response=call('lux3d_text_to_3d',settings,'dressing_'+asset_id)
             record.update(task_id=response['taskId'],parameters=settings,status='submitted',
