@@ -49,6 +49,14 @@ func _run() -> void:
 	_check(not _hit(L.CREEK_CENTER+Vector3.UP*.4,L.CREEK_CENTER-Vector3.UP*.8),"creek bridge has a real jump gap")
 	_check(_hit(Vector3(-54,4.6,-154),Vector3(-60,4.6,-154)),"central hay stack blocks straight sprint")
 	_check(_hit(Vector3(-46,2.6,-198),Vector3(-46,2.6,-204)),"second stack forces opposite side")
+	_check(farm.get_node("CabbageBall") is RigidBody3D and farm.get_node("PenCabbageBall") is RigidBody3D,
+		"both cabbage balls are real rigid bodies (impulse kicks, not tweens)")
+	_check(_hit(Vector3(5,34,104.5),Vector3(5,32.2,104.5)),"pen haystack collider catches a falling pig")
+	_check(_hit(Vector3(-60.5,25.4,72.5),Vector3(-60.5,23.4,72.5)),"west zigzag hay dive stack is solid")
+	_check(farm.get_node_or_null("PenBallFence")!=null and farm.get_node_or_null("PitchBallFenceN")!=null
+		and farm.get_node_or_null("PitchBallFenceS")!=null and farm.get_node_or_null("PitchBallFenceW")!=null
+		and farm.get_node_or_null("PitchBallFenceE")!=null,
+		"ball-only fences exist (pen gate gap + four pitch boards)")
 	_check(L.length_of(L.path("summit"))>150,"substantial winding summit descent")
 	_check(L.length_of(L.chase_course())>170,"extended obstacle chase")
 	_check(L.length_of(L.path("escape"))>85,"winding route after gate")

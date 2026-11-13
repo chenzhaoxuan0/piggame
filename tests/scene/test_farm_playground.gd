@@ -172,6 +172,95 @@ func _run() -> void:
 		await create_timer(0.3).timeout
 	_check(am.is_unlocked("apple_rain"), "Eating all three apples unlocks 牛顿的苹果")
 
+	# --- Cabbage physics: real rigid bodies, spin from the strike, full stop
+	_check(farm.get_node("CabbageBall") is RigidBody3D and farm.get_node("PenCabbageBall") is RigidBody3D,
+		"Both cabbage balls are real rigid bodies")
+	var phys_ball := farm.get_node("CabbageBall") as RigidBody3D
+	_check(phys_ball.physics_material_override != null and phys_ball.physics_material_override.bounce > 0.0,
+		"The ball carries a bouncy physics material")
+	_check(farm.get_node_or_null("PenBallFence") != null, "The pen gate gap has a ball-only fence")
+	for fence_name in ["PitchBallFenceN", "PitchBallFenceS", "PitchBallFenceW", "PitchBallFenceE"]:
+		_check(farm.get_node_or_null(fence_name) != null, "%s keeps the pitch ball on the pitch" % fence_name)
+	phys_ball.sleeping = false
+	phys_ball.apply_impulse(Vector3(2.2, 0.9, 0.0), Vector3(0.0, -0.24, 0.0)) # off-centre hoof strike
+	await physics_frame
+	await physics_frame
+	_check(phys_ball.linear_velocity.length() > 1.0, "The impulse produces linear velocity")
+	_check(phys_ball.angular_velocity.length() > 1.0, "The off-centre strike produces spin (it rolls, not slides)")
+	# A runaway punt at the east board bounces back and stays in the pitch
+	phys_ball.sleeping = false
+	phys_ball.linear_velocity = Vector3(8.0, 0.5, 0.0)
+	await create_timer(1.2).timeout
+	_check(phys_ball.global_position.x < 52.6, "The invisible east board bounces a runaway punt back")
+	for settle_i in 40:
+		if phys_ball.sleeping or phys_ball.linear_velocity.length() < 0.05:
+			break
+		await create_timer(0.25).timeout
+	_check(phys_ball.sleeping or phys_ball.linear_velocity.length() < 0.06,
+		"The punt rolls out and the ball settles to rest")
+
+	# --- Pen haystack: solid to land on, diveable, squashes under the pig
+	var pen_hay: Node3D = farm.get_node("PenHaystack")
+	_check(pen_hay is StaticBody3D and pen_hay.get_node_or_null("CollisionShape3D") != null,
+		"The pen haystack has a real collider (the pig lands on it, not through it)")
+	_check(farm.get_node("HayDiveStack") is StaticBody3D, "The west-zigzag hay dive stack is solid too")
+	var dive_events := []
+	farm.playground_event.connect(func(kind, _detail):
+		if kind == "dive" or kind == "perfect_dive":
+			dive_events.append(kind))
+	# The teleport keeps the pig flagged on-floor for one frame, which wipes the
+	# assigned -8 vy - the dive comes from a gravity fall instead (~0.28 s to
+	# reach the sense box, entering at vy ~ -5), so sample well past that.
+	pig.global_position = pen_hay.global_position + Vector3(0, 2.0, 0)
+	pig.velocity = Vector3(0, -8.0, 0)
+	await physics_frame
+	await physics_frame
+	await create_timer(0.45).timeout # dive fires on area entry; squash is 0.1 s deep
+	_check(dive_events.size() >= 1, "Falling onto the pen haystack triggers the dive (playground_event)")
+	_check(pen_hay.scale.y < 1.0, "The stack compresses under the landing pig")
+	await create_timer(1.0).timeout
+	_check(is_equal_approx(pen_hay.scale.y, 1.0), "The squashed stack springs back")
+	_check(pig.global_position.y > pen_hay.global_position.y + 0.3, "The pig ends up standing on top of the stack")
+
+	# --- Meteor button: repeatable; each press fully resets the pen
+	var pen_ball: RigidBody3D = farm.get_node("PenCabbageBall")
+	var pen_ball_home: Vector3 = pen_ball.global_position
+	var pen_bucket: Node3D = farm.get_node("PenBucket")
+	var bucket_home_basis: Basis = pen_bucket.basis
+	var meteor_button: Node3D = farm.get_node("MeteorButton")
+	for cycle in 3:
+		# Wreck the pen: punt the cabbage off home and topple the bucket.
+		pen_ball.sleeping = false
+		pen_ball.linear_velocity = Vector3(2.4, 1.0, -1.6)
+		pig.global_position = pen_bucket.global_position + Vector3(0, 0.6, 0.8)
+		pig.velocity = Vector3.ZERO
+		await physics_frame
+		await physics_frame
+		await create_timer(0.55).timeout
+		_check(pen_ball.global_position.distance_to(pen_ball_home) > 0.3,
+			"Cycle %d wrecked: the pen cabbage is away from home" % (cycle + 1))
+		_check(not pen_bucket.basis.is_equal_approx(bucket_home_basis),
+			"Cycle %d wrecked: the bucket is toppled" % (cycle + 1))
+		# Hoof on the red button.
+		pig.global_position = meteor_button.global_position + Vector3(0, 0.4, 0)
+		pig.velocity = Vector3.ZERO
+		await physics_frame
+		await physics_frame
+		await create_timer(0.3).timeout
+		_check(farm._meteor_falling, "Cycle %d: the button summons the meteor" % (cycle + 1))
+		if cycle == 0:
+			# A stomp mid-fall must not spawn a second rock.
+			farm._launch_meteor_reset()
+			_check(farm.find_children("Meteor*", "MeshInstance3D", false, false).size() == 1,
+				"No second meteor while one is already falling")
+		await create_timer(2.1).timeout # 1.1 s fall + impact + re-arm margin
+		_check(not farm._meteor_falling and farm.get_node_or_null("Meteor") == null,
+			"Cycle %d: the meteor lands, cleans up and the flag re-arms" % (cycle + 1))
+		_check(pen_ball.global_position.distance_to(pen_ball_home) < 0.1,
+			"Cycle %d: impact resets the pen cabbage home" % (cycle + 1))
+		_check(pen_bucket.basis.is_equal_approx(bucket_home_basis),
+			"Cycle %d: impact stands the bucket back up" % (cycle + 1))
+
 	am.reset_progress(true)
 	print("\nALL FARM PLAYGROUND TESTS DONE: %d failures" % failures)
 	quit(0 if failures == 0 else 1)
