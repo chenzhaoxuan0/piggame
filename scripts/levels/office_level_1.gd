@@ -244,12 +244,20 @@ func _refresh_todo_list() -> void:
 	_clear_children(todo_vbox)
 	var items: Array[Dictionary] = GameManager.get_to_do_items()
 	
-	# Show active item and recent items in Goose Game fashion
+	# Show active item and recent items in Goose Game fashion. The notebook's
+	# height now follows the entry count, so the caps below double as the
+	# height ceiling: at most 3 active + the 2 most recently completed rows.
+	var done_count := 0
+	for i in range(items.size() - 1, -1, -1):
+		if items[i].get("done", false):
+			done_count += 1
+			if done_count > 2:
+				items.remove_at(i)
 	var shown_count := 0
 	for item in items:
 		var is_done: bool = item.get("done", false)
 		var text: String = str(item.get("text", ""))
-		
+
 		# Skip far future tasks to keep the notebook concise
 		if not is_done and shown_count >= 3:
 			continue
@@ -586,10 +594,7 @@ func _start_pigpen_tutorial() -> void:
 	camera.snap_to_target()
 	if is_instance_valid(key_strip):
 		key_strip.visible = true
-	_show_brain_hole_quiz()
-	if _brain_hole_done:
-		# 已答过题的重开流程：没有答题卡压着，横幅直接弹。
-		_show_toast("山顶猪圈 · 演出开始前", "蹄子还听使唤吗？先在猪圈里练练——练好了就去找山羊，按 [ F ] 开始今天的农场。")
+	_show_toast("山顶猪圈 · 演出开始前", "蹄子还听使唤吗？先在猪圈里练练——练好了就去找山羊，按 [ F ] 开始今天的农场。")
 	_build_title_card()
 	_refresh_hud()
 
@@ -601,6 +606,8 @@ var _brain_hint: Label = null
 var _brain_hole_done := false
 var _brain_quiz_x := 0.0
 var _brain_shake: Tween = null
+# 答完题后要去做的事（"dream" = 标题卡的开始游戏被脑洞校准挡了一道）。
+var _quiz_next := ""
 
 func _show_brain_hole_quiz() -> void:
 	if _brain_hole_done:
@@ -655,11 +662,11 @@ func _answer_brain_hole(lower: bool) -> void:
 		player.set_control_mode("explore")
 	else:
 		_restore_control() # paused/cinematic/ending states win over a blind explore
-	# 答题时压着没弹的猪圈引导横幅，在这里合并成一条一起弹。
-	if GameManager.tutorial_free_roam:
-		_show_toast("脑洞已校准 · 山顶猪圈", "预期已放到地板上。蹄子还听使唤吗？练好了就去找山羊，按 [ F ] 开始今天的农场。")
-	else:
-		_show_toast("脑洞已校准", "预期已放到地板上。从现在起，每一秒都是惊喜。")
+	_show_toast("脑洞已校准", "预期已放到地板上。从现在起，每一秒都是惊喜。")
+	if _quiz_next == "dream":
+		_quiz_next = ""
+		_proceed_dream()
+		return
 
 # ------------------------------------------------------------- title card
 # 开场标题卡：boot 直进猪圈后，主菜单的标题与四个入口（入梦序章 / 跳过序章 /
@@ -718,10 +725,15 @@ func _dismiss_title_card() -> void:
 		_title_card.queue_free()
 
 func _title_start_dream() -> void:
-	# 从标题卡入梦：未答的脑洞题一并收掉（不再锁定猪），标记本会话已校准。
-	if is_instance_valid(_brain_quiz):
-		_brain_quiz.queue_free()
-	_brain_hole_done = true
+	# 开始游戏：先过脑洞校准（只有这时才出题，开场猪圈随时可玩），
+	# 答完「不」再入梦。已答过的会话直接进。
+	if not _brain_hole_done:
+		_quiz_next = "dream"
+		_show_brain_hole_quiz()
+		return
+	_proceed_dream()
+
+func _proceed_dream() -> void:
 	_end_pigpen_tutorial()
 	_dismiss_title_card()
 	_start_dream_intro()

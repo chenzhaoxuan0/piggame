@@ -202,12 +202,14 @@ static func _build_todo_notebook(host: Node) -> void:
 	# 待办补丁：右上角微微歪斜的缝线纸片，像贴在屏幕上的一张便利贴。
 	host.todo_notebook = UI.patch_panel(16, UI.PAPER, UI.PINK, Vector2(20, 16))
 	host.todo_notebook.name = "TodoNotebook"
-	host.todo_notebook.custom_minimum_size = Vector2(330, 200)
-	host.todo_notebook.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	host.todo_notebook.offset_left = -354
-	host.todo_notebook.offset_top = 24
-	host.todo_notebook.offset_right = -24
-	host.todo_notebook.offset_bottom = 264
+	# 高度随待办条目数增减（MINSIZE 锚定，容器自己长高长矮），
+	# 上限由 _refresh_todo_list 的条目数封顶控制（3 条进行中 + 最近 2 条已完成）。
+	host.todo_notebook.custom_minimum_size = Vector2(330, 0)
+	host.todo_notebook.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE)
+	host.todo_notebook.offset_left -= 24
+	host.todo_notebook.offset_right -= 24
+	host.todo_notebook.offset_top += 24
+	host.todo_notebook.offset_bottom += 24
 	host.todo_notebook.mouse_filter = Control.MOUSE_FILTER_PASS
 	host.todo_notebook.rotation_degrees = -1.4
 	_center_pivot(host.todo_notebook)

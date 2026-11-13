@@ -60,24 +60,35 @@ func _run() -> void:
 	_check(game.intro_dream_done, "Skip hand-off still marks the prologue beat as known")
 	_check(office.active_course == null and office.farm.get_parent() == office, "Farm world is live (no floating pen)")
 
-	# --- 2b. The brain-hole quiz gates the sandbox: only 「不」 lowers the bar
-	var quiz: Control = office.find_child("BrainHoleQuiz", true, false)
-	_check(quiz != null and quiz.visible, "Brain-hole quiz is up before free roam")
-	_check(office.player.control_mode == "locked", "Pig waits while the quiz owns the centre")
-	var wrong_btn: Button = _quiz_button(quiz, "好玩")
-	var right_btn: Button = _quiz_button(quiz, "不")
-	if wrong_btn != null and right_btn != null:
-		wrong_btn.pressed.emit()
-		await process_frame
-		_check(office.find_child("BrainHoleQuiz", true, false) != null, "Answering 好玩 is rejected - the quiz stays")
-		_check(office.player.control_mode == "locked", "The pig stays locked after a wrong answer")
-		_check("不" in office._brain_hint.text, "The hint tells the pig only 「不」 passes")
-		right_btn.pressed.emit()
-		await process_frame
-	_check(office.find_child("BrainHoleQuiz", true, false) == null, "Answering 不 frees the pig")
+	# --- 2b. Boot is playable at once - the brain-hole quiz only appears on 开始游戏
+	_check(office.find_child("BrainHoleQuiz", true, false) == null, "No quiz at boot - the pen is playable immediately")
 	_check(office.player.control_mode == "explore", "Pig can roam during the tutorial")
-	_check(office.find_child("TitleCard", true, false) != null, "The boot title card (开始游戏 etc.) stays over the pen during the tutorial")
 	var tcard: Control = office.find_child("TitleCard", true, false)
+	var start_btn: Button = _quiz_button(tcard, "▶  开始游戏（入梦序章）") if tcard != null else null
+	_check(start_btn != null, "Title card's 开始游戏 button exists")
+	if start_btn != null:
+		start_btn.pressed.emit()
+		await process_frame
+		var quiz: Control = office.find_child("BrainHoleQuiz", true, false)
+		_check(quiz != null and quiz.visible, "Brain-hole quiz appears only after clicking 开始游戏")
+		_check(office.player.control_mode == "locked", "Pig waits while the quiz owns the centre")
+		var wrong_btn: Button = _quiz_button(quiz, "好玩")
+		var right_btn: Button = _quiz_button(quiz, "不")
+		if wrong_btn != null and right_btn != null:
+			wrong_btn.pressed.emit()
+			await process_frame
+			_check(office.find_child("BrainHoleQuiz", true, false) != null, "Answering 好玩 is rejected - the quiz stays")
+			_check(office.player.control_mode == "locked", "The pig stays locked after a wrong answer")
+			_check("不" in office._brain_hint.text, "The hint tells the pig only 「不」 passes")
+		# Park the quiz unanswered so the goat-flow section below still has its sandbox;
+		# the accept-into-dream path is exercised end-to-end by the dream-boot section.
+		office._quiz_next = ""
+		quiz.queue_free()
+		await process_frame
+		office.player.set_control_mode("explore")
+	_check(office.find_child("BrainHoleQuiz", true, false) == null, "The parked quiz is gone")
+	_check(office.player.control_mode == "explore", "Pig roams again")
+	_check(office.find_child("TitleCard", true, false) != null, "The boot title card (开始游戏 etc.) stays over the pen during the tutorial")
 	var notebook: Control = office.find_child("TodoNotebook", true, false)
 	if tcard != null and notebook != null:
 		_check(absf(tcard.get_global_rect().position.y - notebook.get_global_rect().position.y) < 6.0,
