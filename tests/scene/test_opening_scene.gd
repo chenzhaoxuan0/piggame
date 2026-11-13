@@ -138,6 +138,19 @@ func _run() -> void:
 	office_dream.active_course.runner._on_exit(office_dream.player)
 	await create_timer(3.4).timeout
 	_check(office_dream.active_course == null, "Dream hand-off office also wakes cleanly")
+	office_dream.queue_free()
+	await process_frame
+
+	# --- 7. The real front door: boot_farm stamps the flag and hands off
+	game.reset_run()
+	game.pending_boot = ""
+	var boot: Node = load("res://scenes/ui/boot_farm.tscn").instantiate()
+	root.add_child(boot)
+	await create_timer(1.0).timeout
+	var cur: Node = current_scene
+	_check(cur != null and cur.name == "FarmDemo", "The boot scene hands straight off to the level (no menu screen)")
+	_check(game.tutorial_free_roam, "Booting the game lands in the pigpen tutorial")
+	_check(not cur.in_start_menu, "No dimmed start menu at boot - the pen is playable immediately")
 
 	print("\nALL OPENING SCENE TESTS DONE: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

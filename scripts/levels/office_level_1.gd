@@ -1457,4 +1457,7 @@ func _clear_children(node: Node) -> void:
 		child.queue_free()
 
 func _restart() -> void:
+	# 从头开始 goes back to the top: the pigpen tutorial, the game's front door
+	# (not the dimmed start-menu over the world - the boot flow skips it now).
+	GameManager.pending_boot = "farm"
 	get_tree().reload_current_scene()
