@@ -57,7 +57,7 @@ func _build_stage() -> void:
 	var grass := MeshInstance3D.new()
 	grass.name = "BackdropGrass"
 	var grass_box := BoxMesh.new()
-	grass_box.size = Vector3(40, 1, 40)
+	grass_box.size = Vector3(600, 1, 600)
 	grass.mesh = grass_box
 	var grass_mat := StandardMaterial3D.new()
 	grass_mat.albedo_color = Color("79A85C")
@@ -69,7 +69,7 @@ func _build_stage() -> void:
 	wall_mat.albedo_color = Color("8E8E86")
 	wall_mat.roughness = 0.9
 	for side in [
-		[Vector3(0, 0.7, -2), Vector3(12.5, 1.4, 0.5)],
+		[Vector3(0, 0.35, -2), Vector3(12.5, 0.7, 0.5)], # front wall low: no grey band across the frame
 		[Vector3(0, 0.7, 10), Vector3(12.5, 1.4, 0.5)],
 		[Vector3(-6, 0.7, 4), Vector3(0.5, 1.4, 12.5)],
 		[Vector3(6, 0.7, 4), Vector3(0.5, 1.4, 12.5)],
@@ -95,15 +95,16 @@ func _build_stage() -> void:
 	if pig_art != null:
 		pig_art.name = "BackdropPig"
 		pig_art.position = Vector3(0, 0, 4)
-		pig_art.rotation.y = PI # facing the camera/menu
 		pen.add_child(pig_art)
 
-	# Static camera framing the pen: without any camera the 3D sky never draws
-	# and the menu sits on flat grey.
+	# Static camera framing the pen (Camera3D looks down -Z, so yaw 180 turns
+	# it toward the pen at +Z; the 12-degree tilt looks over the front wall
+	# into the pen so the pig and trough read): without any camera the 3D sky
+	# never draws and the menu sits on flat grey.
 	var cam := Camera3D.new()
 	cam.name = "MenuCamera"
-	cam.position = Vector3(0, 2.4, -7)
-	cam.rotation_degrees = Vector3(-7, 0, 0)
+	cam.position = Vector3(0, 3.4, -7)
+	cam.rotation_degrees = Vector3(-12, 180, 0)
 	add_child(cam)
 	cam.current = true
 
