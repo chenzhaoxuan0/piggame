@@ -77,6 +77,11 @@ func _run() -> void:
 	_check(office.find_child("BrainHoleQuiz", true, false) == null, "Answering 不 frees the pig")
 	_check(office.player.control_mode == "explore", "Pig can roam during the tutorial")
 	_check(office.find_child("TitleCard", true, false) != null, "The boot title card (开始游戏 etc.) stays over the pen during the tutorial")
+	var tcard: Control = office.find_child("TitleCard", true, false)
+	var notebook: Control = office.find_child("TodoNotebook", true, false)
+	if tcard != null and notebook != null:
+		_check(absf(tcard.get_global_rect().position.y - notebook.get_global_rect().position.y) < 6.0,
+			"Title card top edge aligns with the to-do notebook top edge") # the notebook's pop-in scale gives it a ~4px top offset
 	_check(office.player.dash_enabled and office.player.force_dodge_available, "Shift sprint and dodge are armed for the sandbox")
 	var spawn_dist: float = office.player.global_position.distance_to(office.farm.get_spawn_position())
 	_check(spawn_dist < 1.0, "Pig wakes at the real pigpen spawn")

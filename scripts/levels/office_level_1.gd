@@ -671,9 +671,10 @@ func _build_title_card() -> void:
 		return
 	var column := VBoxContainer.new()
 	column.name = "TitleCard"
-	column.set_anchors_and_offsets_preset(Control.PRESET_CENTER_LEFT)
+	# 顶端与右上角待办本对齐（todo_notebook offset_top 24），不再吊在画面中段。
+	column.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	column.offset_left = 24
-	column.offset_top = -240
+	column.offset_top = 24
 	column.add_theme_constant_override("separation", 14)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE # 只有按钮本身吃鼠标，跑动点击照常
 	var title := UI.banner("一口猪在金牌农场", 38)
