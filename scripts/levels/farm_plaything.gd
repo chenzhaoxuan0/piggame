@@ -16,7 +16,7 @@ signal played(kind: String, detail)
 ## 所以每句 gag 同时经此上报，由关卡层汇总成右下角通知。
 signal noticed(text: String)
 
-enum Kind { GRASS, TIPPABLE, CABBAGE, HAYSTACK, BEEHIVE, MAILBOX, HORN, MUDPIT, NEST, POTATO, APPLE_TREE }
+enum Kind { GRASS, TIPPABLE, CABBAGE, HAYSTACK, BEEHIVE, MAILBOX, HORN, MUDPIT, NEST, POTATO, APPLE_TREE, METEOR_BUTTON }
 
 const UI = preload("res://scripts/ui/ui_kit.gd")
 
@@ -35,8 +35,14 @@ var _one_shot_done := false
 var _nest_count := 0
 var _buffed_speed := 0.0
 var _apples_eaten := 0
+# The visual prop (this node's parent) as built - the meteor reset snaps every
+# pen prop back here and re-arms its one-shot gag.
+var _home_transform := Transform3D.IDENTITY
 
 func _ready() -> void:
+	var parent := get_parent() as Node3D
+	if parent != null:
+		_home_transform = parent.transform
 	var area := Area3D.new()
 	area.name = "SenseArea"
 	area.collision_layer = 0
@@ -76,6 +82,7 @@ func _on_sense(body: Node3D) -> void:
 		Kind.NEST: _react_nest()
 		Kind.POTATO: _react_potato()
 		Kind.APPLE_TREE: _react_apple_tree(body)
+		Kind.METEOR_BUTTON: _react_meteor_button()
 
 # ------------------------------------------------------------- reactions
 func _react_grass() -> void:
@@ -314,3 +321,28 @@ func _gag(text: String, life := 1.8, offset := Vector3(0, 1.9, 0)) -> void:
 	t.tween_property(label, "position:y", offset.y + 0.7, life)
 	t.parallel().tween_property(label, "modulate:a", 0.0, life * 0.9)
 	t.tween_callback(label.queue_free)
+
+func _react_meteor_button() -> void:
+	# The pen's red reset button: a hoof-weight press clicks the cap down and
+	# calls the sky. The meteor itself is level-side (farm_grounds owns the
+	# fall + prop reset); this only fires the "meteor" beat, rate-limited so a
+	# dancing pig cannot summon a meteor shower.
+	if not _ready_cool():
+		return
+	var cap := get_parent().get_node_or_null("ButtonCap") as Node3D
+	if cap != null:
+		var press := create_tween()
+		press.tween_property(cap, "position:y", 0.12, 0.08)
+		press.tween_property(cap, "position:y", 0.22, 0.2)
+	_gag("咔哒。……天上有个小点在变大。", 2.2)
+	played.emit("meteor", "")
+
+func reset_prop() -> void:
+	# Meteor impact: snap the parent prop back to its built transform and
+	# re-arm one-shot gags (a toppled bucket stands back up, kicked cabbage
+	# returns home, the mailbox flag re-lowers next time).
+	var parent := get_parent() as Node3D
+	if parent != null:
+		parent.transform = _home_transform
+	_one_shot_done = false
+	_cool_timer = 0.0

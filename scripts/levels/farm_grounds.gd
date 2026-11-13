@@ -491,7 +491,104 @@ func _plaything(kind: int, sense: Vector3, cool: float,
 	thing.noticed.connect(func(text: String): playground_event.emit("gag", text))
 	return thing
 
+# ------------------------------------------------------------- pigpen play
+# The tutorial pen's own playground: three messable props (tippable bucket,
+# kickable cabbage, hay dive) plus the red meteor button near the north wall -
+# a hoof on the button drops a meteor that snaps the whole pen back to its
+# built state. Reset targets are registered at build time; the meteor itself
+# is a level-side visual so every prop resets in one boom.
+var _pen_playthings: Array[Node] = []
+var _meteor_falling := false
+
+func _register_pen_prop(body: Node3D) -> void:
+	_pen_playthings.append(body.get_node("Plaything"))
+
+func _build_pigpen_play() -> void:
+	# Tippable bucket by the trough wall (no charge needed - the tutorial pig
+	# has dash, but a plain walk-by knock is funnier in a pen).
+	var bucket := _box(self, "PenBucket", Vector3(0.5, 0.5, 0.5), Vector3(-4.5, 32.25, 96), Color("8FA3AD"), true)
+	bucket.add_child(_plaything(PLAYTHING.Kind.TIPPABLE, Vector3(2.0, 2.2, 2.0), 1.0, false,
+		["咣当！水桶滚出去老远。", "哗啦——桶里还真有水。"]))
+	_register_pen_prop(bucket)
+
+	# Kickable cabbage ball: the pitch ball's little sibling, confined to the pen.
+	var pen_ball := _sphere(self, "PenCabbageBall", 0.35, Vector3(-3, 32.4, 102), Color("7DB874"), true)
+	pen_ball.add_child(_plaything(PLAYTHING.Kind.CABBAGE, Vector3(2.0, 1.8, 2.0), 0.45))
+	_register_pen_prop(pen_ball)
+
+	# Hay-stack dive against the east wall: jump off the fence-side rise.
+	var stack := _box(self, "PenHaystack", Vector3(1.8, 0.9, 1.8), Vector3(5, 32.45, 104.5), Color("D9B45A"), false)
+	stack.add_child(_plaything(PLAYTHING.Kind.HAYSTACK, Vector3(2.4, 2.6, 2.4), 1.2))
+	_label(stack, "HaystackLabel", "从高处跳下 · 草垛跳水！", Vector3(0, 1.5, 0), 18)
+	_register_pen_prop(stack)
+
+	# The red reset button by the north wall.
+	var button := _box(self, "MeteorButton", Vector3(1.0, 0.3, 1.0), Vector3(0, 32.15, 106.5), Color("8B3A2E"), true)
+	_box(button, "ButtonCap", Vector3(0.7, 0.14, 0.7), Vector3(0, 0.22, 0), Color("E4573D"), false)
+	button.add_child(_plaything(PLAYTHING.Kind.METEOR_BUTTON, Vector3(1.6, 1.8, 1.6), 8.0))
+	_label(button, "MeteorButtonLabel", "危险按钮 · 踩上去召唤陨石重置猪圈", Vector3(0, 1.5, 0), 18)
+
+func _launch_meteor_reset() -> void:
+	# One meteor at a time: a second press mid-fall just clicks the cap.
+	if _meteor_falling:
+		return
+	_meteor_falling = true
+	var centre := Vector3(0, 32.2, 100)
+	# The rock: fire-lit sphere with a smoke tail, falling dead-centre in the pen.
+	var meteor := MeshInstance3D.new()
+	meteor.name = "Meteor"
+	var rock := SphereMesh.new()
+	rock.radius = 0.9
+	rock.height = 1.8
+	meteor.mesh = rock
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color("D96C2E")
+	mat.emission_enabled = true
+	mat.emission = Color("E8762C")
+	mat.emission_energy_multiplier = 1.6
+	meteor.material_override = mat
+	add_child(meteor)
+	meteor.position = centre + Vector3(6, 42, -6)
+	var fall := create_tween()
+	fall.tween_property(meteor, "position", centre, 1.1)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	fall.tween_callback(func():
+		if not is_instance_valid(self):
+			return
+		meteor.queue_free()
+		# Impact: a dust ring rolls out from the crater and everything the
+		# pig wrecked snaps home the same frame.
+		var ring := MeshInstance3D.new()
+		var disc := CylinderMesh.new()
+		disc.top_radius = 0.5
+		disc.bottom_radius = 0.5
+		disc.height = 0.06
+		ring.mesh = disc
+		var dust := StandardMaterial3D.new()
+		dust.albedo_color = Color("C8B49A")
+		dust.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		ring.material_override = dust
+		add_child(ring)
+		ring.position = centre
+		var puff := create_tween()
+		puff.tween_property(disc, "top_radius", 9.0, 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		puff.parallel().tween_property(disc, "bottom_radius", 9.0, 0.55)
+		puff.parallel().tween_property(dust, "albedo_color:a", 0.0, 0.55)
+		puff.tween_callback(ring.queue_free)
+		_reset_pen_props()
+	)
+	fall.finished.connect(func():
+		_meteor_falling = false
+		playground_event.emit("gag", "轰！！陨石把整个猪圈砸回了出厂设置。")
+	)
+
+func _reset_pen_props() -> void:
+	for thing in _pen_playthings:
+		if is_instance_valid(thing):
+			thing.reset_prop()
+
 func _build_playground() -> void:
+	_build_pigpen_play()
 	# --- Ox terrace: the cabbage pitch beside the (relocated) vegetable field
 	var ball := _sphere(self, "CabbageBall", 0.4, Vector3(46, 24.4, 30), Color("7DB874"), true)
 	# Lux3D PROP_08_CABBAGE (0.8 m, flat leaf palette) replaces the plain green
@@ -671,6 +768,8 @@ func _on_plaything_played(kind: String, _detail) -> void:
 	elif kind == "perfect_dive":
 		AchievementManager.unlock("perfect_dive")
 		playground_event.emit("perfect_dive", _detail)
+	elif kind == "meteor":
+		_launch_meteor_reset()
 	else:
 		playground_event.emit(kind, _detail)
 
