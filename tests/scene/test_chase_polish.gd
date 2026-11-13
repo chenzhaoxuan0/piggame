@@ -27,26 +27,23 @@ func _run() -> void:
 	level.start_game()
 	await process_frame
 	
-	# 1. Test Skill Unlock Modal
+	# 1. Test Skill Unlock Notice (bottom-right feed card, never a center modal)
+	var control_before_unlock: String = level.player.control_mode
 	level._show_skill_unlock(
 		"【 坚 韧 挣 脱 】",
 		"借老牛坚忍不屈的硬骨气 · 挣脱命运的死锁",
 		"【核心按键】 被咬住时狂按 [ 空格键 / SPACE ] 或 [ E ]",
 		"被恶犬扑咬纠缠时，在 2.2 秒内猛敲空格 8 次，即可爆发巨力震退恶犬 6 米并使其眩晕！"
 	)
-	await process_frame
-	_check(level.skill_card_modal.visible, "Skill unlock card modal opens and is visible")
-	_check(level.skill_card_title.text == "【 坚 韧 挣 脱 】", "Skill title displays correctly")
-	_check("空格键" in level.skill_card_key_label.text, "Skill card displays clear Space key prompt")
-	_check(level.in_skill_card, "Player is in skill card reading state")
-	_check(level.player.control_mode == "cinematic", "Player movement is paused while reading skill card")
-	
-	# Dismiss skill card
-	level._dismiss_skill_card()
-	await process_frame
-	_check(not level.skill_card_modal.visible, "Skill unlock card modal closes cleanly")
-	_check(not level.in_skill_card, "Player exits skill card state")
-	_check(level.player.control_mode == "explore", "Player control restored to explore mode")
+	await create_timer(0.3).timeout
+	var notice: Control = level.notice_feed.get_node_or_null("SkillNoticeCard")
+	_check(notice != null and notice.visible, "Skill unlock lands as a visible notice in the bottom-right feed")
+	if notice != null:
+		var title_label: Label = notice.find_child("SkillTitle", true, false)
+		_check(title_label != null and title_label.text == "【 坚 韧 挣 脱 】", "Skill title displays correctly")
+		var key_label: Label = notice.find_child("SkillKey", true, false)
+		_check(key_label != null and "空格键" in key_label.text, "Skill notice displays clear Space key prompt")
+	_check(level.player.control_mode == control_before_unlock, "Skill notice never locks the pig")
 	
 	# 2. Test QTE in Chase 2 (before meeting Ox) - Must NOT instantly fail!
 	var game: Node = root.get_node("GameManager")

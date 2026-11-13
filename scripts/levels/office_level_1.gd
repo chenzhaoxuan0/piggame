@@ -83,26 +83,8 @@ var toast_desc: Label
 var dash_gauge: Control
 var dash_bar: ProgressBar
 
-# Skill Unlock Card Modal
-var skill_card_modal: PanelContainer
-var skill_card_title: Label
-var skill_card_subtitle: Label
-var skill_card_key_label: Label
-var skill_card_desc_label: Label
-var skill_card_btn: Button
-var in_skill_card := false
-
-# Course-scoped loan skill card (non-blocking, auto-dismissing)
-var loan_card: PanelContainer
-var loan_card_title: Label
-var loan_card_subtitle: Label
-var loan_card_key_label: Label
-var loan_card_desc_label: Label
-var loan_card_hint: Label
-var _loan_queue: Array[String] = []
-# 右下角触发通知流（彩蛋台词等「地图小字」的屏幕端统一出口）
+# 右下角触发通知流（彩蛋台词、技能解锁/借得通知的屏幕端统一出口）
 var notice_feed: VBoxContainer
-var _loan_showing := false
 const LOAN_SKILL_TEXTS := {
 	"struggle": {
 		"title": "【 坚 韧 挣 脱 】",
@@ -361,69 +343,57 @@ func _finish_qte(success: bool) -> void:
 		chase.resolve_qte(dog, false)
 
 # -------------------------------------------------------------
-# Untitled Goose Game Style: Skill Unlock Modal
+# Skill notices (bottom-right feed): permanent unlocks and course
+# loans both land as feed cards - no center modal, no locked pig,
+# no dismiss button, they fade out on their own.
 # -------------------------------------------------------------
 func _show_skill_unlock(title_text: String, subtitle_text: String, key_text: String, desc_text: String) -> void:
-	in_skill_card = true
-	player.set_control_mode("cinematic")
-	skill_card_title.text = title_text
-	skill_card_subtitle.text = subtitle_text
-	skill_card_key_label.text = key_text
-	skill_card_desc_label.text = desc_text
-	skill_card_modal.visible = true
-	skill_card_btn.grab_focus()
-	
-	# Pop scale spring animation
-	skill_card_modal.scale = Vector2(0.85, 0.85)
-	var tween := create_tween()
-	tween.tween_property(skill_card_modal, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_notify_skill("SkillNoticeCard", "★ 领悟伙伴新技能 ★", title_text, subtitle_text, key_text, desc_text, 5.0, UI.CORAL)
 
-func _dismiss_skill_card() -> void:
-	if not in_skill_card: return
-	in_skill_card = false
-	skill_card_modal.visible = false
-	_restore_control()
-	_refresh_hud()
-
-# -------------------------------------------------------------
-# Course-scoped loan skill card (non-blocking: the pig keeps running)
-# -------------------------------------------------------------
 func _on_course_skill_granted(skill_id: String) -> void:
-	_loan_queue.append(skill_id)
-	if not _loan_showing:
-		_pump_loan_cards()
-
-func _pump_loan_cards() -> void:
-	_loan_showing = true
-	while not _loan_queue.is_empty():
-		await _show_loan_card(_loan_queue.pop_front())
-	_loan_showing = false
-
-func _show_loan_card(skill_id: String) -> void:
 	var text: Dictionary = LOAN_SKILL_TEXTS.get(skill_id, {})
 	if text.is_empty():
 		return
-	loan_card_title.text = text.get("title", "")
-	loan_card_subtitle.text = text.get("subtitle", "")
-	loan_card_key_label.text = text.get("key", "")
-	loan_card_desc_label.text = text.get("desc", "")
-	loan_card.visible = true
-	loan_card.modulate.a = 0.0
-	loan_card.scale = Vector2(0.9, 0.9)
-	# 借得卡占屏幕中央（y -132..92），与 ToastBanner（y -142..-78）同区：
-	# 钻管道进关时两者必然同屏，卡在场期间把横幅抬到卡上方（对话同款位置）。
-	if is_instance_valid(toast_panel) and toast_panel.visible:
-		toast_panel.offset_top = -386
-		toast_panel.offset_bottom = -322
-	var tween := create_tween().set_parallel(true)
-	tween.tween_property(loan_card, "modulate:a", 1.0, 0.2)
-	tween.tween_property(loan_card, "scale", Vector2.ONE, 0.24).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	await get_tree().create_timer(3.0).timeout
-	var fade := create_tween()
-	fade.tween_property(loan_card, "modulate:a", 0.0, 0.3)
-	await fade.finished
-	loan_card.visible = false
-	if is_instance_valid(toast_panel) and toast_panel.visible: _place_toast()
+	_notify_skill("LoanSkillNotice", "★ 本关借得伙伴之力 ★", str(text.get("title", "")), str(text.get("subtitle", "")), str(text.get("key", "")), str(text.get("desc", "")), 4.0, UI.TEAL)
+
+func _notify_skill(card_name: String, tag_text: String, title_text: String, subtitle_text: String, key_text: String, desc_text: String, hold: float, accent: Color) -> void:
+	# 技能通知：压进右下角通知流的富卡片（标签/标题/副题/键位/描述），与
+	# 彩蛋台词共用同一列堆叠与淡出节律——不再挡住画面中央，也不锁猪。
+	if not is_instance_valid(notice_feed): return
+	while notice_feed.get_child_count() >= 4:
+		var oldest: Node = notice_feed.get_child(0)
+		oldest.queue_free()
+		await get_tree().process_frame
+		if not is_instance_valid(notice_feed): return # 关卡在等待帧期间被释放
+	var card: PanelContainer = UI.patch_panel(16, UI.PAPER, accent, Vector2(18, 12))
+	card.name = card_name
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.modulate.a = 0.0
+	card.custom_minimum_size = Vector2(340, 0)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 4)
+	card.add_child(box)
+	box.add_child(UI.name_tag(tag_text, accent, UI.WHITE, 13))
+	var title_label := UI.label(title_text, 20, UI.TEAL_DEEP, true)
+	title_label.name = "SkillTitle"
+	box.add_child(title_label)
+	box.add_child(UI.label(subtitle_text, 14, UI.INK_SOFT))
+	var key_label := UI.label(key_text, 14, UI.RED, true)
+	key_label.name = "SkillKey"
+	box.add_child(key_label)
+	var desc_label := UI.label(desc_text, 13, UI.INK)
+	desc_label.name = "SkillDesc"
+	desc_label.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY # 中文长句无处断词，任意处换行
+	desc_label.custom_minimum_size = Vector2(300, 0)
+	box.add_child(desc_label)
+	card.resized.connect(func(): card.pivot_offset = card.size * 0.5) # 布局定尺寸后以中心为轴弹入
+	notice_feed.add_child(card)
+	var tween := create_tween()
+	tween.tween_property(card, "modulate:a", 1.0, 0.18).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(card, "scale", Vector2.ONE, 0.18).from(Vector2(0.92, 0.92)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_interval(hold)
+	tween.tween_property(card, "modulate:a", 0.0, 0.35)
+	tween.tween_callback(card.queue_free)
 
 # -------------------------------------------------------------
 # Dash Sprint Gauge (Horse Pasture Power)
@@ -1068,7 +1038,7 @@ func _process(delta: float) -> void:
 		return
 
 	if not is_instance_valid(prompt): return
-	if in_start_menu or paused or in_settings or dialogue_open or (overlay.visible and not paused) or cinematic or in_skill_card:
+	if in_start_menu or paused or in_settings or dialogue_open or (overlay.visible and not paused) or cinematic:
 		prompt.visible = false
 		return
 	if GameManager.is_in_chase():
@@ -1091,15 +1061,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed)
 		if fast_forward:
 			_sleep_skip = true
-			get_viewport().set_input_as_handled()
-			return
-
-	if in_skill_card:
-		var dismiss: bool = event.is_action_pressed("ui_accept") or event.is_action_pressed("action_jump") \
-			or event.is_action_pressed("action_interact") \
-			or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed)
-		if dismiss:
-			_dismiss_skill_card()
 			get_viewport().set_input_as_handled()
 			return
 
@@ -1127,10 +1088,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 		if in_start_menu:
-			return
-		if in_skill_card:
-			_dismiss_skill_card()
-			get_viewport().set_input_as_handled()
 			return
 		if overlay.visible and not paused: return
 		if in_qte:
@@ -1390,7 +1347,6 @@ func close_dialogue() -> void:
 
 func _restore_control() -> void:
 	if in_start_menu: player.set_control_mode("cinematic")
-	elif in_skill_card: player.set_control_mode("cinematic")
 	elif cinematic: player.set_control_mode("cinematic")
 	# The brain-hole quiz keeps the pig locked while it is up - falling through
 	# to "explore" here (ESC pause/resume, settings level jumps) would free the

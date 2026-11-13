@@ -40,8 +40,6 @@ func _walk_to(point: Vector3) -> void:
 		if offset.length() < 0.35: break
 		if office.overlay.visible or office.dialogue_open: break
 		if _entering_course and is_instance_valid(office.active_course): return
-		if office.in_skill_card:
-			office._dismiss_skill_card()
 		if office.in_qte:
 			office._on_qte_tapped()
 		for dog in office.chase._dogs:

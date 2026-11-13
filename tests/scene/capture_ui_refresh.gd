@@ -55,9 +55,8 @@ func _run() -> void:
 		"被恶犬扑咬纠缠时，在 2.2 秒内猛敲空格 8 次，即可爆发巨力震退恶犬 6 米并使其眩晕！"
 	)
 	await create_timer(0.4).timeout
-	await _shot("06_skill_card")
-	office._dismiss_skill_card()
-	await process_frame
+	await _shot("06_skill_notice")
+	await create_timer(5.6).timeout # 通知走完 5s 停留 + 淡出，别把它带进后面的截图
 
 	office.qte_panel.visible = true
 	office.qte_bar.value = 3
