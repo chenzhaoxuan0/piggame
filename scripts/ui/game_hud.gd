@@ -197,25 +197,59 @@ static func _build_overlay(host: Node) -> void:
 	host.overlay.visible = false
 
 static func _build_todo_notebook(host: Node) -> void:
-	# 待办补丁：右上角微微歪斜的缝线纸片，像贴在屏幕上的一张便利贴。
+	# 右上角挂件组：两枚胶囊按钮（今日待办 / 键位说明）+ 折叠的待办补丁。
+	# 待办默认只露按钮，点按钮展开/收起（office_level_1 持有状态机：跑动折叠、
+	# 静止闪烁招引点击、久站自动展开）；键位说明点开 10 秒自动收起。
+	var hub := VBoxContainer.new()
+	hub.name = "TodoHub"
+	hub.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE)
+	# MINSIZE leaves a zero-width rect at the corner anchor: the hub must grow
+	# LEFT-and-down from that point, or it collapses into an edge sliver.
+	hub.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	hub.grow_vertical = Control.GROW_DIRECTION_END
+	hub.offset_left = -24
+	hub.offset_right = -24
+	hub.offset_top = 24
+	hub.offset_bottom = 24
+	hub.add_theme_constant_override("separation", 10)
+	# 容器自身不吃鼠标：空隙处点击照常走位，按钮自己收事件。
+	hub.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.hud.add_child(hub)
+	host.todo_hub = hub
+
+	var btn_row := HBoxContainer.new()
+	btn_row.add_theme_constant_override("separation", 8)
+	btn_row.alignment = BoxContainer.ALIGNMENT_END
+	btn_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hub.add_child(btn_row)
+
+	var todo_btn := UI.button("📋 今日待办", host._toggle_todo)
+	todo_btn.name = "TodoToggleButton"
+	todo_btn.custom_minimum_size = Vector2(0, 34)
+	todo_btn.add_theme_font_size_override("font_size", 15)
+	todo_btn.focus_mode = Control.FOCUS_NONE # F/Enter/Space 属于猪，不属于按钮
+	btn_row.add_child(todo_btn)
+	host.todo_toggle_btn = todo_btn
+
+	var keys_btn := UI.button("⌨ 键位说明", host._toggle_key_strip)
+	keys_btn.name = "KeysToggleButton"
+	keys_btn.custom_minimum_size = Vector2(0, 34)
+	keys_btn.add_theme_font_size_override("font_size", 15)
+	keys_btn.focus_mode = Control.FOCUS_NONE
+	btn_row.add_child(keys_btn)
+	host.keys_toggle_btn = keys_btn
+
+	# 待办补丁：微微歪斜的缝线纸片，像贴在按钮下面的一张便利贴。
 	host.todo_notebook = UI.patch_panel(16, UI.PAPER, UI.PINK, Vector2(20, 16))
 	host.todo_notebook.name = "TodoNotebook"
-	# 高度随待办条目数增减（MINSIZE 锚定，容器自己长高长矮），
+	# 高度随待办条目数增减（容器自己长高长矮），宽度压住 330；
 	# 上限由 _refresh_todo_list 的条目数封顶控制（3 条进行中 + 最近 2 条已完成）。
 	host.todo_notebook.custom_minimum_size = Vector2(330, 0)
-	host.todo_notebook.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE)
-	# MINSIZE leaves a zero-width rect at the corner anchor: the panel must grow
-	# LEFT-and-down from that point, or it collapses into an edge sliver.
-	host.todo_notebook.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	host.todo_notebook.grow_vertical = Control.GROW_DIRECTION_END
-	host.todo_notebook.offset_left = -24
-	host.todo_notebook.offset_right = -24
-	host.todo_notebook.offset_top = 24
-	host.todo_notebook.offset_bottom = 24
 	host.todo_notebook.mouse_filter = Control.MOUSE_FILTER_PASS
 	host.todo_notebook.rotation_degrees = -1.4
 	_center_pivot(host.todo_notebook)
-	host.hud.add_child(host.todo_notebook)
+	host.todo_notebook.visible = false # 默认折叠：初始状态只露出右上角按钮
+	hub.add_child(host.todo_notebook)
 
 	var notebook_layout := VBoxContainer.new()
 	notebook_layout.add_theme_constant_override("separation", 8)

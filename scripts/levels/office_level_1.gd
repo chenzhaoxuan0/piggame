@@ -60,17 +60,21 @@ var key_strip: Control = null
 var key_strip_caps := {}
 var in_settings := false
 var settings_from_start := false
+var settings_from_hub := false # 猪圈枢纽（标题卡）打开的设置：关闭时直接回落，不弹暂停
 var achievements_from_start := false
+var achievements_from_hub := false # 同上，枢纽打开的成就墙
 var start_menu: Control
 var pause_menu: Control
 var settings_menu: Control
 var achievements_menu: Control
 
 # Untitled Goose Game Style UI Extensions
+var todo_hub: Control
 var todo_notebook: PanelContainer
 var todo_vbox: VBoxContainer
 var todo_toggle_btn: Button
-var todo_folded := false
+var keys_toggle_btn: Button
+var todo_folded := true # 默认折叠：初始状态右上角只露按钮
 var qte_panel: PanelContainer
 var qte_btn_label: Label
 var qte_desc_label: Label
@@ -574,9 +578,9 @@ func _start_pigpen_tutorial() -> void:
 	player.force_dodge_available = true
 	player.set_control_mode("explore")
 	camera.snap_to_target()
-	if is_instance_valid(key_strip):
-		key_strip.visible = true
-	_show_toast("山顶猪圈 · 演出开始前", "蹄子还听使唤吗？先在猪圈里练练——练累了就回窝眯一觉：点左上『开始游戏』，或来找山羊按 [ F ] 入梦。")
+	# 键位说明默认隐藏：玩家点右上『键位说明』才展开（10 秒自动收起）。
+	_todo_idle_time = 0.0
+	_show_toast("山顶猪圈 · 演出开始前", "蹄子还听使唤吗？先在猪圈里练练——点右上『键位说明』随时查看按键；练累了就回窝眯一觉：点左上『开始游戏』，或来找山羊按 [ F ] 入梦。")
 	if is_instance_valid(key_strip):
 		# 键位条的默认引导写在 game_hud.gd（「按 F 开始今天的农场」），这里
 		# 覆盖成入梦指引：两条入口（标题卡 / F 山羊）都通向「睡着→入梦」。
@@ -657,8 +661,9 @@ func _answer_brain_hole(lower: bool) -> void:
 		return
 
 # ------------------------------------------------------------- title card
-# 开场标题卡：boot 直进猪圈后，主菜单的标题与四个入口（入梦序章 / 跳过序章 /
-# 成就墙 / 退出）作为左上角悬浮卡留在画面里——猪照常跑动，菜单随时可点。
+# 开场标题卡：boot 直进猪圈后，主菜单的标题与四个入口（入梦序章 / 游戏设置 /
+# 成就墙 / 退出）作为左上角悬浮卡留在画面里——猪照常跑动，按钮随时可点。
+# 不再提供「收起菜单」：右上角挂件（待办/键位说明）自带按钮，屏幕本来就让位。
 var _title_card: Control = null
 
 func _build_title_card() -> void:
@@ -666,7 +671,7 @@ func _build_title_card() -> void:
 		return
 	var column := VBoxContainer.new()
 	column.name = "TitleCard"
-	# 顶端与右上角待办本对齐（todo_notebook offset_top 24），不再吊在画面中段。
+	# 顶端与右上角挂件组对齐（todo_hub offset_top 24），不再吊在画面中段。
 	column.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	column.offset_left = 24
 	column.offset_top = 24
@@ -688,12 +693,12 @@ func _build_title_card() -> void:
 	btn_start.name = "TitleStartButton"
 	btn_start.custom_minimum_size.y = 46
 	vbox.add_child(btn_start)
-	var btn_skip := UI.button("收起菜单 · 就在猪圈里玩", _dismiss_title_card)
-	btn_skip.name = "TitleSkipButton"
-	btn_skip.custom_minimum_size.y = 34
-	btn_skip.add_theme_font_size_override("font_size", 15)
-	vbox.add_child(btn_skip)
-	var btn_achv := UI.button("🏅  成就墙", func(): _open_achievements(false))
+	var btn_settings := UI.button("⚙  游戏设置【ESC】", _open_hub_settings)
+	btn_settings.name = "TitleSettingsButton"
+	btn_settings.custom_minimum_size.y = 38
+	btn_settings.add_theme_font_size_override("font_size", 15)
+	vbox.add_child(btn_settings)
+	var btn_achv := UI.button("🏅  成就墙", _open_hub_achievements)
 	btn_achv.name = "TitleAchievementsButton"
 	btn_achv.custom_minimum_size.y = 38
 	vbox.add_child(btn_achv)
@@ -701,9 +706,7 @@ func _build_title_card() -> void:
 	btn_quit.name = "TitleQuitButton"
 	btn_quit.custom_minimum_size.y = 38
 	vbox.add_child(btn_quit)
-	var hint := UI.label("菜单随时可点，不影响跑动 🐷", 13, UI.INK_SOFT)
-	vbox.add_child(hint)
-	for btn in [btn_start, btn_skip, btn_achv, btn_quit]:
+	for btn in [btn_start, btn_settings, btn_achv, btn_quit]:
 		btn.focus_mode = Control.FOCUS_NONE # F/Enter/Space belong to the pig, never the card
 	hud.add_child(column)
 	_title_card = column
@@ -721,6 +724,8 @@ func _begin_dream_from_pigpen() -> void:
 	# 三扇「开始游戏」门的统一入口：标题卡按钮、猪圈里 F 山羊、（猪圈语境下的）
 	# in-game 开始菜单按钮。都先过脑洞校准（每会话一次），再走同一场睡着演出
 	# 入梦——谁也不能绕过入睡直接改写叙事顺序（旧行为：硬切噩梦 / 直开红路对话）。
+	if in_settings:
+		_close_settings() # 枢纽设置开着也能直接开演（兜底；正常路径被遮罩挡住）
 	if is_instance_valid(start_menu):
 		start_menu.visible = false
 		in_start_menu = false
@@ -843,8 +848,7 @@ func _end_pigpen_tutorial() -> void:
 	if not GameManager.has_dash_skill:
 		player.set_dash_enabled(false) # dash belongs to 追风's loan again
 	player.force_dodge_available = false
-	if is_instance_valid(key_strip):
-		key_strip.visible = false
+	_hide_key_strip()
 
 func _snuffle_trough(target: Node3D) -> void:
 	# The trough gag from the old floating pen, now living in the real pigpen.
@@ -876,12 +880,16 @@ func _start_game() -> void:
 		start_menu.visible = false
 	if in_settings:
 		_close_settings()
+	settings_from_hub = false
+	achievements_from_hub = false
 	_restore_control()
 	_refresh_hud()
 
 func _show_start_menu() -> void:
 	in_start_menu = true
 	in_settings = false
+	settings_from_hub = false
+	achievements_from_hub = false
 	if is_instance_valid(start_menu):
 		start_menu.visible = true
 		var start_btn: Button = start_menu.find_child("StartButton", true, false)
@@ -895,13 +903,14 @@ func _show_start_menu() -> void:
 		overlay.visible = false
 	if is_instance_valid(dialogue_panel):
 		dialogue_panel.visible = false
-	if is_instance_valid(todo_notebook):
-		todo_notebook.visible = false
+	_set_todo_hub_visible(false)
 	player.set_control_mode("cinematic")
 
 func _show_pause_menu() -> void:
 	paused = true
 	in_settings = false
+	settings_from_hub = false
+	achievements_from_hub = false
 	if is_instance_valid(pause_menu):
 		pause_menu.visible = true
 		var resume_btn: Button = pause_menu.find_child("ResumeButton", true, false)
@@ -918,7 +927,7 @@ func _show_pause_menu() -> void:
 	# 暂停时覆盖层只当暗色背景：藏起结算卡片，收掉待办与体力条。
 	overlay.color = Color(0, 0, 0, 0)
 	overlay.get_child(0).visible = false
-	if is_instance_valid(todo_notebook): todo_notebook.visible = false
+	_set_todo_hub_visible(false)
 	if is_instance_valid(dash_gauge): dash_gauge.visible = false
 	overlay.visible = true
 
@@ -928,6 +937,7 @@ func _show_pause_settings() -> void:
 func _open_settings(from_start: bool = false) -> void:
 	in_settings = true
 	settings_from_start = from_start
+	settings_from_hub = false # 常规入口先清掉枢纽标记，hub 专用包装函数随后再置位
 	# The wall and the settings card are sibling modals - never both at once.
 	if is_instance_valid(achievements_menu):
 		achievements_menu.visible = false
@@ -944,6 +954,11 @@ func _open_settings(from_start: bool = false) -> void:
 		if is_instance_valid(back_btn):
 			back_btn.grab_focus()
 
+# 猪圈枢纽（标题卡 / ESC）打开的设置：关闭时直接回落枢纽，不弹暂停菜单。
+func _open_hub_settings() -> void:
+	_open_settings(false)
+	settings_from_hub = true
+
 func _close_settings() -> void:
 	in_settings = false
 	if is_instance_valid(settings_menu):
@@ -954,6 +969,8 @@ func _close_settings() -> void:
 			var settings_btn: Button = start_menu.find_child("SettingsButton", true, false)
 			if is_instance_valid(settings_btn):
 				settings_btn.grab_focus()
+	elif settings_from_hub:
+		settings_from_hub = false # 枢纽从未离开画面，无需恢复任何菜单
 	else:
 		if is_instance_valid(pause_menu):
 			pause_menu.visible = true
@@ -963,6 +980,7 @@ func _close_settings() -> void:
 
 func _open_achievements(from_start: bool = false) -> void:
 	achievements_from_start = from_start
+	achievements_from_hub = false # 常规入口先清掉枢纽标记，hub 专用包装函数随后再置位
 	if in_settings:
 		_close_settings()
 	if is_instance_valid(achievements_menu):
@@ -976,6 +994,11 @@ func _open_achievements(from_start: bool = false) -> void:
 	else:
 		if is_instance_valid(pause_menu): pause_menu.visible = false
 
+# 猪圈枢纽（标题卡）打开的成就墙：关闭时直接回落枢纽，不弹暂停菜单。
+func _open_hub_achievements() -> void:
+	_open_achievements(false)
+	achievements_from_hub = true
+
 func _close_achievements() -> void:
 	if is_instance_valid(achievements_menu):
 		achievements_menu.visible = false
@@ -985,6 +1008,8 @@ func _close_achievements() -> void:
 			var achv_btn: Button = start_menu.find_child("AchievementsButton", true, false)
 			if is_instance_valid(achv_btn):
 				achv_btn.grab_focus()
+	elif achievements_from_hub:
+		achievements_from_hub = false # 枢纽从未离开画面，无需恢复任何菜单
 	else:
 		if is_instance_valid(pause_menu):
 			pause_menu.visible = true
@@ -1003,6 +1028,8 @@ func _return_to_main_menu() -> void:
 func _resume() -> void:
 	paused = false
 	in_settings = false
+	settings_from_hub = false
+	achievements_from_hub = false
 	if is_instance_valid(pause_menu): pause_menu.visible = false
 	if is_instance_valid(settings_menu): settings_menu.visible = false
 	overlay.visible = false
@@ -1013,57 +1040,70 @@ func _resume() -> void:
 	_refresh_hud()
 
 # ------------------------------------------------------------- ui auto-hide
-# 农场枢纽的常驻挂件（标题卡 / 待办本 / 教程键位条）在猪跑动时淡出，停稳
-# UI_SHOW_IDLE 秒后淡回：跑动时把画面还给玩家，停下 3 秒任务自然可见——
-# 这就是待办的「随时可查」途径，不加常驻展开按钮。只动 modulate、不碰
-# visible（进关/暂停等状态自己管 visible，两边不打架）；淡出期间标题卡
-# 按钮停止吃鼠标，点击走位不会被看不见的按钮截走。
+# 农场枢纽的常驻挂件在猪跑动时让位给画面，停稳后再回到玩家眼前：
+# · 标题卡照旧淡出，停稳 UI_SHOW_IDLE 秒淡回；淡出期间按钮停止吃鼠标，
+#   点击走位不会被看不见的按钮截走。
+# · 今日待办改成折叠补丁状态机：跑动即折叠，右上角按钮永远可点（被藏起来
+#   时的「随时可查」途径）；静止时按钮闪烁招引点击，静止满 UI_SHOW_IDLE 秒
+#   仍无人点击才替玩家自动展开。
+# · 键位说明是手动挂件：右上角按钮点开展示 KEY_STRIP_SHOW 秒自动收起，
+#   默认隐藏，不参与跑动淡出。只动 modulate/visible，进关/暂停等状态自己
+#   管挂件组的 visible，两边不打架。
 const UI_HIDE_SPEED := 0.5
 const UI_SHOW_IDLE := 3.0
 var _ui_auto_hidden := false
 var _ui_idle_time := 0.0
 var _ui_fade_tween: Tween = null
+var _todo_idle_time := 0.0
+var _todo_blink_tween: Tween = null
 
 func _update_ui_auto_hide(delta: float) -> void:
 	if not is_instance_valid(player):
 		return
-	var eligible: bool = not is_instance_valid(active_course) and not in_start_menu and not paused \
-		and not in_settings and not dialogue_open and not cinematic
-	if not eligible:
+	var blocked: bool = in_start_menu or paused or in_settings or dialogue_open or cinematic
+	if blocked:
 		_ui_idle_time = 0.0
+		_todo_idle_time = 0.0
 		if _ui_auto_hidden:
 			_set_ui_auto_hidden(false)
+		_stop_todo_blink()
 		return
 	var speed := Vector2(player.velocity.x, player.velocity.z).length()
-	if speed > UI_HIDE_SPEED:
-		_ui_idle_time = 0.0
-		if not _ui_auto_hidden:
-			_set_ui_auto_hidden(true)
-	elif _ui_auto_hidden:
-		_ui_idle_time += delta
-		if _ui_idle_time >= UI_SHOW_IDLE:
-			_set_ui_auto_hidden(false)
+	# 标题卡：跑动淡出，停稳 3 秒淡回（只在猪圈枢纽存在，进关后随卡消失）。
+	if is_instance_valid(_title_card):
+		if speed > UI_HIDE_SPEED:
+			_ui_idle_time = 0.0
+			if not _ui_auto_hidden:
+				_set_ui_auto_hidden(true)
+		elif _ui_auto_hidden:
+			_ui_idle_time += delta
+			if _ui_idle_time >= UI_SHOW_IDLE:
+				_set_ui_auto_hidden(false)
+	# 今日待办：跑动折叠、静止闪烁、久站自动展开（枢纽与赛道内都生效）。
+	if is_instance_valid(todo_hub) and todo_hub.visible:
+		if speed > UI_HIDE_SPEED:
+			_todo_idle_time = 0.0
+			_set_todo_folded(true)
+			_stop_todo_blink()
+		else:
+			_todo_idle_time += delta
+			if todo_folded:
+				_start_todo_blink()
+				if _todo_idle_time >= UI_SHOW_IDLE:
+					_set_todo_folded(false) # 静止 3 秒无人点击，替玩家展开
+			else:
+				_stop_todo_blink()
 
 func _set_ui_auto_hidden(hidden: bool) -> void:
 	_ui_auto_hidden = hidden
 	_ui_idle_time = 0.0
-	var group := _ui_auto_hide_group()
-	if group.is_empty():
+	if not is_instance_valid(_title_card):
 		return
 	if _ui_fade_tween != null and _ui_fade_tween.is_valid():
 		_ui_fade_tween.kill()
-	_ui_fade_tween = create_tween().set_parallel(true)
-	for widget in group:
-		_ui_fade_tween.tween_property(widget, "modulate:a", 0.0 if hidden else 1.0, 0.25)
-		if widget == _title_card:
-			_title_card_buttons_clickable(not hidden)
-
-func _ui_auto_hide_group() -> Array:
-	var group: Array = []
-	for widget in [todo_notebook, _title_card, key_strip]:
-		if is_instance_valid(widget):
-			group.append(widget)
-	return group
+	_ui_fade_tween = create_tween()
+	_ui_fade_tween.tween_property(_title_card, "modulate:a", 0.0 if hidden else 1.0, 0.25)
+	_title_card_buttons_clickable(not hidden)
 
 func _title_card_buttons_clickable(clickable: bool) -> void:
 	if not is_instance_valid(_title_card):
@@ -1071,8 +1111,76 @@ func _title_card_buttons_clickable(clickable: bool) -> void:
 	for btn in _title_card.find_children("*", "Button", true, false):
 		btn.mouse_filter = Control.MOUSE_FILTER_STOP if clickable else Control.MOUSE_FILTER_IGNORE
 
+# ------------------------------------------------------------- todo folding
+# 待办折叠状态机：按钮是唯一常驻入口，展开态由它与跑动/久站共同决定。
+func _set_todo_folded(folded: bool) -> void:
+	todo_folded = folded
+	if is_instance_valid(todo_notebook):
+		todo_notebook.visible = not folded
+	if folded:
+		_stop_todo_blink()
+
+func _toggle_todo() -> void:
+	if todo_folded:
+		_set_todo_folded(false)
+	else:
+		_set_todo_folded(true)
+		# 刚收起就重新起算闪烁窗口：静止中手动收起不会被下一帧立刻弹回。
+		_todo_idle_time = 0.0
+
+# 待办按钮闪烁：静止且折叠时的招引脉冲（0.45s 半程），展开/跑动/收起即停。
+func _start_todo_blink() -> void:
+	if _todo_blink_tween != null and _todo_blink_tween.is_valid():
+		return
+	_todo_blink_tween = create_tween().set_loops()
+	_todo_blink_tween.tween_property(todo_toggle_btn, "modulate:a", 0.35, 0.45)
+	_todo_blink_tween.tween_property(todo_toggle_btn, "modulate:a", 1.0, 0.45)
+
+func _stop_todo_blink() -> void:
+	if _todo_blink_tween != null and _todo_blink_tween.is_valid():
+		_todo_blink_tween.kill()
+	_todo_blink_tween = null
+	if is_instance_valid(todo_toggle_btn):
+		todo_toggle_btn.modulate.a = 1.0
+
+# 挂件组（按钮 + 待办）随进关/暂停/菜单整体显隐；每次藏起都回到折叠默认态，
+# 重见天日时永远是「只露按钮」的干净初始状态。
+func _set_todo_hub_visible(shown: bool) -> void:
+	if is_instance_valid(todo_hub):
+		todo_hub.visible = shown
+	if not shown:
+		_set_todo_folded(true)
+		_todo_idle_time = 0.0
+
+# ------------------------------------------------------------- key strip
+# 键位说明：右上角按钮点开展示 10 秒自动收起；再点一次立即收起（开关语义）。
+const KEY_STRIP_SHOW := 10.0
+var _key_strip_time_left := 0.0
+
+func _toggle_key_strip() -> void:
+	if is_instance_valid(key_strip) and key_strip.visible:
+		_hide_key_strip()
+	else:
+		_show_key_strip_timed()
+
+func _show_key_strip_timed() -> void:
+	if not is_instance_valid(key_strip):
+		return
+	key_strip.visible = true
+	_key_strip_time_left = KEY_STRIP_SHOW
+
+func _hide_key_strip() -> void:
+	_key_strip_time_left = 0.0
+	if is_instance_valid(key_strip):
+		key_strip.visible = false
+
 func _process(delta: float) -> void:
 	_update_ui_auto_hide(delta)
+	# 键位说明的 10 秒展示窗（QTE 提前返回也要继续倒数，所以放在最前）。
+	if _key_strip_time_left > 0.0:
+		_key_strip_time_left -= delta
+		if _key_strip_time_left <= 0.0:
+			_hide_key_strip()
 	# Key-test strip highlight (pigpen tutorial): bound actions light their keycaps.
 	if is_instance_valid(key_strip) and key_strip.visible:
 		for tag in key_strip_caps:
@@ -1147,6 +1255,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			_close_settings()
 			get_viewport().set_input_as_handled()
 			return
+		if is_instance_valid(_title_card):
+			# 猪圈枢纽：ESC 直开游戏设置——标题卡按钮上的【ESC】就是这个承诺，
+			# 不经暂停菜单（进关后标题卡消失，ESC 恢复为暂停开关）。
+			_open_hub_settings()
+			get_viewport().set_input_as_handled()
+			return
 		if in_start_menu:
 			return
 		if overlay.visible and not paused: return
@@ -1171,10 +1285,10 @@ func _refresh_hud() -> void:
 	# would re-lock it mid-tutorial (it did, before the flag existed).
 	player.set_dash_enabled(GameManager.has_dash_skill or GameManager.tutorial_free_roam)
 	if is_instance_valid(pin_visual): pin_visual.visible = GameManager.has_pin
-	if is_instance_valid(todo_notebook):
+	if is_instance_valid(todo_hub):
 		var battle_on: bool = is_instance_valid(pokemon_battle) and pokemon_battle.battle_active
-		todo_notebook.visible = not in_start_menu and not paused and not overlay.visible and not battle_on
-		if todo_notebook.visible:
+		_set_todo_hub_visible(not in_start_menu and not paused and not overlay.visible and not battle_on)
+		if todo_hub.visible:
 			_refresh_todo_list()
 
 func _on_interact(target: Node3D) -> void:
@@ -1253,8 +1367,7 @@ func _start_farmer_showdown() -> void:
 		dialogue_panel.visible = false
 	if is_instance_valid(prompt):
 		prompt.visible = false
-	if is_instance_valid(todo_notebook):
-		todo_notebook.visible = false
+	_set_todo_hub_visible(false)
 	if is_instance_valid(dash_gauge):
 		dash_gauge.visible = false
 	if is_instance_valid(pokemon_battle):
@@ -1702,7 +1815,7 @@ func _show_overlay(title: String, body: String, buttons: Array) -> void:
 	ending_art.hide()
 	overlay.color = Color(UI.PAPER, 0.96)
 	overlay.get_child(0).visible = true
-	if is_instance_valid(todo_notebook): todo_notebook.visible = false
+	_set_todo_hub_visible(false)
 	if is_instance_valid(dash_gauge): dash_gauge.visible = false
 	overlay_title.text = title
 	overlay_text.text = body
