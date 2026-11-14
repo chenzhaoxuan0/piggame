@@ -112,6 +112,25 @@ func _run() -> void:
 	_check(not office.achievements_menu.visible and office.start_menu.visible,
 		"Closing the wall returns to the start menu")
 
+	# --- 7b. The tester reset button: one click wipes progress and the wall
+	# reflects it - a machine that already earned everything can re-trigger
+	# the whole unlock chain (unlock-once achievements otherwise never fire
+	# again, which makes playtesting the popups impossible).
+	office._open_achievements(true)
+	await process_frame
+	var reset_btn: Button = office.achievements_menu.find_child("ResetButton", true, false)
+	_check(reset_btn != null, "The achievements wall has a tester reset button")
+	if reset_btn != null:
+		_check(am.unlocked_count() > 0, "There is progress to wipe before the reset")
+		reset_btn.pressed.emit()
+		await process_frame
+		_check(am.unlocked_count() == 0, "The reset button wipes all unlocked progress")
+		var count_after: Label = office.achievements_menu.find_child("AchievementCount", true, false)
+		_check(count_after != null and count_after.text.begins_with("已解锁 0 / "),
+			"The wall refreshes to zero after the reset")
+	office._close_achievements()
+	await process_frame
+
 	# --- 8. Unlock popup anchors the bottom-right corner (above the notice feed zone)
 	am.reset_progress(true)
 	await process_frame

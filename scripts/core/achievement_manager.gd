@@ -1,7 +1,7 @@
 extends Node
 
 # AchievementManager — 《一口猪在金牌农场》成就系统（autoload）。
-# 15 个成就覆盖全流程：故事 5 + 伙伴 3 + 闯关 4 + 身手 3。
+# 28 个成就覆盖全流程：故事 5 + 伙伴 3 + 闯关 4 + 身手 3 + 农场玩场 13。
 # 解锁来源两层：状态驱动（监听 GameManager.state_changed 回读字段，reset_run
 # 发的信号字段全 false 天然无副作用）+ 关卡侧直挂（管道发现/闪避/QTE/破纪录/
 # 开场拱槽）。进度跨局持久化到 user://achievements.json —— 这是仓库唯一的
@@ -32,6 +32,11 @@ const DEFS := [
 	{"id": "grapple_escape", "title": "挣脱本能", "desc": "第一次在恶犬的扑咬下狂点挣脱（QTE）成功。"},
 	{"id": "trough_sniff", "title": "哼哼初试", "desc": "还没入梦，就在开场猪圈里拱了拱食槽。"},
 	{"id": "cabbage_striker", "title": "卷心菜前锋", "desc": "在牛耕地球会，把卷心菜一脚踢进了球门。"},
+	{"id": "cabbage_goal_pitch", "title": "牛耕地金靴", "desc": "把卷心菜踢进了牛耕地球会的联赛球门。"},
+	{"id": "cabbage_goal_pen", "title": "猪圈点球王", "desc": "把卷心菜踢进了猪圈后院的分赛场球门。"},
+	{"id": "cabbage_goal_creek", "title": "溪桥漂流手", "desc": "把卷心菜一路踢进了溪桥边的分赛场球门。"},
+	{"id": "cabbage_goal_woodland", "title": "林间远射手", "desc": "把卷心菜远征踢进了马场草甸的分赛场球门。"},
+	{"id": "cabbage_grand_slam", "title": "卷心菜全满贯", "desc": "四大球门全部命中：牛耕地、猪圈、溪桥、马场——全农场的网都被你踢穿过。"},
 	{"id": "second_path", "title": "第二条路", "desc": "用肩膀（和冲刺）顶开了下山路上那根倒木——不只有跳这一条路。"},
 	{"id": "demolition_crew", "title": "拆家小队", "desc": "沿下山路的五件农具，全都被撞翻了一遍。"},
 	{"id": "grass_gourmet", "title": "食草动物的本分", "desc": "啃遍了下山路上全部六丛嫩草。"},

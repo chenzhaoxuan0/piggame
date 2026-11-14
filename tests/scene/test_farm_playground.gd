@@ -108,6 +108,8 @@ func _run() -> void:
 	ball.linear_velocity = Vector3.ZERO
 	await physics_frame
 	plot.freeze = false # harvest it again for the tour of the nets
+	var net_ach := {"CabbageGoal": "cabbage_goal_pitch", "CabbageGoal_Pen": "cabbage_goal_pen",
+		"CabbageGoal_Creek": "cabbage_goal_creek", "CabbageGoal_Woodland": "cabbage_goal_woodland"}
 	for goal in goals:
 		var before: int = goal_events.size()
 		# Park the ball clear of every net for one physics step first: the
@@ -123,7 +125,9 @@ func _run() -> void:
 		await physics_frame
 		await create_timer(0.1).timeout
 		_check(goal_events.size() > before, "The %s net scores a cabbage ball" % goal.name)
+		_check(am.is_unlocked(net_ach[goal.name]), "The %s net pays its own achievement" % goal.name)
 	_check(am.is_unlocked("cabbage_striker"), "The striker achievement holds after every net")
+	_check(am.is_unlocked("cabbage_grand_slam"), "Scoring in all four nets pays 卷心菜全满贯")
 
 	# --- Log shove: a sprinting pig opens the second path
 	_check(not am.is_unlocked("second_path"), "Second-path achievement locked before the shove")

@@ -66,7 +66,24 @@ static func build_achievements_menu(parent: Control, on_close: Callable) -> Cont
 	var btn_back := UI.button("返  回", on_close)
 	btn_back.name = "BackButton"
 	btn_back.custom_minimum_size.y = 44
-	vbox.add_child(btn_back)
+	btn_back.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var buttons := HBoxContainer.new()
+	buttons.add_theme_constant_override("separation", 8)
+	vbox.add_child(buttons)
+	buttons.add_child(btn_back)
+	# Tester aid: achievements are unlock-once by design, so a machine that
+	# already earned them can never see the popups again. One click wipes the
+	# save file (memory + disk) and refreshes the wall - replay the trigger
+	# and the whole unlock chain fires afresh.
+	var btn_reset := UI.button("重置成就（测试用）", func():
+		var am_reset: Node = Engine.get_main_loop().root.get_node_or_null("AchievementManager")
+		if am_reset != null:
+			am_reset.reset_progress(true)
+			refresh_achievements_menu(menu)
+	)
+	btn_reset.name = "ResetButton"
+	btn_reset.custom_minimum_size.y = 44
+	buttons.add_child(btn_reset)
 	return menu
 
 static func refresh_achievements_menu(menu: Control) -> void:

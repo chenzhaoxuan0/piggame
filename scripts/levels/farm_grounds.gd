@@ -781,10 +781,10 @@ func _build_playground() -> void:
 	# rolls. Placements stay clear of the journey/chase corridors - the pen
 	# net must not stand between the pig spawn and the Old Goat, and the
 	# woodland net sits by the road's terminal waypoint, not across it.
-	_build_cabbage_goal("CabbageGoal", Vector3(46, 24, 24.6), "牛耕地球会 · 卷心菜联赛")
-	_build_cabbage_goal("CabbageGoal_Pen", Vector3(4.0, 32.0, 93.5), "猪圈分赛场 · 后院点球大战", -90.0)
-	_build_cabbage_goal("CabbageGoal_Creek", Vector3(54.0, 22.21, 3.5), "溪桥分赛场 · 卷心菜漂流终点", -120.0)
-	_build_cabbage_goal("CabbageGoal_Woodland", Vector3(18.0, 8.0, -86.0), "林间分赛场 · 卷心菜远征终点", 180.0)
+	_build_cabbage_goal("CabbageGoal", Vector3(46, 24, 24.6), "牛耕地球会 · 卷心菜联赛", 0.0, "cabbage_goal_pitch")
+	_build_cabbage_goal("CabbageGoal_Pen", Vector3(4.0, 32.0, 93.5), "猪圈分赛场 · 后院点球大战", -90.0, "cabbage_goal_pen")
+	_build_cabbage_goal("CabbageGoal_Creek", Vector3(54.0, 22.21, 3.5), "溪桥分赛场 · 卷心菜漂流终点", -120.0, "cabbage_goal_creek")
+	_build_cabbage_goal("CabbageGoal_Woodland", Vector3(18.0, 8.0, -86.0), "林间分赛场 · 卷心菜远征终点", 180.0, "cabbage_goal_woodland")
 	_build_pitch_fence()
 
 	# --- Five tippables scattered down the mountain (sprint to topple). Each
@@ -976,11 +976,13 @@ func _on_plaything_played(kind: String, _detail) -> void:
 	else:
 		playground_event.emit(kind, _detail)
 
-func _build_cabbage_goal(node_name: String, pos: Vector3, title: String, yaw_deg := 0.0) -> Node3D:
+func _build_cabbage_goal(node_name: String, pos: Vector3, title: String, yaw_deg := 0.0,
+		achievement_id := "") -> Node3D:
 	# One cabbage goal, wherever the farm wants a net: the Lux3D PROP_09_GOAL
-	# frame over procedural colliders, a solid net back, a title label, and the
-	# mouth Area that scores any cabbage_ball. The area's handler receives
-	# this goal root, so the shake and the gag land on the net that scored.
+	# frame over procedural colliders, a title label, and the mouth Area that
+	# scores any cabbage_ball. The area's handler receives this goal root and
+	# this net's achievement id, so the shake, the gag and the per-net medal
+	# all land on the net that scored.
 	var goal := Node3D.new()
 	goal.name = node_name
 	goal.position = pos
@@ -1024,10 +1026,10 @@ func _build_cabbage_goal(node_name: String, pos: Vector3, title: String, yaw_deg
 	shape.shape = box
 	goal_area.add_child(shape)
 	goal.add_child(goal_area)
-	goal_area.body_entered.connect(func(body: Node3D): _on_cabbage_goal(body, goal))
+	goal_area.body_entered.connect(func(body: Node3D): _on_cabbage_goal(body, goal, achievement_id))
 	return goal
 
-func _on_cabbage_goal(body: Node3D, goal: Node3D) -> void:
+func _on_cabbage_goal(body: Node3D, goal: Node3D, goal_ach_id := "") -> void:
 	# Any cabbage ball scores in any of the farm's nets - the pitch ball, the
 	# pen ball and the field plot cabbages alike (they join the cabbage_ball
 	# group at build time), from the league pitch to the woodland branch goal.
@@ -1057,6 +1059,16 @@ func _on_cabbage_goal(body: Node3D, goal: Node3D) -> void:
 		if pv != null and pv.has_method("oink"):
 			pv.oink()
 	AchievementManager.unlock("cabbage_striker")
+	# Per-net medals + the grand slam: every net has its own achievement, and
+	# collecting all four pays the big one (state check, same pattern as the
+	# all_courses chase achievement).
+	if not goal_ach_id.is_empty():
+		AchievementManager.unlock(goal_ach_id)
+		var slam := true
+		for net_id in ["cabbage_goal_pitch", "cabbage_goal_pen", "cabbage_goal_creek", "cabbage_goal_woodland"]:
+			slam = slam and AchievementManager.is_unlocked(net_id)
+		if slam:
+			AchievementManager.unlock("cabbage_grand_slam")
 	playground_event.emit("cabbage_goal", "")
 
 func _sphere(parent: Node3D, node_name: String, radius: float, pos: Vector3, color: Color, solid: bool) -> Node3D:
