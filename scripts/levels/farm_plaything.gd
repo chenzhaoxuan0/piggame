@@ -137,16 +137,24 @@ func _react_cabbage(body: Node3D) -> void:
 		away = Vector3.BACK
 	away = away.normalized()
 	var ball := get_parent() # the cabbage body this plaything rides in
+	var harvested := false
 	if ball is RigidBody3D:
 		var rigid := ball as RigidBody3D
 		var radius := 0.4
 		var shape_node := rigid.get_node_or_null("CollisionShape3D")
 		if shape_node != null and shape_node.shape is SphereShape3D:
 			radius = shape_node.shape.radius
+		# A planted plot cabbage (frozen in its bed) harvests into a free ball
+		# on the same kick: unfreeze first, the impulse below does the rest.
+		# A frozen rigid body simply ignores impulses, so without this line the
+		# field cabbages could never leave their beds.
+		if rigid.freeze:
+			rigid.freeze = false
+			harvested = true
 		rigid.sleeping = false # a resting ball must still take the punt
 		var impulse := (away * CABBAGE_KICK_SPEED + Vector3.UP * CABBAGE_KICK_LIFT) * rigid.mass
 		rigid.apply_impulse(impulse, Vector3(0.0, -radius * 0.2, 0.0))
-	_gag("咚！（卷心菜被踢出去一大步）", 1.2)
+	_gag("咔嚓——卷心菜连根被踢飞！" if harvested else "咚！（卷心菜被踢出去一大步）", 1.2)
 
 func _react_haystack(body: Node3D) -> void:
 	# A real dive needs downward speed - walking in does not score.

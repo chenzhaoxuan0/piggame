@@ -93,6 +93,7 @@ func _ready() -> void:
 	_build_all_gates()
 	_build_road_obstacles()
 	_build_playground()
+	_build_cabbage_field()
 	_cabin=Node3D.new()
 	_cabin.name="CableCarCabin"
 	add_child(_cabin)
@@ -125,8 +126,10 @@ func _ready() -> void:
 	for point in L.journey():
 		_area("TrailCheckpoint", point + Vector3.UP * 1.5, Vector3(14, 6, 14), _on_checkpoint.bind(point))
 	# Trail signs stand clear of the roadside fences (the jump-log and cablecar
-	# signs used to skewer the summit/escape fence lines).
-	var signs := [[Vector3(2,32,89),"沿山路下行 → 牛的耕地"],[Vector3(-58.5,25,100),"空格 · 跳过倒木"],[Vector3(54,22,2),"溪桥缺口 · 空格跳跃"],[Vector3(72,24,23),"下坡 → 羊棚草甸"],[Vector3(-63,16,-59),"林间山路 → 马场"],[Vector3(-4,8,-134),"前方犬队巡逻 · 顺路突围"],[Vector3(-77.2,2,-236.6),"索道在林后 · 沿路转弯"]]
+	# signs used to skewer the summit/escape fence lines). The last two mark the
+	# rocky fence gaps into the ox terrace: the descent road and the terrace
+	# share ground there, so the broken fence section reads as a real shortcut.
+	var signs := [[Vector3(2,32,89),"沿山路下行 → 牛的耕地"],[Vector3(-58.5,25,100),"空格 · 跳过倒木"],[Vector3(54,22,2),"溪桥缺口 · 空格跳跃"],[Vector3(72,24,23),"下坡 → 羊棚草甸"],[Vector3(-63,16,-59),"林间山路 → 马场"],[Vector3(-4,8,-134),"前方犬队巡逻 · 顺路突围"],[Vector3(-77.2,2,-236.6),"索道在林后 · 沿路转弯"],[Vector3(7.5,24.1,60.5),"石堆缺了个口 · 踩石翻进牛耕地"],[Vector3(26.5,24.1,58.5),"栅栏的豁口 · 直通卷心菜联赛"]]
 	for sign_data in signs:
 		_box(self,"TrailSignPost",Vector3(.14,1.3,.14),sign_data[0]+Vector3.UP*.65,Color("665A48"))
 		_label(self,"TrailSign",sign_data[1],sign_data[0]+Vector3.UP*1.7,21)
@@ -142,7 +145,7 @@ func _install_environment() -> void:
 	var environment: Node3D
 	if not "--rebuild-environment" in OS.get_cmdline_user_args() and ResourceLoader.exists("res://assets/environments/pastoral_farm.scn"):
 		environment=load("res://assets/environments/pastoral_farm.scn").instantiate()
-		if environment.get_meta("layout_version",0)!=6:
+		if environment.get_meta("layout_version",0)!=7:
 			environment.free()
 			environment=null
 	if environment==null:
@@ -196,6 +199,10 @@ func _on_checkpoint(body: Node3D,point: Vector3) -> void:
 func _physics_process(delta: float) -> void:
 	if _cabbage_goal_cool > 0.0:
 		_cabbage_goal_cool = maxf(0.0, _cabbage_goal_cool - delta)
+	# The plot replant clock ticks even outside explore/chase, so the beds
+	# restock while menus or cutscenes hold the pig.
+	_plot_clock += delta
+	_replant_plot_cabbages(_plot_clock)
 	if not is_instance_valid(_player): _player=get_tree().get_first_node_in_group("player")
 	if not is_instance_valid(_player) or not _player.control_mode in ["explore","chase"]: return
 	var closest := L.closest_on_path(_player.global_position, L.journey())
@@ -481,6 +488,11 @@ const PLAYPOTATO_TARGET := 5
 const BALL_FENCE_LAYER := 8
 var _play_counts := {"tippable": 0, "grass": 0, "potato": 0}
 var _cabbage_goal_cool := 0.0
+# The goal-side cabbage field: planted plot cabbages (frozen) and their
+# replant clock - a kicked cabbage returns to its bed after PLOT_REPLANT_WAIT.
+var _plot_cabbages: Array[RigidBody3D] = []
+var _plot_clock := 0.0
+const PLOT_REPLANT_WAIT := 20.0
 
 func _plaything(kind: int, sense: Vector3, cool: float,
 		charge_only := false, gags: Array[String] = []):
@@ -671,6 +683,9 @@ func _build_playground() -> void:
 		cabbage.position = Vector3(0, -0.4, 0) # model pivot is bottom-centre, ball origin is centre
 		ball.add_child(cabbage)
 	ball.add_child(_plaything(PLAYTHING.Kind.CABBAGE, Vector3(2.4, 2.0, 2.4), 0.45))
+	# The goal mouth accepts any cabbage ball (this one and the field plot
+	# cabbages alike) - group membership, not a single magic name.
+	ball.add_to_group("cabbage_ball")
 	var goal := Node3D.new()
 	goal.name = "CabbageGoal"
 	goal.position = Vector3(46, 24, 24.6)
@@ -806,6 +821,59 @@ func _build_playground() -> void:
 	_label(tree, "AppleTreeLabel", "冲刺撞树 · 摇苹果！", Vector3(0, 4.3, 0), 18) # above the canopy sphere
 	tree.add_child(_plaything(PLAYTHING.Kind.APPLE_TREE, Vector3(2.8, 3.4, 2.8), 1.0, true))
 
+func _build_cabbage_field() -> void:
+	# The vegetable beds right of the pitch goal (baked dressing rows at
+	# x 55..61, z 23..29) grow real cabbages now. State 1 is planted - a frozen
+	# rigid body standing in the soil; state 2 kicks off into a free cabbage
+	# ball, the same light football as the pitch ball, punt-able into the goal.
+	# The replant clock walks kicked cabbages back to their plot after a while
+	# (_replant_plot_cabbages), so the field never runs bare.
+	for row in 3:
+		var x := 55.0 + row * 3.0
+		for slot in 4:
+			var pos := Vector3(x + (0.15 if slot % 2 == 1 else -0.15), 24.45, 23.4 + slot * 1.6)
+			var body := _sphere(self, "PlotCabbage_%d" % (row * 4 + slot), 0.4, pos, Color("7DB874"), true)
+			# Plot balls ignore the pitch's ball-only fences (layer 8): their
+			# home is outside the east board and their way to the goal runs
+			# straight through where that board hangs. The pitch ball keeps
+			# its containment - only the field cabbages roam.
+			body.collision_mask = 1
+			var lux := ASSETS.make("PROP_08_CABBAGE")
+			if lux != null:
+				var mesh := body.get_node_or_null("VisualMesh")
+				if mesh != null:
+					mesh.visible = false
+				lux.name = "CabbageLux"
+				lux.position = Vector3(0, -0.4, 0) # model pivot is bottom-centre, ball origin is centre
+				body.add_child(lux)
+			body.add_child(_plaything(PLAYTHING.Kind.CABBAGE, Vector3(2.2, 1.9, 2.2), 0.45))
+			body.freeze = true # state 1: growing in the bed until a hoof frees it
+			body.add_to_group("cabbage_ball")
+			_plot_cabbages.append(body)
+
+func _replant_plot_cabbages(now: float) -> void:
+	# Field restock: a cabbage that has been free for PLOT_REPLANT_WAIT walks
+	# itself back into its plot (same snap-home path as the meteor reset), so
+	# the beds stay stocked however far the ball wandered - goal net included.
+	# The clock arms on the frozen->free transition (the kick), never at
+	# planting, or a long-planted cabbage would replant seconds after its kick.
+	for body in _plot_cabbages:
+		if not is_instance_valid(body):
+			continue
+		if body.freeze:
+			if not body.get_meta("plot_was_frozen", false):
+				body.set_meta("plot_was_frozen", true)
+			continue
+		if body.get_meta("plot_was_frozen", true):
+			body.set_meta("plot_was_frozen", false)
+			body.set_meta("plot_freed_at", now)
+		if now - float(body.get_meta("plot_freed_at", now)) < PLOT_REPLANT_WAIT:
+			continue
+		var thing := body.get_node_or_null("Plaything")
+		if thing != null and thing.has_method("reset_prop"):
+			thing.reset_prop()
+		body.freeze = true
+
 func _tipple(node_name: String, pos: Vector3, size: Vector3, color: Color) -> void:
 	var body := _box(self, node_name, size, pos, color, true)
 	body.add_child(_plaything(PLAYTHING.Kind.TIPPABLE, Vector3(2.6, 2.4, 2.6), 1.0, true))
@@ -850,7 +918,9 @@ func _on_plaything_played(kind: String, _detail) -> void:
 		playground_event.emit(kind, _detail)
 
 func _on_cabbage_goal(body: Node3D) -> void:
-	if body.name != "CabbageBall":
+	# Any cabbage ball scores - the pitch ball and the field plot cabbages
+	# alike (they join the cabbage_ball group at build time).
+	if not body.is_in_group("cabbage_ball"):
 		return
 	if _cabbage_goal_cool > 0.0:
 		return

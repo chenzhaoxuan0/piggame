@@ -7,16 +7,28 @@ const DRESSING = preload("res://scripts/art/farm_dressing.gd")
 var _dressing = preload("res://scripts/art/dressing_batches.gd").new()
 var _origin := Vector3.ZERO
 
+## Rocky gaps where the descent road's fence opens into the ox terrace: the pig
+## hops the stepping stone and cuts into the field past the rails, no ox-gate
+## key needed. The old double fence line (roadside rail + pasture boundary)
+## read as invisible walls here - near both spots the road strip and the
+## terrace floor are already seamless, so the fences fenced nothing.
+## Centres sit on the fence seam; radius is the gap half-width along it.
+const CROSSINGS := [
+	{"center": Vector3(10.2, 24.05, 57.0), "radius": 5.5},
+	{"center": Vector3(22.9, 24.05, 56.0), "radius": 5.0},
+]
+
 func build(farm: Node3D) -> void:
 	_farm = farm
 	_rng.seed = 4701
 	name = "PastoralEnvironment"
-	set_meta("layout_version", 6)
+	set_meta("layout_version", 7)
 	_material = ShaderMaterial.new()
 	_material.shader = preload("res://scripts/art/pastoral_surface.gdshader")
 	_mountainside()
 	for terrace in L.TERRACES: _terrace(terrace)
 	for id in L.ROUTES: _road(id)
+	_build_crossings()
 	_origin = Vector3(0,32,7)
 	_pigpen()
 	_origin = Vector3(50,24,-14)
@@ -140,6 +152,11 @@ func _terrace(data: Dictionary) -> void:
 				for id in L.ROUTES:
 					for endpoint in [L.path(id).front(),L.path(id).back()]:
 						if first.distance_to(endpoint)<7 or last.distance_to(endpoint)<7: connection=true
+				# Rocky crossings also keep the pasture boundary open: the fence
+				# must not re-block the gap the road-side rail just opened.
+				for crossing in CROSSINGS:
+					var cz: Vector3 = crossing.center
+					if first.distance_to(cz)<crossing.radius or last.distance_to(cz)<crossing.radius: connection=true
 				if not connection: _edge_wall(first,last)
 	# Meadow details stay outside the route entrances and building footprints.
 	for i in 32:
@@ -171,6 +188,56 @@ func _edge_wall(a: Vector3,b: Vector3,hedge: bool=false) -> void:
 	# Convex sloping barriers match the visible posts/hedges on descending roads.
 	var side := (b-a).normalized().cross(Vector3.UP).normalized()*.15
 	_convex("RoadHedge" if hedge else "RoadRail",[a-side+Vector3.UP*h,a+side+Vector3.UP*h,b+side+Vector3.UP*h,b-side+Vector3.UP*h],h)
+
+## Road-edge wall with the rocky crossings cut out: the span inside a
+## CROSSINGS zone is skipped entirely (visible fence AND rail convex - the
+## convex alone was the invisible wall the user could not see past), the rest
+## still builds as ordinary _edge_wall runs.
+func _edge_wall_with_gaps(a: Vector3, b: Vector3, hedge: bool = false) -> void:
+	var gaps: Array[Vector2] = [] # skipped t-intervals on [a,b]
+	var steps := 48
+	var step := 1.0 / steps
+	for crossing in CROSSINGS:
+		var c: Vector3 = crossing.center
+		var radius: float = crossing.radius
+		var t_lo := -1.0
+		var t_hi := -1.0
+		for s in steps + 1:
+			var q := a.lerp(b, float(s) / steps)
+			if Vector2(q.x, q.z).distance_to(Vector2(c.x, c.z)) < radius:
+				if t_lo < 0.0: t_lo = float(s) / steps
+				t_hi = float(s) / steps
+		if t_lo < 0.0: continue
+		gaps.append(Vector2(maxf(0.0, t_lo - step), minf(1.0, t_hi + step)))
+	if gaps.is_empty():
+		_edge_wall(a, b, hedge)
+		return
+	gaps.sort()
+	var cursor := 0.0
+	for gap in gaps:
+		if gap.x > cursor:
+			_edge_wall(a.lerp(b, cursor), a.lerp(b, gap.x), hedge)
+		cursor = maxf(cursor, gap.y)
+	if cursor < 1.0:
+		_edge_wall(a.lerp(b, cursor), b, hedge)
+
+func _build_crossings() -> void:
+	# One climbable rock per crossing: the stone is the shortcut's read (a
+	# broken fence section you hop through) and its slab is the pig's step.
+	# ENV_09_ROCK is 1.4 m tall natively; kept near full height but sunk 0.45 m
+	# it exposes a mossy ~0.67 m top - mountable by the pig's 0.93 m jump and
+	# still reads as a boulder, not a road patch. The dressing art alone has no
+	# collider, so a flat convex slab backs the hop.
+	_district = "CrossingStones"
+	for crossing in CROSSINGS:
+		var q: Vector3 = crossing.center
+		_dressing.place("ENV_09_ROCK", q + Vector3(0, -0.45, 0), Vector3(1.4, 0.8, 1.3), 1.7)
+		var half := Vector2(0.7, 0.55)
+		var top: Array[Vector3] = [
+			q + Vector3(-half.x, 0.65, -half.y), q + Vector3(half.x, 0.65, -half.y),
+			q + Vector3(half.x, 0.65, half.y), q + Vector3(-half.x, 0.65, half.y),
+		]
+		_convex("SteppingStone", top, 1.0)
 
 func _road(id: String) -> void:
 	var points: Array[Vector3] = L.path(id)
@@ -222,8 +289,9 @@ func _road(id: String) -> void:
 				_quad(edge[0],edge[1],edge[1]-Vector3.UP*12,edge[0]-Vector3.UP*12,ROCK,(edge[0]-start).normalized())
 		_district = "RouteEdges_"+id
 		# Open at terrace connections; rail endpoints meet without blocking the lane.
-		_edge_wall(left[i],left[i+1],id=="chase")
-		_edge_wall(right[i],right[i+1],id=="chase")
+		# Rocky crossings cut their gap out of whichever edge passes the seam.
+		_edge_wall_with_gaps(left[i],left[i+1],id=="chase")
+		_edge_wall_with_gaps(right[i],right[i+1],id=="chase")
 		var middle := (points[i]+points[i+1])*.5
 		var outward := (right[i]-left[i]).normalized()
 		if id!="chase":

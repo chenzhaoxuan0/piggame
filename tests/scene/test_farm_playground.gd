@@ -53,6 +53,43 @@ func _run() -> void:
 	await create_timer(0.3).timeout
 	_check(am.is_unlocked("cabbage_striker"), "Ball in the net unlocks 卷心菜前锋")
 
+	# --- The cabbage field: the goal-side beds grow planted cabbages that
+	# harvest into free balls on the kick, score in the same net, and replant
+	# themselves so the field never runs bare.
+	var plots: Array = farm.find_children("PlotCabbage*", "", true, false)
+	_check(plots.size() == 12, "Twelve plot cabbages grow beside the goal")
+	var all_planted := true
+	for plot in plots:
+		if not (plot is RigidBody3D and plot.freeze and plot.global_position.x > 52.0):
+			all_planted = false
+	_check(all_planted, "Planted cabbages are frozen rigid bodies in the beds east of the pitch")
+	_check(plots[0].collision_mask == 1, "Plot cabbages ignore the ball-only fences (their road to the goal crosses the east board)")
+	var plot: RigidBody3D = plots[0]
+	var plot_home: Vector3 = plot.global_position
+	pig.global_position = plot_home + Vector3(0, 0.6, 0.8)
+	pig.velocity = Vector3.ZERO
+	await physics_frame
+	await physics_frame
+	await create_timer(0.5).timeout
+	_check(not plot.freeze and plot.global_position.distance_to(plot_home) > 0.4,
+		"Kicking a planted cabbage harvests it into a free ball")
+	var goal_events: Array = [] # lambdas capture locals by value; a reference type carries the signal out
+	farm.playground_event.connect(func(kind: String, _detail):
+		if kind == "cabbage_goal":
+			goal_events.append(kind)
+	)
+	farm._cabbage_goal_cool = 0.0 # the pitch ball scored moments ago; clear the 5s goal cooldown
+	plot.global_position = farm.get_node("CabbageGoal").global_position + Vector3(0, 0.8, 0)
+	plot.linear_velocity = Vector3.ZERO
+	await physics_frame
+	await physics_frame
+	await create_timer(0.3).timeout
+	_check(goal_events.size() > 0, "A harvested field cabbage scores in the same goal")
+	farm._replant_plot_cabbages(999.0)
+	await physics_frame
+	_check(plot.freeze and plot.global_position.distance_to(plot_home) < 0.1,
+		"The replant clock walks the cabbage back into its bed")
+
 	# --- Log shove: a sprinting pig opens the second path
 	_check(not am.is_unlocked("second_path"), "Second-path achievement locked before the shove")
 	var log: Node3D = farm.get_node("Log_Summit_1")
