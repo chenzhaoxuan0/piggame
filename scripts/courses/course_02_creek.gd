@@ -13,6 +13,7 @@ const VOXEL_OBSIDIAN_WALL = preload("res://scripts/courses/components/voxel_obsi
 const PATROL_GUARD_DOG = preload("res://scripts/courses/components/patrol_guard_dog.gd")
 const SWEET_POTATO = preload("res://scripts/courses/components/sweet_potato_pickup.gd")
 const ZONE_ENVIRONMENT = preload("res://scripts/courses/components/zone_environment.gd")
+const HORIZON = preload("res://scripts/courses/components/horizon_backdrop.gd")
 
 const SPAWN := Vector3(0, 0.6, 12)
 # Potato speed boost: course-owned and course-scoped. A wall-clock timer on the
@@ -91,6 +92,8 @@ func _ready() -> void:
 	_build_nether_portal_exit()
 	_build_decorations()
 	_build_markers()
+	# 远景围幕：体素山脊环 + 岛底暗盘，浮空岛链之外不再是空背景。
+	HORIZON.apply(self, "voxel", Vector3(0, 0, -36), 78.0)
 
 	meme_layer = MEME_SCRIPT.new()
 	meme_layer.name = "MemeLayer"

@@ -13,6 +13,8 @@ const VOXEL_PUSH_BLOCK = preload("res://scripts/courses/components/voxel_push_bl
 const VOXEL_STREAM = preload("res://scripts/courses/components/voxel_water_stream.gd")
 const VOXEL_PLATE = preload("res://scripts/courses/components/voxel_pressure_plate.gd")
 const VOXEL_OBSIDIAN = preload("res://scripts/courses/components/voxel_obsidian_wall.gd")
+const HORIZON = preload("res://scripts/courses/components/horizon_backdrop.gd")
+const ZONE_ENV_SCRIPT = preload("res://scripts/courses/components/zone_environment.gd")
 const CARDBOARD_BOX = preload("res://scripts/courses/components/cardboard_box_prop.gd")
 const ILLUSORY_WALL = preload("res://scripts/courses/components/illusory_wall.gd")
 const MIMIC_CHEST = preload("res://scripts/courses/components/mimic_chest.gd")
@@ -243,6 +245,48 @@ func _run() -> void:
 	_check(rs_tnt3.global_position.distance_to(Vector3(0, 0, -60)) < 0.05,
 		"reset_home snaps a displaced TNT back onto its pad")
 	rs_host.queue_free()
+
+	# HorizonBackdrop: the floating-island horizon closure - a silhouette ring
+	# plus an under-disc, all visual-only (no collision may enter the world).
+	var hb_host := Node3D.new()
+	root.add_child(hb_host)
+	HORIZON.apply(hb_host, "neon", Vector3.ZERO, 100.0)
+	await process_frame
+	var hb_node: Node = hb_host.get_node("HorizonBackdrop")
+	_check(hb_node.find_children("*", "MeshInstance3D", true, false).size() >= 20,
+		"HorizonBackdrop plants a full silhouette ring")
+	_check(hb_node.find_children("*", "CollisionObject3D", true, false).is_empty(),
+		"HorizonBackdrop stays visual-only (no collision bodies)")
+	_check(hb_node.get_node("BackdropRing/UnderDisc") != null,
+		"HorizonBackdrop closes the under-void with a dark disc")
+	hb_host.queue_free()
+
+	# ZoneEnvironment sky presets: the three open zones get a real sky
+	# gradient; the enclosed plant keeps its flat hangar color.
+	var ze = ZONE_ENV_SCRIPT.new()
+	for preset_id in ["voxel_creek", "fairy_woodland", "neon_courtyard"]:
+		var env: Environment = ze._make_environment(ZONE_ENV_SCRIPT.PRESETS[preset_id])
+		_check(env.background_mode == Environment.BG_SKY and env.sky != null,
+			"%s gets a sky gradient (BG_SKY)" % preset_id)
+	var plant_env: Environment = ze._make_environment(ZONE_ENV_SCRIPT.PRESETS["nightmare_plant"])
+	_check(plant_env.background_mode == Environment.BG_COLOR,
+		"The enclosed plant keeps its flat hangar background")
+	ze.free()
+
+	# The three open hidden courses dress their horizon on boot.
+	for entry in [
+		["res://scripts/courses/course_02_creek.gd", "voxel"],
+		["res://scripts/courses/course_03_woodland.gd", "silhouette"],
+		["res://scripts/courses/course_04_courtyard.gd", "neon"],
+	]:
+		var course = load(entry[0]).new()
+		root.add_child(course)
+		await process_frame
+		var hbs: Array = course.find_children("HorizonBackdrop*", "", true, false)
+		_check(hbs.size() == 1 and hbs[0].style == entry[1],
+			"%s boots with its %s horizon backdrop" % [entry[0].get_file(), entry[1]])
+		course.queue_free()
+		await process_frame
 
 	# VoxelWaterStream
 	var stream = VOXEL_STREAM.new()

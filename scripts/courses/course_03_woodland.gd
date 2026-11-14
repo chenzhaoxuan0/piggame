@@ -13,6 +13,7 @@ const MIMIC_CHEST = preload("res://scripts/courses/components/mimic_chest.gd")
 const BOUNCY_MUSHROOM = preload("res://scripts/courses/components/bouncy_mushroom.gd")
 const PATROL_GUARD_DOG = preload("res://scripts/courses/components/patrol_guard_dog.gd")
 const ZONE_ENVIRONMENT = preload("res://scripts/courses/components/zone_environment.gd")
+const HORIZON = preload("res://scripts/courses/components/horizon_backdrop.gd")
 const PLUNGER_LAUNCHER = preload("res://scripts/courses/components/plunger_launcher.gd")
 const PLUNGER_PROP = preload("res://scripts/courses/components/plunger_prop.gd")
 
@@ -89,6 +90,9 @@ func _ready() -> void:
 	_build_exit()
 	_build_markers()
 	_build_plunger_armory()
+	# 远景围幕：近黑针叶林剪影环沉进林间浓雾，平台尽头不再是空背景。
+	# 半径压到 56 m：0.045 的浓雾在 80 m 只剩 3% 透射，树影会彻底糊成一堵墙。
+	HORIZON.apply(self, "silhouette", Vector3(0, 0, -39), 56.0)
 
 	meme_layer = MEME_SCRIPT.new()
 	meme_layer.name = "MemeLayer"

@@ -17,22 +17,26 @@ const SHOTS := [
 			{"pos": Vector3(0, 4, 14), "look": Vector3(0, 0, 0)},      # start bank + creek
 			{"pos": Vector3(0, 7, -28), "look": Vector3(0, 0, -44)},   # canyon + walls
 			{"pos": Vector3(0, 5, -72), "look": Vector3(0, 2, -82)},   # nether portal
+			{"pos": Vector3(0, 3, -20), "look": Vector3(0, 7, -110)},  # horizon: island chain + ridge ring
 		]},
 	{"scene": "res://scenes/courses/course_03_woodland.tscn", "tag": "C3",
 		"cams": [
 			{"pos": Vector3(0, 4, 12), "look": Vector3(0, 0, -2)},     # meadow + trees
 			{"pos": Vector3(0, 5, -30), "look": Vector3(0, 1, -44)},   # gold plaza + chests
 			{"pos": Vector3(0, 5, -55), "look": Vector3(0, 1, -70)},   # maze + hollow tree
+			{"pos": Vector3(0, 3, -20), "look": Vector3(0, 7, -110)},  # horizon: mist + treeline ring
 		]},
 	{"scene": "res://scenes/courses/course_04_courtyard.tscn", "tag": "C4",
 		"cams": [
 			{"pos": Vector3(0, 4, 14), "look": Vector3(0, 0, -4)},     # start grid + gantry
 			{"pos": Vector3(14, 6, -40), "look": Vector3(4, 0, -52)},  # east lane + gravel
 			{"pos": Vector3(0, 5, -148), "look": Vector3(0, 1, -156)}, # ramp + finish gate
+			{"pos": Vector3(0, 3, 10), "look": Vector3(0, 9, -185)},   # horizon: dusk skyline down the S
 		]},
 ]
 
 const OUT_DIR := "res://builds/zone_screens"
+const ZONE_ENV_SCRIPT = preload("res://scripts/courses/components/zone_environment.gd")
 
 func _init() -> void:
 	var out_abs := ProjectSettings.globalize_path(OUT_DIR)
@@ -44,18 +48,33 @@ func _init() -> void:
 			continue
 		var course: Node3D = packed.instantiate()
 		root.add_child(course)
+		# Use the zone's REAL atmosphere when it has one: the standalone boot
+		# has no office root for ZoneEnvironment to swap, so build the
+		# environment straight from the preset. QA shots must show the sky
+		# (gradient + fog) the player actually sees, plus the horizon ring.
 		var world_env := WorldEnvironment.new()
 		var env := Environment.new()
-		env.background_mode = Environment.BG_COLOR
-		env.background_color = Color(0.5, 0.55, 0.6)
-		env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-		env.ambient_light_color = Color(0.9, 0.92, 1.0)
-		env.ambient_light_energy = 0.9
+		var sun_energy := 0.8
+		var sun_color := Color(1.0, 0.98, 0.9)
+		var zone_node: Node = course.get_node_or_null("ZoneEnvironment")
+		if zone_node != null and zone_node.get("preset") != null \
+				and ZONE_ENV_SCRIPT.PRESETS.has(zone_node.preset):
+			var preset: Dictionary = ZONE_ENV_SCRIPT.PRESETS[zone_node.preset]
+			env = zone_node._make_environment(preset)
+			sun_energy = preset["sun_energy"]
+			sun_color = preset["sun_color"]
+		else:
+			env.background_mode = Environment.BG_COLOR
+			env.background_color = Color(0.5, 0.55, 0.6)
+			env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+			env.ambient_light_color = Color(0.9, 0.92, 1.0)
+			env.ambient_light_energy = 0.9
 		world_env.environment = env
 		root.add_child(world_env)
 		var sun := DirectionalLight3D.new()
 		sun.rotation_degrees = Vector3(-50, -35, 0)
-		sun.light_energy = 0.8
+		sun.light_energy = sun_energy
+		sun.light_color = sun_color
 		root.add_child(sun)
 		await process_frame
 		await process_frame

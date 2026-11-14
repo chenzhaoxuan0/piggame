@@ -22,6 +22,7 @@ const SPINNING_SWEEPER = preload("res://scripts/courses/components/spinning_swee
 const RACE_TIMER = preload("res://scripts/courses/components/race_timer.gd")
 const MUD_PATCH = preload("res://scripts/courses/components/mud_patch.gd")
 const ZONE_ENVIRONMENT = preload("res://scripts/courses/components/zone_environment.gd")
+const HORIZON = preload("res://scripts/courses/components/horizon_backdrop.gd")
 
 const SPAWN := Vector3(0, 0.6, 12)
 const RECORD_TIME := 35.0 # The farm's standing record (the horse's 35 s): beating it is the course's goal
@@ -113,6 +114,9 @@ func _ready() -> void:
 	_build_finish_gate()
 	_build_decorations()
 	_build_markers()
+	# 远景围幕：霓虹都市天际线环 + 赛道底暗盘——糖豆人综艺的“摄影棚外景”，
+	# 双 S 赛道尽头不再是空白地平线。
+	HORIZON.apply(self, "neon", Vector3(0, 0, -77), 105.0)
 
 	meme_layer = MEME_SCRIPT.new()
 	meme_layer.name = "MemeLayer"

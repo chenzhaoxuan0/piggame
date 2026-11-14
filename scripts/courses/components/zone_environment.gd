@@ -11,26 +11,38 @@ extends Node
 
 const PRESETS := {
 	# Minecraft voxel creek: bright saturated day with a hint of water haze.
+	# Sky: a strong pixel-blue gradient so the horizon above the ridges reads
+	# as a real sky, not a flat backdrop.
 	"voxel_creek": {
 		"bg_color": Color("7EC0EE"),
+		"sky": {"top": Color("2E86D6"), "horizon": Color("C9EEFF"), "ground": Color("7FB4C9")},
 		"ambient_color": Color("E8F7FF"), "ambient_energy": 0.95,
-		"fog_density": 0.006, "fog_color": Color("CFEFFF"),
+		"fog_density": 0.006, "fog_color": Color("CFEFFF"), "fog_sky_affect": 0.2,
 		"sun_energy": 0.7, "sun_color": Color("FFF4D6"),
 		"glow": false,
 	},
 	# Fairytale woodland: cool mist at ~20-25 m visibility, dim warm sun.
+	# Sky: a pale cool gradient that the heavy fog washes out at the horizon -
+	# above the treeline it still reads as sky.
 	"fairy_woodland": {
 		"bg_color": Color("8FA3BF"),
+		"sky": {"top": Color("8FA3BF"), "horizon": Color("C6D2E4"), "ground": Color("7A8AA0")},
 		"ambient_color": Color("B8C4DC"), "ambient_energy": 0.55,
-		"fog_density": 0.045, "fog_color": Color("A9BDD6"),
+		# fog_sky_affect keeps the heavy mist ON the geometry while the sky
+		# above the treeline keeps its pale gradient (default 1.0 washes the
+		# whole sky into the fog color and the horizon reads as a flat wall).
+		"fog_density": 0.045, "fog_color": Color("A9BDD6"), "fog_sky_affect": 0.15,
 		"sun_energy": 0.3, "sun_color": Color("E8E4D0"),
 		"glow": false,
 	},
 	# Neon variety-show courtyard: dusk navy sky, glow bloom for the neon set.
+	# Sky: deep navy fading up to near-black with a dusk band at the horizon;
+	# fog bumped 0.015 -> 0.028 so the far skyline melts into the set lights.
 	"neon_courtyard": {
 		"bg_color": Color("0B1226"),
+		"sky": {"top": Color("060B1C"), "horizon": Color("3E5387"), "ground": Color("0A1020")},
 		"ambient_color": Color("44507E"), "ambient_energy": 0.6,
-		"fog_density": 0.015, "fog_color": Color("141E42"),
+		"fog_density": 0.02, "fog_color": Color("141E42"), "fog_sky_affect": 0.45,
 		"sun_energy": 0.12, "sun_color": Color("6F86C9"),
 		"glow": true,
 	},
@@ -38,6 +50,8 @@ const PRESETS := {
 	# hell - cool grey hangar light, thin industrial haze, white fluorescent
 	# sun. The unease comes from the machinery, not from darkness. Gameplay-line
 	# provisional look; the art line owns the final zone style (AGENTS.md S5).
+	# No sky: the plant halls are fully enclosed, the flat color is the hangar
+	# atmosphere.
 	"nightmare_plant": {
 		"bg_color": Color("454C55"),
 		"ambient_color": Color("ACB4BE"), "ambient_energy": 0.85,
@@ -82,8 +96,23 @@ func _exit_tree() -> void:
 
 func _make_environment(data: Dictionary) -> Environment:
 	var env := Environment.new()
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = data["bg_color"]
+	if data.has("sky"):
+		# A real sky gradient (ProceduralSky) instead of a flat background
+		# color: the floating course islands get a horizon band to sit
+		# against. Enclosed zones (the plant) simply omit "sky".
+		var sky_data: Dictionary = data["sky"]
+		var sky_mat := ProceduralSkyMaterial.new()
+		sky_mat.sky_top_color = sky_data["top"]
+		sky_mat.sky_horizon_color = sky_data["horizon"]
+		sky_mat.ground_bottom_color = sky_data["ground"]
+		sky_mat.ground_horizon_color = sky_data["horizon"]
+		var sky := Sky.new()
+		sky.sky_material = sky_mat
+		env.background_mode = Environment.BG_SKY
+		env.sky = sky
+	else:
+		env.background_mode = Environment.BG_COLOR
+		env.background_color = data["bg_color"]
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = data["ambient_color"]
 	env.ambient_light_energy = data["ambient_energy"]
@@ -91,6 +120,9 @@ func _make_environment(data: Dictionary) -> Environment:
 	env.fog_mode = Environment.FOG_MODE_EXPONENTIAL
 	env.fog_density = data["fog_density"]
 	env.fog_light_color = data["fog_color"]
+	if data.has("fog_sky_affect"):
+		# Below 1.0 keeps the sky gradient readable through the zone mist.
+		env.fog_sky_affect = data["fog_sky_affect"]
 	if data.get("glow", false):
 		env.glow_enabled = true
 		env.glow_intensity = 0.6
