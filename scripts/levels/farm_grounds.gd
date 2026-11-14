@@ -996,9 +996,10 @@ func _build_cabbage_goal(node_name: String, pos: Vector3, title: String, yaw_deg
 	_box(goal, "PostL", Vector3(0.22, goal_post_h, 0.22), Vector3(-1.7, goal_post_h / 2, 0), Color("5A442E"), true)
 	_box(goal, "PostR", Vector3(0.22, goal_post_h, 0.22), Vector3(1.7, goal_post_h / 2, 0), Color("5A442E"), true)
 	_box(goal, "CrossBar", Vector3(3.6, 0.22, 0.22), Vector3(0, goal_post_h, 0), Color("5A442E"), true)
-	# Net back is solid: the rigid ball rebounds off the net instead of
-	# rolling through the visual and vanishing behind the goal.
-	_box(goal, "NetBack", Vector3(3.3, goal_post_h * 0.8, 0.06), Vector3(0, goal_post_h * 0.4, -1.45), Color("E8E2CE"), true)
+	# No back panel: the old cream-white NetBack slab read as a whiteboard
+	# behind the mouth (playtest feedback). The Lux frame is the whole goal -
+	# a scored ball rolls straight through, which the pitch's ball fences and
+	# the free-roaming plot cabbages both take in stride.
 	if goal_frame != null:
 		goal_frame.name = "GoalFrameLux"
 		goal_frame.scale = Vector3.ONE * (3.4 / 2.406)
