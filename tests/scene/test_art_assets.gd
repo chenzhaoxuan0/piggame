@@ -15,7 +15,7 @@ func _check(ok: bool, text: String) -> void:
 		failures += 1
 		push_error(text)
 
-func _scan(node: Node) -> void:
+func _scan(node: Node, style: String) -> void:
 	_check(not node is CollisionObject3D and not node is CollisionShape3D, "import must not replace gameplay collision")
 	_check(not node is Camera3D and not node is Light3D, "import must not change level lighting or camera")
 	if node is MeshInstance3D:
@@ -24,14 +24,22 @@ func _scan(node: Node) -> void:
 		for surface in mesh.get_surface_count():
 			var arrays := mesh.surface_get_arrays(surface)
 			triangles += arrays[Mesh.ARRAY_INDEX].size() / 3 if arrays[Mesh.ARRAY_INDEX] != null else arrays[Mesh.ARRAY_VERTEX].size() / 3
-			var material := node.get_active_material(surface) as ShaderMaterial
-			_check(material != null, "surface has authored material")
-			if material == null: continue
-			_check(material.shader.resource_path == "res://scripts/art/pastoral_surface.gdshader", "actors and scenery share pastoral lighting")
-			_check(material.get_shader_parameter("vertex_palette") == false, "model retains authored pigment")
-			var pigment: Color = material.get_shader_parameter("pigment")
+			var material: Material = node.get_active_material(surface)
+			if style == "pbr":
+				# 分区画风制（AGENTS.md §5 / asset_library "pbr"）：序章噩梦工厂
+				# 走照相写实，保留 GLB 自带的 PBR 材质，不套田园卡通 shader。
+				# 契约从「全部田园」改为「按目录 style 各归各位」。
+				_check(material != null and material is StandardMaterial3D,
+					"pbr surface keeps its authored StandardMaterial3D (no flat-paint wash)")
+				continue
+			var shader_material := material as ShaderMaterial
+			_check(shader_material != null, "surface has authored material")
+			if shader_material == null: continue
+			_check(shader_material.shader.resource_path == "res://scripts/art/pastoral_surface.gdshader", "actors and scenery share pastoral lighting")
+			_check(shader_material.get_shader_parameter("vertex_palette") == false, "model retains authored pigment")
+			var pigment: Color = shader_material.get_shader_parameter("pigment")
 			_check(pigment.a == 1.0 and pigment.r >= 0 and pigment.r <= 1, "opaque bounded pigment without texture noise")
-	for child in node.get_children(): _scan(child)
+	for child in node.get_children(): _scan(child, style)
 
 func _run() -> void:
 	var catalog: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/models/aholo/runtime_catalog.json"))
@@ -54,7 +62,7 @@ func _run() -> void:
 		_check(visual != null, "accepted model loads: " + id)
 		if visual == null: continue
 		var before := triangles
-		_scan(visual)
+		_scan(visual, str(catalog.assets[id].get("style", "flat")))
 		var budget:=90000 if id.begins_with("CHAR_") else (7000 if id=="ENV_09_WOOL" else 6000)
 		_check(triangles - before <= budget, "model fits triangle budget: " + id)
 		if id.begins_with("CHAR_"):
