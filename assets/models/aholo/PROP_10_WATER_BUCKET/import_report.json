@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_10_WATER_BUCKET",
+  "raw_triangles": 8504,
+  "triangles": 1200,
+  "size_blender_xyz": [
+    0.3704722225666046,
+    0.3699130415916443,
+    0.5
+  ],
+  "file_bytes": 95500,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_10_WATER_BUCKET/PROP_10_WATER_BUCKET_game.glb"
+}

@@ -263,6 +263,25 @@ func _run() -> void:
 	_check(is_equal_approx(pen_hay.scale.y, 1.0), "The squashed stack springs back")
 	_check(pig.global_position.y > pen_hay.global_position.y + 0.3, "The pig ends up standing on top of the stack")
 
+	# --- White-box regression net: every playground prop wears its Lux3D model.
+	# The flat boxes stay as collision only; a prop that fell back to its box
+	# (missing asset) shows up here as a failure.
+	for mounted in [
+		["CabbageBall", "CabbageLux"], ["PenCabbageBall", "CabbageLux"],
+		["PenBucket", "BucketLux"], ["PenHaystack", "HaystackLux"],
+		["HayDiveStack", "HaystackLux"], ["MeteorButton", "ButtonLux"],
+		["Barrel_Zigzag", "BarrelLux"], ["Wheelbarrow_Meadow", "WheelbarrowLux"],
+		["WoolBale_Meadow", "WoolBaleLux"], ["Barrel_Track", "BarrelLux"],
+		["Beehive", "BeehiveLux"], ["MailboxPost", "MailboxLux"],
+		["BroadcastHorn", "HornLux"], ["HenNest", "HenNestLux"],
+		["AppleTree", "AppleTreeLux"], ["Scarecrow_Field", "ScarecrowLux"],
+		["TrailSignPost", "TrailSignLux"], ["PotatoMound0", "MoundLux"],
+		["Hurdle_Creek_Side", "HurdleLux"], ["CablecarLever", "LeverLux"],
+	]:
+		var lux: Node = farm.get_node(mounted[0]).get_node_or_null(mounted[1])
+		_check(lux != null and lux.visible and lux.get_meta("source", "") == "Aholo Lux3D",
+			"%s wears its Lux3D model (%s)" % [mounted[0], mounted[1]])
+
 	# --- Meteor button: repeatable; each press fully resets the pen
 	var pen_ball: RigidBody3D = farm.get_node("PenCabbageBall")
 	var pen_ball_home: Vector3 = pen_ball.global_position

@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_20_PATROL_HOUND",
+  "raw_triangles": 9174,
+  "triangles": 1800,
+  "size_blender_xyz": [
+    0.3789054751396179,
+    0.8902667164802551,
+    0.8999999165534973
+  ],
+  "file_bytes": 143192,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_20_PATROL_HOUND/PROP_20_PATROL_HOUND_game.glb"
+}

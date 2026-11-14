@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_19_FALLEN_LOG",
+  "raw_triangles": 9188,
+  "triangles": 1200,
+  "size_blender_xyz": [
+    1.1936413049697876,
+    0.6738753914833069,
+    0.550000011920929
+  ],
+  "file_bytes": 94788,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_19_FALLEN_LOG/PROP_19_FALLEN_LOG_game.glb"
+}

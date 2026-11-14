@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_C3_PLUNGER",
+  "raw_triangles": 9334,
+  "triangles": 899,
+  "size_blender_xyz": [
+    0.3632286787033081,
+    0.3631604015827179,
+    0.6999999284744263
+  ],
+  "file_bytes": 72148,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_C3_PLUNGER/PROP_C3_PLUNGER_game.glb"
+}

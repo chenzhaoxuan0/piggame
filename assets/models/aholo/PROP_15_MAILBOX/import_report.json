@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_15_MAILBOX",
+  "raw_triangles": 9012,
+  "triangles": 1200,
+  "size_blender_xyz": [
+    0.4343831241130829,
+    0.497463196516037,
+    1.100000023841858
+  ],
+  "file_bytes": 94684,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_15_MAILBOX/PROP_15_MAILBOX_game.glb"
+}

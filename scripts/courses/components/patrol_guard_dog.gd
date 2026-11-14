@@ -56,6 +56,16 @@ func _ready() -> void:
 	mat.roughness = 0.9
 	mesh.material_override = mat
 	add_child(mesh)
+	# Lux3D PROP_20_PATROL_HOUND replaces the red-cylinder stand-in everywhere
+	# (characters keep the goose look across zones - the same rule the pig and
+	# the chase dogs follow). The model is authored 0.9 m with a ground-origin
+	# base, so it drops straight onto this body's floor-level origin; the
+	# cylinder keeps the collision and body_color only serves the fallback.
+	var hound: Node3D = preload("res://scripts/art/asset_library.gd").make("PROP_20_PATROL_HOUND")
+	if hound != null:
+		mesh.visible = false
+		hound.name = "HoundLux"
+		add_child(hound)
 
 	var label := Label3D.new()
 	label.font = preload("res://scripts/ui/ui_kit.gd").font_bold()

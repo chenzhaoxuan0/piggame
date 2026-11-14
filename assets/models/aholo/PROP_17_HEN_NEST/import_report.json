@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_17_HEN_NEST",
+  "raw_triangles": 7570,
+  "triangles": 899,
+  "size_blender_xyz": [
+    1.758551001548767,
+    1.7470149993896484,
+    0.4999999701976776
+  ],
+  "file_bytes": 71312,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_17_HEN_NEST/PROP_17_HEN_NEST_game.glb"
+}

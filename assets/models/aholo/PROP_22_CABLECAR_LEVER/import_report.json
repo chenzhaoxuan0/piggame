@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_22_CABLECAR_LEVER",
+  "raw_triangles": 9042,
+  "triangles": 900,
+  "size_blender_xyz": [
+    0.4665849506855011,
+    0.3625513017177582,
+    0.8999999761581421
+  ],
+  "file_bytes": 72220,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_22_CABLECAR_LEVER/PROP_22_CABLECAR_LEVER_game.glb"
+}

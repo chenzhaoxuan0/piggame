@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_14_BEEHIVE",
+  "raw_triangles": 11620,
+  "triangles": 1500,
+  "size_blender_xyz": [
+    0.9032232761383057,
+    0.8089434504508972,
+    1.1999999284744263
+  ],
+  "file_bytes": 120668,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_14_BEEHIVE/PROP_14_BEEHIVE_game.glb"
+}

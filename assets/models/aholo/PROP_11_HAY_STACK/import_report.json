@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_11_HAY_STACK",
+  "raw_triangles": 9008,
+  "triangles": 1500,
+  "size_blender_xyz": [
+    1.1745009422302246,
+    1.1742312908172607,
+    1.100000023841858
+  ],
+  "file_bytes": 120580,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_11_HAY_STACK/PROP_11_HAY_STACK_game.glb"
+}

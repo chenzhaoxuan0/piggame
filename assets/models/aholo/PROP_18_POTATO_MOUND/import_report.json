@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_18_POTATO_MOUND",
+  "raw_triangles": 9206,
+  "triangles": 700,
+  "size_blender_xyz": [
+    0.5946261882781982,
+    0.5965414643287659,
+    0.3500000238418579
+  ],
+  "file_bytes": 56632,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_18_POTATO_MOUND/PROP_18_POTATO_MOUND_game.glb"
+}
