@@ -131,12 +131,31 @@ func _run() -> void:
 		return
 	_check(true, "Canyon throat passed after the burial")
 
-	# Phase 6: the TNT push chain onto the plate blows the obsidian wall
-	for i in 3:
+	# Phase 6: the redstone strip puzzle - watchdog, reset plate, then the
+	# real solve: six pushes walk the TNT down the powered wire to its far
+	# end (z = -62, inside the wall's 4.5 m blast range), and the pig steps
+	# on the pressure plate to fire the pulse.
+	office.player.global_position = Vector3(3.0, 0.6, -46.0) # clear of the TNT lane
+	office.player.velocity = Vector3.ZERO
+	course.tnt_block.global_position = Vector3(20, 0, -50) # shoved way off the wire
+	await create_timer(0.1).timeout
+	_check(course.tnt_block.global_position.distance_to(Vector3(0, 0, -50)) < 0.1,
+		"Out-of-bounds watchdog snaps a stray TNT home")
+	course.tnt_block.global_position = Vector3(4, 0, -54) # off the wire but in bounds
+	office.player.global_position = course.tnt_reset_plate.global_position + Vector3(0, 0.3, 0)
+	office.player.velocity = Vector3.ZERO
+	await create_timer(0.4).timeout
+	_check(course.tnt_block.global_position.distance_to(Vector3(0, 0, -50)) < 0.1,
+		"The reset plate re-homes a displaced TNT")
+	office.player.global_position = Vector3(3.0, 0.6, -46.0)
+	office.player.velocity = Vector3.ZERO
+	for i in 6:
 		course.tnt_block.push(Vector3(0, 0, -1.0))
 		await create_timer(0.45).timeout
-	await create_timer(0.5).timeout
-	_check(course.obsidian_wall == null or course.obsidian_wall.is_demolished, "TNT push chain demolished the obsidian wall")
+	office.player.global_position = course.pressure_plate.global_position + Vector3(0, 0.3, 0)
+	office.player.velocity = Vector3.ZERO
+	await create_timer(0.9).timeout
+	_check(course.obsidian_wall == null or course.obsidian_wall.is_demolished, "Redstone strip + point-blank TNT demolished the obsidian wall")
 
 	# Phase 7: the 2.5 m canyon gap (jump) and through the nether portal
 	if not await _walk(course, [Vector3(0, 0.6, -67.8), Vector3(0, 0.6, -72.0), Vector3(0, 0.6, -84.0)],

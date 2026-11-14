@@ -33,8 +33,13 @@ var has_bridged: bool = false
 var mesh_instance: MeshInstance3D
 var push_area: Area3D
 var prompt_label: Label3D
+# Home pad for reset_home(): the puzzle's reset button / out-of-bounds
+# watchdog snap the block back here instead of soft-locking the course.
+var _home_position := Vector3.ZERO
+var _motion_tween: Tween = null
 
 func _ready() -> void:
+	_home_position = global_position
 	_setup_collision()
 	_setup_visuals()
 	_setup_push_area()
@@ -184,6 +189,7 @@ func push(direction: Vector3) -> bool:
 	is_moving = true
 
 	var tween := create_tween()
+	_motion_tween = tween
 	tween.tween_property(self, "global_position", target_pos, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_callback(func():
 		is_moving = false
@@ -211,6 +217,7 @@ func _check_fall_or_support() -> void:
 func _fall_down(target_y: float, hit_collider: Object) -> void:
 	is_falling = true
 	var tween := create_tween()
+	_motion_tween = tween
 	var fall_time: float = maxf(0.2, (global_position.y - target_y) * 0.08)
 	tween.tween_property(self, "global_position:y", target_y, fall_time).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_callback(func():
@@ -218,6 +225,21 @@ func _fall_down(target_y: float, hit_collider: Object) -> void:
 		if hit_collider != null and hit_collider is Node3D:
 			block_landed_on_target.emit(self, hit_collider as Node3D)
 	)
+
+func reset_home() -> void:
+	# Soft-stuck rescue (the TNT puzzle's reset plate / bounds watchdog): kill
+	# any in-flight push/fall motion and snap the block back onto its spawn
+	# pad, so the puzzle restarts without resetting the whole course.
+	if has_exploded:
+		return
+	if _motion_tween != null and _motion_tween.is_valid():
+		_motion_tween.kill()
+	_motion_tween = null
+	is_moving = false
+	is_falling = false
+	global_position = _home_position
+	if is_instance_valid(mesh_instance):
+		mesh_instance.scale = Vector3.ONE
 
 func ignite_and_explode(callback: Callable = Callable()) -> void:
 	if has_exploded:

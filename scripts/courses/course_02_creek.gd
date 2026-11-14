@@ -39,6 +39,7 @@ var dirt_block_2: Node3D
 var sand_block: Node3D
 var tnt_block: Node3D
 var pressure_plate: Node3D
+var tnt_reset_plate: Node3D
 var obsidian_wall: Node3D
 var canyon_dog: Node3D
 var canyon_dog_buried: bool = false
@@ -47,10 +48,18 @@ var _potato_boost_active: bool = false
 var _potato_boost_until_msec: int = 0
 # 剧情节拍一次性闸门：崖顶起跳只播一次（TNT 由 wall_demolished 信号天然一次性）。
 var _crest_beat_fired := false
+# TNT 出生垫：重置按钮/越界看门狗都把方块拉回这里（红石线路尽头 z=-62）。
+const TNT_HOME := Vector3(0, 0, -50.0)
 
 func _process(_delta: float) -> void:
 	if _potato_boost_active and Time.get_ticks_msec() >= _potato_boost_until_msec:
 		_end_potato_boost()
+	# 越界看门狗：纯 tween 的推动不检查碰撞，TNT 被推出岛面/推过线路尽头
+	# 都会让谜题无解——偏离出生垫 13 m（线路尽头在 12 m）或掉出岛面就立刻拉回。
+	if tnt_block != null and is_instance_valid(tnt_block):
+		var p: Vector3 = tnt_block.global_position
+		if p.distance_to(TNT_HOME) > 13.0 or p.y < -6.0:
+			tnt_block.reset_home()
 
 func _exit_tree() -> void:
 	# Leaving the course (finish, settings jump, world switch) settles the boost
@@ -430,11 +439,18 @@ func _build_tnt_obsidian_puzzle() -> void:
 			})
 	)
 
-	# Pressure plate at Z = -56
+	# Pressure plate + powered redstone wire at Z = -56: pressing the plate
+	# ignites every TNT sitting anywhere ON the wire (Minecraft semantics),
+	# but the blast only cracks the wall within 4.5 m. The wire's far end
+	# (z = -62, four metres off the wall) is the sweet spot the puzzle asks
+	# for: the spot between the redstone line and the obsidian wall, as close
+	# to the wall as the circuit allows.
 	pressure_plate = VOXEL_PRESSURE_PLATE.new()
 	pressure_plate.name = "VoxelPressurePlate"
 	pressure_plate.lux_asset_id = "PROP_C2_PRESSURE_PLATE"
 	pressure_plate.target_wall = obsidian_wall
+	pressure_plate.redstone_length = 6.0
+	pressure_plate.blast_range = 4.5
 	pressure_plate.position = Vector3(0, 0, -56.0)
 	add_child(pressure_plate)
 
@@ -443,17 +459,43 @@ func _build_tnt_obsidian_puzzle() -> void:
 			meme_layer.play("plate_click")
 	)
 
-	# TNT Block: starts 6 m north of the plate, so reaching the plate takes
-	# three deliberate pushes. The old 2.0 m spawn + 2.2 m plate radius let the
-	# pig detonate it by just stepping on the plate (puzzle skipped).
+	# Reset button beside the path: a bare stone plate (no wire, no ignition)
+	# that re-homes - or respawns - the TNT wherever it ended up. A sideways
+	# shove off the wire or an out-of-range blast no longer soft-locks the
+	# puzzle: step here and the block comes home.
+	tnt_reset_plate = VOXEL_PRESSURE_PLATE.new()
+	tnt_reset_plate.name = "TNTResetPlate"
+	tnt_reset_plate.is_stone = true
+	tnt_reset_plate.is_redstone_plate = false
+	tnt_reset_plate.position = Vector3(3.2, 0, -52.0)
+	add_child(tnt_reset_plate)
+	tnt_reset_plate.plate_pressed.connect(func(_p, _b): _reset_tnt_puzzle())
+	_label("↻ TNT 重置按钮", Vector3(3.2, 2.0, -52.0), 18)
+
+	_spawn_tnt_block()
+
+	_label("【黑曜石之壁】沿红石线路把 TNT 推到贴墙的尽头（6 次），再踩压力板引爆！爆偏了就踩重置按钮", Vector3(0, 4.5, -64.0), 20)
+
+func _spawn_tnt_block() -> void:
+	# TNT Block on its home pad 6 m north of the plate: six deliberate -Z
+	# pushes walk it down the powered wire to the sweet spot at z = -62.
 	tnt_block = VOXEL_PUSH_BLOCK.new()
 	tnt_block.name = "VoxelTNTBlock"
 	tnt_block.block_type = VOXEL_PUSH_BLOCK.BlockType.TNT
 	tnt_block.lux_asset_id = "PROP_C2_TNT"
-	tnt_block.position = Vector3(0, 0, -50.0) # Plate at z = -56: three straight -Z pushes land it on top
+	tnt_block.position = TNT_HOME
 	add_child(tnt_block)
 
-	_label("【黑曜石之壁】把 TNT 一路推上压力板引爆！小心爆炸波及自己！", Vector3(0, 4.5, -64.0), 22)
+func _reset_tnt_puzzle() -> void:
+	# The reset plate's promise: the TNT comes home no matter what state it is
+	# in - mid-push, shoved off the wire, or already blown up out of range
+	# (a fresh block spawns; the old one self-freed with its blast).
+	if tnt_block == null or not is_instance_valid(tnt_block) or tnt_block.has_exploded:
+		_spawn_tnt_block()
+	else:
+		tnt_block.reset_home()
+	if meme_layer:
+		meme_layer.play("plate_click")
 
 func _build_nether_portal_exit() -> void:
 	var portal_pos := Vector3(0, 0, -82.0)

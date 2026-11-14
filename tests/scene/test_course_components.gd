@@ -11,6 +11,8 @@ const WATERMELON_PEEL = preload("res://scripts/courses/components/watermelon_pee
 const RACING_FINISH = preload("res://scripts/courses/components/racing_finish_gate.gd")
 const VOXEL_PUSH_BLOCK = preload("res://scripts/courses/components/voxel_push_block.gd")
 const VOXEL_STREAM = preload("res://scripts/courses/components/voxel_water_stream.gd")
+const VOXEL_PLATE = preload("res://scripts/courses/components/voxel_pressure_plate.gd")
+const VOXEL_OBSIDIAN = preload("res://scripts/courses/components/voxel_obsidian_wall.gd")
 const CARDBOARD_BOX = preload("res://scripts/courses/components/cardboard_box_prop.gd")
 const ILLUSORY_WALL = preload("res://scripts/courses/components/illusory_wall.gd")
 const MIMIC_CHEST = preload("res://scripts/courses/components/mimic_chest.gd")
@@ -185,6 +187,62 @@ func _run() -> void:
 	await process_frame
 	_check(v_block.push(Vector3(0, 0, -1)), "VoxelPushBlock can be pushed forward")
 	v_block.queue_free()
+
+	# VoxelPressurePlate redstone strip: wire-wide Minecraft ignition, the
+	# limited blast range, and the reset_home path that un-sticks a shoved TNT.
+	var rs_host := Node3D.new()
+	rs_host.name = "RedstoneHost"
+	root.add_child(rs_host)
+	var rs_wall = VOXEL_OBSIDIAN.new()
+	rs_wall.position = Vector3(0, 0, -66)
+	rs_host.add_child(rs_wall)
+	var rs_plate = VOXEL_PLATE.new()
+	rs_plate.position = Vector3(0, 0, -56)
+	rs_plate.target_wall = rs_wall
+	rs_host.add_child(rs_plate)
+	await process_frame
+	# (a) A TNT resting on the plate's own cell is NOT on the powered wire:
+	# the push path pauses there between pushes and must not self-detonate.
+	var rs_tnt = VOXEL_PUSH_BLOCK.new()
+	rs_tnt.block_type = VOXEL_PUSH_BLOCK.BlockType.TNT
+	rs_tnt.position = Vector3(0, 0, -56)
+	rs_host.add_child(rs_tnt)
+	await process_frame
+	rs_plate._on_body_entered(rs_tnt)
+	_check(not rs_tnt.has_exploded and not rs_wall.is_demolished,
+		"TNT crossing the plate cell does not self-detonate")
+	rs_plate._on_body_exited(rs_tnt)
+	# (b) A pig press ignites TNT anywhere on the wire, but a blast beyond
+	# blast_range leaves the wall standing (the miss label also spawns).
+	rs_tnt.position = Vector3(0, 0, -58)
+	rs_plate._on_body_entered(pig)
+	_check(rs_tnt.has_exploded, "A pig press ignites TNT anywhere on the powered wire")
+	await create_timer(0.6).timeout
+	_check(not rs_wall.is_demolished, "Out-of-range blast leaves the obsidian wall standing")
+	rs_plate._on_body_exited(pig)
+	# (c) The sweet spot: fresh TNT at the wire's far end is inside blast
+	# range and cracks the wall.
+	var rs_tnt2 = VOXEL_PUSH_BLOCK.new()
+	rs_tnt2.block_type = VOXEL_PUSH_BLOCK.BlockType.TNT
+	rs_tnt2.position = Vector3(0, 0, -62)
+	rs_host.add_child(rs_tnt2)
+	await process_frame
+	rs_plate._on_body_entered(pig)
+	_check(rs_wall.is_demolished, "Wire-end TNT inside blast range demolishes the wall")
+	rs_plate._on_body_exited(pig)
+	# (d) reset_home snaps a displaced, still-live block (killing any live
+	# motion) back onto its spawn pad. The exploded rs_tnt2 deliberately
+	# refuses the snap - the course respawns those instead.
+	var rs_tnt3 = VOXEL_PUSH_BLOCK.new()
+	rs_tnt3.block_type = VOXEL_PUSH_BLOCK.BlockType.TNT
+	rs_tnt3.position = Vector3(0, 0, -60)
+	rs_host.add_child(rs_tnt3)
+	await process_frame
+	rs_tnt3.position = Vector3(9, 0, -54)
+	rs_tnt3.reset_home()
+	_check(rs_tnt3.global_position.distance_to(Vector3(0, 0, -60)) < 0.05,
+		"reset_home snaps a displaced TNT back onto its pad")
+	rs_host.queue_free()
 
 	# VoxelWaterStream
 	var stream = VOXEL_STREAM.new()
