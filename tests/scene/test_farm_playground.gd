@@ -97,6 +97,34 @@ func _run() -> void:
 	_check(plot.freeze and plot.global_position.distance_to(plot_home) < 0.1,
 		"The meteor reset is the one restock path back into the bed")
 
+	# --- Branch goals: three more nets bait the farm (pen, creek bridge,
+	# woodland road). Any cabbage ball scores in any of them; each goal fires
+	# its own event, and the achievement stays unlocked-once.
+	var goals: Array = farm.find_children("CabbageGoal*", "Node3D", false, false)
+	_check(goals.size() == 4, "Four cabbage goals stand around the farm (pitch + three branches)")
+	# Send the pitch ball home first: it still rests in the CabbageGoal net
+	# from the earlier score, and the plot tour would materialize inside it.
+	ball.global_position = ball_home
+	ball.linear_velocity = Vector3.ZERO
+	await physics_frame
+	plot.freeze = false # harvest it again for the tour of the nets
+	for goal in goals:
+		var before: int = goal_events.size()
+		# Park the ball clear of every net for one physics step first: the
+		# reset above teleported it net->bed->net with no step in between on
+		# the first iteration, and the physics server would rightly see the
+		# ball as never having left - no body_entered, no score.
+		plot.linear_velocity = Vector3.ZERO
+		plot.global_position = Vector3(0, 60, 0)
+		await physics_frame
+		farm._cabbage_goal_cool = 0.0
+		plot.global_position = goal.global_position + Vector3(0, 0.8, 0)
+		await physics_frame
+		await physics_frame
+		await create_timer(0.1).timeout
+		_check(goal_events.size() > before, "The %s net scores a cabbage ball" % goal.name)
+	_check(am.is_unlocked("cabbage_striker"), "The striker achievement holds after every net")
+
 	# --- Log shove: a sprinting pig opens the second path
 	_check(not am.is_unlocked("second_path"), "Second-path achievement locked before the shove")
 	var log: Node3D = farm.get_node("Log_Summit_1")

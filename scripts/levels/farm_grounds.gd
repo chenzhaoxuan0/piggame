@@ -775,48 +775,13 @@ func _build_playground() -> void:
 	# The goal mouth accepts any cabbage ball (this one and the field plot
 	# cabbages alike) - group membership, not a single magic name.
 	ball.add_to_group("cabbage_ball")
-	var goal := Node3D.new()
-	goal.name = "CabbageGoal"
-	goal.position = Vector3(46, 24, 24.6)
-	add_child(goal)
-	# Lux3D PROP_09_GOAL (netless frame, 2.406 m wide / 1.55 m tall) is the
-	# visual; the procedural posts stay on as colliders, rescaled to hug the
-	# stretched frame so the ball bounces where the goal looks like it ends.
-	var goal_post_h := 1.5
-	var goal_frame := ASSETS.make("PROP_09_GOAL")
-	if goal_frame != null:
-		goal_post_h = 1.55 * (3.4 / 2.406)
-	_box(goal, "PostL", Vector3(0.22, goal_post_h, 0.22), Vector3(-1.7, goal_post_h / 2, 0), Color("5A442E"), true)
-	_box(goal, "PostR", Vector3(0.22, goal_post_h, 0.22), Vector3(1.7, goal_post_h / 2, 0), Color("5A442E"), true)
-	_box(goal, "CrossBar", Vector3(3.6, 0.22, 0.22), Vector3(0, goal_post_h, 0), Color("5A442E"), true)
-	# Net back is solid now: the rigid ball rebounds off the net instead of
-	# rolling through the visual and vanishing behind the goal.
-	_box(goal, "NetBack", Vector3(3.3, goal_post_h * 0.8, 0.06), Vector3(0, goal_post_h * 0.4, -1.45), Color("E8E2CE"), true)
-	if goal_frame != null:
-		goal_frame.name = "GoalFrameLux"
-		goal_frame.scale = Vector3.ONE * (3.4 / 2.406)
-		# Model pivot sits at depth-middle; shift back so the post plane (the
-		# +z face after export) lands on the procedural collider plane at z=0.
-		goal_frame.position = Vector3(0, 0, -0.616 * (3.4 / 2.406))
-		goal.add_child(goal_frame)
-		# The frame now draws the goal; the procedural boxes keep only their collision.
-		for post_name in ["PostL", "PostR", "CrossBar"]:
-			var post_mesh := goal.get_node_or_null(NodePath("%s/VisualMesh" % post_name))
-			if post_mesh != null:
-				post_mesh.visible = false
-	_label(goal, "GoalTitle", "牛耕地球会 · 卷心菜联赛", Vector3(0, goal_post_h + 0.7, 0), 20)
-	var goal_area := Area3D.new()
-	goal_area.name = "CabbageGoalArea"
-	goal_area.collision_layer = 0
-	goal_area.collision_mask = 1 # statics: the cabbage ball itself (layer 1)
-	goal_area.position = Vector3(0, 0.8, 0)
-	var shape := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	box.size = Vector3(3.2, 1.0, 1.4)
-	shape.shape = box
-	goal_area.add_child(shape)
-	goal.add_child(goal_area)
-	goal_area.body_entered.connect(_on_cabbage_goal)
+	# Four goals now bait the whole farm: the league pitch plus three branch
+	# nets (pen, creek bridge, woodland road), so a punted cabbage always has
+	# a net worth chasing wherever it rolls.
+	_build_cabbage_goal("CabbageGoal", Vector3(46, 24, 24.6), "牛耕地球会 · 卷心菜联赛")
+	_build_cabbage_goal("CabbageGoal_Pen", Vector3(-3, 32.0, 92.5), "猪圈分赛场 · 后院点球大战")
+	_build_cabbage_goal("CabbageGoal_Creek", Vector3(54.0, 22.21, 3.5), "溪桥分赛场 · 卷心菜漂流终点", -120.0)
+	_build_cabbage_goal("CabbageGoal_Woodland", Vector3(-62.5, 16.0, -60.5), "林间分赛场 · 卷心菜远征终点", -90.0)
 	_build_pitch_fence()
 
 	# --- Five tippables scattered down the mountain (sprint to topple). Each
@@ -1008,21 +973,85 @@ func _on_plaything_played(kind: String, _detail) -> void:
 	else:
 		playground_event.emit(kind, _detail)
 
-func _on_cabbage_goal(body: Node3D) -> void:
-	# Any cabbage ball scores - the pitch ball and the field plot cabbages
-	# alike (they join the cabbage_ball group at build time).
+func _build_cabbage_goal(node_name: String, pos: Vector3, title: String, yaw_deg := 0.0) -> Node3D:
+	# One cabbage goal, wherever the farm wants a net: the Lux3D PROP_09_GOAL
+	# frame over procedural colliders, a solid net back, a title label, and the
+	# mouth Area that scores any cabbage_ball. The area's handler receives
+	# this goal root, so the shake and the gag land on the net that scored.
+	var goal := Node3D.new()
+	goal.name = node_name
+	goal.position = pos
+	goal.rotation.y = deg_to_rad(yaw_deg)
+	add_child(goal)
+	# Lux3D PROP_09_GOAL (netless frame, 2.406 m wide / 1.55 m tall) is the
+	# visual; the procedural posts stay on as colliders, rescaled to hug the
+	# stretched frame so the ball bounces where the goal looks like it ends.
+	var goal_post_h := 1.5
+	var goal_frame := ASSETS.make("PROP_09_GOAL")
+	if goal_frame != null:
+		goal_post_h = 1.55 * (3.4 / 2.406)
+	_box(goal, "PostL", Vector3(0.22, goal_post_h, 0.22), Vector3(-1.7, goal_post_h / 2, 0), Color("5A442E"), true)
+	_box(goal, "PostR", Vector3(0.22, goal_post_h, 0.22), Vector3(1.7, goal_post_h / 2, 0), Color("5A442E"), true)
+	_box(goal, "CrossBar", Vector3(3.6, 0.22, 0.22), Vector3(0, goal_post_h, 0), Color("5A442E"), true)
+	# Net back is solid: the rigid ball rebounds off the net instead of
+	# rolling through the visual and vanishing behind the goal.
+	_box(goal, "NetBack", Vector3(3.3, goal_post_h * 0.8, 0.06), Vector3(0, goal_post_h * 0.4, -1.45), Color("E8E2CE"), true)
+	if goal_frame != null:
+		goal_frame.name = "GoalFrameLux"
+		goal_frame.scale = Vector3.ONE * (3.4 / 2.406)
+		# Model pivot sits at depth-middle; shift back so the post plane (the
+		# +z face after export) lands on the procedural collider plane at z=0.
+		goal_frame.position = Vector3(0, 0, -0.616 * (3.4 / 2.406))
+		goal.add_child(goal_frame)
+		# The frame now draws the goal; the procedural boxes keep only their collision.
+		for post_name in ["PostL", "PostR", "CrossBar"]:
+			var post_mesh := goal.get_node_or_null(NodePath("%s/VisualMesh" % post_name))
+			if post_mesh != null:
+				post_mesh.visible = false
+	_label(goal, "GoalTitle", title, Vector3(0, goal_post_h + 0.7, 0), 20)
+	var goal_area := Area3D.new()
+	goal_area.name = "CabbageGoalArea"
+	goal_area.collision_layer = 0
+	goal_area.collision_mask = 1 # statics: the cabbage ball itself (layer 1)
+	goal_area.position = Vector3(0, 0.8, 0)
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(3.2, 1.0, 1.4)
+	shape.shape = box
+	goal_area.add_child(shape)
+	goal.add_child(goal_area)
+	goal_area.body_entered.connect(func(body: Node3D): _on_cabbage_goal(body, goal))
+	return goal
+
+func _on_cabbage_goal(body: Node3D, goal: Node3D) -> void:
+	# Any cabbage ball scores in any of the farm's nets - the pitch ball, the
+	# pen ball and the field plot cabbages alike (they join the cabbage_ball
+	# group at build time), from the league pitch to the woodland branch goal.
+	# The goal's own posts/net also overlap the mouth Area at build time; the
+	# group check sends them straight back out.
 	if not body.is_in_group("cabbage_ball"):
 		return
 	if _cabbage_goal_cool > 0.0:
 		return
 	_cabbage_goal_cool = 5.0
-	var goal := get_node_or_null("CabbageGoal")
-	if goal != null:
+	var cheer_at := Vector3(46, 26.4, 24.6)
+	if goal != null and is_instance_valid(goal):
+		cheer_at = goal.global_position + Vector3(0, 2.4, 0)
 		var tween := create_tween()
 		tween.tween_property(goal, "position:x", goal.position.x + 0.25, 0.07)
 		tween.tween_property(goal, "position:x", goal.position.x - 0.25, 0.07)
 		tween.tween_property(goal, "position:x", goal.position.x, 0.1)
-	_gag_at(Vector3(46, 26.4, 24.6), "GOOOAL！卷心菜应声入网！", 2.4)
+	_gag_at(cheer_at, "GOOOAL！卷心菜应声入网！", 2.4)
+	# Immediate reward on every goal: the pig celebrates and oinks on the
+	# spot, so the toast, the world gag and (first time only) the achievement
+	# popup all land on the same beat - scoring feels answered, not just
+	# noticed on a repeat kick.
+	if is_instance_valid(_player):
+		if _player.has_method("play_victory_animation"):
+			_player.play_victory_animation()
+		var pv = _player.get("voice")
+		if pv != null and pv.has_method("oink"):
+			pv.oink()
 	AchievementManager.unlock("cabbage_striker")
 	playground_event.emit("cabbage_goal", "")
 
