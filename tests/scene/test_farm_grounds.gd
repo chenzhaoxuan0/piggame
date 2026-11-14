@@ -25,7 +25,7 @@ func _run() -> void:
 	await physics_frame
 	_check(farm.get_spawn_position()==L.SPAWN,"summit spawn contract")
 	_check(get_nodes_in_group("interactable").size()==8,"eight story interaction targets (5 NPCs + record board + cablecar + pigpen trough)")
-	_check(farm.get_node("PastoralEnvironment").get_meta("layout_version")==6,"mountain bake is current")
+	_check(farm.get_node("PastoralEnvironment").get_meta("layout_version")==7,"mountain bake is current")
 	_check(farm.get_node("PastoralEnvironment").get_script()==null,"runtime uses baked geometry")
 	_check(farm.get_node_or_null("Ground")==null,"old giant flat floor removed")
 	for point in [L.GATE,L.PIG_GATE]:
@@ -57,6 +57,16 @@ func _run() -> void:
 		and farm.get_node_or_null("PitchBallFenceS")!=null and farm.get_node_or_null("PitchBallFenceW")!=null
 		and farm.get_node_or_null("PitchBallFenceE")!=null,
 		"ball-only fences exist (pen gate gap + four pitch boards)")
+	# Rocky crossings into the ox terrace: the descent road's terrace-side rail
+	# and the pasture boundary are open at the two stone seams (rays cast at
+	# y=25.0 pass under the 1.45 m rail top - they would hit any rail still
+	# standing), while the same fence line away from the seams still blocks.
+	_check(not _hit(Vector3(10.2,25.0,56.0),Vector3(10.2,25.0,53.0)),"crossing A road rail is open at the seam")
+	_check(not _hit(Vector3(10.2,25.0,60.2),Vector3(10.2,25.0,58.2)),"crossing A pasture boundary is open at the bevel")
+	_check(not _hit(Vector3(21.7,25.0,55.5),Vector3(21.7,25.0,52.8)),"crossing B road rail is open at the seam")
+	_check(_hit(Vector3(-2,25.0,51.5),Vector3(-2,25.0,48.5)),"summit road rail still blocks away from the crossings")
+	_check(_hit(Vector3(10.2,25.2,57.0),Vector3(10.2,23.8,57.0)),"crossing A stepping stone is solid")
+	_check(_hit(Vector3(22.9,25.2,56.0),Vector3(22.9,23.8,56.0)),"crossing B stepping stone is solid")
 	_check(L.length_of(L.path("summit"))>150,"substantial winding summit descent")
 	_check(L.length_of(L.chase_course())>170,"extended obstacle chase")
 	_check(L.length_of(L.path("escape"))>85,"winding route after gate")
