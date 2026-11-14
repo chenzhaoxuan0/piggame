@@ -54,8 +54,8 @@ func _run() -> void:
 	_check(am.is_unlocked("cabbage_striker"), "Ball in the net unlocks 卷心菜前锋")
 
 	# --- The cabbage field: the goal-side beds grow planted cabbages that
-	# harvest into free balls on the kick, score in the same net, and replant
-	# themselves so the field never runs bare.
+	# harvest into free balls on the kick, score in the same net, and stay
+	# free FOREVER for the session - the meteor is the only restock.
 	var plots: Array = farm.find_children("PlotCabbage*", "", true, false)
 	_check(plots.size() == 12, "Twelve plot cabbages grow beside the goal")
 	var all_planted := true
@@ -85,10 +85,17 @@ func _run() -> void:
 	await physics_frame
 	await create_timer(0.3).timeout
 	_check(goal_events.size() > 0, "A harvested field cabbage scores in the same goal")
-	farm._replant_plot_cabbages(999.0)
-	await physics_frame
+	# Permanence: the 20 s auto-replant is gone for good - a freed cabbage
+	# never walks home by itself anymore, wherever the pig kicked it.
+	_check(not farm.has_method("_replant_plot_cabbages"), "The 20 s auto-replant is gone for good")
+	_check(not plot.freeze, "A harvested cabbage stays free - no snap-home timer")
+	# The meteor impact path is the one restock left. Assert the synchronous
+	# snap: a pig standing in the beds would legitimately harvest the refrozen
+	# cabbage a frame later (that is the game, not a bug), so no frame passes
+	# between the reset call and the state check.
+	farm._reset_pen_props()
 	_check(plot.freeze and plot.global_position.distance_to(plot_home) < 0.1,
-		"The replant clock walks the cabbage back into its bed")
+		"The meteor reset is the one restock path back into the bed")
 
 	# --- Log shove: a sprinting pig opens the second path
 	_check(not am.is_unlocked("second_path"), "Second-path achievement locked before the shove")

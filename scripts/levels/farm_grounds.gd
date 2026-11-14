@@ -263,10 +263,6 @@ func _on_checkpoint(body: Node3D,point: Vector3) -> void:
 func _physics_process(delta: float) -> void:
 	if _cabbage_goal_cool > 0.0:
 		_cabbage_goal_cool = maxf(0.0, _cabbage_goal_cool - delta)
-	# The plot replant clock ticks even outside explore/chase, so the beds
-	# restock while menus or cutscenes hold the pig.
-	_plot_clock += delta
-	_replant_plot_cabbages(_plot_clock)
 	if not is_instance_valid(_player): _player=get_tree().get_first_node_in_group("player")
 	if not is_instance_valid(_player) or not _player.control_mode in ["explore","chase"]: return
 	var closest := L.closest_on_path(_player.global_position, L.journey())
@@ -566,11 +562,12 @@ const PLAYPOTATO_TARGET := 5
 const BALL_FENCE_LAYER := 8
 var _play_counts := {"tippable": 0, "grass": 0, "potato": 0}
 var _cabbage_goal_cool := 0.0
-# The goal-side cabbage field: planted plot cabbages (frozen) and their
-# replant clock - a kicked cabbage returns to its bed after PLOT_REPLANT_WAIT.
+# The goal-side cabbage field: planted plot cabbages start frozen in their
+# beds; a kick harvests them into free balls FOREVER for the session - the
+# freed cabbage stays wherever it rolls, even across course round-trips (the
+# whole farm parks untouched while the pig runs a course). The meteor button
+# is the one deliberate restock path for the beds.
 var _plot_cabbages: Array[RigidBody3D] = []
-var _plot_clock := 0.0
-const PLOT_REPLANT_WAIT := 20.0
 
 func _plaything(kind: int, sense: Vector3, cool: float,
 		charge_only := false, gags: Array[String] = []):
@@ -701,10 +698,13 @@ func _launch_meteor_reset() -> void:
 	)
 	fall.finished.connect(func():
 		_meteor_falling = false
-		playground_event.emit("gag", "轰！！陨石把整个猪圈砸回了出厂设置。")
+		playground_event.emit("gag", "轰！！陨石把猪圈和菜地砸回了出厂设置。")
 	)
 
 func _reset_pen_props() -> void:
+	# The meteor is the farm's one deliberate "tidy up": pen props AND the
+	# cabbage beds snap home. Everything else the pig kicked stays put (session
+	# permanence) - this button is the only restock path the field has left.
 	for thing in _pen_playthings:
 		if not is_instance_valid(thing):
 			continue
@@ -717,6 +717,14 @@ func _reset_pen_props() -> void:
 			if squash is Tween and squash.is_valid():
 				squash.kill()
 		thing.reset_prop()
+	# Plot cabbages: back into their beds, frozen and growing again.
+	for body in _plot_cabbages:
+		if not is_instance_valid(body):
+			continue
+		var bed_thing := body.get_node_or_null("Plaything")
+		if bed_thing != null and bed_thing.has_method("reset_prop"):
+			bed_thing.reset_prop()
+		body.freeze = true # state 1 again: growing in the bed until the next kick
 
 func _on_hay_dive(kind: String, _score, stack: Node3D, half_h: float, home_y: float) -> void:
 	# A scored hay dive drives the level-side visual: the stack compresses
@@ -923,8 +931,8 @@ func _build_cabbage_field() -> void:
 	# x 55..61, z 23..29) grow real cabbages now. State 1 is planted - a frozen
 	# rigid body standing in the soil; state 2 kicks off into a free cabbage
 	# ball, the same light football as the pitch ball, punt-able into the goal.
-	# The replant clock walks kicked cabbages back to their plot after a while
-	# (_replant_plot_cabbages), so the field never runs bare.
+	# A kick is PERMANENT for the session - the freed cabbage stays wherever it
+	# rolls; only the meteor button restocks the beds (player's choice).
 	for row in 3:
 		var x := 55.0 + row * 3.0
 		for slot in 4:
@@ -947,29 +955,6 @@ func _build_cabbage_field() -> void:
 			body.freeze = true # state 1: growing in the bed until a hoof frees it
 			body.add_to_group("cabbage_ball")
 			_plot_cabbages.append(body)
-
-func _replant_plot_cabbages(now: float) -> void:
-	# Field restock: a cabbage that has been free for PLOT_REPLANT_WAIT walks
-	# itself back into its plot (same snap-home path as the meteor reset), so
-	# the beds stay stocked however far the ball wandered - goal net included.
-	# The clock arms on the frozen->free transition (the kick), never at
-	# planting, or a long-planted cabbage would replant seconds after its kick.
-	for body in _plot_cabbages:
-		if not is_instance_valid(body):
-			continue
-		if body.freeze:
-			if not body.get_meta("plot_was_frozen", false):
-				body.set_meta("plot_was_frozen", true)
-			continue
-		if body.get_meta("plot_was_frozen", true):
-			body.set_meta("plot_was_frozen", false)
-			body.set_meta("plot_freed_at", now)
-		if now - float(body.get_meta("plot_freed_at", now)) < PLOT_REPLANT_WAIT:
-			continue
-		var thing := body.get_node_or_null("Plaything")
-		if thing != null and thing.has_method("reset_prop"):
-			thing.reset_prop()
-		body.freeze = true
 
 func _tipple(node_name: String, pos: Vector3, size: Vector3, color: Color, asset_id := "", lux_name := "") -> void:
 	var body := _box(self, node_name, size, pos, color, true)
