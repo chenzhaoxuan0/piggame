@@ -133,17 +133,22 @@ func _run() -> void:
 	# Physically the pig was never on the plate, so nothing fired body_exited;
 	# release it manually or the plate stays "pressed" and swallows the TNT step.
 	course.pressure_plate._on_body_exited(office.player)
-	# Three pushes land the TNT on the plate; the plate's own body_entered
-	# catches it mid-push, ignites it, and the explosion pays an FX burst.
-	for i in 3:
+	# Six pushes walk the TNT down the powered redstone wire to its far end
+	# (z = -62, inside the wall's 4.5 m blast range). The plate's own cell is
+	# not the powered zone, so pushes pausing there never self-detonate; the
+	# pig then steps on the plate and the pulse ignites the wire TNT
+	# point-blank - the explosion pays an FX burst.
+	for i in 6:
 		course.tnt_block.push(Vector3(0, 0, -1.0))
 		await create_timer(0.4).timeout
+	course.pressure_plate._on_body_entered(office.player)
+	course.pressure_plate._on_body_exited(office.player)
 	var fx_seen := false
 	for i in 12:
 		await create_timer(0.1).timeout
 		if is_instance_valid(course) and course.find_children("ExplosionFX", "Node3D", true, false).size() > 0:
 			fx_seen = true
-	_check(course.obsidian_wall == null or course.obsidian_wall.is_demolished, "TNT pushed onto the plate demolished the obsidian wall")
+	_check(course.obsidian_wall == null or course.obsidian_wall.is_demolished, "Wire-end TNT + pig press demolished the obsidian wall")
 	_check(fx_seen, "TNT explosion pays an on-screen FX burst")
 	_check(not is_instance_valid(course.tnt_block), "Ignited TNT is gone after the blast")
 

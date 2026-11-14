@@ -776,12 +776,15 @@ func _build_playground() -> void:
 	# cabbages alike) - group membership, not a single magic name.
 	ball.add_to_group("cabbage_ball")
 	# Four goals now bait the whole farm: the league pitch plus three branch
-	# nets (pen, creek bridge, woodland road), so a punted cabbage always has
-	# a net worth chasing wherever it rolls.
+	# nets (pen east wall, creek bridge, ranch meadow at the woodland road's
+	# end), so a punted cabbage always has a net worth chasing wherever it
+	# rolls. Placements stay clear of the journey/chase corridors - the pen
+	# net must not stand between the pig spawn and the Old Goat, and the
+	# woodland net sits by the road's terminal waypoint, not across it.
 	_build_cabbage_goal("CabbageGoal", Vector3(46, 24, 24.6), "牛耕地球会 · 卷心菜联赛")
-	_build_cabbage_goal("CabbageGoal_Pen", Vector3(-3, 32.0, 92.5), "猪圈分赛场 · 后院点球大战")
+	_build_cabbage_goal("CabbageGoal_Pen", Vector3(4.0, 32.0, 93.5), "猪圈分赛场 · 后院点球大战", -90.0)
 	_build_cabbage_goal("CabbageGoal_Creek", Vector3(54.0, 22.21, 3.5), "溪桥分赛场 · 卷心菜漂流终点", -120.0)
-	_build_cabbage_goal("CabbageGoal_Woodland", Vector3(-62.5, 16.0, -60.5), "林间分赛场 · 卷心菜远征终点", -90.0)
+	_build_cabbage_goal("CabbageGoal_Woodland", Vector3(18.0, 8.0, -86.0), "林间分赛场 · 卷心菜远征终点", 180.0)
 	_build_pitch_fence()
 
 	# --- Five tippables scattered down the mountain (sprint to topple). Each
