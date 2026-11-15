@@ -103,5 +103,25 @@ func _run() -> void:
 	_check(hub_world.environment == hub_environment, "Hub environment restored after leaving the courses")
 	_check(is_equal_approx(sun.light_energy, hub_sun_energy), "Hub sun restored after leaving the courses")
 
+	# --- 2026-11-15 playtest #16: farm return lands on the LAST TRAIL CHECKPOINT
+	# (not the old fixed ox-field pad), and R self-rescues the same way.
+	office.player.global_position = Vector3(-46, 16.1, -60) # sheep meadow, on the journey line
+	for i in 40: await physics_frame # let farm._checkpoint trail the walk
+	var cp: Vector3 = office.farm._checkpoint
+	_check(office.farm._checkpoint != Vector3.ZERO, "Trail checkpoint is tracking the walk")
+	office._select_level_from_settings("farm")
+	await process_frame
+	_check(office.player.global_position.distance_to(cp) < 1.0,
+		"Farm return lands on the last checkpoint, not a fixed pad")
+	office.player.global_position = Vector3(-70, 16.1, -30) # walkable but well off the trail line
+	for i in 10: await physics_frame
+	var r_ev := InputEventAction.new()
+	r_ev.action = "action_respawn"
+	r_ev.pressed = true
+	Input.parse_input_event(r_ev)
+	await create_timer(0.25).timeout
+	_check(office.player.global_position.distance_to(cp) < 1.5,
+		"R returns a stuck pig to the last checkpoint")
+
 	print("\nALL LEVEL SELECT TESTS COMPLETED: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

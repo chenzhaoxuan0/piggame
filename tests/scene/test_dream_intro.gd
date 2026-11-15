@@ -81,6 +81,20 @@ func _run() -> void:
 	var parked: Control = office.find_child("BrainHoleQuiz", true, false)
 	if parked != null:
 		parked.queue_free()
+
+	# --- 5. NG+ (2026-11-15 playtest #15): the prologue plays exactly once.
+	# Second-visit profiles talk to the goat and go straight out the gate.
+	game.ng_plus = true
+	game.tutorial_free_roam = true
+	game.stage = "prologue"
+	game.has_pin = false
+	office.in_start_menu = false
+	office._on_interact(office.farm.get_node("NPC_goat"))
+	await process_frame
+	await process_frame
+	_check(not game.tutorial_free_roam and game.has_pin, "NG+ goat talk hands the pin straight over")
+	_check(game.stage == "exploring", "NG+ skips the dream straight into exploration")
+	_check(office.active_course == null and not office.sleep_playing, "NG+ never starts the sleep/dream beat")
 	office.queue_free()
 	await process_frame
 

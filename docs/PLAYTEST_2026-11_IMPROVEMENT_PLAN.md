@@ -128,18 +128,15 @@
 - 测试：farm_playground 两条腿——抄近道圈（付 chaser + record、不付 steady）与干净圈（付 steady）；course_04 横幅钉子改金牌杯。台账 34→36（玩场 14→16）。
 
 ### 3.6 [#15] 二周目跳过序章（序章全程只演一次）
-**现状**：开局必经「猪圈沙盒 → F 老岩羊 → 脑洞问答 → 入睡 → 噩梦序章」；`pending_boot`/`tutorial_free_roam`/`_begin_dream_from_pigpen`（`office_level_1.gd` ~580/783/1334）。
-**修法**：`GameManager.ng_plus == true` 时，F 老岩羊走新分支——短对话（「又梦见那辆车了？这次不用再看一遍了。插销还是红的。」）→ 直接 `choose_red()` 拿插销、开猪圈门、`stage=exploring`、toast「二周目：直接出圈」，不入睡不做问答不做噩梦。一周目流程零改动。`begin_ng_plus_if_earned()` 的二周目纪念成就照常。测试：`test_demo_state` 补 NG+ 开局直达 exploring 的链路；噩梦相关断言加 `not ng_plus` 前提。
+**已落地（2026-11-16）**：`GameManager.ng_plus` 时 F 老岩羊走 `_skip_prologue_for_ng_plus()`——直接 `choose_red()` 拿插销、开猪圈门、进入探索（toast「二周目 · 直接出圈」+ 通知「序章已跳过」）；不入睡、不做脑洞问答、不做噩梦。一周目流程零改动；`nightmare_survivor` 早在猪圈开机路径上已付（见下注）。测试：`test_dream_intro` 第 5 节钉住「插销直达 + exploring + 无 sleep/dream」。
 
-> `nightmare_survivor` 无需特殊处理：`office_level_1.gd:582` 在猪圈沙盒开机路径上就会 `mark_intro_dream_done()`（标题画面「跳过序章」同理发章），NG+ 开局必经猪圈，成就先于 F 老岩羊就已到手；全收集在任何档案下都可达。
+> `nightmare_survivor` 无需特殊处理：`office_level_1.gd` 在猪圈沙盒开机路径上就会 `mark_intro_dream_done()`（标题画面「跳过序章」同理发章），NG+ 开局必经猪圈沙盒，成就先于 F 老岩羊到手；全收集在任何档案下都可达。
 
 ### 3.7 [#16] 「返回农场」回到上一存档点 + R 键自救
-**现状**：设置 → 关卡直达 → 返回农场固定 `reset_at(Vector3(38.0,24.1,52.0))`（`office_level_1.gd:520`，牛耕地）。而 farm 侧早就有连续追踪的检查点：`farm_grounds._checkpoint`（路线 14m 内自动更新，`_on_checkpoint`），追逐失败重试也在用它——「上一个存档点」的概念现成。
-**修法**：
-- `_select_level_from_settings("farm")`：改为 `reset_at(farm._checkpoint)`（`_checkpoint` 无效时兜底回固定点）；
-- 新增输入动作 `action_respawn`（R 键）：仅当**无活动赛道且 control_mode==explore**（农场漫游态）时，`reset_at(farm._checkpoint)` + toast「回到上一个落脚点」——专治卡墙卡栏杆，不在追逐/赛道里滥用；
-- HUD 键位说明条补 R。
-**测试**：`test_level_select` 改钉「返回后位置 == 最后检查点」；新增 R 键用例（explore 生效、chase/赛道中无效）。
+**已落地（2026-11-16）**：
+- `_select_level_from_settings("farm")` 改为回 `farm._checkpoint`（随走随记的路线检查点，无效时兜底牛耕地点），toast 提示「回到上一个落脚点（卡住了随时按 R）」；
+- 新增输入动作 `action_respawn`（R）：仅农场漫游态（无活动赛道、无追逐、explore、非对话/暂停/菜单）生效，`reset_at(farm._checkpoint)` + toast——专治卡墙卡栏杆；追逐/赛道期间不生效（各有自己的重试规则）。
+- 测试：`test_level_select` 尾段钉「返回落点 == 最后检查点」与「R 自救回检查点」。
 
 ---
 

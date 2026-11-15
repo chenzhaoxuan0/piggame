@@ -539,10 +539,15 @@ func _select_level_from_settings(target_id: String) -> void:
 			_exit_course()
 		if is_instance_valid(camera):
 			camera.set_camera_mode(IsometricCamera.CameraMode.ISOMETRIC)
-		player.reset_at(Vector3(38.0, 24.1, 52.0))
+		# 2026-11-15 实机反馈 #16：返回点不再固定在牛耕地——回猪所在主线
+		# 世界的上一个存档点（farm._checkpoint 随走随记），没走过就兜底原点。
+		var farm_return := Vector3(38.0, 24.1, 52.0)
+		if is_instance_valid(farm) and farm._checkpoint != Vector3.ZERO:
+			farm_return = farm._checkpoint
+		player.reset_at(farm_return)
 		_restore_control()
 		camera.snap_to_target()
-		_show_toast("已切换到：农场主线世界", "自由探索与老牛/伙伴互动")
+		_show_toast("已切换到：农场主线世界", "回到上一个落脚点（卡住了随时按 R）")
 	else:
 		if is_instance_valid(player):
 			player.set_meta("in_stealth_box", false)
@@ -588,6 +593,21 @@ func start_dream_intro() -> void:
 		_begin_dream_from_pigpen()
 		return
 	_start_dream_intro()
+
+## 二周目跳过序章（2026-11-15 实机反馈 #15）：噩梦 + 键位教学整个流程只在
+## 一周目演一次。二周目 F 老岩羊 → 直接拿插销、开圈门、进入探索（intro_
+## dream_done 早在猪圈开机时点过，噩梦纪念章一周目已到手）。
+func _skip_prologue_for_ng_plus() -> void:
+	GameManager.tutorial_free_roam = false
+	in_start_menu = false
+	if is_instance_valid(start_menu):
+		start_menu.visible = false
+	GameManager.choose_red() # prologue → exploring，铜插销到手
+	farm.set_pigpen_open(true)
+	if is_instance_valid(player):
+		player.set_control_mode("explore")
+	_show_toast("二周目 · 直接出圈", "老岩羊：又是你啊。插销还是红的，门还是那扇门——去吧！")
+	_show_notice("序章已跳过（二周目）：噩梦与键位教学只在首次游玩时上演。")
 
 func skip_dream_intro() -> void:
 	# Skip path (the in-game start menu's 跳过序章 button): the dream never
@@ -1286,6 +1306,19 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 
+	# R 键自救（2026-11-15 实机反馈 #16）：农场漫游态里卡墙/卡栏杆时回到
+	# 上一个存档点。追逐与赛道期间不生效（那里有自己的重试/重生规则）。
+	if event.is_action_pressed("action_respawn") and not event.is_echo():
+		if not in_start_menu and not paused and not dialogue_open and not cinematic \
+				and not is_instance_valid(active_course) and not GameManager.is_in_chase() \
+				and is_instance_valid(player) and player.control_mode == "explore" \
+				and is_instance_valid(farm) and farm._checkpoint != Vector3.ZERO:
+			player.reset_at(farm._checkpoint)
+			camera.snap_to_target()
+			_show_toast("回到上一个落脚点", "卡住了就按 R——路是自己走出来的，也是自己退回去的。")
+			get_viewport().set_input_as_handled()
+			return
+
 	if dialogue_open and not busy and not cinematic and (pokemon_battle == null or not pokemon_battle.battle_active):
 		var advance: bool = event.is_action_pressed("ui_accept") or event.is_action_pressed("action_interact") \
 			or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed) \
@@ -1357,8 +1390,13 @@ func _on_interact(target: Node3D) -> void:
 		# the SAME door as the title card's 开始游戏 (brain-hole quiz → fall asleep
 		# → dream); the cliff_goat_intro story beat only plays AFTER the dream,
 		# when tutorial_free_roam is already false - the narrative order survives.
+		# 2026-11-15 实机反馈 #15：二周目不再重演序章（键位教学整个流程只演
+		# 一次）——F 老岩羊直接拿插销开圈出逃。
 		if id == "goat":
-			_begin_dream_from_pigpen()
+			if GameManager.ng_plus:
+				_skip_prologue_for_ng_plus()
+			else:
+				_begin_dream_from_pigpen()
 		else:
 			_show_notice("（现在还不能对话——先在猪圈里把蹄子练开，练累了回窝眯一觉：点左上『开始游戏』，或来找山羊按 [ F ] 入梦。）")
 		return
