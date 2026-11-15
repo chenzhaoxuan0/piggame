@@ -48,7 +48,7 @@ func _run() -> void:
 		print("PLUNGER_TEST FINISHED: failures=%d" % failures)
 		quit(1)
 		return
-	_check(launcher.ammo == 3, "The pocket starts with three rounds")
+	_check(launcher.ammo == 5, "The pocket starts with five rounds")
 
 	# --- Teaching (2026-11-15 playtest #3): players pocketed plungers without
 	# ever learning Q fires them. The counter panel now carries the hint.
@@ -76,7 +76,7 @@ func _run() -> void:
 	for child in course.get_children():
 		if child is PlungerProp:
 			pickups.append(child)
-	_check(pickups.size() == 3, "Three resupply caches placed along the track")
+	_check(pickups.size() == 5, "Five resupply caches placed along the track")
 
 	# 进场对话节拍：先锁住讲剧情；走共享快进接口放行后 Q 才能开火
 	# （launcher.fire() 只在 explore/chase 模式下生效）。

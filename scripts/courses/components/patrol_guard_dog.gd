@@ -22,8 +22,15 @@ signal guard_stunned(duration: float)
 @export var nip_cooldown: float = 1.2
 @export var body_color: Color = Color("8C2F2F") # Storybook hound red-brown
 @export var display_name: String = "巡逻恶犬"
+# 2026-11-15 实机反馈：潜行玩法（视锥黄光+纸箱）整体撤下，换成搋子射击。
+# 视锥曾是巡逻犬的「司机」（drive_with_vision_cone）——现在犬自己走路：
+# 沿 patrol_points 循环踱步、面朝前进方向，被击倒时原地停转，醒来续走。
+@export var patrol_points: Array[Vector3] = []
+@export var patrol_speed: float = 3.0
 
 var is_stunned: bool = false
+
+var _patrol_next: int = 0
 
 var _stun_time_left: float = 0.0
 var _nip_cooldown_left: float = 0.0
@@ -95,10 +102,25 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_nip_cooldown_left = maxf(0.0, _nip_cooldown_left - delta)
 	if not is_stunned:
+		_self_patrol(delta)
 		return
 	_stun_time_left -= delta
 	if _stun_time_left <= 0.0:
 		_wake_up()
+
+func _self_patrol(delta: float) -> void:
+	# Same movement contract the vision cone used to drive: flat-land lerp
+	# between waypoints, look_at along the heading (model faces -Z).
+	if patrol_points.size() < 2:
+		return
+	var target: Vector3 = patrol_points[_patrol_next]
+	var to: Vector3 = target - global_position
+	to.y = 0.0
+	if to.length() < 0.3:
+		_patrol_next = (_patrol_next + 1) % patrol_points.size()
+		return
+	global_position += to.normalized() * minf(patrol_speed * delta, to.length())
+	look_at(global_position + to.normalized(), Vector3.UP)
 
 func stun(duration: float = 4.0, _knockback: Vector3 = Vector3.ZERO) -> void:
 	# Same contract as ChaseDog.stun(): called by the cardboard box bowling dive

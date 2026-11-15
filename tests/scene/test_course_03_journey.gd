@@ -91,35 +91,27 @@ func _run() -> void:
 	await create_timer(0.15).timeout
 	_check(not runner.beat_active() and office.player.control_mode != "cinematic", "Maze beat skipped cleanly")
 
-	# 4.1 Stealth & Souls Illusory Mechanics
+	# 4.1 Plunger gauntlet (2026-11-15 redesign: the yellow-light stealth loop is
+	# gone - vision cones, the cardboard box and the pinecone decoy left with it;
+	# the guards patrol on their own now and serve as plunger knockdown targets)
 	var course = office.active_course
-	_check(course.stealth_box != null, "Course 3 has CardboardBoxProp")
-	course.stealth_box.equip_box(office.player)
-	_check(office.player.get_meta("in_stealth_box", false), "Player successfully equipped stealth cardboard box")
+	_check(course.get_node_or_null("StealthCardboardBox") == null, "Stealth cardboard box retired with the stealth loop")
+	_check(course.get_node_or_null("GoldenPinecone") == null, "Golden pinecone decoy retired with the stealth loop")
+	_check(course.patrol_dog.get_node_or_null("VisionCone") == null, "Patrol guards no longer carry the yellow vision cone")
+	_check(course.path_dog != null, "A second guard holds the gauntlet's back stretch")
+	_check(course.plunger_launcher.ammo == 5, "The armory opens with five rounds in the pocket")
 
-	# Vision cone stealth check
-	_check(course.patrol_cone != null, "Course 3 has PatrolVisionCone")
-	course.patrol_cone.target_player = office.player
-	course.patrol_cone._scan_for_player()
-	# Stationary in box should not alert
-	_check(not course.patrol_cone.is_alert, "Stationary box successfully fooled patrol dog vision cone")
-
-	# Box unequip drops it as a reusable prop instead of destroying it
-	course.stealth_box.unequip_box()
-	_check(not office.player.get_meta("in_stealth_box", false), "Box unequipped cleanly")
-	_check(is_instance_valid(course.stealth_box) and not course.stealth_box.is_equipped, "Unequipped box survives as a pickup")
-	course.stealth_box.equip_box(office.player)
-	_check(office.player.get_meta("in_stealth_box", false), "Dropped box can be re-equipped")
-	course.stealth_box.unequip_box()
-
-	# Patrol guard is a real body: solid, group-tagged for the box dive, stunnable
+	# Patrol guard is a real body: solid, group-tagged for plunger hits, stunnable
 	_check(course.patrol_dog.is_in_group("chase_dogs") and course.patrol_dog.has_method("stun"), "Patrol guard joins the dogs group with a stun() contract")
 	_check(course.patrol_dog.get_node_or_null("GuardShape") != null, "Patrol guard has a solid collision body")
 	course.patrol_dog.stun(0.2)
-	_check(course.patrol_dog.is_stunned, "Cardboard-box-style stun() knocks the guard out")
-	_check(course.patrol_cone.process_mode == Node.PROCESS_MODE_DISABLED, "Stunned guard's vision cone stops scanning")
+	_check(course.patrol_dog.is_stunned, "Plunger-style stun() knocks the guard out")
+	var stun_pos: Vector3 = course.patrol_dog.global_position
 	for i in 20: await physics_frame
-	_check(not course.patrol_dog.is_stunned and course.patrol_cone.process_mode == Node.PROCESS_MODE_INHERIT, "Guard wakes up and resumes patrol")
+	_check(not course.patrol_dog.is_stunned, "Guard wakes up after the stun window")
+	await create_timer(0.8).timeout
+	_check(course.patrol_dog.global_position.distance_to(stun_pos) > 0.3,
+		"Self-patrol keeps the guard walking without the vision cone driving it")
 	office.player.knockback_timer = 0.0
 	office.player.reset_at(course.patrol_dog.global_position + Vector3(0.9, 0.6, 0))
 	course.patrol_dog._on_nip_entered(office.player)
@@ -141,8 +133,7 @@ func _run() -> void:
 
 	# Zigzag guard's patrol legs must not glide through solid maze rows (its own
 	# body is excluded: the guard standing on its own route is expected).
-	var zig_cone: Node3D = course.zigzag_dog.get_node("VisionCone")
-	var pts: Array = zig_cone.patrol_points
+	var pts: Array = course.zigzag_dog.patrol_points
 	var blocked_legs := 0
 	for i in pts.size():
 		var from := pts[i] as Vector3

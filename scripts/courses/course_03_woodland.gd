@@ -5,9 +5,9 @@ const RUNNER_SCRIPT = preload("res://scripts/courses/course_runner.gd")
 const MEME_SCRIPT = preload("res://scripts/courses/meme_layer.gd")
 const CONFIG_SCRIPT = preload("res://scripts/courses/course_config.gd")
 
-const CARDBOARD_BOX = preload("res://scripts/courses/components/cardboard_box_prop.gd")
-const PINECONE_PROP = preload("res://scripts/courses/components/pinecone_prop.gd")
-const PATROL_VISION_CONE = preload("res://scripts/courses/components/patrol_vision_cone.gd")
+# 2026-11-15 实机反馈：视锥黄光潜行段整体撤下（被发现没有任何后果，玩法
+# 形同虚设），林间改打「搋子射击」——纸箱/金松果/视锥组件随之退场，巡逻
+# 恶犬转为自主巡逻的可击倒靶子（见 patrol_guard_dog.gd 的 self patrol）。
 const ILLUSORY_WALL = preload("res://scripts/courses/components/illusory_wall.gd")
 const MIMIC_CHEST = preload("res://scripts/courses/components/mimic_chest.gd")
 const BOUNCY_MUSHROOM = preload("res://scripts/courses/components/bouncy_mushroom.gd")
@@ -38,9 +38,8 @@ var meme_layer: MemeLayer
 var _discern_halo: Node3D
 var plunger_launcher: PlungerLauncher
 
-var stealth_box: Node3D
 var patrol_dog: Node3D
-var patrol_cone: Node3D
+var path_dog: Node3D
 var mimic_chest_fake: Node3D
 var mimic_chest_real: Node3D
 var illusory_wall: Node3D
@@ -82,7 +81,7 @@ func _ready() -> void:
 	ZONE_ENVIRONMENT.apply(self, "fairy_woodland")
 	_build_ground()
 	_build_surroundings()
-	_build_stealth_zone()
+	_build_gauntlet_zone()
 	_build_mimic_grove()
 	_build_illusory_wall_puzzle()
 	_build_illusion_maze()
@@ -120,14 +119,14 @@ func setup(player: Node3D) -> void:
 		"title": "第三章 · 迷雾林间寻路",
 		"lines": [
 			"树会发光，蘑菇长着波点——这里是一本童话书里的森林？",
-			"林间隐藏试炼：迷雾里全是恶犬的视线锥，幻象墙挡着去马场的路。",
-			"纸箱隐匿、洞察辨伪——穿过去，马场的灯就挂在林子后面！",
+			"林间隐藏试炼：恶犬守着每条道，马桶搋子就是你的通行证。",
+			"按 Q 或鼠标左键发射搋子撂倒恶犬——穿过幻象迷宫，马场的灯就在林后！",
 		],
 		"line_time": 2.5,
 		"accent": STORYBOOK_PURPLE,
 	})
 	if plunger_launcher != null:
-		plunger_launcher.setup(player, 3) # three rounds in the pocket at the gate
+		plunger_launcher.setup(player, 5) # five rounds in the pocket at the gate
 	_update_discern_visuals()
 
 func _update_discern_visuals() -> void:
@@ -146,22 +145,18 @@ func _make_config() -> CourseConfig:
 	var cfg := CONFIG_SCRIPT.new()
 	cfg.course_id = "course_3"
 	cfg.title = "第三章 · 迷雾林间寻路"
-	cfg.desc = "用破妄明眸看穿幻象！套纸箱躲避巡逻恶犬、辨出宝箱怪、击碎幻影墙壁——穿过童话迷雾，马场的灯就在林后！"
+	cfg.desc = "迷雾林间 · 搋子大作战！按 Q / 鼠标发射马桶搋子撂倒巡逻恶犬、辨出宝箱怪、撞碎幻影墙——穿过童话迷雾，马场的灯就在林后！"
 	cfg.kill_y = -12.0
 	cfg.bounds = AABB(Vector3(-35, -16, -115), Vector3(70, 40, 140))
 	cfg.dog_count = 1
 	cfg.dog_speed_min = 3.0
 	cfg.dog_speed_max = 5.8
 	cfg.memes = {
-		"course_start": {"title": "看穿幻象，奔向马场！", "text": "迷雾森林，恶犬巡逻——纸箱隐匿、洞察辨伪，穿过林子就是马场！", "duration": 3.0},
-		"box_equip": {"title": "纸箱潜行模式！", "text": "【！】装备纸箱！静止不动时巡逻恶犬直接无视！按Shift可俯冲保龄撞狗！", "duration": 2.5},
-		"pinecone_thrown": {"title": "声东击西！", "text": "金松果啪嗒落地！恶犬循声四处张望，视线被完全引开！", "duration": 2.5},
-		"dog_alert": {"title": "【！】警报拉响！", "text": "恶犬察觉到了异动！快原地呆住或逃出视线！", "duration": 2.2},
-		"dog_confused": {"title": "恶犬疑惑：？", "text": "……只是个普通的纸箱，好像是我看花眼了。", "duration": 2.2},
+		"course_start": {"title": "搋子开路，奔向马场！", "text": "迷雾森林，恶犬巡逻——一搋一个，穿过林子就是马场！", "duration": 3.0},
 		"mimic_bite": {"title": "《魂系》经典宝箱怪！", "text": "嗷呜！小猪屁股被咬了一大口！开启洞察之眸才能看穿呼吸！", "duration": 2.5},
 		"sweet_potato": {"title": "真实秘宝：黄金红薯！", "text": "香甜软糯！小猪士气大振，体力拉满！", "duration": 2.5},
-		"guard_nip": {"title": "被巡逻恶犬咬了屁股！", "text": "嗷！守卫恶犬一口闷！躲进树后或纸箱里再走！", "duration": 2.2},
-		"guard_bowled": {"title": "🎳 纸箱保龄全中！", "text": "巡逻恶犬被撞得眼冒金星，原地转圈晕了好几秒！", "duration": 2.5},
+		"guard_nip": {"title": "被巡逻恶犬咬了屁股！", "text": "嗷！守卫恶犬一口闷！退两步，一搋子糊它脸上！", "duration": 2.2},
+		"guard_bowled": {"title": "🪠 搋子正中面门！", "text": "巡逻恶犬被吸得原地转圈，晕了好几秒！", "duration": 2.5},
 		"illusory_shatter": {"title": "前有隐藏道路！", "text": "【洞察之眸】看破假象，看似死胡同的幻影石壁碎裂一地！", "duration": 2.5},
 		"mushroom_bounce": {"title": "童话弹力蘑菇！", "text": "波点蘑菇超级大弹射！飞跃树林树冠！", "duration": 2.2},
 		"dog_bonk": {"title": "恶犬扑空", "text": "恶犬一头撞在树干上！", "duration": 2.0},
@@ -196,68 +191,36 @@ func _build_surroundings() -> void:
 		_storybook_tree(Vector3(-7, 0, z))
 		_storybook_tree(Vector3(7, 0, z))
 
-func _build_stealth_zone() -> void:
-	# 1. Cardboard Box placed at the trail entrance (Left)
-	stealth_box = CARDBOARD_BOX.new()
-	stealth_box.name = "StealthCardboardBox"
-	stealth_box.position = Vector3(-1.8, 0, 5.0)
-	add_child(stealth_box)
+func _build_gauntlet_zone() -> void:
+	# 2026-11-15 实机反馈：潜行段（视锥黄光 + 纸箱 + 金松果）整体撤下，
+	# 原地换成搋子靶场——两只自主巡逻的恶犬守住窄道，撂倒即开路。
+	_label("【搋子靶场】\n按 [Q] / [鼠标左键] 朝恶犬发射！\n被撂倒的恶犬一会儿会爬起来，搋子补给也会重新长出来！",
+		Vector3(0, 2.5, 5.0), 22)
 
-	stealth_box.box_equipped.connect(func(_p):
-		if meme_layer:
-			meme_layer.play("box_equip")
-	)
-
-	# 2. Golden Pinecone placed at trail entrance (Right)
-	var pinecone = PINECONE_PROP.new()
-	pinecone.name = "GoldenPinecone"
-	pinecone.position = Vector3(1.8, 0, 5.0)
-	add_child(pinecone)
-
-	pinecone.pinecone_thrown.connect(func(_pos):
-		if meme_layer:
-			meme_layer.play("pinecone_thrown")
-	)
-
-	_label("【林间潜行双路线】\n左：[E] 穿上纸箱隐匿与 [Shift] 俯冲保龄撞狗！\n右：[F] 拾取金松果投掷，声东击西引开恶犬视线！", Vector3(0, 2.5, 5.0), 22)
-
-	# 3. Patrol Guard Dog with Vision Cone patrolling between Z = 0 and Z = -18.
-	# A real solid body (blocks the path, nips trespassers, can be bowled over by
-	# the cardboard box dive) instead of the old label-and-cylinder dummy.
+	# Guard #1 patrols the first bend (Z = 0..-14): the old cone route, now
+	# walked by the dog itself.
 	var zone_pts: Array[Vector3] = [
 		Vector3(-2.5, 0, -4.0),
 		Vector3(2.5, 0, -4.0),
 		Vector3(0.0, 0, -14.0),
 	]
-	patrol_dog = _make_patrol_guard("PatrolDogGuard", Vector3(0, 0, -6.0), zone_pts)
-	patrol_cone = patrol_dog.get_node("VisionCone")
+	patrol_dog = _make_patrol_guard("PatrolDogGuard", Vector3(0, 0, -6.0), zone_pts, 3.4)
 
-	patrol_cone.player_detected.connect(func(p):
-		# Stealth now has teeth: being spotted enlists the rubber-band dog.
-		if runner != null:
-			runner.alert_dogs(4.0)
-		if meme_layer:
-			meme_layer.play("dog_alert")
-	)
-	patrol_cone.player_lost.connect(func():
-		if meme_layer:
-			meme_layer.play("dog_confused")
-	)
+	# Guard #2 holds the second stretch (Z = -16..-24) up to checkpoint 1.
+	path_dog = _make_patrol_guard("PathDogGuard", Vector3(0, 0, -20.0), [
+		Vector3(-2.2, 0, -16.0),
+		Vector3(2.2, 0, -20.0),
+		Vector3(-2.2, 0, -24.0),
+	], 2.6)
 
-func _make_patrol_guard(node_name: String, pos: Vector3, patrol_points: Array[Vector3]) -> Node3D:
+func _make_patrol_guard(node_name: String, pos: Vector3, patrol_points: Array[Vector3],
+		speed: float = 3.0) -> Node3D:
 	var guard: Node3D = PATROL_GUARD_DOG.new()
 	guard.name = node_name
 	guard.position = pos
-	guard.set_meta("drive_with_vision_cone", true) # The vision cone patrols the dog, not just itself
+	guard.patrol_points = patrol_points
+	guard.patrol_speed = speed
 	add_child(guard)
-
-	var cone = PATROL_VISION_CONE.new()
-	cone.name = "VisionCone"
-	cone.cone_angle_deg = 70.0
-	cone.cone_range = 10.5
-	cone.patrol_speed = 3.4
-	cone.patrol_points = patrol_points
-	guard.add_child(cone)
 
 	guard.guard_nipped.connect(func(_p):
 		if meme_layer:
@@ -433,26 +396,18 @@ func _build_illusion_maze() -> void:
 
 	_label("【破幻迷宫】石墙为实，幻墙可破：\n假墙微光脉动 = 洞察之眸的提示！", Vector3(0, 3.4, -49.5), 20)
 
-	# A second patrolling guard in the zigzag rows: stealth matters to the end.
-	# Patrol legs are straight lines, so the route is L-shaped on purpose: every
-	# leg is verified to clear each stone row's z-band inside its gap (a diagonal
-	# would clip a row's corner - the wall boxes span z ±0.4 around each row).
+	# A second patrolling guard in the zigzag rows: the shooting range runs to
+	# the end. Patrol legs are straight lines, so the route is L-shaped on
+	# purpose: every leg is verified to clear each stone row's z-band inside its
+	# gap (a diagonal would clip a row's corner - the wall boxes span z ±0.4
+	# around each row).
 	var zigzag_pts: Array[Vector3] = [
 		Vector3(3.0, 0, -50.0),  # corridor 1
 		Vector3(3.0, 0, -53.5),  # south through A's right gap (x = 3)
 		Vector3(-1.0, 0, -53.5), # west along corridor 2, clear of both rows
 		Vector3(-1.0, 0, -59.0), # south through B's left gap (x = -1)
 	]
-	zigzag_dog = _make_patrol_guard("ZigzagDogGuard", Vector3(3.0, 0, -53.5), zigzag_pts)
-	var zigzag_cone = zigzag_dog.get_node("VisionCone")
-	zigzag_cone.cone_range = 7.0
-	zigzag_cone.patrol_speed = 2.7
-	zigzag_cone.player_detected.connect(func(_p):
-		if runner != null:
-			runner.alert_dogs(4.0)
-		if meme_layer:
-			meme_layer.play("dog_alert")
-	)
+	zigzag_dog = _make_patrol_guard("ZigzagDogGuard", Vector3(3.0, 0, -53.5), zigzag_pts, 2.7)
 
 	# Fireflies: soft motes marking the safe line through the maze.
 	for wisp_pos in [Vector3(3, 1.1, -50), Vector3(-2, 1.1, -58), Vector3(1, 1.1, -66), Vector3(-2, 1.1, -76)]:
@@ -475,7 +430,7 @@ func _on_maze_entered(body: Node3D) -> void:
 			"title": "破幻迷宫 · 末段冲刺",
 			"lines": [
 				"石墙为实，幻墙可破——萤火虫标着安全线。",
-				"小心巡逻恶犬的视线，直穿到底就是空心神木！",
+				"巡逻恶犬挡道？一搋子撂倒——直穿到底就是空心神木！",
 			],
 			"line_time": 1.25,
 			"accent": STORYBOOK_GOLD,
@@ -582,19 +537,22 @@ func _build_markers() -> void:
 	_area("CourseExit", "course_exit", Vector3(0, 2, -88), Vector3(8, 5, 3))
 
 func _build_plunger_armory() -> void:
-	# The woodland's one weapon: pig fires toilet plungers (Q) to knock patrol
-	# dogs down. Three rounds in the pocket, three resupply caches along the
-	# track. The launcher owns ammo/HUD/hit resolution; the course only places it.
+	# The woodland's one weapon and its whole combat loop now: pig fires toilet
+	# plungers (Q / mouse) to knock the patrolling guards down. Five rounds in
+	# the pocket, five resupply caches along the track (each regrows after a
+	# cooldown). The launcher owns ammo/HUD/hit resolution; the course only
+	# places it.
 	plunger_launcher = PLUNGER_LAUNCHER.new()
 	plunger_launcher.name = "PlungerLauncher"
 	add_child(plunger_launcher)
-	for pos in [Vector3(2.6, 0.25, -6.5), Vector3(-6.2, 0.25, -44.0), Vector3(4.5, 0.25, -68.0)]:
+	for pos in [Vector3(2.6, 0.25, -6.5), Vector3(-2.8, 0.25, -22.0), Vector3(-6.2, 0.25, -44.0),
+			Vector3(4.5, 0.25, -68.0), Vector3(0.0, 0.25, -80.0)]:
 		var pickup := PLUNGER_PROP.new()
 		pickup.name = "PlungerPickup"
 		add_child(pickup)
 		pickup.global_position = pos
 		pickup.collected.connect(func(): plunger_launcher.add_ammo(1))
-	_label("搋子军械库 · 按 [ Q ] 发射，把恶犬吸在地上！", Vector3(0, 2.4, -4.0), 20)
+	_label("搋子军械库 · 按 [ Q ] 或 [ 鼠标左键 ] 发射，把恶犬吸在地上！", Vector3(0, 2.4, -4.0), 20)
 
 func _checkpoint(node_name: String, index: int, pos: Vector3, respawn: Vector3) -> void:
 	var area := _area(node_name, "course_checkpoint", pos, Vector3(8, 3, 3))

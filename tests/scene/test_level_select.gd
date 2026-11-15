@@ -66,18 +66,16 @@ func _run() -> void:
 	btn_c3.pressed.emit()
 	await process_frame
 	_check(is_instance_valid(office.active_course), "Course 3 loaded via Level Select")
-	_check(office.active_course.runner.config.course_id == "course_3", "Active course is course_3 (Stealth)")
+	_check(office.active_course.runner.config.course_id == "course_3", "Active course is course_3 (Plunger gauntlet)")
 	_check(game.has_discern_skill and game.has_struggle_skill, "Course 3 lends discern and struggle")
 	_check(not game.npc_completed["sheep"] and not game.npc_completed["ox"], "Course 3 skill loans leave companion quests unfinished")
 	_check(hub_world.environment.fog_density > 0.03, "Course 3 woodland is properly misty")
 
-	# Verify Cardboard Box equip and unequip
-	var box: Node3D = office.active_course.stealth_box
-	_check(box != null, "Course 3 has stealth_box")
-	box.equip_box(office.player)
-	_check(office.player.get_meta("in_stealth_box", false), "Cardboard box equipped onto pig")
-	box.unequip_box()
-	_check(not office.player.get_meta("in_stealth_box", false), "Cardboard box unequipped cleanly via unequip_box()")
+	# 2026-11-15 redesign: the stealth loop is gone - the plunger armory is the
+	# course's combat identity now (no box, no vision cones, five pocket rounds).
+	_check(office.active_course.get_node_or_null("StealthCardboardBox") == null, "Course 3 retired the stealth cardboard box")
+	_check(office.active_course.patrol_dog.get_node_or_null("VisionCone") == null, "Course 3 guards no longer carry vision cones")
+	_check(office.active_course.plunger_launcher.ammo == 5, "Course 3 opens the plunger armory with five rounds")
 
 	# 4. Switch from Course 3 to Course 4 from settings
 	office._open_settings(false)
