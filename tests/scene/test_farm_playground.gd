@@ -6,6 +6,7 @@ extends SceneTree
 # leak into the story interactable group.
 
 const L = preload("res://scripts/levels/farm_layout.gd")
+const PLAYTHING = preload("res://scripts/levels/farm_plaything.gd")
 var failures: int = 0
 
 func _initialize() -> void:
@@ -34,6 +35,19 @@ func _run() -> void:
 		"Cabbage pitch is built (ball + goal)")
 	_check(farm.get_node_or_null("Log_Summit_1") != null, "Summit log obstacle exists")
 	_check(get_nodes_in_group("interactable").size() == 8, "Playground props stay out of the story interactables (5 NPCs + record board + cablecar + pigpen trough)")
+
+	# --- Apple trees (2026-11-15 playtest #13): the horse-track landmark plus a
+	# second one in the ox terrace - 牛顿的苹果 must be earnable where the
+	# potatoes grow, not only by the far track.
+	var apple_track: Node = farm.get_node_or_null("AppleTree")
+	var apple_ox: Node = farm.get_node_or_null("AppleTreeOxField")
+	_check(apple_track != null and apple_ox != null, "Both apple trees built (horse track + ox terrace)")
+	if apple_ox != null:
+		var ox_thing: Node = apple_ox.get_node_or_null("Plaything")
+		_check(ox_thing != null and ox_thing.kind == PLAYTHING.Kind.APPLE_TREE,
+			"Ox-terrace tree carries the APPLE_TREE plaything (shoveable for apple rain)")
+		_check(absf(apple_ox.global_position.y - 25.3) < 0.35,
+			"Ox-terrace tree stands on the terrace floor (y = 24 ground + half height)")
 
 	# --- Cabbage kick: contact hops the ball away from the pig
 	var ball: Node3D = farm.get_node("CabbageBall")

@@ -881,8 +881,15 @@ func _build_playground() -> void:
 		mound.add_child(_plaything(PLAYTHING.Kind.POTATO, Vector3(2.0, 1.6, 2.0), 1.0))
 		mound_index += 1
 
-	# --- Shakeable apple tree by the horse track (charged shove rains apples)
-	var tree := _box(self, "AppleTree", Vector3(0.5, 2.6, 0.5), Vector3(76, 9.3, -108), Color("665A48"), true)
+	# --- Shakeable apple trees (charged shove rains apples). The horse track
+	# keeps its landmark tree; a second one in the ox terrace means 牛顿的苹果
+	# is earnable where the potatoes already grow, not only by the far track
+	# (2026-11-15 playtest #13). 树基 = 台地地面 + 1.3（盒子半高）。
+	_build_apple_tree("AppleTree", Vector3(76, 9.3, -108))
+	_build_apple_tree("AppleTreeOxField", Vector3(8, 25.3, 34))
+
+func _build_apple_tree(tree_name: String, pos: Vector3) -> void:
+	var tree := _box(self, tree_name, Vector3(0.5, 2.6, 0.5), pos, Color("665A48"), true)
 	var canopy := MeshInstance3D.new()
 	canopy.name = "Canopy"
 	var canopy_sphere := SphereMesh.new()
