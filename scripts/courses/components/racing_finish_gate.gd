@@ -133,10 +133,12 @@ func _on_finish_entered(player: Node3D) -> void:
 		final_time = float(time_provider.call())
 
 	# The banner now reports the pig's real time: beating record_time is earned,
-	# and a slower run gets a consolation line instead of a free "RECORD BROKEN".
+	# and a slower run gets a consolation line instead of a free best-run banner.
+	# 2026-11-16 实机反馈 #4：农场的 35 秒纪录归马场计时赛，大院这边只报
+	# 「金牌杯最佳」——两块场地不再各说各话。
 	record_broken = final_time >= 0.0 and final_time < record_time
 	if record_broken:
-		banner_label.text = "🏁 RECORD BROKEN! 🏁\n%s 新纪录诞生！直接击穿大门！" % format_time(final_time)
+		banner_label.text = "🏁 金牌杯最佳！ 🏁\n%s ——大院金牌杯当前最佳战绩！直接击穿大门！" % format_time(final_time)
 		banner_label.modulate = Color("38BDF8")
 	elif final_time >= 0.0:
 		banner_label.text = "🏁 FINISH! %s 🏁\n离 %s 的纪录就差一点点……下次哼哼！" % [format_time(final_time), format_time(record_time)]

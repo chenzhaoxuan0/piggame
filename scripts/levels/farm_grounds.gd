@@ -94,6 +94,7 @@ func _ready() -> void:
 	_build_road_obstacles()
 	_build_playground()
 	_build_sheep_meadow_extras()
+	_build_ranch_race()
 	_build_cabbage_field()
 	_cabin=Node3D.new()
 	_cabin.name="CableCarCabin"
@@ -108,12 +109,12 @@ func _ready() -> void:
 		lever.get_node("LeverPost/VisualMesh").visible = false
 		lever.get_node("LeverHandle/VisualMesh").visible = false
 	_label(lever,"LeverLabel","F · 启动索道",Vector3(0,1.2,0),22)
-	# Record board faces the horse track from the north-east (the old spot stood
-	# in the middle of the gate-to-court walking lane).
-	var board := _interaction("RecordBoard","record_board",Vector3(55,8,-103),Vector3(1.7,2,.6))
+	# 2026-11-15 实机反馈 #5：纪录牌迁到林间捷径出口旁的必经路口（出林间/
+	# 进马场第一眼先见牌子再见马），同时它就是计时赛的启动台——对话开赛。
+	var board := _interaction("RecordBoard","record_board",Vector3(24,8,-100),Vector3(1.7,2,.6))
 	board.get_node("CollisionShape3D").position.y=1
 	board.add_child(ASSETS.make("PROP_06"))
-	_label(board,"BoardText","50 米直道 / 春季纪录 · 35 秒",Vector3(0,2.5,0),22)
+	_label(board,"BoardText","50 米直道 / 春季纪录 · 35 秒\n[ F ] 对话开赛！",Vector3(0,2.5,0),22)
 	_prop("PROP_04",Vector3(38,24,37.5))
 	_prop("ENV_06_TRACTOR",Vector3(-54,2,-170))
 	_sheep_tag=ASSETS.make("PROP_05")
@@ -285,6 +286,7 @@ func _on_checkpoint(body: Node3D,point: Vector3) -> void:
 func _physics_process(delta: float) -> void:
 	if _cabbage_goal_cool > 0.0:
 		_cabbage_goal_cool = maxf(0.0, _cabbage_goal_cool - delta)
+	_tick_ranch_race()
 	if not is_instance_valid(_player): _player=get_tree().get_first_node_in_group("player")
 	if not is_instance_valid(_player) or not _player.control_mode in ["explore","chase"]: return
 	var closest := L.closest_on_path(_player.global_position, L.journey())
@@ -720,6 +722,112 @@ func _on_weed_eaten(body: Node3D, weed: Node3D) -> void:
 		AchievementManager.unlock("lawn_mower")
 		playground_event.emit("lawn_mower", "")
 		_gag_at(WEEDING_CENTRE + Vector3.UP * 1.6, "绵羊欢呼：寸草不留！你是天生的除草机！", 2.4)
+
+# ------------------------------------------------------------- ranch race
+# 2026-11-15 实机反馈 #4/#5：马场计时赛。纪录牌就是启动台（对话开赛），
+# 两种跑法两枚章——沿跑道安稳一圈（不进内场）、按序踩满四检查点冲线
+# （允许穿场内草地抄近道）；35 秒纪念章由真实圈速驱动，真·猪跑出来的。
+const RACE_TIMER_SCRIPT = preload("res://scripts/courses/components/race_timer.gd")
+const RACE_TRACK_CENTRE := Vector3(40, 8, -120)
+const RACE_LAP := [
+	Vector3(65, 8, -120),  # CP1 东弯
+	Vector3(40, 8, -131),  # CP2 南直道
+	Vector3(15, 8, -120),  # CP3 西弯
+	Vector3(40, 8, -109),  # CP4 = 起点/终点线（北直道）
+]
+const RACE_RECORD := 35.0
+const RACE_CP_RADIUS := 6.0
+
+# RaceTimer extends CanvasLayer but carries its own state/stop/format_time
+# API - keep the reference untyped so those members resolve (a CanvasLayer-typed
+# var would not compile against them).
+var _race_timer = null
+var _race_gantry: Label3D = null
+var _race_running := false
+var _race_cp_index := 0
+var _race_stayed_on_track := true
+
+func _build_ranch_race() -> void:
+	# 起终点线（北直道中点）+ 四角检查点旗 + 龙门牌。
+	_box(self, "RaceStartLine", Vector3(6.0, 0.08, 0.6), RACE_LAP[3] + Vector3(0, 0.06, 0), Color("FDE68A"), false)
+	for i in 4:
+		var cp: Vector3 = RACE_LAP[i]
+		_box(self, "RaceCP%dPole" % i, Vector3(0.18, 2.6, 0.18), cp + Vector3(2.2, 1.3, 0), Color("E74C3C"), false)
+		_label(self, "RaceCP%dLabel" % i, "检查点 %d" % (i + 1), cp + Vector3(2.2, 3.0, 0), 16)
+	_race_gantry = _label(self, "RaceGantry", "🏁 计时赛起点 🏁", RACE_LAP[3] + Vector3(0, 4.4, 0), 22)
+
+## 纪录牌对话「开始计时赛」入口（office 的事件分发调用）。倒数期间猪被
+## 锁在起跑线后，GO 一响解锁并开始计时。
+func begin_race_trial(player: Node3D) -> bool:
+	if _race_running:
+		return false
+	if not is_instance_valid(player) or player.control_mode != "explore":
+		return false
+	_race_cp_index = 0
+	_race_stayed_on_track = true
+	player.reset_at(Vector3(40, 8.35, -105.5))
+	player.look_at(Vector3(65, 8.35, -120), Vector3.UP)
+	if _race_timer != null and is_instance_valid(_race_timer):
+		_race_timer.queue_free()
+	_race_timer = RACE_TIMER_SCRIPT.new()
+	_race_timer.name = "RanchRaceTimer"
+	add_child(_race_timer)
+	player.set_control_mode("cinematic")
+	_race_timer.countdown_finished.connect(func():
+		if is_instance_valid(player):
+			player.set_control_mode("explore")
+		_race_running = true
+		_gag_at(RACE_LAP[3] + Vector3.UP * 2.0, "跑！按顺序踩满四个检查点，回到这条线！", 2.2)
+	)
+	_race_timer.start_countdown(_race_gantry)
+	return true
+
+func _tick_ranch_race() -> void:
+	if not _race_running or _race_timer == null or not is_instance_valid(_race_timer):
+		return
+	if _race_timer.state != "running" or not is_instance_valid(_player):
+		return
+	var p: Vector3 = _player.global_position
+	# 越界保护：离赛道中心太远（进关/被传送）就取消这一轮。
+	if p.distance_to(RACE_TRACK_CENTRE) > 60.0:
+		_cancel_race("离场太远，本轮计时赛取消。")
+		return
+	# 内场检测（跑道内侧椭圆）：抄近道不亏章，但「稳稳一圈」没了。椭圆
+	# 半径取两条直道中心距的一半（25）与直道间净距的一半（8）——跑道线上
+	# 的弯角不会误判，向内切几米也留了容差。
+	var oval := pow((p.x - 40.0) / 25.0, 2.0) + pow((p.z + 120.0) / 8.0, 2.0)
+	if oval < 0.8:
+		_race_stayed_on_track = false
+	# 检查点按序推进。
+	if _race_cp_index < 4 and p.distance_to(RACE_LAP[_race_cp_index]) < RACE_CP_RADIUS:
+		_race_cp_index += 1
+		if _race_cp_index < 4:
+			_gag_at(RACE_LAP[_race_cp_index] + Vector3.UP * 2.2, "检查点 %d/4 ✓" % _race_cp_index, 1.2)
+	# 冲线：四点全踩 + 回到起点线。
+	if _race_cp_index >= 4 and p.distance_to(RACE_LAP[3]) < RACE_CP_RADIUS:
+		_finish_race()
+
+func _finish_race() -> void:
+	_race_running = false
+	var t: float = _race_timer.stop()
+	AchievementManager.unlock("checkpoint_chaser")
+	if _race_stayed_on_track:
+		AchievementManager.unlock("steady_lap")
+	var beat: bool = t >= 0.0 and t < RACE_RECORD
+	if beat:
+		AchievementManager.unlock("record_breaker")
+	var verdict := "真·猪跑出来的圈速：%s" % _race_timer.format_time(t)
+	if beat:
+		verdict += "——35 秒纪录，破了！"
+	_gag_at(RACE_LAP[3] + Vector3.UP * 2.4, verdict, 2.6)
+	playground_event.emit("race_finish", "%.2f" % t)
+
+func _cancel_race(reason: String) -> void:
+	_race_running = false
+	if _race_timer != null and is_instance_valid(_race_timer):
+		_race_timer.stop()
+	if is_instance_valid(_player):
+		_gag_at(_player.global_position + Vector3.UP * 1.6, reason, 2.0)
 
 # ------------------------------------------------------------- playground
 # Ten kinds of body-driven easter eggs down the whole mountain road. Every

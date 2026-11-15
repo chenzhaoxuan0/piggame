@@ -20,10 +20,13 @@ func _run() -> void:
 	_check(game.npc_completed.sheep and not office.farm._sheep_tag.visible,"sheep story removes tag")
 	await _follow([Vector3(-49,16,-44.5),Vector3(-38,16,-53),Vector3(-66,16,-62)])
 	await _follow(L.path("woodland"))
-	await _follow([Vector3(20,8,-102),Vector3(53.2,8,-102.8)])
+	# 2026-11-15 playtest #5: the board moved to the woodland-exit crossing
+	# (24,8,-100) - the journey detours one step north to read it (and start a
+	# trial) before walking on to the horse.
+	await _follow([Vector3(20,8,-102),Vector3(25.5,8,-100.8)])
 	await _interact()
 	await _dialogue()
-	_check(game.has_read_record,"record board independently reachable (relocated off the walking lane)")
+	_check(game.has_read_record,"record board independently reachable at the woodland-exit crossing")
 	await _follow([Vector3(30,8,-112),Vector3(27.3,8,-119.8)])
 	await _interact()
 	await _dialogue()

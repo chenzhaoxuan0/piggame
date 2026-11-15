@@ -242,7 +242,9 @@ func _run() -> void:
 	_check(timer.state == "stopped" and timer.final_time > 0.0, "Race clock froze at the line with a real time")
 	_check(is_equal_approx(gate.final_time, timer.final_time), "Finish gate pulled the real race time from the clock")
 	_check(gate.banner_label.text.contains(gate.format_time(gate.final_time)), "Banner shows the pig's actual time")
-	_check(gate.record_broken and gate.banner_label.text.contains("RECORD BROKEN"), "A sub-35s run breaks the farm record")
+	# 2026-11-16 playtest #4: the farm's 35 s record belongs to the ranch trial
+	# now - the courtyard gate reports the cup's own best-run banner instead.
+	_check(gate.record_broken and gate.banner_label.text.contains("金牌杯最佳"), "A sub-35s run takes the cup's best-run banner")
 	await process_frame
 	_check(game.chase_completed.get("chase_final", false), "chase_final marked complete via course exit")
 	_check(office.active_course == null, "Course scene unloaded")

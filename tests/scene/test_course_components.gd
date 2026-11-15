@@ -365,7 +365,9 @@ func _run() -> void:
 	f_gate.time_provider = func() -> float: return 20.0
 	f_gate._on_finish_entered(pig)
 	_check(f_gate.is_finished and f_gate.banner_label.visible, "RacingFinishGate drops record broken victory banner")
-	_check(f_gate.record_broken and f_gate.banner_label.text.contains("RECORD BROKEN") and f_gate.banner_label.text.contains("00:20.00"), "RacingFinishGate banner reports a real record-breaking time")
+	# 2026-11-16 playtest #4: the farm record belongs to the ranch trial - the
+	# gate banner reports the cup's own best-run line instead.
+	_check(f_gate.record_broken and f_gate.banner_label.text.contains("金牌杯最佳") and f_gate.banner_label.text.contains("00:20.00"), "RacingFinishGate banner reports a real best-run time")
 	f_gate.queue_free()
 
 	# RacingFinishGate: a slower run finishes without a free record

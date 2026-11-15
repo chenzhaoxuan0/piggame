@@ -129,7 +129,7 @@ func _run() -> void:
 	state.reset_run()
 	_check(not state.has_dash_skill and not state.has_struggle_skill, "Reset clears course loans and earned skills")
 
-	var events: Array[String] = ["choose_red", "choose_blue", "complete_ox", "complete_sheep", "complete_horse", "read_record", "complete_showdown", "launch_cablecar"]
+	var events: Array[String] = ["choose_red", "choose_blue", "complete_ox", "complete_sheep", "complete_horse", "read_record", "start_race", "complete_showdown", "launch_cablecar"]
 	for key in dialogue.dialogue_tree:
 		var node: Dictionary = dialogue.get_dialogue_node(key)
 		_check(not node.get("options", []).is_empty(), "Dialogue node has a visible exit: " + key)

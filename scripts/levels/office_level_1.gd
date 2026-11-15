@@ -1540,6 +1540,10 @@ func _select_option(index: int) -> void:
 					)
 			else: ok = false
 		"read_record": GameManager.read_record()
+		"start_race":
+			# 2026-11-15 实机反馈 #4/#5：纪录牌对话开赛（马场计时赛）。
+			close_dialogue()
+			ok = farm.begin_race_trial(player)
 		"complete_showdown":
 			ok = GameManager.complete_showdown()
 			if ok: farm.set_gate_open(true)
@@ -1645,6 +1649,12 @@ func _on_playground_event(kind: String, _detail) -> void:
 			_show_toast("除草机！", "十二株杂草，寸草不留——绵羊目瞪口呆。")
 		"pig_paddle":
 			_show_toast("落水猪！", "扑通——猪猪的第一次戏水，满分。")
+		"steady_lap":
+			_show_toast("稳稳一圈！", "规规矩矩沿跑道跑完一整圈——值得尊重。")
+		"checkpoint_chaser":
+			_show_toast("抄近道也是本事！", "四个检查点一个不落，路是猪自己选的。")
+		"record_breaker":
+			_show_toast("35 秒新纪录！", "马场计时赛——真·猪跑出来的圈速。")
 		"grass_gourmet":
 			_show_toast("食草动物的本分", "六丛嫩草，一丛不落。")
 		"potato_harvest":

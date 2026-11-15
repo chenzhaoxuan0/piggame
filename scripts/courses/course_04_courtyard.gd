@@ -150,7 +150,7 @@ func setup(player: Node3D) -> void:
 		"title": "终章 · 大院金牌杯",
 		"lines": [
 			"灯！霓虹！解说席的欢呼？！这是农场主后院的综艺赛场——大院金牌杯！",
-			"最后的直线：踩加速带、扔西瓜皮、飞大跳台，35 秒农场纪录等你打破。",
+			"最后的直线：踩加速带、扔西瓜皮、飞大跳台，冲击大院金牌杯的 35 秒标杆。",
 			"撞开终点线后的大铁门——那是通往自由的最后一跑！",
 		],
 		"line_time": 2.4,
@@ -175,7 +175,7 @@ func _make_config() -> CourseConfig:
 	var cfg := CONFIG_SCRIPT.new()
 	cfg.course_id = "course_4"
 	cfg.title = "终章 · 大院金牌突围"
-	cfg.desc = "最后的直线！踩上黄色加速带极速喷火、扔西瓜皮滑倒恶犬、用疾风之步打破 35 秒纪录——撞开大铁门，这是通往自由的最后一跑！"
+	cfg.desc = "最后的直线！踩上黄色加速带极速喷火、扔西瓜皮滑倒恶犬、用疾风之步冲进 35 秒大关——撞开大铁门，这是通往自由的最后一跑！"
 	cfg.kill_y = -12.0
 	cfg.bounds = AABB(Vector3(-40, -16, -190), Vector3(80, 40, 220))
 	cfg.dog_count = 1
@@ -195,8 +195,8 @@ func _make_config() -> CourseConfig:
 		"gravel_trap": {"title": "想抄近道？沙坑欢迎你！", "text": "内场是减速沙坑！偷鸡不成，恶犬的口水都滴到屁股上了！", "duration": 2.5},
 		"sweeper_hit": {"title": "霓虹扫堂腿！", "text": "呼——啪！起跳慢了半拍，小猪被扫成了陀螺！", "duration": 2.0},
 		"signboard_wham": {"title": "招牌摆锤大摆荡！", "text": "哐！被霓虹招牌一巴掌拍飞！看准节奏再冲！", "duration": 2.0},
-		"record_broken": {"title": "🏁 新世界纪录诞生！ 🏁", "text": "一口猪成功打破农场 35 秒纪录！欢呼声中一头撞破大门！", "duration": 3.5},
-		"record_miss": {"title": "🏁 完赛！差一点点！", "text": "没能跑进 35 秒……恶犬在终点线笑出了声，下次哼哼！", "duration": 3.5},
+		"record_broken": {"title": "🏁 金牌杯最佳战绩！ 🏁", "text": "一口猪冲进 35 秒大关，拿下大院金牌杯最佳！欢呼声中一头撞破大门！", "duration": 3.5},
+		"record_miss": {"title": "🏁 完赛！差一点点！", "text": "没能跑进 35 秒大关……恶犬在终点线笑出了声，下次哼哼！", "duration": 3.5},
 		"dog_bonk": {"title": "恶犬扑空", "text": "恶犬被甩在身后吃尾气！", "duration": 2.0},
 		"qte_success": {"title": "疾风甩尾挣脱！", "text": "野马疾风：漂移甩尾，甩开恶犬！", "duration": 2.2},
 		"qte_fail": {"title": "挣脱失败", "text": "被甩飞了……下次狂按空格！", "duration": 2.2},
@@ -434,7 +434,7 @@ func _build_start_grid() -> void:
 	start_barrier.add_child(barrier_mesh)
 	add_child(start_barrier)
 
-	_label("【大院金牌杯】栏杆抬起就冲！跑进 35 秒打破农场纪录！", Vector3(0, 6.2, 8.0), 24)
+	_label("【大院金牌杯】栏杆抬起就冲！跑进 35 秒大关！", Vector3(0, 6.2, 8.0), 24)
 
 func _build_boost_pads() -> void:
 	# Section A launch, rewards for taking each lane, and the nitro tunnel.
@@ -685,8 +685,8 @@ func _build_finish_gate() -> void:
 func _on_finish_line_crossed(player: Node3D) -> void:
 	if meme_layer:
 		meme_layer.play("record_broken" if finish_gate.record_broken else "record_miss")
-	if finish_gate.record_broken:
-		AchievementManager.unlock("record_breaker")
+	# 2026-11-16 实机反馈 #4：35 秒农场纪录改由马场计时赛真实圈速驱动，
+	# 大院终点只报「金牌杯最佳」，不再付 record_breaker。
 	runner._on_exit(player)
 
 func _build_decorations() -> void:

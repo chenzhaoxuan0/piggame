@@ -267,6 +267,52 @@ func _run() -> void:
 		await create_timer(0.15).timeout
 	_check(am.is_unlocked("lawn_mower"), "Eating the whole patch unlocks 除草机")
 
+	# --- Ranch time trial (2026-11-15 playtest #4/#5): the record board moved to
+	# the woodland-exit crossing, talks you into the race, and the lap pays two
+	# ways (steady ring lap / all-checkpoints shortcut) plus a real-clock 35 s.
+	var board: Node3D = farm.get_node("RecordBoard")
+	_check(board.global_position.distance_to(Vector3(27, 8, -103.5)) < 6.0,
+		"The record board stands at the woodland-exit crossing (pigs meet it before the horse)")
+	_check(farm.get_node_or_null("RaceStartLine") != null and farm.get_node_or_null("RaceCP3Pole") != null,
+		"The lap race is built (start line + checkpoint poles)")
+	var dm_node: Node = Node.new()
+	dm_node.set_script(load("res://scripts/core/dialogue_manager.gd"))
+	var board_dialogue: Dictionary = dm_node.dialogue_tree["inspect_record_board"]
+	var offers_race := false
+	for option in board_dialogue["options"]:
+		if option.get("event") == "start_race":
+			offers_race = true
+	_check(offers_race, "The board dialogue offers 开始计时赛")
+
+	# Leg A - shortcut run: ring to CP3, then cut the infield to the line.
+	_check(farm.begin_race_trial(pig), "The trial starts from the board's dialogue entry")
+	_check(pig.control_mode == "cinematic", "Pig is held at the start line during the countdown")
+	await create_timer(3.4).timeout # 3-2-1-GO
+	_check(farm._race_running and pig.control_mode == "explore", "GO! releases the pig with the clock running")
+	for cp in [farm.RACE_LAP[0], farm.RACE_LAP[1], farm.RACE_LAP[2]]:
+		pig.global_position = cp + Vector3(0, 0.3, 0)
+		await physics_frame
+		await physics_frame
+	pig.global_position = Vector3(40, 8.3, -127) # cut straight across the infield
+	await physics_frame
+	pig.global_position = farm.RACE_LAP[3] + Vector3(0, 0.3, 0)
+	await physics_frame
+	await physics_frame
+	await create_timer(0.3).timeout
+	_check(am.is_unlocked("checkpoint_chaser"), "Four checkpoints + finish pays 抄近道也是本事")
+	_check(not am.is_unlocked("steady_lap"), "The infield cut costs 稳稳一圈")
+	_check(am.is_unlocked("record_breaker"), "A sub-35 s lap pays 35 秒新纪录 (real clock)")
+
+	# Leg B - clean lap on the ring: the steady medal lands.
+	_check(farm.begin_race_trial(pig), "A second trial starts after the first")
+	await create_timer(3.4).timeout
+	for cp in farm.RACE_LAP:
+		pig.global_position = cp + Vector3(0, 0.3, 0)
+		await physics_frame
+		await physics_frame
+	await create_timer(0.3).timeout
+	_check(am.is_unlocked("steady_lap"), "A clean ring lap pays 稳稳一圈")
+
 	# --- Hay dive: falling into the stack scores; a 10 lands the achievement
 	var hay: Node3D = farm.get_node("HayDiveStack")
 	# 2026-11-15 playtest #11: the dive spot must announce itself - a launch sign
