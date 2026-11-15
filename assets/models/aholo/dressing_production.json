@@ -1281,6 +1281,237 @@
       "remote_status": 3,
       "raw_model": "assets/models/aholo/PROP_22_CABLECAR_LEVER/PROP_22_CABLECAR_LEVER.glb",
       "sha256": "63ce3dd64872d37e15348e42a20ff5e6ea13faf8de9f0b8a539c96e09b443652"
+    },
+    "ENV_10_GATE_TIMBER": {
+      "task_id": 8026084,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One rustic timber farm gate standing between two square wooden posts: two plank door leaves meeting at the centre, each leaf framed with horizontal planks and a diagonal brace, one chunky crossbeam over the posts. Four and a half metres wide compared with two and a quarter metres tall overall. Chunky pale weathered wood.",
+        "style": "cartoon",
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-15T18:41:12.167531+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/ENV_10_GATE_TIMBER/ENV_10_GATE_TIMBER.glb",
+      "sha256": "daabafb18845f031a8e4ade1a10d986c5353328b1c97e4c653abd4eaac4e5214"
+    },
+    "ENV_10_FEED_RACK": {
+      "task_id": 8026089,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One wooden hay feed rack for livestock: a long open tray box raised on four short square legs, two rows of slanted side slats flaring outward like an open cradle, a small mound of loose hay resting in the tray. Two and a half metres long compared with one metre tall. Chunky plain wood.",
+        "style": "cartoon",
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-15T18:41:14.792531+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/ENV_10_FEED_RACK/ENV_10_FEED_RACK.glb",
+      "sha256": "a1a80e4d07b607d64d086355af81d34f2bcd82cb7789e67cce383a27dfba9e2b"
+    },
+    "ENV_10_BARN": {
+      "task_id": 8026096,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One small red farm barn: rectangular red plank walls with pale cream corner posts, a tall slate grey gable roof, big double dark wooden stable doors with cream cross braces on the long wall, a small hayloft hatch above the doors. Wide low proportions, seven metres wide compared with five metres tall including the roof.",
+        "style": "cartoon",
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-15T18:41:17.432284+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/ENV_10_BARN/ENV_10_BARN.glb",
+      "sha256": "6c1ba67717393dc2edebb58d4aa668d7a484eea7518498f0b69fab3cfc071621"
+    },
+    "ENV_10_SILO": {
+      "task_id": 8026101,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One tall grey farm silo tower: a slightly tapered round concrete tower with a few broad horizontal seam bands, capped by a pointed slate grey cone roof. Five metres diameter compared with ten metres tall.",
+        "style": "cartoon",
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-15T18:41:20.114710+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/ENV_10_SILO/ENV_10_SILO.glb",
+      "sha256": "eba724086d8d67570377106babf52902b4f1450dcb53a31e157c64781dc80d3a"
+    },
+    "ENV_10_SHED_SHEAR": {
+      "task_id": 8026107,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One long low open-fronted wooden sheep shearing shed: dark plank walls on chunky timber posts, slate grey roof covering only the back slope leaving the tall front side open, a plain wooden shearing table and a neat stack of creamy wool sacks visible inside, straw scattered on the floor. Ten metres long compared with three and a half metres tall.",
+        "style": "cartoon",
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-15T18:41:22.745484+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/ENV_10_SHED_SHEAR/ENV_10_SHED_SHEAR.glb",
+      "sha256": "c7f01fb28648d4e4afd12d84e2493a1af496abaa79b5ed561247e0336522f5e1"
+    },
+    "ENV_10_BENCH": {
+      "task_id": 8026245,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One simple park bench: three wooden seat slats and two backrest slats in warm plain wood, four short dark iron legs. Two and a third metres long compared with one metre tall.",
+        "style": "cartoon",
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-15T18:46:12.311984+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/ENV_10_BENCH/ENV_10_BENCH.glb",
+      "sha256": "6c6182f9d15907b1579a6664d3f1f9976551b54ddfddb73f78bb0ac3accf6ada"
+    },
+    "ENV_10_STONE_PILLAR": {
+      "task_id": 8026251,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One squat stone gate pillar: a square column of large pale grey rounded masonry blocks with a slightly wider flat cap stone on top. Under one metre wide compared with two and a half metres tall.",
+        "style": "cartoon",
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-15T18:46:14.856166+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/ENV_10_STONE_PILLAR/ENV_10_STONE_PILLAR.glb",
+      "sha256": "0ad0b1a25a93509860a775a8cef70bcfd28e323ea678a93fad55ec250f91a12a"
+    },
+    "ENV_10_STATION": {
+      "task_id": 8026258,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One small wooden cable car boarding platform on short stilts: a low deck of pale planks, simple dark wooden fence rails along the deck edges, two sturdy dark posts rising at one end carrying a heavy header beam overhead. Nine metres long compared with four and a half metres tall overall.",
+        "style": "cartoon",
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-15T18:46:17.472533+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/ENV_10_STATION/ENV_10_STATION.glb",
+      "sha256": "b0f7ae1ae529d32ee9696b8d1e8ca0d6bea8009130dea578bea93746ffc87ea1"
+    },
+    "ENV_10_RUINED_SHED": {
+      "task_id": 8026263,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One small ruined wooden shelter: two standing dark plank walls meeting at a corner, chunky corner posts, a broken roof of grey slate sheets covering only the far half with the near half open to the sky, a little straw scattered inside. Five metres wide compared with two and a half metres tall.",
+        "style": "cartoon",
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-15T18:46:20.094909+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/ENV_10_RUINED_SHED/ENV_10_RUINED_SHED.glb",
+      "sha256": "e76822b55c08a5d9ccffb92dd54389d1a0b73ac11039a1e888851c1faceb728b"
+    },
+    "ENV_10_APPLE_FRUIT": {
+      "task_id": 8026268,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One single ripe red apple fruit with a tiny brown stem, broad soft blush shading from deep red into a faint golden patch, a subtle highlight dimple at the top. Freestanding single fruit, complete all around.",
+        "style": "cartoon",
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-15T18:46:22.738986+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/ENV_10_APPLE_FRUIT/ENV_10_APPLE_FRUIT.glb",
+      "sha256": "a7627f538c356f26a17f2343a547ebdab62d2318645655e8a1e34f0dec25c500"
+    },
+    "ENV_10_POTATO": {
+      "task_id": 8026532,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One single freshly dug potato tuber, lumpy irregular oval body in warm earthy tan brown, a few small broad smooth eyes, faint dusty soil dusting. Freestanding single vegetable, complete all around.",
+        "style": "cartoon",
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-15T18:56:01.389749+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/ENV_10_POTATO/ENV_10_POTATO.glb",
+      "sha256": "ffce2b85984c1fbb1bd80cdb7ad3ad20adebd3b3b1eee32dfaa7481580729da1"
     }
   }
 }

@@ -47,16 +47,16 @@ func _run() -> void:
 	var dressing := 0
 	var course := 0
 	for id in catalog.assets:
-		if id.begins_with("ENV_09_"):
+		if id.begins_with("ENV_09_") or id.begins_with("ENV_10_"):
 			dressing += 1
 		elif id.begins_with("PROP_C1_"):
 			course += 1
 		else:
 			core += 1
 	_check(core == 89, "89 core assets delivered (got %d)" % core)
-	_check(dressing == 18, "18 diverse dressing modules delivered (got %d)" % dressing)
+	_check(dressing == 29, "29 diverse dressing modules delivered (got %d)" % dressing)
 	_check(course == 13, "13 course-1 props delivered (got %d)" % course)
-	_check(catalog.assets.size() == 120, "catalog total 120 (got %d)" % catalog.assets.size())
+	_check(catalog.assets.size() == 131, "catalog total 131 (got %d)" % catalog.assets.size())
 	for id in catalog.assets:
 		var visual := ASSETS.make(id)
 		_check(visual != null, "accepted model loads: " + id)

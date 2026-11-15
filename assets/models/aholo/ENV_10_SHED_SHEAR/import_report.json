@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_10_SHED_SHEAR",
+  "raw_triangles": 8918,
+  "triangles": 5000,
+  "size_blender_xyz": [
+    7.793125152587891,
+    4.5701704025268555,
+    3.700000047683716
+  ],
+  "file_bytes": 394432,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_10_SHED_SHEAR/ENV_10_SHED_SHEAR_game.glb"
+}

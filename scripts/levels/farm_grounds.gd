@@ -66,6 +66,10 @@ func _ready() -> void:
 	timber.position.y=-.15
 	_pigpen_gate.add_child(timber)
 	_pigpen_gate.get_node("VisualMesh").hide()
+	# 白盒清扫：圈门改挂 ENV_10_GATE_TIMBER（三扇分区门同款模型，缩到 4.4 m
+	# 跨度）；烘焙栅栏插片与灰盒照旧隐藏，TimberGate 节点保留测试引用。
+	ASSETS.hide_procedural_visuals(_pigpen_gate)
+	ASSETS.mount_visual(_pigpen_gate, "ENV_10_GATE_TIMBER", Vector3(4.4, 1.9, 0.42), "PigpenGateLux", true, "box")
 	_named_gates["pigpen"] = _pigpen_gate
 
 	# The pigpen trough: the tutorial's one true interactable (拱食槽 gag +
@@ -153,7 +157,7 @@ func _install_environment() -> void:
 	var environment: Node3D
 	if not "--rebuild-environment" in OS.get_cmdline_user_args() and ResourceLoader.exists("res://assets/environments/pastoral_farm.scn"):
 		environment=load("res://assets/environments/pastoral_farm.scn").instantiate()
-		if environment.get_meta("layout_version",0)!=9:
+		if environment.get_meta("layout_version",0)!=10:
 			environment.free()
 			environment=null
 	if environment==null:
@@ -207,62 +211,11 @@ func _prop(id: String,p: Vector3) -> void:
 		add_child(art)
 		art.position=p
 
-## Swap a white-box prop's flat VisualMesh for its Lux3D model: the body keeps
-## its collision, scripts and playthings, and the model is scaled uniformly to
-## the replaced box height with its base dropped onto the box bottom, so every
-## transform gag (tip / squash / kick) keeps driving the same root. No-ops
-## without the asset - offline runs keep the box (same contract as the
-## NibbleGrass tufts). `centered` matches how the body root was placed: true
-## for _box/_sphere roots (origin at box centre), false for ground-level roots.
+## Swap a white-box prop's flat VisualMesh for its Lux3D model. The fit
+## contract (scale / base drop / offline box fallback) now lives once in
+## FarmAssets.mount_visual so the courses and playthings share it too.
 func _mount_lux(body: Node3D, asset_id: String, box_size: Vector3, lux_name := "", centered := true, fit_axis := "y") -> Node3D:
-	var art := ASSETS.make(asset_id)
-	if art == null:
-		return null
-	var mesh := body.get_node_or_null("VisualMesh")
-	if mesh != null:
-		mesh.visible = false
-	var aabb := _model_aabb(art)
-	# fit_axis picks the fitted dimension: height for standing props, width for
-	# wide-assembled props, or the full per-axis box when the art's aspect
-	# differs from its collider (the low hurdle's posts stay put while its
-	# poles and feet stretch along the road - all X-aligned prisms).
-	var scale_vec := Vector3.ONE
-	if fit_axis == "box" and aabb.size.x > 0.001 and aabb.size.y > 0.001:
-		scale_vec = Vector3(
-			box_size.x / aabb.size.x,
-			box_size.y / aabb.size.y,
-			box_size.z / maxf(aabb.size.z, 0.001))
-	else:
-		var target: float = box_size.y if fit_axis == "y" else box_size.x
-		var authored: float = aabb.size.y if fit_axis == "y" else aabb.size.x
-		var fit := target / authored if authored > 0.001 else 1.0
-		scale_vec = Vector3.ONE * fit
-	art.scale = scale_vec
-	# Models are metre-normalized with the base at the origin; drop the scaled
-	# base onto the bottom face of the collision box it dresses.
-	art.position = Vector3(0, (-box_size.y * 0.5 if centered else 0.0) - aabb.position.y * scale_vec.y, 0)
-	if lux_name != "":
-		art.name = lux_name
-	body.add_child(art)
-	return art
-
-func _model_aabb(node: Node3D) -> AABB:
-	# Merged local-space bounds of every mesh under a freshly made (still out
-	# of tree) model, in the model's own coordinates.
-	var found := false
-	var merged := AABB()
-	if node is VisualInstance3D:
-		merged = (node as VisualInstance3D).get_aabb()
-		found = true
-	for child in node.get_children():
-		if not (child is Node3D):
-			continue
-		var child_box: AABB = (child as Node3D).transform * _model_aabb(child)
-		if child_box.size == Vector3.ZERO:
-			continue
-		merged = merged.merge(child_box) if found else child_box
-		found = true
-	return merged
+	return ASSETS.mount_visual(body, asset_id, box_size, lux_name, centered, fit_axis)
 
 func _area(label: String,p: Vector3,size: Vector3,callback: Callable) -> void:
 	var area:=Area3D.new()
@@ -488,7 +441,12 @@ func _create_timber_gate(id: String, pos: Vector3, size: Vector3, label_text: St
 	var leaf_r := _box(gate, "LeafR", Vector3(size.x * 0.46, size.y * 0.85, 0.12), Vector3(size.x * 0.24, 0, 0), Color("876B46"))
 	leaf_l.get_node("VisualMesh").position.z = 0.05
 	leaf_r.get_node("VisualMesh").position.z = 0.05
-	
+	# 白盒清扫：门体由 ENV_10_GATE_TIMBER 模型绘制（门柱、横梁、双门扇一体
+	# 生成，按碰撞盒整体适配）；程序柱梁与门扇保留结构但不再显示。开门时
+	# 整扇门照旧整体隐藏（_set_barrier 的既有语义），门扇的开合转轴原样保留。
+	ASSETS.hide_procedural_visuals(gate)
+	ASSETS.mount_visual(gate, "ENV_10_GATE_TIMBER", Vector3(size.x, size.y * 1.25, 0.4), "GateLux", true, "box")
+
 	var label := _label(gate, "GateLabel_" + id, label_text + " / LOCKED", Vector3(0, size.y * 0.9, 0), 20)
 	_gate_labels[id] = label
 	return gate
@@ -517,8 +475,9 @@ func _build_road_obstacles() -> void:
 	# Woodland road logs aligned with L.LOGS[1]
 	var log_pos_2: Vector3 = L.LOGS[1].a.lerp(L.LOGS[1].b, L.LOGS[1].t)
 	var log2 := _box(self, "Log_Woodland_1", Vector3(3.6, 0.55, 0.55), log_pos_2 + Vector3.UP * 0.25, Color("4D3A27"), true)
-	# Same baked-beam duplicate as the summit log - collider stays, twin box goes.
-	log2.get_node("VisualMesh").visible = false
+	# 白盒清扫：林间倒木与山顶倒木穿同一件 PROP_19_FALLEN_LOG——环境侧的烘
+	# 焙横梁已拆除（layout_version 9→10），碰撞盒照旧，模型贴盒装。
+	_mount_lux(log2, "PROP_19_FALLEN_LOG", Vector3(3.6, 0.7, 0.7), "LogLux", true, "box")
 	# Woodland road cart: the old miter-bulge spot wedged it into the roadside
 	# fence; it now rests on the shoulder south of the woodland road.
 	var cart1 := _box(self, "Cart_Woodland_Side", Vector3(1.8, 0.7, 1.2), Vector3(-43.2, 13.85, -79.2), Color("6B523A"), true)

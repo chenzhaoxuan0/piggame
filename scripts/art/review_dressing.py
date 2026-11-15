@@ -18,6 +18,9 @@ if args.accept:
         spec=SPECS[asset_id]
         report=json.loads((BASE/asset_id/'import_report.json').read_text(encoding='utf-8'))
         budget=7000 if asset_id=='ENV_09_WOOL' else (4500 if asset_id in ['ENV_09_BARREL','ENV_09_HURDLE','ENV_06_CRATE'] else 2600)
+        # 2026-11-16 白盒清扫波：ENV_10 地标/道具按各自 spec 的面数预算验收
+        #（与 process_dressing 的缩减目标同源，仍低于测试侧 6000 上限）。
+        if asset_id.startswith('ENV_10_'): budget=int(SPECS[asset_id].get('budget',2600))
         if report['triangles']>budget: raise ValueError('Dressing exceeds review budget: '+asset_id)
         resource='res://'+report['runtime']
         catalog['assets'][asset_id]={'path':resource,'accepted':True,'yaw_degrees':0,

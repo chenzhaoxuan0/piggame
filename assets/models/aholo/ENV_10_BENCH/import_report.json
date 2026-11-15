@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_10_BENCH",
+  "raw_triangles": 9472,
+  "triangles": 899,
+  "size_blender_xyz": [
+    1.8245117664337158,
+    0.7225109338760376,
+    0.949999988079071
+  ],
+  "file_bytes": 72892,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_10_BENCH/ENV_10_BENCH_game.glb"
+}

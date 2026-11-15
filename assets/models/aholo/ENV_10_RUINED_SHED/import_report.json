@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_10_RUINED_SHED",
+  "raw_triangles": 9974,
+  "triangles": 3200,
+  "size_blender_xyz": [
+    3.0896568298339844,
+    2.9416544437408447,
+    2.8000001907348633
+  ],
+  "file_bytes": 253296,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_10_RUINED_SHED/ENV_10_RUINED_SHED_game.glb"
+}

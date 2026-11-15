@@ -435,7 +435,15 @@ func _belt(node_name: String, pos: Vector3, size: Vector3, dir: Vector3, speed: 
 func _hurdle(node_name: String, size: Vector3, pos: Vector3) -> void:
 	# Low amber fence blocking the full corridor width: walking stops, the
 	# pig's 0.93 m jump clears it. This is where Space gets taught.
+	# 白盒清扫：栏架改挂 PROP_C0_HURDLE——管线里早已生成、一直没接线的全宽
+	# 栏模型（11.2 m 原长即第一道栏的本体尺寸）；沿 Z 跨的第二道栏把模型转 90°。
 	var hurdle := _solid_box(node_name, size, pos, HAZARD_AMBER)
+	var span_x := size.x >= size.z
+	var art := ASSETS.mount_visual(hurdle, "PROP_C0_HURDLE",
+		Vector3(size.x if span_x else size.z, size.y, size.z if span_x else size.x),
+		"HurdleLux", true, "box")
+	if art:
+		art.rotation.y = 0.0 if span_x else PI / 2.0
 	var hint := _label("【空格 跳跃！】", Vector3(0, 1.4, 0), 30, hurdle)
 	hint.name = "JumpHint"
 	hint.modulate = Color("FFF59D")

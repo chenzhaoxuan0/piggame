@@ -1087,6 +1087,105 @@
       "category": "environment_dressing",
       "triangle_budget": 2600,
       "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-14"
+    },
+    "ENV_10_GATE_TIMBER": {
+      "path": "res://assets/models/aholo/ENV_10_GATE_TIMBER/ENV_10_GATE_TIMBER_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 2200,
+      "category": "environment_dressing",
+      "triangle_budget": 2200,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-16"
+    },
+    "ENV_10_FEED_RACK": {
+      "path": "res://assets/models/aholo/ENV_10_FEED_RACK/ENV_10_FEED_RACK_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 1400,
+      "category": "environment_dressing",
+      "triangle_budget": 1400,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-16"
+    },
+    "ENV_10_BARN": {
+      "path": "res://assets/models/aholo/ENV_10_BARN/ENV_10_BARN_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 4500,
+      "category": "environment_dressing",
+      "triangle_budget": 4500,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-16"
+    },
+    "ENV_10_SILO": {
+      "path": "res://assets/models/aholo/ENV_10_SILO/ENV_10_SILO_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 2600,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-16"
+    },
+    "ENV_10_SHED_SHEAR": {
+      "path": "res://assets/models/aholo/ENV_10_SHED_SHEAR/ENV_10_SHED_SHEAR_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 5000,
+      "category": "environment_dressing",
+      "triangle_budget": 5000,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-16"
+    },
+    "ENV_10_BENCH": {
+      "path": "res://assets/models/aholo/ENV_10_BENCH/ENV_10_BENCH_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 899,
+      "category": "environment_dressing",
+      "triangle_budget": 900,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-16"
+    },
+    "ENV_10_STONE_PILLAR": {
+      "path": "res://assets/models/aholo/ENV_10_STONE_PILLAR/ENV_10_STONE_PILLAR_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 800,
+      "category": "environment_dressing",
+      "triangle_budget": 800,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-16"
+    },
+    "ENV_10_STATION": {
+      "path": "res://assets/models/aholo/ENV_10_STATION/ENV_10_STATION_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 4000,
+      "category": "environment_dressing",
+      "triangle_budget": 4000,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-16"
+    },
+    "ENV_10_RUINED_SHED": {
+      "path": "res://assets/models/aholo/ENV_10_RUINED_SHED/ENV_10_RUINED_SHED_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 3200,
+      "category": "environment_dressing",
+      "triangle_budget": 3200,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-16"
+    },
+    "ENV_10_APPLE_FRUIT": {
+      "path": "res://assets/models/aholo/ENV_10_APPLE_FRUIT/ENV_10_APPLE_FRUIT_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 500,
+      "category": "environment_dressing",
+      "triangle_budget": 500,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-16"
+    },
+    "ENV_10_POTATO": {
+      "path": "res://assets/models/aholo/ENV_10_POTATO/ENV_10_POTATO_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 500,
+      "category": "environment_dressing",
+      "triangle_budget": 500,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-16"
     }
   }
 }

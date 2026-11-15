@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_10_SILO",
+  "raw_triangles": 9292,
+  "triangles": 2600,
+  "size_blender_xyz": [
+    4.33173942565918,
+    4.320409297943115,
+    10.0
+  ],
+  "file_bytes": 205496,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_10_SILO/ENV_10_SILO_game.glb"
+}

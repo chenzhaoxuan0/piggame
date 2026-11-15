@@ -155,3 +155,29 @@ One straight low dry stone wall module, three courses of large irregular rounded
 ### ENV_09_SIGN · 山路木质路标
 
 One rustic wooden trail signpost with two broad arrow shaped boards pointing in opposite directions, thick single vertical timber post. Blank boards without text, pale tan wood, simple dark end grain.
+
+---
+
+# 白模清扫 · 0.6.1 / ENV_10
+
+2026-11-16。全图审计后把最后一批「白模方块类」占位几何换成 Lux3D 模型：11 件文生 3D（G1-Turbo、cartoon、10,000 原始面目标， Style 前缀同 ENV_09）+ 8 处复用既有模型。目录总量 120 → 131（ENV_10_* 计入 dressing 桶：18 → 29）。烘焙 layout_version 9→10 重烘 `pastoral_farm.scn`；烘焙侧拆除的几何：山顶/林间倒木、追逐草捆堆、谷仓×3、筒仓、剪毛棚（含棚外白模羊毛团）、索道站台、铁门石柱、饲料架×5、水桶×3、猪圈废棚、菜畦作物头×18。运行侧换装（程序件隐藏、碰撞与逻辑不变）：三扇分区木门 + 圈门、course_00 教程跳栏（接上一直闲置的 PROP_C0_HURDLE）、开场菜单背景石墙、苹果雨/土豆拾取物、course_01 四邻树石。
+
+| 资产 ID | 名称 | 模型基座 (w×d×h m) | 最终三角面 | Lux3D 任务 | 接入点 |
+| --- | --- | --- | ---: | ---: | --- |
+| ENV_10_GATE_TIMBER | 农场双扇木门 | 2.78×0.37×2.25 | 2,200 | 8026084 | 三扇分区门（箱式适配到 4.8 m 跨）+ 圈门 4.4 m |
+| ENV_10_FEED_RACK | 木制饲料架 | 2.11×0.94×1.15 | 1,400 | 8026089 | 5 处（猪圈/牛耕地×2/剪毛/马场） |
+| ENV_10_BARN | 红墙谷仓 | 5.32×5.66×5.0 | 4,500 | 8026096 | 3 处；碰撞体改为模型实占（不再有隐形墙） |
+| ENV_10_SILO | 灰筒仓塔 | 4.33×4.32×10.0 | 2,600 | 8026101 | 牛耕地西侧地标 |
+| ENV_10_SHED_SHEAR | 剪毛矮棚 | 7.79×4.57×3.7 | 5,000 | 8026107 | 羊棚草甸（放大到 10 m 跨，含棚内剪毛台/羊毛袋） |
+| ENV_10_BENCH | 公园长椅 | 1.82×0.72×0.95 | 899 | 8026245 | 马场草坪（放大到 2.3 m 座宽） |
+| ENV_10_STONE_PILLAR | 石砌门柱 | 1.18×1.18×2.7 | 800 | 8026251 | 终局铁门两侧（分轴缩到 0.85 m 方截面） |
+| ENV_10_STATION | 索道站台 | 4.54×5.65×4.4 | 4,000 | 8026258 | 索道旷野；悬空钢缆仍程序绘制 |
+| ENV_10_RUINED_SHED | 废弃矮棚 | 3.09×2.94×2.8 | 3,200 | 8026263 | 猪圈后角（分轴铺满原 4.8×4.2 占地） |
+| ENV_10_APPLE_FRUIT | 红苹果果实 | 0.35×0.34×0.34 | 500 | 8026268 | 苹果雨拾取物（原红球兜底保留） |
+| ENV_10_POTATO | 拱出的土豆 | 0.27×0.30×0.36 | 500 | 8026532 | 拱土豆拾取物（原土球兜底保留） |
+
+复用既有模型（零新增生成）：追逐草捆堆 → PROP_11_HAY_STACK；教程跳栏 → PROP_C0_HURDLE；装饰水桶 → PROP_10_WATER_BUCKET；菜畦作物头 → PROP_08_CABBAGE；林间倒木 → PROP_19_FALLEN_LOG（与山顶倒木同款）；背景墙 → ENV_09_WALL；course_01 四邻树石 → ENV_09_OAK/BIRCH/PINE/ROCK。
+
+挂点契约收敛：`FarmAssets.mount_visual`（原 farm_grounds._mount_lux 的箱式适配/落地/离线兜底逻辑上移为静态共享实现），环境侧新增 `_place_lux` 虚方法（山地子类接 dressing 批处理，裸基类 no-op）。共享 fit 契约一处定义，关卡/课程/拾取物三处复用。
+
+仍保留的程序几何（有意为之，非白模残留）：围栏/石墙/树篱边界系统与溪谷断桥板（结构性道路家具，批量烘入；后续可单独开波次换 ENV_09_WALL/RAIL 模块）、课程结构钢架（门架/摆锤龙门/大锤立柱/扫堂腿柱/收尾门柱——大院与工厂的刻意风格件）、地面画线（格纹/箭头/警示条）、假门涂鸦（gag）、光幕/萤火/光环/惊醒光（VFX）、嫩香草与杂草（playtest 定稿的可缩放互动件）、邮箱红旗（tween 驱动）、池塘围石（playtest #1 定稿）。

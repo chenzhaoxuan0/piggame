@@ -159,15 +159,16 @@ func _build_surroundings() -> void:
 	for p in [Vector3(-48, -16, -30), Vector3(50, -17, -70), Vector3(-44, -18, -95)]:
 		env._boulder(p, Vector3(30, 22, 40), stone_light, p.x)
 	# Trees and boulders grounded on the wide terraces.
-	env._district = "CourseTrees"
-	env._tree(Vector3(-7, 0, 11), 0.9)
-	env._tree(Vector3(7, 0, 11), 1.0)
-	env._tree(Vector3(-5, 0, -103), 0.9)
-	env._tree(Vector3(5, 0, -103), 1.0)
-	env._district = "CourseRocks"
-	env._boulder(Vector3(7.2, 0.1, -2), Vector3(1.6, 1.3, 1.5), stone, 0.3)
-	env._boulder(Vector3(-7.0, 0.1, 6), Vector3(1.3, 1.0, 1.2), rock, 1.1)
-	env._boulder(Vector3(5.2, 0.1, -95), Vector3(1.4, 1.1, 1.3), stone, 2.0)
+	# 白盒清扫：四邻树/石改挂环境同款 ENV_09 模型（裸基类的 _tree/_boulder
+	# 是程序白模）。0.85 的缩放与山地 _tree 的 scale_factor*0.85 一致，
+	# 树干挂 0.5 m 碰撞；岩石离线兜底是模型 no-op（无碰撞需求）。
+	_prop("ENV_09_OAK", Vector3(-7, 0, 11), 40, Vector3(.5, 2, .5), .9 * .85)
+	_prop("ENV_09_BIRCH", Vector3(7, 0, 11), 130, Vector3(.5, 2, .5), 1.0 * .85)
+	_prop("ENV_09_PINE", Vector3(-5, 0, -103), 200, Vector3(.5, 2, .5), .9 * .85)
+	_prop("ENV_09_OAK", Vector3(5, 0, -103), 310, Vector3(.5, 2, .5), 1.0 * .85)
+	_prop("ENV_09_ROCK", Vector3(7.2, 0.1, -2), 20, Vector3(0, 0, 0), 1.1)
+	_prop("ENV_09_ROCK", Vector3(-7.0, 0.1, 6), 70, Vector3(0, 0, 0), 0.9)
+	_prop("ENV_09_ROCK", Vector3(5.2, 0.1, -95), 160, Vector3(0, 0, 0), 1.0)
 	# Grass tufts and flowers scattered over the terrace ground for detail.
 	env._district = "Ground_Detail"
 	for p in [Vector3(-5, 0.02, 2), Vector3(4, 0.02, 0), Vector3(-2, 0.02, 10), Vector3(6, 0.02, 8),
@@ -224,7 +225,7 @@ func _build_dressing() -> void:
 	_prop("ENV_09_ROCK", Vector3(4.2, -3.5, -31), 30, Vector3(1.8, 1.4, 1.8))
 	_prop("ENV_09_STUMP", Vector3(-4.2, -3.5, -33), 0, Vector3(1.1, 0.75, 1.1))
 
-func _prop(asset_id: String, pos: Vector3, yaw_deg: float, col_size: Vector3) -> void:
+func _prop(asset_id: String, pos: Vector3, yaw_deg: float, col_size: Vector3, scale := 1.0) -> void:
 	var visual := ASSETS.make(asset_id)
 	if visual == null:
 		return
@@ -233,12 +234,14 @@ func _prop(asset_id: String, pos: Vector3, yaw_deg: float, col_size: Vector3) ->
 	body.rotation.y = deg_to_rad(yaw_deg)
 	body.collision_layer = 1
 	body.collision_mask = 0
-	var shape := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	box.size = col_size
-	shape.shape = box
-	shape.position.y = col_size.y * 0.5
-	body.add_child(shape)
+	if col_size != Vector3.ZERO:
+		var shape := CollisionShape3D.new()
+		var box := BoxShape3D.new()
+		box.size = col_size
+		shape.shape = box
+		shape.position.y = col_size.y * 0.5
+		body.add_child(shape)
+	visual.scale = Vector3.ONE * scale
 	body.add_child(visual)
 	add_child(body)
 

@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_10_BARN",
+  "raw_triangles": 8406,
+  "triangles": 4500,
+  "size_blender_xyz": [
+    5.322336673736572,
+    5.658906936645508,
+    5.0
+  ],
+  "file_bytes": 354488,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_10_BARN/ENV_10_BARN_game.glb"
+}

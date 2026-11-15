@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_10_STATION",
+  "raw_triangles": 9160,
+  "triangles": 4000,
+  "size_blender_xyz": [
+    4.543205738067627,
+    5.652092456817627,
+    4.400000095367432
+  ],
+  "file_bytes": 313924,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_10_STATION/ENV_10_STATION_game.glb"
+}

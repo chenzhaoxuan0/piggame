@@ -20,16 +20,16 @@ func _run() -> void:
 	var dressing := 0
 	var course := 0
 	for id in catalog.assets:
-		if id.begins_with("ENV_09_"):
+		if id.begins_with("ENV_09_") or id.begins_with("ENV_10_"):
 			dressing += 1
 		elif id.begins_with("PROP_C1_"):
 			course += 1
 		else:
 			core += 1
 	_check(core == 89, "89 core assets delivered (got %d)" % core)
-	_check(dressing == 18, "18 diverse dressing modules delivered (got %d)" % dressing)
+	_check(dressing == 29, "29 diverse dressing modules delivered (got %d)" % dressing)
 	_check(course == 13, "13 course-1 props delivered (got %d)" % course)
-	_check(catalog.assets.size() == 120, "catalog holds 120 runtime models (got %d)" % catalog.assets.size())
+	_check(catalog.assets.size() == 131, "catalog holds 131 runtime models (got %d)" % catalog.assets.size())
 	for id in catalog.assets:
 		var visual: Node3D = assets.make(id)
 		_check(visual != null, "packed model loads: " + id)
@@ -47,7 +47,7 @@ func _run() -> void:
 	_check(game.get_node("Farm/Gate").find_child("GateLeft", true, false) != null, "packed gate hinged")
 	var environment: Node3D = game.get_node_or_null("Farm/PastoralEnvironment")
 	_check(environment != null and environment.get_script() == null, "authored environment is baked into the pack")
-	_check(environment.get_meta("layout_version",0)==9,"enriched mountain environment version packaged")
+	_check(environment.get_meta("layout_version",0)==10,"enriched mountain environment version packaged")
 	_check(environment.get_meta("dressing_counts",{}).size()>=18,"dressing catalog survives export")
 	for batch in environment.find_children("Dressing_*","MultiMeshInstance3D",true,false):
 		_check(batch.multimesh.mesh!=null,"packed dressing mesh loads")
