@@ -93,7 +93,9 @@ func _on_dog_grapple(dog: ChaseDog) -> void:
 func resolve_qte(dog: ChaseDog, success: bool) -> void:
 	in_qte = false
 	if success:
-		if is_instance_valid(dog):
+		# stop_chase() 之后 _player 已是 null（进洞/换世界路径会先停追逐再
+		# 结算挂着的 QTE）——成功演出的击退对空玩家会直接空访问。
+		if is_instance_valid(dog) and _player != null:
 			var gm := _get_gm()
 			var has_ox_skill: bool = bool(gm.get("has_struggle_skill")) if gm else false
 			var knock_dir := (dog.global_position - _player.global_position)
@@ -110,6 +112,15 @@ func resolve_qte(dog: ChaseDog, success: bool) -> void:
 					other_dog.stun(1.2, stagger_dir.normalized() * 3.0)
 	else:
 		_finish(false)
+
+## 关卡拒绝了这次 QTE（暂停/对话/世界切换）：只回滚标志并放开狗，不做
+## 任何演出——与 CourseRunner.reject_qte 同语义。resolve_qte 不合适：
+## stop_chase 之后 _player/狗可能已不在，击退/眩晕既会空访问也没有观众。
+func reject_qte(dog: ChaseDog) -> void:
+	in_qte = false
+	if is_instance_valid(dog) and dog.phase == "grapple":
+		dog._captured = false
+		dog.phase = "seek"
 
 func refresh_discern_status() -> void:
 	var gm := _get_gm()
@@ -175,6 +186,7 @@ func stop_chase() -> void:
 	running = false
 	active = false
 	_player = null
+	in_qte = false # 追逐都没了就不能还挂着 QTE：否则之后的扑咬全被拒绝
 	for dog: ChaseDog in _dogs:
 		if is_instance_valid(dog):
 			dog.set_active(false)

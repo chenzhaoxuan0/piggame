@@ -356,6 +356,28 @@ func _finish_qte(success: bool) -> void:
 	else:
 		chase.resolve_qte(dog, false)
 
+## 进出隐藏赛道会整体切换世界并强制改写猪的控制模式：若恶犬恰在这一瞬间
+## 咬住猪（追逐段末段就是赛道入口，这是实际会发生的事），QTE 面板会挂
+## 在半空——空格监听只在 qte 模式下生效，进关后它既关不掉也打不满，
+## 只能干等倒计时归零（2026-11-15 实机反馈 #8/#9）。世界一换，追捕本身
+## 就结束了：立刻收场。不走 _finish_qte：成功分支白付 grapple_escape，
+## 失败分支在农场侧会罚回检查点——玩家只是钻进了洞口。所有者侧用
+## reject_qte 回滚（进洞路径 stop_chase 已清 _player/狗，resolve 的击退
+## 演出既会空访问也没有观众），否则它们的 in_qte 卡 true，之后的扑咬
+## QTE 会被自己拒绝。
+func _dismiss_qte_for_world_switch() -> void:
+	if not in_qte:
+		return
+	in_qte = false
+	if is_instance_valid(qte_panel):
+		qte_panel.visible = false
+	var dog := current_qte_dog
+	current_qte_dog = null
+	if is_instance_valid(active_course):
+		active_course.runner.reject_qte(dog)
+	elif chase != null:
+		chase.reject_qte(dog)
+
 # -------------------------------------------------------------
 # Skill notices (bottom-right feed): permanent unlocks and course
 # loans both land as feed cards - no center modal, no locked pig,
@@ -1662,6 +1684,7 @@ func _notification(what: int) -> void:
 
 func _enter_course(stage_id: String) -> void:
 	if is_instance_valid(active_course): return
+	_dismiss_qte_for_world_switch() # 洞口前被咬住：换世界即脱险，QTE 面板不跟着进关
 	var scene_res = COURSE_SCENES.get(stage_id, COURSE_SCENES.get("course_1"))
 	active_course = scene_res.instantiate()
 	add_child(active_course)
@@ -1744,6 +1767,7 @@ func _finish_course_deferred() -> void:
 
 func _exit_course() -> void:
 	var completed_id := current_chase_id
+	_dismiss_qte_for_world_switch() # 对称保险：出赛道同样立刻收掉挂着的 QTE
 	GameManager.clear_course_skills()
 	MusicManager.play("farm") # 出赛道回农场：田园基调接回
 	if is_instance_valid(player):
