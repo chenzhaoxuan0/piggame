@@ -345,6 +345,9 @@ func start_battle(level: Node) -> void:
 
 	turn_header_label.text = "【 铁 门 前 的 决 战 · 第 1 回 合 】"
 	narrative_label.text = "野生的 农场主 (Lv.40) 挡住了去路！\n“047号！明早车就来了，老实回圈加满甜麦麸！”\n请选择一口猪的对抗招式："
+	# 对决台词走自己的精简文案，配音按同义对话节点播（TTS 白盒）
+	if is_instance_valid(level_ref) and level_ref.has_method("play_dialogue_vo"):
+		level_ref.play_dialogue_vo("ordeal_encounter")
 
 	_sync_dialogue_options()
 	_enable_buttons(true)
@@ -426,6 +429,9 @@ func _farmer_counter_turn(was_countered: bool) -> void:
 		farmer_log = "\n农场主 挥舞电击棍扑了上来：“最后一步了——你出不了这道门！！”"
 		pig_dmg = 22.0 if was_countered else 45.0
 		_update_farmer_status("[ 狗急跳墙 ]", Color(0.85, 0.30, 0.20))
+	# 第 2 回合的电棍威吓与对话节点 ordeal_turn_2 同义，播它的配音
+	if current_turn == 2 and is_instance_valid(level_ref) and level_ref.has_method("play_dialogue_vo"):
+		level_ref.play_dialogue_vo("ordeal_turn_2")
 
 	pig_hp = maxf(0.0, pig_hp - pig_dmg)
 	_animate_hp_change(pig_hp_bar, pig_hp, pig_hp_label, pig_max_hp)
@@ -453,6 +459,8 @@ func _resolve_victory() -> void:
 	_update_farmer_status("[ 彻底溃败 ]", Color(0.55, 0.50, 0.45))
 	turn_header_label.text = "【 决 胜 · 铁 门 轰 然 敞 开 】"
 	narrative_label.text = "农场主 电击棍脱手掉在地上，颓然跌坐在地……\n“跑了一头，亏了千把块……算了，圈里还有几百头。”\n\n轰——铛！！铁大门锁扣被彻底撞断！铁门轰然敞开！"
+	if is_instance_valid(level_ref) and level_ref.has_method("play_dialogue_vo"):
+		level_ref.play_dialogue_vo("ordeal_aftermath")
 	if pig_hp <= 40.0:
 		narrative_label.text += "\n\n（你浑身发抖，就剩一口喘着的气——可是门，开了。）"
 	_screen_shake(8.0)

@@ -189,7 +189,10 @@ var dialogue_tree: Dictionary = {
 func get_dialogue_node(key: String) -> Dictionary:
 	if key == "zhuifeng_record_check":
 		key = "zhuifeng_awaken" if GameManager.has_read_record else "zhuifeng_observe_record"
-	return dialogue_tree.get(key, {}).duplicate(true)
+	var node: Dictionary = dialogue_tree.get(key, {}).duplicate(true)
+	# 注入解析后的真实节点 id：对话配音（dialogue_vo）按它对应 assets/audio/vo/{id}.mp3。
+	node["id"] = key
+	return node
 
 func get_entry_for(interaction_id: String) -> String:
 	match interaction_id:

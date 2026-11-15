@@ -33,6 +33,8 @@ var hud: Control
 var objective: Label # removed with the top title bar; guidance lives in the todo notebook
 var status: Label
 var prompt: Label
+const DIALOGUE_VO_SCRIPT := preload("res://scripts/core/dialogue_vo.gd")
+var dialogue_vo = null # 对话节点配音：开哪个节点播 assets/audio/vo/{id}.mp3
 var dialogue_panel: PanelContainer
 var speaker_label: Label
 var content_label: Label
@@ -205,6 +207,9 @@ func _build_hud() -> void:
 	# level script keeps the state, signal wiring and behavior that drive those nodes.
 	GAME_HUD.build_all(self)
 	_wire_dialogue_panel()
+	dialogue_vo = DIALOGUE_VO_SCRIPT.new()
+	dialogue_vo.name = "DialogueVO"
+	add_child(dialogue_vo)
 	_build_pokemon_battle()
 	GAME_MENUS.build_all(self)
 	achievements_menu = GAME_MENUS.build_achievements_menu(hud, _close_achievements)
@@ -903,6 +908,8 @@ func _show_start_menu() -> void:
 		overlay.visible = false
 	if is_instance_valid(dialogue_panel):
 		dialogue_panel.visible = false
+	if dialogue_vo != null:
+		dialogue_vo.stop()
 	_set_todo_hub_visible(false)
 	player.set_control_mode("cinematic")
 
@@ -1345,6 +1352,8 @@ func open_dialogue(key: String) -> void:
 	speaker_label.text = str(data.get("speaker", "")) + "  /  " + str(data.get("title", ""))
 	portrait.texture = ART_2D.PORTRAITS.get(str(data.get("speaker", "")))
 	portrait.visible = portrait.texture != null
+	if dialogue_vo != null:
+		dialogue_vo.play_for(str(data.get("id", current_dialogue)))
 	var world := get_tree().get_first_node_in_group("farm_world")
 	if world != null and world.has_method("play_npc_action"):
 		world.play_npc_action(str(data.get("speaker", "")), "talk")
@@ -1513,10 +1522,17 @@ func close_dialogue() -> void:
 			start_menu.visible = false
 	dialogue_open = false
 	dialogue_panel.visible = false
+	if dialogue_vo != null:
+		dialogue_vo.stop()
 	if is_instance_valid(notice_feed): notice_feed.visible = true
 	if is_instance_valid(toast_panel) and toast_panel.visible: _place_toast()
 	_restore_control()
 	_refresh_hud()
+
+## 对决界面（pokemon_showdown）借用：按对话节点 id 播 assets/audio/vo/ 下的同款配音。
+func play_dialogue_vo(node_id: String) -> void:
+	if dialogue_vo != null:
+		dialogue_vo.play_for(node_id)
 
 func _restore_control() -> void:
 	if in_start_menu: player.set_control_mode("cinematic")
