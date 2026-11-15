@@ -607,7 +607,7 @@ func _build_mystery_item_boxes() -> void:
 	_mystery_box("MysteryItemBox1", Vector3(-2.0, 0, -4.0))   # Start straight
 	_mystery_box("MysteryItemBox2", Vector3(12.5, 0, -47.5))  # East lane, past the mud
 	_mystery_box("MysteryItemBox3", Vector3(-12.5, 0, -104.0)) # Nitro tunnel
-	_label("【马车问号道具箱】撞碎抽取火箭推进、后置西瓜皮或无敌金猪！", Vector3(0, 3.4, -3.0), 20)
+	_label("【卡丁冲刺道具箱】撞碎抽取火箭推进、后置西瓜皮或无敌金猪！", Vector3(0, 3.4, -3.0), 20)
 
 func _mystery_box(node_name: String, pos: Vector3) -> void:
 	var item_box = MYSTERY_ITEM_BOX.new()

@@ -119,7 +119,7 @@ func setup(player: Node3D) -> void:
 		"lines": [
 			"叮——世界变成了一格一格的像素块？！云是方的，溪水是蓝格子。",
 			"这是溪谷里的隐藏试炼：狗群在峡谷尽头嚎叫，就等着包饺子。",
-			"像《我的世界》一样干活：推方块填河架桥、引爆 TNT，从下界传送门突围！",
+			"像在体素方块世界里干活：推方块填河架桥、引爆 TNT，从下界传送门突围！",
 		],
 		"line_time": 2.5,
 		"accent": VOXEL_BLUE,
@@ -145,7 +145,7 @@ func _make_config() -> CourseConfig:
 		"water_splash": {"title": "小猪落水！", "text": "湍急的体素溪流！被冲回岸边狗刨中……", "duration": 2.2},
 		"water_slide": {"title": "🌊 瀑布急流滑梯！", "text": "咻——！一口猪顺着瀑布急流飞速滑入峡谷！", "duration": 2.2},
 		"slime_bounce": {"title": "🟩 史莱姆超级弹跳！", "text": "BOING！踩上粘液块，一口猪高高弹射过峡谷！", "duration": 2.2},
-		"bridge_built": {"title": "方块架桥成功！", "text": "《我的世界》基础技巧：把方块垫入急流铺路！", "duration": 2.5},
+		"bridge_built": {"title": "方块架桥成功！", "text": "体素方块基础技巧：把方块垫入急流铺路！", "duration": 2.5},
 		"sand_drop": {"title": "重力沙下坠！", "text": "物理定律生效！沙子方块垂直砸落！", "duration": 2.2},
 		"dog_buried": {"title": "恶犬被活埋！", "text": "重力沙盖顶！恶犬懵逼打喷嚏，峡谷道路畅通！", "duration": 3.0},
 		"plate_click": {"title": "红石信号触发！", "text": "压力板咔哒一响！TNT开始急促膨胀！", "duration": 2.2},
