@@ -151,8 +151,10 @@ func _horses() -> void:
 	for i in 3:
 		_put("HURDLE",Vector3(42+i*10,8,-123),.95,PI*.5)
 		e._patch(Vector3(42+i*10,8.04,-123),Vector2(3.0,1.8),e.PATH.darkened(.07),16,.06)
+		# 白模清扫：跨栏两侧的奶白方块标记墩改挂小号 ENV_09_ROCK（与山路路侧
+		# 标记石 Rock_Creek_Side 同源，苔石轮廓比裸盒子更像训练场道具）。
 		for sign_side in [-1,1]:
-			e._box(Vector3(42+i*10+sign_side*2.5,8.22,-123),Vector3(.35,.44,.35),e.CREAM)
+			e._dressing.place("ENV_09_ROCK",Vector3(42+i*10+sign_side*2.5,8.0,-123),Vector3.ONE*.3,sign_side*1.3+float(i))
 	_put("PUMP",Vector3(77,8,-129),1)
 	_put("BARREL",Vector3(78.2,8,-128),1)
 	# 2026-11-13: the wheelbarrow used to poke into the track barn's west wall.
