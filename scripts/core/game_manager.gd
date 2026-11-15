@@ -39,20 +39,66 @@ var intro_dream_done: bool = false
 # its pen to learn the keys, but NPCs won't talk and the pen gate stays
 # bolted. F on the goat is the "start the game" button and clears this.
 var tutorial_free_roam: bool = false
+# 二周目（NG+）：通关一次后写进 user:// 档案并常驻——reset_run() 不清它，
+# 它属于玩家档案而不是某一局。技能 getter 全部 or ng_plus：二周目从泥窝
+# 醒来就自带全部伙伴之力（2026-11-15 实机反馈：冲刺门控的彩蛋——羊棚手推
+# 车、苹果树这类——一周目拿到冲刺太晚，正适合二周目顺路完成）。
+var ng_plus := false
+var finished_runs := 0
+const DEFAULT_PROGRESS_PATH := "user://run_progress.json"
+var progress_path := DEFAULT_PROGRESS_PATH
+
+func _ready() -> void:
+	# headless（测试进程）不读真实档案：通关型测试写过 run_progress.json 会让
+	# 之后的每一个测试进程带着 NG+ 全技能启动，"技能应为关"的断言全灭。
+	# 测试要验证持久化就显式重定向 progress_path（demo_state 的做法）。
+	if DisplayServer.get_name() != "headless":
+		_load_persisted_progress()
+
+func _load_persisted_progress() -> void:
+	if not FileAccess.file_exists(progress_path):
+		return
+	var f := FileAccess.open(progress_path, FileAccess.READ)
+	if f == null:
+		return
+	var parsed = JSON.parse_string(f.get_as_text())
+	f.close()
+	if parsed is Dictionary:
+		finished_runs = int(parsed.get("finished_runs", 0))
+	ng_plus = finished_runs >= 1
+
+func _persist_progress() -> void:
+	# headless 只允许写显式重定向过的临时档案，绝不碰玩家的真实进度文件。
+	if DisplayServer.get_name() == "headless" and progress_path == DEFAULT_PROGRESS_PATH:
+		return
+	var f := FileAccess.open(progress_path, FileAccess.WRITE)
+	if f == null:
+		return
+	f.store_string(JSON.stringify({"finished_runs": finished_runs}))
+	f.close()
+
+## 局启动时由关卡调用：二周目开局点亮纪念成就并回报 true（用于一次性提示）。
+func begin_ng_plus_if_earned() -> bool:
+	if not ng_plus:
+		return false
+	AchievementManager.unlock("second_visit")
+	return true
 
 # Companions' granted powers (meaningful forward momentum).
 # Setters write npc_completed: assignments from level select must be visible to
 # every reader (getter-only properties silently swallow writes).
 # Hidden courses lend their skills through course_skill_bonuses instead, so
 # entering a course never ticks the farm story's companion quests.
+# NG+ tacks on `or ng_plus`: a profile that escaped once keeps all three powers
+# on every later run, without ticking the companion quests themselves.
 var has_struggle_skill: bool:
-	get: return npc_completed.get("ox", false) or course_skill_bonuses.get("struggle", false)
+	get: return npc_completed.get("ox", false) or course_skill_bonuses.get("struggle", false) or ng_plus
 	set(value): npc_completed["ox"] = value
 var has_discern_skill: bool:
-	get: return npc_completed.get("sheep", false) or course_skill_bonuses.get("discern", false)
+	get: return npc_completed.get("sheep", false) or course_skill_bonuses.get("discern", false) or ng_plus
 	set(value): npc_completed["sheep"] = value
 var has_dash_skill: bool:
-	get: return npc_completed.get("horse", false) or course_skill_bonuses.get("dash", false)
+	get: return npc_completed.get("horse", false) or course_skill_bonuses.get("dash", false) or ng_plus
 	set(value): npc_completed["horse"] = value
 
 # Course-scoped skill loans: granted on course setup(), cleared on course exit.
@@ -182,6 +228,10 @@ func finish_escape() -> bool:
 		return false
 	ending = "escape"
 	stage = "ending"
+	# 通关记账：这一局结束，玩家档案从此标记 NG+（后续每一局全技能随身）。
+	finished_runs += 1
+	ng_plus = true
+	_persist_progress()
 	state_changed.emit()
 	return true
 

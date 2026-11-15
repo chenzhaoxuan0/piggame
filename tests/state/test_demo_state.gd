@@ -16,6 +16,12 @@ func _check(condition: bool, message: String) -> void:
 func _run() -> void:
 	var state = root.get_node("GameManager")
 	var dialogue = root.get_node("DialogueManager")
+	# NG+ 记账走临时档案：finish_escape 会写玩家档案，别把测试机的真实
+	# 二周目标记烧进去。
+	state.progress_path = "user://run_progress_demo_test.json"
+	state.finished_runs = 0
+	state.ng_plus = false
+	DirAccess.open("user://").remove("run_progress_demo_test.json")
 	state.reset_run()
 	_check(state.stage == "prologue" and not state.has_pin, "New run must start in prologue without pin")
 	_check(not state.start_chase(), "Chase cannot start before choosing red")
@@ -69,9 +75,34 @@ func _run() -> void:
 	_check(state.ending == "escape" and state.stage == "ending", "Escape state is terminal")
 	_check(not state.finish_escape(), "Ending cannot repeat")
 
+	# --- NG+：通关一次记账进玩家档案并常驻；reset_run 不清它；三个技能
+	# getter 从醒来起全部为真，但同伴任务本身不被点亮。
+	_check(state.finished_runs == 1 and state.ng_plus, "Escaping once arms NG+ on the profile")
+	state.reset_run()
+	_check(state.ng_plus, "reset_run keeps the NG+ profile flag")
+	_check(state.has_struggle_skill and state.has_discern_skill and state.has_dash_skill,
+		"NG+ carries every companion skill from wake-up")
+	_check(not state.npc_completed.get("ox", false) and not state.npc_completed.get("sheep", false)
+		and not state.npc_completed.get("horse", false), "NG+ grants skills without ticking companion quests")
+	var am_ng: Node = root.get_node("AchievementManager")
+	var am_ng_path: String = am_ng.save_path
+	am_ng.save_path = "user://achievements_demo_ng_test.json"
+	DirAccess.open("user://").remove("achievements_demo_ng_test.json")
+	am_ng.reset_progress(true)
+	_check(state.begin_ng_plus_if_earned(), "NG+ boot helper reports earned")
+	_check(am_ng.is_unlocked("second_visit"), "再见围城 pays on an NG+ boot")
+	am_ng.save_path = am_ng_path
+
 	state.reset_run()
 	state.choose_red()
 	_check(state.start_chase() and state.complete_chase() and state.complete_showdown() and state.finish_escape(), "Zero companion path must complete")
+	_check(state.finished_runs == 2, "A second full escape adds to the profile counter")
+	# NG+ 断言到此为止：下面的 course-loan 段要求"无任何技能"的干净档案，
+	# 把档案标记与临时文件就地清掉。
+	state.finished_runs = 0
+	state.ng_plus = false
+	DirAccess.open("user://").remove("run_progress_demo_test.json")
+	DirAccess.open("user://").remove("achievements_demo_ng_test.json")
 	state.reset_run()
 	_check(not state.has_pin and not state.has_read_record and state.ending == "", "Reset clears inventory, clue, ending")
 	for id in ["ox", "sheep", "horse"]:

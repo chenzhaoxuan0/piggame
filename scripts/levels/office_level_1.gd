@@ -155,6 +155,9 @@ func _ready() -> void:
 
 	_build_hud()
 	_build_pin()
+	# 二周目开局提示：档案里逃出去过一次，全部伙伴之力醒来即随身。
+	if GameManager.begin_ng_plus_if_earned():
+		_show_toast("二周目 · 伙伴之力随身", "坚韧挣脱 · 破妄明眸 · 疾风冲刺，从泥窝醒来的第一秒全都回来。")
 	player.reset_at(farm.get_spawn_position())
 	camera.snap_to_target()
 	_refresh_hud()
