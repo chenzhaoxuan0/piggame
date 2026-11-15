@@ -106,7 +106,7 @@ func _ready() -> void:
 	if _mount_lux(lever, "PROP_22_CABLECAR_LEVER", Vector3(0.65, 0.8, 0.65), "LeverLux") != null:
 		lever.get_node("LeverPost/VisualMesh").visible = false
 		lever.get_node("LeverHandle/VisualMesh").visible = false
-	_label(lever,"LeverLabel","E · 启动索道",Vector3(0,1.2,0),22)
+	_label(lever,"LeverLabel","F · 启动索道",Vector3(0,1.2,0),22)
 	# Record board faces the horse track from the north-east (the old spot stood
 	# in the middle of the gate-to-court walking lane).
 	var board := _interaction("RecordBoard","record_board",Vector3(55,8,-103),Vector3(1.7,2,.6))
