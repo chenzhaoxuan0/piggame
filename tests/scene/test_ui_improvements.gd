@@ -60,6 +60,21 @@ func _run() -> void:
 	await process_frame
 	_check(office.in_settings and office.settings_menu.visible, "Settings modal opens from start menu")
 	_check(not office.start_menu.visible, "Start menu hides while in settings")
+	# 2b. Settings' About button opens the credits panel (BGM attribution) and
+	# closing it returns to settings.
+	var about_btn: Button = office.settings_menu.find_child("AboutGameButton", true, false)
+	_check(about_btn != null, "Settings has an AboutGameButton")
+	if about_btn != null:
+		about_btn.pressed.emit()
+		await process_frame
+		_check(office.credits_panel != null and office.credits_panel.visible, "About opens the credits panel")
+		_check(not office.settings_menu.visible, "Settings suspends while credits are up")
+		var credits_back: Button = office.credits_panel.find_child("BackButton", true, false)
+		_check(credits_back != null, "Credits panel has a back button")
+		if credits_back != null:
+			credits_back.pressed.emit()
+			await process_frame
+			_check(not office.credits_panel.visible and office.settings_menu.visible, "Closing credits returns to settings")
 	office._close_settings()
 	await process_frame
 	_check(not office.in_settings and not office.settings_menu.visible, "Settings modal closes cleanly")

@@ -376,7 +376,7 @@ static func _build_settings_menu(host: Node) -> void:
 	var title := UI.label("游戏设置", 28, UI.TEAL_DEEP, true)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(title)
-	var sub := UI.label("画面 · 声音 · 关卡直达", 14, UI.INK_SOFT)
+	var sub := UI.label("画面 · 声音 · 关卡直达 · 关于", 14, UI.INK_SOFT)
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(sub)
 
@@ -452,6 +452,13 @@ static func _build_settings_menu(host: Node) -> void:
 
 	var sep2 := HSeparator.new()
 	vbox.add_child(sep2)
+
+	# 关于游戏：BGM（Kevin MacLeod，CC BY 4.0）等开放素材的署名义务从这里可查。
+	var btn_about := UI.button("📜  关于游戏（BGM 署名与致谢）", host._open_credits_from_settings)
+	btn_about.name = "AboutGameButton"
+	btn_about.custom_minimum_size.y = 38
+	btn_about.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_child(btn_about)
 
 	var btn_back := UI.button("◀  返回", host._close_settings)
 	btn_back.name = "BackButton"

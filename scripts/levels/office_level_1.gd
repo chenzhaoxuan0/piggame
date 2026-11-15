@@ -69,6 +69,7 @@ var start_menu: Control
 var pause_menu: Control
 var settings_menu: Control
 var achievements_menu: Control
+var credits_panel: Control # 设置菜单「关于游戏」打开的致谢面板（BGM 署名等）
 
 # Untitled Goose Game Style UI Extensions
 var todo_hub: Control
@@ -971,6 +972,9 @@ func _close_settings() -> void:
 	in_settings = false
 	if is_instance_valid(settings_menu):
 		settings_menu.visible = false
+	# ESC 从致谢面板直接退出时把两层一起收掉，避免致谢面板悬在暂停菜单上。
+	if is_instance_valid(credits_panel):
+		credits_panel.visible = false
 	if settings_from_start:
 		if is_instance_valid(start_menu):
 			start_menu.visible = true
@@ -985,6 +989,23 @@ func _close_settings() -> void:
 			var settings_btn: Button = pause_menu.find_child("SettingsButton", true, false)
 			if is_instance_valid(settings_btn):
 				settings_btn.grab_focus()
+
+# 设置菜单的「关于游戏」：挂起设置打开致谢面板（BGM CC BY 署名等），关闭后回到设置。
+func _open_credits_from_settings() -> void:
+	if credits_panel == null:
+		credits_panel = GAME_MENUS.build_credits_menu(hud, _close_credits_from_settings)
+	if is_instance_valid(settings_menu):
+		settings_menu.visible = false
+	credits_panel.visible = true
+
+func _close_credits_from_settings() -> void:
+	if is_instance_valid(credits_panel):
+		credits_panel.visible = false
+	if is_instance_valid(settings_menu):
+		settings_menu.visible = true
+		var back_btn: Button = settings_menu.find_child("BackButton", true, false)
+		if is_instance_valid(back_btn):
+			back_btn.grab_focus()
 
 func _open_achievements(from_start: bool = false) -> void:
 	achievements_from_start = from_start
