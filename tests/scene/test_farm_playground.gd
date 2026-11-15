@@ -36,18 +36,26 @@ func _run() -> void:
 	_check(farm.get_node_or_null("Log_Summit_1") != null, "Summit log obstacle exists")
 	_check(get_nodes_in_group("interactable").size() == 8, "Playground props stay out of the story interactables (5 NPCs + record board + cablecar + pigpen trough)")
 
-	# --- Apple trees (2026-11-15 playtest #13): the horse-track landmark plus a
-	# second one in the ox terrace - 牛顿的苹果 must be earnable where the
-	# potatoes grow, not only by the far track.
+	# --- Apple trees (2026-11-15 playtest #13 + follow-up): the ox field's east
+	# orchard is a baked ENV_09_APPLE batch - EVERY dressing apple tree carries
+	# the APPLE_TREE plaything now, alongside the hand-built landmarks.
 	var apple_track: Node = farm.get_node_or_null("AppleTree")
 	var apple_ox: Node = farm.get_node_or_null("AppleTreeOxField")
-	_check(apple_track != null and apple_ox != null, "Both apple trees built (horse track + ox terrace)")
+	_check(apple_track != null and apple_ox != null, "Both landmark apple trees built (horse track + road bend)")
 	if apple_ox != null:
 		var ox_thing: Node = apple_ox.get_node_or_null("Plaything")
 		_check(ox_thing != null and ox_thing.kind == PLAYTHING.Kind.APPLE_TREE,
-			"Ox-terrace tree carries the APPLE_TREE plaything (shoveable for apple rain)")
+			"Road-bend tree carries the APPLE_TREE plaything (shoveable for apple rain)")
 		_check(absf(apple_ox.global_position.y - 25.3) < 0.35,
-			"Ox-terrace tree stands on the terrace floor (y = 24 ground + half height)")
+			"Road-bend tree stands on the terrace floor (y = 24 ground + half height)")
+	var orchard: Array = get_nodes_in_group("apple_orchard")
+	_check(orchard.size() >= 4, "The baked orchard is fully interactive (>= 4 dressing apple trees, got %d)" % orchard.size())
+	var orchard_ok := orchard.size() > 0
+	for holder in orchard:
+		var holder_thing: Node = holder.get_node_or_null("Plaything")
+		if holder_thing == null or holder_thing.kind != PLAYTHING.Kind.APPLE_TREE:
+			orchard_ok = false
+	_check(orchard_ok, "Every orchard holder carries an APPLE_TREE plaything")
 
 	# --- Cabbage kick: contact hops the ball away from the pig
 	var ball: Node3D = farm.get_node("CabbageBall")

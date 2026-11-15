@@ -22,7 +22,7 @@ func build(farm: Node3D) -> void:
 	_farm = farm
 	_rng.seed = 4701
 	name = "PastoralEnvironment"
-	set_meta("layout_version", 7)
+	set_meta("layout_version", 8)
 	_material = ShaderMaterial.new()
 	_material.shader = preload("res://scripts/art/pastoral_surface.gdshader")
 	_mountainside()
@@ -415,6 +415,9 @@ func _meadow_lanes() -> void:
 	_feed_rack(Vector3(39,24,32),2.6)
 	_bucket(Vector3(38,24,33))
 	_patch(Vector3(-48,16.05,-41.5),Vector2(2.3,2),MEADOW.lightened(.06))
+	# 2026-11-15 实机反馈：牛耕地东侧本就是苹果园（_tree 的 x>0 苹果分支
+	# 曾因 district 从未赋值而成死代码）——东半边的点缀树全部落成苹果树。
+	_district="OxFurrowsAndIrrigation"
 	for p in [Vector3(78,24,55),Vector3(-70,16,-30),Vector3(-10,16,-30),Vector3(47,8,-143)]:
 		_tree(p,1.1)
 		_flowers(p+Vector3(2,.04,0),12)
@@ -425,9 +428,13 @@ func _landmarks() -> void:
 		var p:=Vector3(-140+(i%2)*300,-24,130-i*18)
 		_boulder(p,Vector3(65,45,40),Color("9BA7A2"),i)
 	# Sight breaks after the gate, and orchard clusters on each terrace.
+	# The summit route doubles as the ox field's orchard rows: planting it under
+	# the OxFurrowsAndIrrigation district turns every east-side (x>0) tree into
+	# an apple tree - the whole east orchard becomes shoveable (playtest #13).
 	_district="OrchardsAndWildEdges"
 	for id in ["escape","woodland","summit"]:
 		var route:=L.path(id)
+		_district="OxFurrowsAndIrrigation" if id=="summit" else "OrchardsAndWildEdges"
 		for i in range(1,route.size()-1):
 			var normal:=(route[i+1]-route[i]).normalized().cross(Vector3.UP)
 			for sign_x in [-1,1]:

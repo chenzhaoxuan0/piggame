@@ -152,7 +152,7 @@ func _install_environment() -> void:
 	var environment: Node3D
 	if not "--rebuild-environment" in OS.get_cmdline_user_args() and ResourceLoader.exists("res://assets/environments/pastoral_farm.scn"):
 		environment=load("res://assets/environments/pastoral_farm.scn").instantiate()
-		if environment.get_meta("layout_version",0)!=7:
+		if environment.get_meta("layout_version",0)!=8:
 			environment.free()
 			environment=null
 	if environment==null:
@@ -161,6 +161,27 @@ func _install_environment() -> void:
 		environment.build(self)
 	else: add_child(environment)
 	preload("res://scripts/art/dressing_batches.gd").restore(environment)
+	_attach_apple_playthings()
+
+## 牛耕地东侧的果园本来就是一片苹果树（烘进批次的 ENV_09_APPLE）——
+## 2026-11-15 实机反馈：所有苹果树都该能撞出苹果雨，不该只有马场地标树
+## 能玩。批次节点带着 placements 元数据（每棵树的世界变换），逐棵挂上与
+## 地标树同一套的 APPLE_TREE 感应区：Shift 冲撞 → 苹果雨 → 当场吃三颗。
+## 只接管烘好的装饰树；马场跑道旁的地标树与路口那棵手植树自带感应。
+func _attach_apple_playthings() -> void:
+	var attached := 0
+	for batch in find_children("Dressing_ENV_09_APPLE_*", "MultiMeshInstance3D", true, false):
+		for xf in batch.get_meta("placements", []):
+			var trunk: Vector3 = (xf as Transform3D).origin
+			var holder := Node3D.new()
+			holder.name = "AppleTreeOrchard%d" % attached
+			holder.add_to_group("apple_orchard")
+			holder.position = trunk + Vector3.UP * 1.4
+			add_child(holder)
+			holder.add_child(_plaything(PLAYTHING.Kind.APPLE_TREE, Vector3(2.8, 3.4, 2.8), 1.0, true))
+			attached += 1
+	if attached > 0:
+		_label(self, "OrchardLabel", "苹果园 · 冲刺撞树摇苹果！", Vector3(24, 26.8, 58), 20)
 
 func _interaction(node_name: String,id: String,p: Vector3,size: Vector3) -> StaticBody3D:
 	var body:=StaticBody3D.new()
