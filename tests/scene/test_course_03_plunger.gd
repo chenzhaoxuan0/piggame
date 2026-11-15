@@ -96,6 +96,24 @@ func _run() -> void:
 		"A plunger projectile took flight")
 	await create_timer(0.6).timeout # flight lands before the next shot
 
+	# --- 1b. Mouse fire (2026-11-15 follow-up): left click launches with
+	# mouse-aim; the keyboard path keeps the pig-facing assist.
+	var mouse_ammo: int = launcher.ammo
+	Input.warp_mouse(Vector2(200, 300))
+	await process_frame
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	Input.parse_input_event(click)
+	await create_timer(0.1).timeout
+	click = InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = false
+	Input.parse_input_event(click)
+	_check(launcher.ammo == mouse_ammo - 1, "Left click fires too (mouse-aimed shot)")
+	await create_timer(0.6).timeout
+	launcher.add_ammo(1) # the extra range drill round, so the knockdown legs keep their budget
+
 	# --- 2. Aim-assist hit: stand the pig next to a patrol dog facing it
 	var dog = course.zigzag_dog
 	_check(is_instance_valid(dog), "Zigzag patrol dog exists as a knockdown target")
@@ -125,6 +143,7 @@ func _run() -> void:
 	launcher.fire()
 	await create_timer(0.6).timeout
 	_check(dog2.is_stunned, "Second patrol dog knocked down")
+	_check(launcher._knockdowns == 2, "Two knockdowns before the chaser leg")
 	# The rubber-band chaser wakes at the course start gate
 	course.runner._on_start(pig)
 	await process_frame
@@ -136,17 +155,42 @@ func _run() -> void:
 	launcher.fire()
 	await create_timer(0.6).timeout
 	_check(str(chaser.phase) == "stun", "Runner chaser stunned by plunger (short escape stun)")
-	_check(launcher._knockdowns == 3, "Three plunger knockdowns counted")
-	_check(am.is_unlocked("plunger_knight"), "马桶骑士 unlocks at three knockdowns")
+	_check(launcher._knockdowns == 3 and am.is_unlocked("plunger_knight"),
+		"马桶骑士 unlocks at three knockdowns")
 
-	# --- 4. Pickup resupply
+	# --- 3b. Repeat knockdown (2026-11-15 follow-up): patrol dogs recover and
+	# can be floored again - targets are repeatable, not one-shot. The chasers
+	# are parked first: an awake rubber-band dog shadows the pig through the
+	# 5 s recovery wait and steals the aim assist (learned the hard way).
+	course.runner.set_dogs_active(false)
+	await create_timer(launcher.PATROL_STUN + 0.6).timeout
+	_check(not dog.is_stunned, "Patrol dog recovers from the stun")
+	launcher.add_ammo(1)
+	pig.global_position = dog.global_position + Vector3(0.0, 0.1, 2.2)
+	pig.look_at(dog.global_position + Vector3(0, 0.6, 0), Vector3.UP)
+	await physics_frame
+	launcher.fire()
+	await create_timer(0.6).timeout
+	_check(dog.is_stunned and launcher._knockdowns == 4,
+		"Recovered patrol dog takes another knockdown (repeatable targets, 4 hits)")
+
+	# --- 4. Pickup resupply + regrowth (repeatable pickups)
 	launcher.add_ammo(0)
 	var ammo_before_pickup: int = launcher.ammo
 	var first_pickup = pickups[0] if pickups.size() > 0 else null
 	if first_pickup != null:
-		first_pickup.collected.emit()
+		first_pickup.respawn_seconds = 0.3
+		first_pickup._collect()
 		await process_frame
 	_check(launcher.ammo == ammo_before_pickup + 1, "A collected plunger adds one round")
+	if first_pickup != null:
+		await create_timer(0.6).timeout
+		_check(not first_pickup._collected, "The pickup spot regrows its plunger (repeatable supply)")
+		var regrown_visible := false
+		for visual in first_pickup._visuals:
+			if is_instance_valid(visual) and visual.visible:
+				regrown_visible = true
+		_check(regrown_visible, "Respawned plunger is visible again")
 
 	# --- 5. Miss drops a reusable pickup at the landing spot
 	pig.global_position = Vector3(0, 0.6, -30) # open meadow, away from the track dogs

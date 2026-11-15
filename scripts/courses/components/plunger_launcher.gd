@@ -81,8 +81,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("action_shoot") and not event.is_echo():
 		fire()
 		get_viewport().set_input_as_handled()
+		return
+	# 2026-11-15 实机反馈：搋子也吃鼠标——左键发射，弹道跟着鼠标指向；
+	# 键盘 Q 仍按猪头朝向做辅助瞄准。
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT \
+			and event.pressed and not event.is_echo():
+		fire(true)
+		get_viewport().set_input_as_handled()
 
-func fire() -> bool:
+func fire(from_mouse: bool = false) -> bool:
 	if ammo <= 0:
 		if is_instance_valid(player):
 			_world_gag(player.global_position + Vector3(0, 1.6, 0), "搋子用完了！找地上的补给！")
@@ -94,7 +101,7 @@ func fire() -> bool:
 	ammo -= 1
 	_refresh()
 
-	var aim := _aim_target()
+	var aim := _aim_target(_mouse_aim() if from_mouse else _facing())
 	var origin: Vector3 = player.global_position + Vector3(0, 1.1, 0)
 	var target: Vector3 = aim.get("point", origin + _facing() * RANGE)
 	target.y = maxf(target.y, 0.3)
@@ -143,10 +150,29 @@ func _facing() -> Vector3:
 	dir.y = 0.0
 	return dir.normalized() if dir.length_squared() > 0.001 else Vector3.FORWARD
 
+## 鼠标指向的瞄准方向：相机射线与发射口等高平面的交点折成水平向量。
+## 射线近乎平行或指向身后时退回猪头朝向（永远给一个合理弹道）。
+func _mouse_aim() -> Vector3:
+	var camera := get_viewport().get_camera_3d()
+	if camera == null or not is_instance_valid(player):
+		return _facing()
+	var mouse: Vector2 = get_viewport().get_mouse_position()
+	var ray_origin: Vector3 = camera.project_ray_origin(mouse)
+	var ray_dir: Vector3 = camera.project_ray_normal(mouse)
+	var plane_y: float = player.global_position.y + 1.1
+	if absf(ray_dir.y) < 0.001:
+		return _facing()
+	var t: float = (plane_y - ray_origin.y) / ray_dir.y
+	if t <= 0.0:
+		return _facing()
+	var point: Vector3 = ray_origin + ray_dir * t
+	var flat: Vector3 = point - (player.global_position + Vector3(0, 1.1, 0))
+	flat.y = 0.0
+	return flat.normalized() if flat.length_squared() > 0.001 else _facing()
+
 ## Soft aim-assist: nearest non-stunned dog inside the facing cone.
-func _aim_target() -> Dictionary:
+func _aim_target(facing: Vector3) -> Dictionary:
 	var origin: Vector3 = player.global_position + Vector3(0, 1.1, 0)
-	var facing := _facing()
 	var best: Node3D = null
 	var best_dist: float = RANGE
 	var cos_limit: float = cos(deg_to_rad(AIM_CONE_DEG))

@@ -10,6 +10,9 @@ signal collected
 @export var lux_asset_id: String = "PROP_C3_PLUNGER" # slot ready, procedural fallback ships
 
 const ASSETS = preload("res://scripts/art/asset_library.gd")
+# 2026-11-15 实机反馈：搋子可以重复拾取——收走后地里冷却一会儿再长出来。
+# 实时长可覆写（测试用短冷却验证再生）。
+var respawn_seconds := 18.0
 
 const CUP_RED := Color("C0392B")
 const HANDLE_WOOD := Color("8B5A2B")
@@ -19,6 +22,7 @@ var _player_near: Node3D = null
 var _cup_mesh: MeshInstance3D
 var _prompt_lbl: Label3D
 var _pickup_area: Area3D
+var _visuals: Array[Node3D] = []
 
 func _ready() -> void:
 	_setup_visual()
@@ -57,6 +61,7 @@ func _setup_visual() -> void:
 	stick.position.y = 0.45
 	rig.add_child(stick)
 	rig.rotation.z = 0.5 # lying on its side, ready to grab
+	_visuals.append(rig)
 
 	# Zone dressing slot: a Lux3D plunger replaces the procedural rig once minted.
 	if not lux_asset_id.is_empty():
@@ -66,6 +71,7 @@ func _setup_visual() -> void:
 			lux.position.y = 0.25
 			lux.rotation.z = 0.5
 			add_child(lux)
+			_visuals.append(lux)
 
 	_prompt_lbl = Label3D.new()
 	_prompt_lbl.font = preload("res://scripts/ui/ui_kit.gd").font_bold()
@@ -139,4 +145,25 @@ func _collect() -> void:
 	t.parallel().tween_property(impact, "modulate:a", 0.0, 0.9)
 	t.tween_callback(impact.queue_free)
 	collected.emit()
-	queue_free()
+	_begin_respawn()
+
+## 2026-11-15 实机反馈：搋子可以重复拾取——收走后隐藏并关掉感应，冷却
+## 到点再弹出来（掉落补充同款逻辑），弹药永远不会永久枯竭。
+func _begin_respawn() -> void:
+	_set_pickup_active(false)
+	await get_tree().create_timer(respawn_seconds).timeout
+	if not is_inside_tree():
+		return # 赛道退出时随树释放；等待到点的协程到这里就自灭
+	_collected = false
+	_player_near = null
+	_set_pickup_active(true)
+	var pop := create_tween()
+	pop.tween_property(self, "scale", Vector3.ONE, 0.25) \
+		.from(Vector3(0.01, 0.01, 0.01)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+func _set_pickup_active(on: bool) -> void:
+	for visual in _visuals:
+		if is_instance_valid(visual):
+			visual.visible = on
+	_prompt_lbl.visible = false
+	_pickup_area.set_deferred("monitoring", on)
