@@ -126,6 +126,26 @@ func _run() -> void:
 		await create_timer(0.1).timeout
 		_check(goal_events.size() > before, "The %s net scores a cabbage ball" % goal.name)
 		_check(am.is_unlocked(net_ach[goal.name]), "The %s net pays its own achievement" % goal.name)
+	# --- The pen's OWN ball must score too: it used to miss the cabbage_ball
+	# group, so _on_cabbage_goal bounced it before the gag, the striker and the
+	# 猪圈点球王 medal (2026-11-15 playtest). The tour above used the plot
+	# cabbage, which is why it never caught the pen ball's missing ticket.
+	var pen_ball_score: RigidBody3D = farm.get_node("PenCabbageBall")
+	pen_ball_score.linear_velocity = Vector3.ZERO
+	pen_ball_score.global_position = Vector3(0, 60, 0)
+	await physics_frame
+	farm._cabbage_goal_cool = 0.0
+	var pen_goal: Node3D = farm.get_node("CabbageGoal_Pen")
+	var pen_before: int = goal_events.size()
+	pen_ball_score.global_position = pen_goal.global_position + Vector3(0, 0.8, 0)
+	await physics_frame
+	await physics_frame
+	await create_timer(0.1).timeout
+	_check(goal_events.size() > pen_before, "The pen's own ball scores in the pen net (cabbage_ball group)")
+	_check(am.is_unlocked("cabbage_goal_pen"), "猪圈点球王 pays for the pen ball's goal")
+	# Park the pen ball home so later pen sections start clean.
+	pen_ball_score.linear_velocity = Vector3.ZERO
+	pen_ball_score.global_position = Vector3(-3, 32.36, 102)
 	_check(am.is_unlocked("cabbage_striker"), "The striker achievement holds after every net")
 	_check(am.is_unlocked("cabbage_grand_slam"), "Scoring in all four nets pays 卷心菜全满贯")
 

@@ -612,6 +612,10 @@ func _build_pigpen_play() -> void:
 	# floor. Contained by the pen walls plus the ball-only gate-gap fence below.
 	# PROP_08_CABBAGE is the pitch ball's look - the pen ball is its 0.7 m twin.
 	var pen_ball := _sphere(self, "PenCabbageBall", 0.35, Vector3(-3, 32.36, 102), Color("7DB874"), true)
+	# 同一张进球门票：猪圈球必须和联赛球/菜地球一样进 cabbage_ball 组，
+	# 否则 _on_cabbage_goal 第一行分组检查就把它退回——踢进自家分赛场
+	# 的网连 GOOOAL 都不响（2026-11-15 实机反馈的猪圈点球王不触发）。
+	pen_ball.add_to_group("cabbage_ball")
 	_mount_lux(pen_ball, "PROP_08_CABBAGE", Vector3(0.7, 0.7, 0.7), "CabbageLux")
 	pen_ball.add_child(_plaything(PLAYTHING.Kind.CABBAGE, Vector3(2.0, 1.8, 2.0), 0.45))
 	_register_pen_prop(pen_ball)
