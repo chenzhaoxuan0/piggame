@@ -1,7 +1,7 @@
 extends Node
 
 # AchievementManager — 《一口猪在金牌农场》成就系统（autoload）。
-# 28 个成就覆盖全流程：故事 5 + 伙伴 3 + 闯关 4 + 身手 3 + 农场玩场 13。
+# 33 个成就覆盖全流程：故事 5 + 伙伴 3 + 闯关 4 + 身手 3 + 农场玩场 13 + 二周目 5。
 # 解锁来源两层：状态驱动（监听 GameManager.state_changed 回读字段，reset_run
 # 发的信号字段全 false 天然无副作用）+ 关卡侧直挂（管道发现/闪避/QTE/破纪录/
 # 开场拱槽）。进度跨局持久化到 user://achievements.json —— 这是仓库唯一的
@@ -45,6 +45,10 @@ const DEFS := [
 	{"id": "apple_rain", "title": "牛顿的苹果", "desc": "撞下马场苹果树的苹果雨，并当场吃完三颗。"},
 	{"id": "plunger_knight", "title": "马桶骑士", "desc": "在迷雾林间用马桶搋子正中面门，把三只恶犬吸倒在地。"},
 	{"id": "second_visit", "title": "再见围城", "desc": "通关一次后再入农场：全部伙伴之力从醒来起随身。手推车和苹果树，这次顺路解决。"},
+	{"id": "second_escape", "title": "旧路重逃", "desc": "二周目再次滑向旷野——这一次，每一步都是自己选的。"},
+	{"id": "reunion_tour", "title": "老友重逢", "desc": "二周目里再帮阿牛、绵绵、追风把心结各解了一遍。"},
+	{"id": "both_doors", "title": "两扇门都看过", "desc": "同一个档案里，既在温饱里睡去过，也奔向过旷野。"},
+	{"id": "full_ledger", "title": "金牌农场全纪录", "desc": "其余每一枚成就都到手——墙上一格不空。"},
 ]
 
 var unlocked := {} # id -> true
@@ -84,6 +88,12 @@ func _on_state_changed() -> void:
 		all_clear = all_clear and done
 	if all_clear:
 		unlock("all_courses")
+	# 二周目组：档案第二次逃离付费；NG+ 一局内三位伙伴全部重逢付费。
+	if GameManager.ending == "escape" and GameManager.finished_runs >= 2:
+		unlock("second_escape")
+	if GameManager.ng_plus and GameManager.npc_completed.get("ox", false) \
+			and GameManager.npc_completed.get("sheep", false) and GameManager.npc_completed.get("horse", false):
+		unlock("reunion_tour")
 
 func unlock(id: String) -> bool:
 	if _def_index(id) < 0:
@@ -96,6 +106,9 @@ func unlock(id: String) -> bool:
 	_queue.append(id)
 	_pump()
 	achievement_unlocked.emit(id)
+	# 全收集 meta：其余每一枚都到手时自动点亮（full_ledger 自身除外，防递归）。
+	if id != "full_ledger" and not unlocked.has("full_ledger") and unlocked.size() >= DEFS.size() - 1:
+		unlock("full_ledger")
 	return true
 
 func is_unlocked(id: String) -> bool:

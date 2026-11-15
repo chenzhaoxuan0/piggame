@@ -45,6 +45,9 @@ var tutorial_free_roam: bool = false
 # 车、苹果树这类——一周目拿到冲刺太晚，正适合二周目顺路完成）。
 var ng_plus := false
 var finished_runs := 0
+# 见过的结局记档（"escape"/"stay" -> true，随档案持久化）——「两扇门都看过」
+# 要跨局对账：先安稳后出逃、或先出逃后回头看蓝色结局，都算同一档案的收获。
+var seen_endings := {}
 const DEFAULT_PROGRESS_PATH := "user://run_progress.json"
 var progress_path := DEFAULT_PROGRESS_PATH
 
@@ -65,6 +68,9 @@ func _load_persisted_progress() -> void:
 	f.close()
 	if parsed is Dictionary:
 		finished_runs = int(parsed.get("finished_runs", 0))
+		var endings = parsed.get("seen_endings", {})
+		if endings is Dictionary:
+			seen_endings = endings
 	ng_plus = finished_runs >= 1
 
 func _persist_progress() -> void:
@@ -74,8 +80,15 @@ func _persist_progress() -> void:
 	var f := FileAccess.open(progress_path, FileAccess.WRITE)
 	if f == null:
 		return
-	f.store_string(JSON.stringify({"finished_runs": finished_runs}))
+	f.store_string(JSON.stringify({"finished_runs": finished_runs, "seen_endings": seen_endings}))
 	f.close()
+
+## 结局记档：随档案落盘；两种结局都见过时点亮「两扇门都看过」。
+func _note_ending(kind: String) -> void:
+	seen_endings[kind] = true
+	_persist_progress()
+	if seen_endings.get("escape", false) and seen_endings.get("stay", false):
+		AchievementManager.unlock("both_doors")
 
 ## 局启动时由关卡调用：二周目开局点亮纪念成就并回报 true（用于一次性提示）。
 func begin_ng_plus_if_earned() -> bool:
@@ -172,6 +185,7 @@ func choose_blue() -> bool:
 		return false
 	ending = "stay"
 	stage = "ending"
+	_note_ending("stay")
 	state_changed.emit()
 	return true
 
@@ -231,7 +245,7 @@ func finish_escape() -> bool:
 	# 通关记账：这一局结束，玩家档案从此标记 NG+（后续每一局全技能随身）。
 	finished_runs += 1
 	ng_plus = true
-	_persist_progress()
+	_note_ending("escape")
 	state_changed.emit()
 	return true
 

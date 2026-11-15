@@ -75,6 +75,8 @@ func _run() -> void:
 	game.finish_escape()
 	await process_frame
 	_check(am.is_unlocked("maverick_pioneer"), "Escaping unlocks 特立独行的先驱")
+	# 本节流程 = 先蓝后红：同一档案两种结局都见过 → 两扇门都看过（直挂解锁）。
+	_check(am.is_unlocked("both_doors"), "Blue earlier + escape now pays 两扇门都看过")
 
 	# --- 5. Achievements survive a run reset (the whole point of the save)
 	game.reset_run()
@@ -92,6 +94,27 @@ func _run() -> void:
 		await process_frame
 	_check(am.is_unlocked("gate_crasher"), "Clearing the final chase unlocks 冲破大铁门")
 	_check(am.is_unlocked("all_courses"), "All four hidden courses unlock 四通八达")
+
+	# --- 6b. NG+ 周目组：旧路重逃（档案第二次逃离）、老友重逢（NG+ 局三伙伴全解）
+	game.finished_runs = 2
+	game.ending = "escape"
+	am._on_state_changed()
+	_check(am.is_unlocked("second_escape"), "A profile's second escape pays 旧路重逃")
+	game.ng_plus = true
+	game.npc_completed = {"ox": true, "sheep": true, "horse": true}
+	am._on_state_changed()
+	_check(am.is_unlocked("reunion_tour"), "An NG+ run with all three companions pays 老友重逢")
+	game.finished_runs = 0
+	game.ng_plus = false
+	game.npc_completed = {"ox": false, "sheep": false, "horse": false}
+	game.ending = ""
+
+	# --- 6c. 全收集 meta：补齐其余全部后自动点亮
+	for def in am.DEFS:
+		var def_id := str(def["id"])
+		if def_id != "full_ledger" and not am.is_unlocked(def_id):
+			am.unlock(def_id)
+	_check(am.is_unlocked("full_ledger"), "Owning every other medal auto-pays 金牌农场全纪录")
 
 	# --- 7. Wall panel smoke test on the level
 	var office: Node = load("res://scenes/levels/office_level_1.tscn").instantiate()
