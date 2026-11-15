@@ -1693,6 +1693,8 @@ func _on_playground_event(kind: String, _detail) -> void:
 			_show_toast("抄近道也是本事！", "四个检查点一个不落，路是猪自己选的。")
 		"record_breaker":
 			_show_toast("35 秒新纪录！", "马场计时赛——真·猪跑出来的圈速。")
+		"fence_breaker":
+			_show_toast("越狱惯犯！", "围栏的缺口是留给会钻的猪的。")
 		"grass_gourmet":
 			_show_toast("食草动物的本分", "六丛嫩草，一丛不落。")
 		"potato_harvest":

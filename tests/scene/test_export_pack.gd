@@ -47,7 +47,7 @@ func _run() -> void:
 	_check(game.get_node("Farm/Gate").find_child("GateLeft", true, false) != null, "packed gate hinged")
 	var environment: Node3D = game.get_node_or_null("Farm/PastoralEnvironment")
 	_check(environment != null and environment.get_script() == null, "authored environment is baked into the pack")
-	_check(environment.get_meta("layout_version",0)==9,"enriched mountain environment version packaged")
+	_check(environment.get_meta("layout_version",0)==10,"enriched mountain environment version packaged")
 	_check(environment.get_meta("dressing_counts",{}).size()>=18,"dressing catalog survives export")
 	for batch in environment.find_children("Dressing_*","MultiMeshInstance3D",true,false):
 		_check(batch.multimesh.mesh!=null,"packed dressing mesh loads")

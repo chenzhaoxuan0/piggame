@@ -95,6 +95,8 @@ func _ready() -> void:
 	_build_playground()
 	_build_sheep_meadow_extras()
 	_build_ranch_race()
+	_build_fence_apron()
+	_begin_npc_life()
 	_build_cabbage_field()
 	_cabin=Node3D.new()
 	_cabin.name="CableCarCabin"
@@ -154,7 +156,7 @@ func _install_environment() -> void:
 	var environment: Node3D
 	if not "--rebuild-environment" in OS.get_cmdline_user_args() and ResourceLoader.exists("res://assets/environments/pastoral_farm.scn"):
 		environment=load("res://assets/environments/pastoral_farm.scn").instantiate()
-		if environment.get_meta("layout_version",0)!=9:
+		if environment.get_meta("layout_version",0)!=10:
 			environment.free()
 			environment=null
 	if environment==null:
@@ -287,6 +289,7 @@ func _physics_process(delta: float) -> void:
 	if _cabbage_goal_cool > 0.0:
 		_cabbage_goal_cool = maxf(0.0, _cabbage_goal_cool - delta)
 	_tick_ranch_race()
+	_tick_horse_lap(delta)
 	if not is_instance_valid(_player): _player=get_tree().get_first_node_in_group("player")
 	if not is_instance_valid(_player) or not _player.control_mode in ["explore","chase"]: return
 	var closest := L.closest_on_path(_player.global_position, L.journey())
@@ -354,11 +357,16 @@ func set_npc_completed(id: String) -> void:
 		var tween:=create_tween()
 		tween.tween_property(_npcs[id],"position",L.RESTS[id],.8)
 		_npc_tweens[id]=tween
+	# 2026-11-15 实机反馈 #18：追风听完真相不再呆站——归位 2.5 秒后开始
+	# 自由绕场奔跑（猪靠近/对话时停下）。
+	if id == "horse":
+		_start_horse_lap_after_rest()
 
 func reset_world() -> void:
 	for tween in _npc_tweens.values():
 		if is_instance_valid(tween): tween.kill()
 	_npc_tweens.clear()
+	_horse_lapping = false
 	for id in _npc_origins: _npcs[id].position=_npc_origins[id]
 	_sheep_tag.show()
 	_farmer_baton.show()
@@ -370,6 +378,8 @@ func reset_world() -> void:
 	_cabin.position=L.STATION
 	_checkpoint=SPAWN
 	recoveries=0
+	# 世界复位后重启 NPC 生活感（上面的 kill 会把闲逛 tween 一并清掉）。
+	_begin_npc_life()
 
 func _material(color: Color) -> ShaderMaterial:
 	var material:=ShaderMaterial.new()
@@ -828,6 +838,121 @@ func _cancel_race(reason: String) -> void:
 		_race_timer.stop()
 	if is_instance_valid(_player):
 		_gag_at(_player.global_position + Vector3.UP * 1.6, reason, 2.0)
+
+# ------------------------------------------------------------- outside fence
+# 2026-11-15 实机反馈 #19（A 期）：围栏开出缺口（烘焙侧 CROSSINGS 马场北/
+# 西各一道），圈外贴崖加一圈可行走草带——猪真的能站到围栏外面去了，
+# 首次出圈点亮「越狱惯犯」。坠落本身早已是软重生（回检查点），不再即死。
+const APRON_TOP_Y := 7.75 # 条带顶面与牧场地面 y=8 齐平
+var _fence_medal_paid := false
+
+func _build_fence_apron() -> void:
+	# 马场围栏外的崖边环带（北/南/东/西四条），顶面与牧场地面齐平。
+	_box(self, "FenceApronN", Vector3(104, 0.5, 8), Vector3(40, APRON_TOP_Y, -147.4), Color("6F9D62"), true)
+	_box(self, "FenceApronS", Vector3(104, 0.5, 8), Vector3(40, APRON_TOP_Y, -92.6), Color("6F9D62"), true)
+	_box(self, "FenceApronE", Vector3(8, 0.5, 62.8), Vector3(94, APRON_TOP_Y, -120), Color("6F9D62"), true)
+	_label(self, "FenceApronLabel", "围栏外 · 崖边野草带（缺口可以钻出去）", Vector3(40, 10.4, -147.4), 16)
+	# 出圈判定：宽松——站上任意一条圈外草带即点亮。（西边没有环带：
+	# 下山路的 approach 段贴着牧场西界走，不能盖路面。）
+	for def in [["OutsideFenceN", Vector3(40, 8.9, -147.4), Vector3(104, 2.0, 8)],
+			["OutsideFenceS", Vector3(40, 8.9, -92.6), Vector3(104, 2.0, 8)],
+			["OutsideFenceE", Vector3(94, 8.9, -120), Vector3(8, 2.0, 62.8)]]:
+		var sense := Area3D.new()
+		sense.name = def[0]
+		sense.collision_layer = 0
+		sense.collision_mask = 2
+		var shape := CollisionShape3D.new()
+		var box := BoxShape3D.new()
+		box.size = def[2]
+		shape.shape = box
+		sense.add_child(shape)
+		add_child(sense)
+		sense.position = def[1]
+		sense.body_entered.connect(_on_outside_fence)
+
+func _on_outside_fence(body: Node3D) -> void:
+	if _fence_medal_paid:
+		return
+	if not body.is_in_group("player") and not body.name.to_lower().contains("pig"):
+		return
+	_fence_medal_paid = true
+	AchievementManager.unlock("fence_breaker")
+	playground_event.emit("fence_breaker", "")
+	_gag_at(body.global_position + Vector3.UP * 1.8, "越狱成功！围栏外的风，是自由的味道。", 2.4)
+
+# ------------------------------------------------------------- npc life
+# 2026-11-15 实机反馈 #18（轻量期）：对话前的 NPC 不再呆站——老牛在犁边
+# 缓缓踱步、小羊在矮棚里蔫蔫地晃；追风在听完真相（quest 完成）后不再
+# 盲目刷配速，而是自由地绕场奔跑，猪靠近或对话时它会停下来。全部走
+# _npc_tweens/完成态闸门：任务完成即归于 RESTS，钉位置的测试不受扰。
+var _horse_lapping := false
+var _horse_waypoints: Array[Vector3] = []
+var _horse_wp_index := 0
+
+func _begin_npc_life() -> void:
+	# 幂等：boot 时 reset_world 会清一遍 _npc_tweens（把这里的闲逛 tween 也
+	# 杀掉），所以 reset_world 末尾会再次调用本函数重启生活感。
+	for idle_key in ["ox", "sheep"]:
+		if _npc_tweens.has(idle_key) and is_instance_valid(_npc_tweens[idle_key]):
+			(_npc_tweens[idle_key] as Tween).kill()
+	# 老牛：犁边往返踱步（±1.2m，慢速）。首拍空等 1 秒：reset_world 之后
+	# 有「位置严格等于出生点」的钉子，第一帧不许有位移。
+	var ox_origin: Vector3 = _npc_origins.get("ox", L.NPCS.ox)
+	var ox_pace = create_tween().set_loops()
+	ox_pace.tween_interval(1.0)
+	ox_pace.tween_property(_npcs.ox, "position", ox_origin + Vector3(0, 0, 1.2), 4.0)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	ox_pace.tween_property(_npcs.ox, "position", ox_origin - Vector3(0, 0, 1.2), 4.0)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_npc_tweens["ox"] = ox_pace
+	# 小羊：蔫蔫地左右轻晃（读完残次牌的忧郁）。
+	var sheep_sway = create_tween().set_loops()
+	sheep_sway.tween_property(_npcs.sheep, "rotation:z", 0.06, 2.6)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	sheep_sway.tween_property(_npcs.sheep, "rotation:z", -0.06, 2.6)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_npc_tweens["sheep"] = sheep_sway
+
+func _start_horse_lap_after_rest() -> void:
+	# 追风听完真相 → 先回 RESTS 站定（测试在完成瞬间钉它的归位），2.5 秒
+	# 后开始自由跑圈。八边形航点 = 四检查点 + 四段中点。不再复查
+	# GameManager（本方法只由完成路径调用，测试也会直调 farm 侧）。
+	var rest := create_tween()
+	rest.tween_interval(2.5)
+	rest.tween_callback(func():
+		_horse_waypoints = [
+			RACE_LAP[3], (RACE_LAP[3] + RACE_LAP[0]) * 0.5,
+			RACE_LAP[0], (RACE_LAP[0] + RACE_LAP[1]) * 0.5,
+			RACE_LAP[1], (RACE_LAP[1] + RACE_LAP[2]) * 0.5,
+			RACE_LAP[2], (RACE_LAP[2] + RACE_LAP[3]) * 0.5,
+		]
+		_horse_wp_index = 0
+		_horse_lapping = true
+	)
+	_npc_tweens["horse_lap"] = rest
+
+func _tick_horse_lap(delta: float) -> void:
+	if not _horse_lapping or not _npcs.has("horse") or not is_instance_valid(_npcs.horse):
+		return
+	if not is_instance_valid(_player):
+		return
+	var horse: Node3D = _npcs.horse
+	# 猪靠近（或正在对话）→ 停下来面朝猪；否则沿航点奔跑。
+	var pig_close: bool = _player.global_position.distance_to(horse.global_position) < 6.5
+	var talking: bool = _player.control_mode == "dialogue"
+	if pig_close or talking:
+		var face := _player.global_position
+		if face.distance_to(horse.global_position) > 0.5:
+			horse.look_at(face, Vector3.UP)
+		return
+	var target: Vector3 = _horse_waypoints[_horse_wp_index]
+	var to := target - horse.global_position
+	to.y = 0.0
+	if to.length() < 1.2:
+		_horse_wp_index = (_horse_wp_index + 1) % _horse_waypoints.size()
+		return
+	horse.global_position += to.normalized() * minf(5.2 * delta, to.length())
+	horse.look_at(horse.global_position + to.normalized(), Vector3.UP)
 
 # ------------------------------------------------------------- playground
 # Ten kinds of body-driven easter eggs down the whole mountain road. Every

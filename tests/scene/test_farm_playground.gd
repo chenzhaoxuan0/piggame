@@ -313,6 +313,41 @@ func _run() -> void:
 	await create_timer(0.3).timeout
 	_check(am.is_unlocked("steady_lap"), "A clean ring lap pays 稳稳一圈")
 
+	# --- Outside the fence (2026-11-15 playtest #19, phase A): the ranch fence
+	# grows gaps (baked crossings) and a walkable clifftop apron rings the
+	# pasture - standing outside pays the fence-breaker medal (loose judgment).
+	_check(farm.get_node_or_null("FenceApronN") != null and farm.get_node_or_null("FenceApronE") != null,
+		"The clifftop apron rings the pasture outside the fence")
+	_check(not am.is_unlocked("fence_breaker"), "越狱惯犯 locked before the squeeze-through")
+	pig.global_position = Vector3(40, 8.6, -147.4) # north apron, outside the fence
+	await physics_frame
+	await physics_frame
+	await create_timer(0.2).timeout
+	_check(am.is_unlocked("fence_breaker"), "Standing outside the fence pays 越狱惯犯 (loose judgment)")
+
+	# --- NPC life (2026-11-15 playtest #18, light phase): the ox paces by the
+	# plow, the sheep sways under its tag, and the horse - once told the truth -
+	# stops grinding paces and just runs, stopping when the pig comes close.
+	var ox: Node3D = farm.get_node("NPC_ox")
+	var ox_home: Vector3 = farm._npc_origins["ox"]
+	await create_timer(1.5).timeout
+	_check(ox.global_position.distance_to(ox_home) > 0.15,
+		"The ox paces along the furrow instead of standing frozen")
+	farm.set_npc_completed("horse")
+	await create_timer(3.4).timeout # rest tween + the 2.5 s hold
+	_check(farm._horse_lapping, "Truth told, the horse starts running free laps")
+	var horse: Node3D = farm.get_node("NPC_horse")
+	var horse_run_start := horse.global_position.distance_to(farm.RACE_LAP[3])
+	await create_timer(1.2).timeout
+	_check(horse.global_position.distance_to(farm.RACE_LAP[3]) > horse_run_start or horse_run_start > 1.5,
+		"The horse is moving around the track")
+	pig.global_position = horse.global_position + Vector3(0, 0.4, 2.0)
+	await create_timer(0.6).timeout
+	var horse_when_close := horse.global_position
+	await create_timer(0.8).timeout
+	_check(horse.global_position.distance_to(horse_when_close) < 0.6,
+		"A pig nearby stops the horse mid-stride")
+
 	# --- Hay dive: falling into the stack scores; a 10 lands the achievement
 	var hay: Node3D = farm.get_node("HayDiveStack")
 	# 2026-11-15 playtest #11: the dive spot must announce itself - a launch sign

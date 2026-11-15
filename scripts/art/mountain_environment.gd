@@ -16,13 +16,18 @@ var _origin := Vector3.ZERO
 const CROSSINGS := [
 	{"center": Vector3(10.2, 24.05, 57.0), "radius": 5.5},
 	{"center": Vector3(22.9, 24.05, 56.0), "radius": 5.0},
+	# 2026-11-15 实机反馈 #19：围栏开出缺口——马场北缘/东缘各开一道，
+	# 猪能钻出去站到围栏外的崖边草带（farm 侧的 apron 环带）上。西缘不开：
+	# 下山路的 approach 段（x≈-18, z -130..-155）正好贴着牧场西界走。
+	{"center": Vector3(40.0, 8.0, -143.4), "radius": 4.5},
+	{"center": Vector3(90.0, 8.0, -120.0), "radius": 4.5},
 ]
 
 func build(farm: Node3D) -> void:
 	_farm = farm
 	_rng.seed = 4701
 	name = "PastoralEnvironment"
-	set_meta("layout_version", 9)
+	set_meta("layout_version", 10)
 	_material = ShaderMaterial.new()
 	_material.shader = preload("res://scripts/art/pastoral_surface.gdshader")
 	_mountainside()
