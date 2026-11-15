@@ -64,7 +64,7 @@ var dialogue_tree: Dictionary = {
 	},
 	"aniu_drink_water": {
 		"speaker": "阿牛", "title": "水渠边 · 伙伴的力量", "avatar": "",
-		"content": "卸下了沉重木轭，我才发现脖子原来可以这么轻松！\n小白猪，既然你在勇敢往前走，我这身硬骨气传给你——要是被恶犬扑住，别认命！连续狂按【空格键 / E】，咬紧牙关强行挣脱重负！",
+		"content": "卸下了沉重木轭，我才发现脖子原来可以这么轻松！\n小白猪，既然你在勇敢往前走，我这身硬骨气就传给你！",
 		"options": [{"text": "【领悟伙伴之力 · 坚韧挣脱】多谢阿牛哥！", "next": ""}]
 	},
 	"aniu_post_idle": {
@@ -95,7 +95,7 @@ var dialogue_tree: Dictionary = {
 	},
 	"mianmian_reply": {
 		"speaker": "绵绵", "title": "阳光下 · 伙伴的力量", "avatar": "",
-		"content": "……原来，不是我的毛是错的，只是量我的尺子不合适！\n小白猪，谢谢你点醒我。前面林间小路的恶犬会用虚张声势的【幻影分身】迷惑你，但我把这双看透虚妄的眼睛赠予你——幻影皆为虚妄，无法伤你分毫，只需避开真身即可！",
+		"content": "……原来，不是我的毛是错的，只是量我的尺子不合适！\n小白猪，谢谢你点醒我。",
 		"options": [{"text": "【领悟伙伴之力 · 破妄明眸】接纳真实的自己！", "event": "complete_sheep", "next": "mianmian_post_idle"}]
 	},
 	"mianmian_post_idle": {
@@ -141,7 +141,7 @@ var dialogue_tree: Dictionary = {
 	},
 	"learn_horse_will": {
 		"speaker": "一口猪", "title": "疾风之步", "avatar": "",
-		"content": "速度，终于只为自己的脚步而奔流。\n【长按 Shift 消耗体力加速】：长按多久就加速多久，松开即可自动恢复体力！在恶犬红圈扑杀时按 Shift 灵巧侧身闪避！",
+		"content": "速度，终于只为自己的脚步而奔流。",
 		"options": [{"text": "发起终极突围，冲向大铁门！", "next": ""}]
 	},
 	"zhuifeng_post_idle": {
@@ -166,7 +166,7 @@ var dialogue_tree: Dictionary = {
 	},
 	"ordeal_aftermath": {
 		"speaker": "农场主", "title": "门开了", "avatar": "",
-		"content": "农场主跌坐在地，拍了拍裤腿。\n“跑了一头，亏了千把块……算了，圈里还有几百头。”\n\n索道在门后。猪还得自己走到那里。",
+		"content": "农场主跌坐在地，拍了拍裤腿。\n“跑了一头，亏了千把块……算了，圈里还有几百头。”",
 		"options": [{"text": "走向索道。", "next": ""}]
 	},
 	"farmer_wait": {
