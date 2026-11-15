@@ -124,7 +124,9 @@ func _collect() -> void:
 	_prompt_lbl.visible = false
 	var impact := Label3D.new()
 	impact.font = _prompt_lbl.font
-	impact.text = "🪠 搋子到手！"
+	# 2026-11-15 实机反馈 #3：拾取瞬间就地教会用法——只说「到手」不说
+	# 怎么用，玩家会揣着一兜搋子走完整条林间（马桶骑士就此锁死）。
+	impact.text = "🪠 搋子到手！按 [Q] 朝恶犬发射！"
 	impact.font_size = 22
 	impact.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	impact.modulate = Color("86EFAC")

@@ -50,6 +50,28 @@ func _run() -> void:
 		return
 	_check(launcher.ammo == 3, "The pocket starts with three rounds")
 
+	# --- Teaching (2026-11-15 playtest #3): players pocketed plungers without
+	# ever learning Q fires them. The counter panel now carries the hint.
+	var counter_panel = root.find_child("PlungerCounter", true, false)
+	_check(counter_panel != null, "Ammo counter panel exists")
+	var hint_text := ""
+	if counter_panel != null:
+		for lbl in counter_panel.find_children("*", "Label", true, false):
+			if "Q" in str(lbl.text):
+				hint_text = str(lbl.text)
+	_check(hint_text.contains("Q"), "Counter panel teaches the fire key (按 Q 发射)")
+
+	# --- Reachability guard: 马桶骑士 needs 3 knockdowns, so the course must
+	# keep offering at least 3 dog sources (zigzag patrol + maze patrol + the
+	# runner's chasers). A config change that silently drops below this locks
+	# the achievement - pin it.
+	var dog_sources := 0
+	if is_instance_valid(course.zigzag_dog): dog_sources += 1
+	if is_instance_valid(course.patrol_dog): dog_sources += 1
+	dog_sources += course.runner._dogs.size()
+	_check(dog_sources >= launcher.ACHIEVEMENT_GOAL,
+		"At least %d dog sources live in the woodland (马桶骑士 stays earnable)" % launcher.ACHIEVEMENT_GOAL)
+
 	var pickups := []
 	for child in course.get_children():
 		if child is PlungerProp:
