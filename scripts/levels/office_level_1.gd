@@ -166,6 +166,7 @@ func _ready() -> void:
 			_start_dream_intro()
 		"farm":
 			GameManager.pending_boot = ""
+			MusicManager.play("farm")
 			_start_pigpen_tutorial()
 		_:
 			_show_start_menu()
@@ -1640,6 +1641,12 @@ func _enter_course(stage_id: String) -> void:
 	var scene_res = COURSE_SCENES.get(stage_id, COURSE_SCENES.get("course_1"))
 	active_course = scene_res.instantiate()
 	add_child(active_course)
+	# 分区 BGM：赛道各自成曲（追逐腿也走赛道场景，统一在这里换）。
+	# intro 梦境（course_0）从这里拿到 nightmare 曲；文件缺失时静默不播。
+	if active_course.runner != null and active_course.runner.config != null:
+		var track_id := MusicManager.track_for_course(active_course.runner.config.course_id)
+		if not track_id.is_empty():
+			MusicManager.play(track_id)
 	if is_instance_valid(farm) and farm.get_parent() == self:
 		remove_child(farm)
 		_farm_removed = true
@@ -1714,6 +1721,7 @@ func _finish_course_deferred() -> void:
 func _exit_course() -> void:
 	var completed_id := current_chase_id
 	GameManager.clear_course_skills()
+	MusicManager.play("farm") # 出赛道回农场：田园基调接回
 	if is_instance_valid(player):
 		# Drop a borrowed dash right away: not every exit path refreshes the HUD.
 		player.set_dash_enabled(GameManager.has_dash_skill)
@@ -1823,6 +1831,7 @@ func _show_ending() -> void:
 	if GameManager.ending == "stay":
 		_show_overlay("安稳的肉馅", "甜料很暖，明早的车还很远。\n\n你选择留在猪圈。也可以再走一次另一条路。", [{"text": "重新选择", "call": _restart}])
 	else:
+		MusicManager.play("ending")
 		_show_overlay("旷野归途", "金牌是农场的，但命是你自己的。\n\n风从麦浪上吹来。前面没有围栏与食槽。", [{"text": "重新出发", "call": _restart}])
 	ending_art.texture = ART_2D.ENDINGS.get(GameManager.ending)
 	ending_art.visible = ending_art.texture != null

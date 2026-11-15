@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://0a1ey3br2lmq"
+path="res://.godot/imported/Not As It Seems.mp3-183c9bca167523f41733449e2982d2cc.mp3str"
+
+[deps]
+
+source_file="res://assets/audio/bgm/Not As It Seems.mp3"
+dest_files=["res://.godot/imported/Not As It Seems.mp3-183c9bca167523f41733449e2982d2cc.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

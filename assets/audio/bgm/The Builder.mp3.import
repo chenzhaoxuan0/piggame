@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bk0y2oqplpogx"
+path="res://.godot/imported/The Builder.mp3-6e3d2faf9a2ef37e714c31fec008aefd.mp3str"
+
+[deps]
+
+source_file="res://assets/audio/bgm/The Builder.mp3"
+dest_files=["res://.godot/imported/The Builder.mp3-6e3d2faf9a2ef37e714c31fec008aefd.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

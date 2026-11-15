@@ -22,6 +22,80 @@ static func _dim(host: Node, parent: Control, alpha: float) -> void:
 
 # 成就墙面板：不绑 host（office 的 hud 层与开场场景的 UI 层都能挂），
 # 展示时调 refresh_achievements_menu 重建行。on_close 由调用方决定回到哪个菜单。
+# 制作名单与致谢面板：Kevin MacLeod BGM 的 CC BY 4.0 署名（法定义务）+
+# 音效/配音/引擎致谢。数据唯一事实源在 MusicManager.CREDITS_DATA，
+# 主菜单按钮点击打开（多处署名之一；仓库留档见 assets/audio/bgm/CREDITS.md）。
+static func build_credits_menu(parent: Control, on_close: Callable) -> Control:
+	var music: Node = Engine.get_main_loop().root.get_node_or_null("MusicManager")
+	var menu := Control.new()
+	menu.name = "CreditsMenu"
+	menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	menu.visible = false
+	parent.add_child(menu)
+	_dim(parent, menu, 0.55)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	menu.add_child(center)
+
+	var card := UI.patch_panel(24, UI.PAPER, UI.SUNNY, Vector2(28, 18))
+	card.custom_minimum_size = Vector2(680, 0)
+	_tilt(card, 0.5)
+	center.add_child(card)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+	card.add_child(vbox)
+
+	var title := UI.label("📜 制作名单与致谢", 28, UI.TEAL_DEEP, true)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(title)
+	var sub := UI.label("本游戏使用了以下开放许可的素材，谨此致谢", 13, UI.INK_SOFT)
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(sub)
+
+	vbox.add_child(HSeparator.new())
+
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(0, 420)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	vbox.add_child(scroll)
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 10)
+	rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(rows)
+
+	if music != null:
+		for section: Dictionary in music.CREDITS_DATA:
+			var head := UI.label(str(section.get("section", "")), 18, UI.TEAL_DEEP, true)
+			head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			rows.add_child(head)
+			for item: Dictionary in section.get("items", []):
+				var line := UI.label("\"%s\"  Kevin MacLeod (incompetech.com)" % item.get("title", ""), 15, UI.INK, true) \
+					if section.has("license") else UI.label(str(item.get("title", "")), 15, UI.INK, true)
+				line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				rows.add_child(line)
+				var use := UI.label("　　" + str(item.get("use", "")), 13, UI.INK_SOFT)
+				use.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				rows.add_child(use)
+			if section.has("license"):
+				# CC BY 的法定署名块：作者 + 许可名 + 许可链接，逐字按 incompetech 官方格式。
+				var license_box := PanelContainer.new()
+				var license_style := UI.pill(UI.PAPER_DEEP, 10, Color.TRANSPARENT, 0, Vector2(14, 10))
+				license_box.add_theme_stylebox_override("panel", license_style)
+				rows.add_child(license_box)
+				var license_text := UI.label(str(section.get("license", "")), 13, UI.INK_SOFT)
+				license_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				license_box.add_child(license_text)
+			rows.add_child(HSeparator.new())
+
+	var btn_back := UI.button("返  回", on_close)
+	btn_back.name = "BackButton"
+	btn_back.custom_minimum_size.y = 44
+	btn_back.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_child(btn_back)
+	return menu
+
 static func build_achievements_menu(parent: Control, on_close: Callable) -> Control:
 	var menu := Control.new()
 	menu.name = "AchievementsMenu"

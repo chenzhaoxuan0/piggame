@@ -16,10 +16,12 @@ const GAME_MENUS = preload("res://scripts/ui/menus.gd")
 
 var _ui_root: Control
 var achievements_panel: Control
+var credits_panel: Control
 
 func _ready() -> void:
 	_build_stage()
 	_build_ui()
+	MusicManager.play("menu")
 
 # ------------------------------------------------------------- backdrop
 func _build_stage() -> void:
@@ -155,6 +157,10 @@ func _build_ui() -> void:
 	btn_achv.name = "AchievementsButton"
 	btn_achv.custom_minimum_size.y = 40
 	vbox.add_child(btn_achv)
+	var btn_credits := UI.button("📜  制作名单与致谢", _open_credits_panel)
+	btn_credits.name = "CreditsButton"
+	btn_credits.custom_minimum_size.y = 40
+	vbox.add_child(btn_credits)
 	var btn_quit := UI.button("✕  退出游戏", func(): get_tree().quit())
 	btn_quit.name = "QuitButton"
 	btn_quit.custom_minimum_size.y = 40
@@ -163,7 +169,7 @@ func _build_ui() -> void:
 	vbox.add_child(hint)
 	# Keyboard reaches nothing here any more, but keep buttons focus-free so
 	# Enter/Space can never double-fire a focused button mid-click.
-	for btn in [btn_start, btn_skip, btn_achv, btn_quit]:
+	for btn in [btn_start, btn_skip, btn_achv, btn_credits, btn_quit]:
 		btn.focus_mode = Control.FOCUS_NONE
 
 # ------------------------------------------------------------- hand-off
@@ -176,6 +182,15 @@ func _open_achievements_panel() -> void:
 func _close_achievements_panel() -> void:
 	if achievements_panel != null:
 		achievements_panel.visible = false
+
+func _open_credits_panel() -> void:
+	if credits_panel == null:
+		credits_panel = GAME_MENUS.build_credits_menu(_ui_root, _close_credits_panel)
+	credits_panel.visible = true
+
+func _close_credits_panel() -> void:
+	if credits_panel != null:
+		credits_panel.visible = false
 
 func _boot_to(intent: String) -> void:
 	GameManager.pending_boot = intent
