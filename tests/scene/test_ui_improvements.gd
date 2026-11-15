@@ -69,6 +69,16 @@ func _run() -> void:
 		await process_frame
 		_check(office.credits_panel != null and office.credits_panel.visible, "About opens the credits panel")
 		_check(not office.settings_menu.visible, "Settings suspends while credits are up")
+		# 2026-11-15 playtest #20: the credits lead with the producer block.
+		var producer_line: Label = office.credits_panel.find_child("ProducerLine", true, false)
+		var producer_site: Label = office.credits_panel.find_child("ProducerSite", true, false)
+		var producer_quote: Label = office.credits_panel.find_child("ProducerQuote", true, false)
+		_check(producer_line != null and "陈兆轩" in producer_line.text and "子鱼尘AI" in producer_line.text,
+			"Credits lead with the producers (陈兆轩 & 子鱼尘AI)")
+		_check(producer_site != null and "zxcorner.cn" in producer_site.text,
+			"Credits carry the producer site zxcorner.cn")
+		_check(producer_quote != null and not producer_quote.text.is_empty(),
+			"Credits carry the producer's word to the player")
 		var credits_back: Button = office.credits_panel.find_child("BackButton", true, false)
 		_check(credits_back != null, "Credits panel has a back button")
 		if credits_back != null:

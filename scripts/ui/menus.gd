@@ -56,6 +56,24 @@ static func build_credits_menu(parent: Control, on_close: Callable) -> Control:
 
 	vbox.add_child(HSeparator.new())
 
+	# 制作人（2026-11-15 实机反馈 #20）：署名放在素材致谢之前——BGM 的
+	# CC BY 义务块是这块面板的常客，但制作人的名字理应排在名单最前面。
+	var producer := UI.label("制作人 · 陈兆轩 & 子鱼尘AI", 20, UI.INK, true)
+	producer.name = "ProducerLine"
+	producer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(producer)
+	var site := UI.label("zxcorner.cn", 15, UI.TEAL_DEEP, true)
+	site.name = "ProducerSite"
+	site.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(site)
+	var quote := UI.label("「感谢您玩我的无聊游戏，游戏史上即将迎来大便」", 13, UI.INK_SOFT)
+	quote.name = "ProducerQuote"
+	quote.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	quote.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(quote)
+
+	vbox.add_child(HSeparator.new())
+
 	var scroll := ScrollContainer.new()
 	scroll.custom_minimum_size = Vector2(0, 420)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
