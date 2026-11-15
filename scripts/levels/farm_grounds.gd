@@ -93,6 +93,7 @@ func _ready() -> void:
 	_build_all_gates()
 	_build_road_obstacles()
 	_build_playground()
+	_build_sheep_meadow_extras()
 	_build_cabbage_field()
 	_cabin=Node3D.new()
 	_cabin.name="CableCarCabin"
@@ -593,6 +594,133 @@ func _dust_ring(pos: Vector3, max_r := 3.0) -> void:
 	puff.parallel().tween_property(dust, "albedo_color:a", 0.0, 0.55)
 	puff.tween_callback(ring.queue_free)
 
+# ------------------------------------------------------------- sheep meadow
+# 2026-11-15 实机反馈 #1/#2：羊矮棚旁的两样新玩场——真水池（原先是芦苇圈
+# 里一块读不出来的异色地面）与除草挑战区。
+const POND_CENTRE := Vector3(-14, 16, -45)
+const WEEDING_CENTRE := Vector3(-47, 16.05, -49)
+var _pond_slowed := false
+var _pond_base_speed := 0.0
+var _pond_medal_paid := false
+var _weeds_total := 12
+var _weeds_left := 12
+var _weeding_label: Label3D
+
+func _build_sheep_meadow_extras() -> void:
+	_build_sheep_pond()
+	_build_weeding_patch()
+
+func _build_sheep_pond() -> void:
+	# 半透明水面圆盘（顶面与草地齐平，呼吸微动读出「是水」）+ 卵石收口；
+	# 水域感应：入水降速 + 扑通 gag + 首次点亮「落水猪」。
+	var water := MeshInstance3D.new()
+	water.name = "PondWater"
+	var disc := CylinderMesh.new()
+	disc.top_radius = 6.4
+	disc.bottom_radius = 6.4
+	disc.height = 0.16
+	water.mesh = disc
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color("4FA8C9")
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.roughness = 0.25
+	water.material_override = mat
+	add_child(water)
+	water.position = POND_CENTRE - Vector3.UP * 0.08
+	var breathe := create_tween().set_loops()
+	breathe.tween_property(water, "position:y", POND_CENTRE.y - 0.03, 2.2)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	breathe.tween_property(water, "position:y", POND_CENTRE.y - 0.08, 2.2)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	for i in 9:
+		var ang := TAU * i / 9.0
+		var stone := _box(self, "PondStone%d" % i, Vector3(0.8, 0.4, 0.6),
+			POND_CENTRE + Vector3(cos(ang) * 6.9, 0.0, sin(ang) * 6.0), Color("8D8073"), false)
+		stone.rotation.y = ang
+	var pond := Area3D.new()
+	pond.name = "PondWaterSense"
+	pond.collision_layer = 0
+	pond.collision_mask = 2
+	var shape := CollisionShape3D.new()
+	var cyl := CylinderShape3D.new()
+	cyl.radius = 6.2
+	cyl.height = 1.6
+	shape.shape = cyl
+	shape.position.y = 0.8
+	pond.add_child(shape)
+	add_child(pond)
+	pond.position = POND_CENTRE
+	pond.body_entered.connect(_on_pond_entered)
+	pond.body_exited.connect(_on_pond_exited)
+
+func _on_pond_entered(body: Node3D) -> void:
+	if not body.is_in_group("player") and not body.name.to_lower().contains("pig"):
+		return
+	if not _pond_slowed and "move_speed" in body:
+		_pond_slowed = true
+		_pond_base_speed = body.move_speed
+		body.move_speed = _pond_base_speed * 0.55
+	_gag_at(body.global_position + Vector3.UP * 1.4, "扑通！猪猪戏水～（水里走得慢）", 1.6)
+	if not _pond_medal_paid:
+		_pond_medal_paid = true
+		AchievementManager.unlock("pig_paddle")
+		playground_event.emit("pig_paddle", "")
+
+func _on_pond_exited(body: Node3D) -> void:
+	if not _pond_slowed:
+		return
+	if not body.is_in_group("player") and not body.name.to_lower().contains("pig"):
+		return
+	if "move_speed" in body and _pond_base_speed > 0.0:
+		body.move_speed = _pond_base_speed
+	_pond_slowed = false
+	_pond_base_speed = 0.0
+
+func _build_weeding_patch() -> void:
+	# 除草挑战：十二株灰绿杂草（与金黄嫩香草互为反差），啃一株少一株，
+	# 全部啃光点亮「除草机」。草株复用 _herb_grass 建造器换杂草配色。
+	_weeds_total = 12
+	_weeds_left = _weeds_total
+	var index := 0
+	for row in 3:
+		for col in 4:
+			var weed := _herb_grass(WEEDING_CENTRE + Vector3(-3.3 + col * 2.2, 0, -2.0 + row * 2.0),
+				Color("6B7F5A"), Color("9BB07C"))
+			weed.name = "WeedPatch%d" % index
+			var sense := Area3D.new()
+			sense.name = "WeedSense"
+			sense.collision_layer = 0
+			sense.collision_mask = 2
+			var shape := CollisionShape3D.new()
+			var sph := SphereShape3D.new()
+			sph.radius = 1.1
+			shape.shape = sph
+			shape.position.y = 0.5
+			sense.add_child(shape)
+			weed.add_child(sense)
+			sense.body_entered.connect(_on_weed_eaten.bind(weed))
+			index += 1
+	_weeding_label = _label(self, "WeedingLabel", "除草挑战 · 吃光这片杂草！（0/%d）" % _weeds_total,
+		WEEDING_CENTRE + Vector3(0, 2.6, 0), 18)
+
+func _on_weed_eaten(body: Node3D, weed: Node3D) -> void:
+	if not body.is_in_group("player") and not body.name.to_lower().contains("pig"):
+		return
+	if not is_instance_valid(weed) or weed.get_meta("eaten", false):
+		return
+	weed.set_meta("eaten", true)
+	_weeds_left -= 1
+	var munch := weed.create_tween()
+	munch.tween_property(weed, "scale", Vector3(0.01, 0.01, 0.01), 0.25)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	munch.tween_callback(weed.queue_free)
+	if _weeding_label != null:
+		_weeding_label.text = "除草挑战 · 吃光这片杂草！（%d/%d）" % [_weeds_total - _weeds_left, _weeds_total]
+	if _weeds_left <= 0:
+		AchievementManager.unlock("lawn_mower")
+		playground_event.emit("lawn_mower", "")
+		_gag_at(WEEDING_CENTRE + Vector3.UP * 1.6, "绵羊欢呼：寸草不留！你是天生的除草机！", 2.4)
+
 # ------------------------------------------------------------- playground
 # Ten kinds of body-driven easter eggs down the whole mountain road. Every
 # collider here sits well off the road lanes (raycast/journey-bot red lines).
@@ -962,13 +1090,13 @@ func _build_playground() -> void:
 
 ## 嫩香草（2026-11-15 实机反馈 #12）：「食草动物的本分」的专用建模——
 ## 金黄三叶草束 + 奶油色小冠，无碰撞（plaything 感应即啃）、无发光。
-## 与环境装饰的绿蕨/绿芦苇一眼可辨。
-func _herb_grass(pos: Vector3) -> Node3D:
+## 与环境装饰的绿蕨/绿芦苇一眼可辨。配色可参数化：#1 除草挑战的杂草
+## 复用同一建造器换灰绿杂草色。
+func _herb_grass(pos: Vector3, leaf_color := Color("E9C46A"), crown_color := Color("FFF3C4")) -> Node3D:
 	var tuft := Node3D.new()
 	tuft.name = "HerbTuft"
 	add_child(tuft)
 	tuft.position = pos
-	var gold := Color("E9C46A")
 	for i in 3:
 		var leaf := MeshInstance3D.new()
 		leaf.name = "HerbLeaf%d" % i
@@ -977,7 +1105,7 @@ func _herb_grass(pos: Vector3) -> Node3D:
 		sphere.height = 0.64
 		leaf.mesh = sphere
 		var mat := StandardMaterial3D.new()
-		mat.albedo_color = gold.lightened(0.07 * i)
+		mat.albedo_color = leaf_color.lightened(0.07 * i)
 		mat.roughness = 0.95
 		leaf.material_override = mat
 		var ang := TAU * i / 3.0
@@ -991,7 +1119,7 @@ func _herb_grass(pos: Vector3) -> Node3D:
 	crown_mesh.height = 0.36
 	crown.mesh = crown_mesh
 	var crown_mat := StandardMaterial3D.new()
-	crown_mat.albedo_color = Color("FFF3C4")
+	crown_mat.albedo_color = crown_color
 	crown_mat.roughness = 0.9
 	crown.material_override = crown_mat
 	crown.position = Vector3(0, 0.74, 0)

@@ -238,6 +238,35 @@ func _run() -> void:
 		await create_timer(0.2).timeout
 	_check(am.is_unlocked("grass_gourmet"), "Nibbling all six tufts unlocks 食草动物的本分")
 
+	# --- Sheep meadow extras (2026-11-15 playtest #1/#2): the reed ring is a
+	# real pond now, and the shed clearing grows a weeding challenge.
+	_check(farm.get_node_or_null("PondWater") != null and farm.get_node_or_null("PondWaterSense") != null,
+		"The sheep meadow pond is built (water disc + sense volume)")
+	_check(not am.is_unlocked("pig_paddle"), "落水猪 locked before the first splash")
+	var pig_speed_before_pond: float = pig.move_speed
+	pig.global_position = Vector3(-14, 16.4, -45)
+	await physics_frame
+	await physics_frame
+	await create_timer(0.2).timeout
+	_check(am.is_unlocked("pig_paddle"), "Entering the pond pays 落水猪")
+	_check(is_equal_approx(pig.move_speed, pig_speed_before_pond * 0.55),
+		"Wading slows the pig to 55% speed")
+	pig.global_position = Vector3(-14, 16.4, -33)
+	await physics_frame
+	await physics_frame
+	await create_timer(0.2).timeout
+	_check(is_equal_approx(pig.move_speed, pig_speed_before_pond),
+		"Leaving the pond restores full speed")
+	var weeds: Array = farm.find_children("WeedPatch*", "", true, false)
+	_check(weeds.size() == 12, "The weeding patch grows twelve weeds")
+	_check(not am.is_unlocked("lawn_mower"), "除草机 locked before the munching")
+	for weed in weeds:
+		pig.global_position = weed.global_position + Vector3(0, 0.4, 0)
+		await physics_frame
+		await physics_frame
+		await create_timer(0.15).timeout
+	_check(am.is_unlocked("lawn_mower"), "Eating the whole patch unlocks 除草机")
+
 	# --- Hay dive: falling into the stack scores; a 10 lands the achievement
 	var hay: Node3D = farm.get_node("HayDiveStack")
 	# 2026-11-15 playtest #11: the dive spot must announce itself - a launch sign

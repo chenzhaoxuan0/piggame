@@ -1640,7 +1640,11 @@ func _on_playground_event(kind: String, _detail) -> void:
 		"perfect_dive":
 			_show_toast("满分入坑！", "10 分！麻雀评委全体起立。")
 		"demolition_crew":
-			_show_toast("拆家小队！", "沿路的农具都记住了这头猪。")
+			_show_toast("拆家小队！", "全农场的农具都记住了这头猪。")
+		"lawn_mower":
+			_show_toast("除草机！", "十二株杂草，寸草不留——绵羊目瞪口呆。")
+		"pig_paddle":
+			_show_toast("落水猪！", "扑通——猪猪的第一次戏水，满分。")
 		"grass_gourmet":
 			_show_toast("食草动物的本分", "六丛嫩草，一丛不落。")
 		"potato_harvest":
