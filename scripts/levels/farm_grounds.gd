@@ -787,7 +787,11 @@ func _build_playground() -> void:
 	# woodland net sits by the road's terminal waypoint, not across it.
 	_build_cabbage_goal("CabbageGoal", Vector3(46, 24, 24.6), "牛耕地球会 · 卷心菜联赛", 0.0, "cabbage_goal_pitch")
 	_build_cabbage_goal("CabbageGoal_Pen", Vector3(4.0, 32.0, 93.5), "猪圈分赛场 · 后院点球大战", -90.0, "cabbage_goal_pen")
-	_build_cabbage_goal("CabbageGoal_Creek", Vector3(54.0, 22.21, 3.5), "溪桥分赛场 · 卷心菜漂流终点", -120.0, "cabbage_goal_creek")
+	# 溪桥网立在路中间（2026-11-15 实机反馈"位置偏了"）：探针实测此段路面
+	# 为 z∈[-1,3]、y≈22.2 的沿 x 轴通道（z=5 是 23.7 的路肩高地，z≥7 落空）。
+	# 几何中心 z=1；yaw 90 让网口朝东（+x），迎着下游来球与来路——立柱落在
+	# z≈-0.7/2.7，走廊中心的 z≈1 从网口正中穿过，不挡路。
+	_build_cabbage_goal("CabbageGoal_Creek", Vector3(54.0, 22.2, 1.0), "溪桥分赛场 · 卷心菜漂流终点", 90.0, "cabbage_goal_creek")
 	_build_cabbage_goal("CabbageGoal_Woodland", Vector3(18.0, 8.0, -86.0), "林间分赛场 · 卷心菜远征终点", 180.0, "cabbage_goal_woodland")
 	_build_pitch_fence()
 

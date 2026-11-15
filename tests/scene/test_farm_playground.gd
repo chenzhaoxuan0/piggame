@@ -148,6 +148,13 @@ func _run() -> void:
 	pen_ball_score.global_position = Vector3(-3, 32.36, 102)
 	_check(am.is_unlocked("cabbage_striker"), "The striker achievement holds after every net")
 	_check(am.is_unlocked("cabbage_grand_slam"), "Scoring in all four nets pays 卷心菜全满贯")
+	# 溪桥网立在路中间（2026-11-15 实机反馈"位置偏了"）：探针实测桥面可行走
+	# 带为 z∈[-1,3]、y≈22.2，网心取 z=1，网口朝东（yaw 90）迎着来路。
+	var creek_net: Node3D = farm.get_node("CabbageGoal_Creek")
+	_check(creek_net.global_position.distance_to(Vector3(54, 22.2, 1.0)) < 0.35,
+		"The creek net stands mid-road at the bridge (54, 22.2, 1)")
+	_check(absf(rad_to_deg(creek_net.rotation.y) - 90.0) < 1.0,
+		"The creek net faces east along the road (yaw 90)")
 
 	# --- Log shove: a sprinting pig opens the second path
 	_check(not am.is_unlocked("second_path"), "Second-path achievement locked before the shove")
