@@ -189,6 +189,15 @@ func _run() -> void:
 	await create_timer(0.2).timeout
 	_check(am.is_unlocked("second_path"), "Sprinting into the log unlocks 第二条路")
 	_check(log.collision_layer == 0, "Shoved log stops blocking the road")
+	# 2026-11-15 playtest #10: the log must visibly roll away - it owns its
+	# visual now (the baked twin beam left the shared mesh). Pin roll + visual.
+	await create_timer(1.4).timeout
+	_check(log.global_position.distance_to(log_pos) > 4.0,
+		"The shoved log really rolls down-slope (moved %.1f m)" % log.global_position.distance_to(log_pos))
+	var log_visual: Node = log.get_node_or_null("LogLux")
+	if log_visual == null:
+		log_visual = log.get_node_or_null("VisualMesh")
+	_check(log_visual != null and log_visual.visible, "The rolling log owns a visible model")
 
 	# --- Tippables: five sprint knocks unlock the demolition crew
 	_check(not am.is_unlocked("demolition_crew"), "Demolition locked before the rampage")
@@ -202,6 +211,15 @@ func _run() -> void:
 	_check(am.is_unlocked("demolition_crew"), "Toppling all five props unlocks 拆家小队")
 
 	# --- Grass: six tufts nibbled
+	# 2026-11-15 playtest #12: the six tufts are golden herb-grass now, visually
+	# distinct from the green roadside dressing (and no glow).
+	var herb_tufts: Array = farm.find_children("NibbleGrass*", "", true, false)
+	var golden_all := herb_tufts.size() == 6
+	for tuft in herb_tufts:
+		if tuft.get_node_or_null("HerbCrown") == null:
+			golden_all = false
+	_check(herb_tufts.size() == 6, "Six herb tufts stand along the descent")
+	_check(golden_all, "Every tuft is the golden herb model (distinct from green dressing)")
 	_check(not am.is_unlocked("grass_gourmet"), "Gourmet locked before grazing")
 	for tuft in farm.find_children("NibbleGrass*", "", true, false):
 		pig.global_position = tuft.global_position + Vector3(0, 0.4, 0.2)
@@ -212,6 +230,12 @@ func _run() -> void:
 
 	# --- Hay dive: falling into the stack scores; a 10 lands the achievement
 	var hay: Node3D = farm.get_node("HayDiveStack")
+	# 2026-11-15 playtest #11: the dive spot must announce itself - a launch sign
+	# on the slope above and a target ring on the stack.
+	_check(farm.get_node_or_null("HayDiveLaunchLabel") != null and farm.get_node_or_null("HayDiveSignPost") != null,
+		"Hay dive has a launch sign above the stack")
+	_check(farm.get_node_or_null("HayDiveStack/HayDiveTargetRing") != null,
+		"Hay dive stack wears a target ring")
 	_check(not am.is_unlocked("perfect_dive"), "Perfect dive locked before jumping")
 	pig.global_position = hay.global_position + Vector3(0, 2.2, 0)
 	pig.velocity = Vector3(0, -8.0, 0)

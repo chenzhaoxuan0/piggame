@@ -22,7 +22,7 @@ func build(farm: Node3D) -> void:
 	_farm = farm
 	_rng.seed = 4701
 	name = "PastoralEnvironment"
-	set_meta("layout_version", 8)
+	set_meta("layout_version", 9)
 	_material = ShaderMaterial.new()
 	_material.shader = preload("res://scripts/art/pastoral_surface.gdshader")
 	_mountainside()
@@ -309,7 +309,11 @@ func _summit_walls() -> void:
 		_stone_wall(segment[0],segment[1],1.5,.55)
 		var a: Vector3=segment[0]; var b: Vector3=segment[1]
 		_collider("PigpenWall",(a+b)*.5+Vector3.UP*.75,(b-a).abs()+Vector3(.55,1.5,.55))
-	for log_data in L.LOGS:
+	# 2026-11-15 实机反馈 #10：山顶倒木（LOGS[0]）改为 farm_grounds 侧的可动
+	# 本体（被冲刺顶开时会真的滚下坡），不再烘进共享网格——共享几何没法单
+	# 独动，此前顶开后木头看起来还立在原地。林间倒木（LOGS[1]）不可顶动，
+	# 照旧烘焙。
+	for log_data in [L.LOGS[1]]:
 		var a: Vector3=log_data.a; var b: Vector3=log_data.b
 		var p:=a.lerp(b,log_data.t)
 		var side:=(b-a).normalized().cross(Vector3.UP).normalized()*3.05

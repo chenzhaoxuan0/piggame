@@ -152,7 +152,7 @@ func _install_environment() -> void:
 	var environment: Node3D
 	if not "--rebuild-environment" in OS.get_cmdline_user_args() and ResourceLoader.exists("res://assets/environments/pastoral_farm.scn"):
 		environment=load("res://assets/environments/pastoral_farm.scn").instantiate()
-		if environment.get_meta("layout_version",0)!=8:
+		if environment.get_meta("layout_version",0)!=9:
 			environment.free()
 			environment=null
 	if environment==null:
@@ -496,11 +496,11 @@ func _build_road_obstacles() -> void:
 	# Summit road logs aligned with L.LOGS[0]
 	var log_pos_1: Vector3 = L.LOGS[0].a.lerp(L.LOGS[0].b, L.LOGS[0].t)
 	var log1 := _box(self, "Log_Summit_1", Vector3(3.6, 0.55, 0.55), log_pos_1 + Vector3.UP * 0.25, Color("5A442E"), true)
-	# The baked JumpLog beam already draws this barrier in the environment's
-	# shared mesh (the JumpLog body is collision-only) - the box here was only
-	# ever its duplicate. Keep the collider, drop the twin visual. PROP_19
-	# FALLEN_LOG stays catalogued for future 1.2 m-scale log dressing.
-	log1.get_node("VisualMesh").visible = false
+	# 2026-11-15 实机反馈 #10：山顶倒木改成可动本体——烘焙共享网格里的横梁
+	# 已从环境侧拆除（_summit_walls 跳过 LOGS[0]，layout_version 8→9），这根
+	# 木头由 PROP_19_FALLEN_LOG 模型绘制（白盒长梁兜底），冲刺顶开时整体滚
+	# 下坡，玩家看得见「第二条路开了」。
+	_mount_lux(log1, "PROP_19_FALLEN_LOG", Vector3(3.6, 0.7, 0.7), "LogLux", true, "box")
 	var hay1 := _box(self, "Hay_Summit_Side", Vector3(1.6, 0.75, 1.6), Vector3(-49, 24.3, 85), Color("C9A35E"), true)
 	_mount_lux(hay1, "PROP_11_HAY_STACK", Vector3(1.6, 0.75, 1.6), "HaystackLux")
 
@@ -547,27 +547,51 @@ func _on_log_charge(body: Node3D, log: Node3D) -> void:
 	if not (body.get("is_sprinting") or body.get("dodge_timer") > 0.0):
 		return
 	_log_shoved = true
-	# Roll the gameplay log down-slope and kill both colliders (this box and
-	# the baked JumpLog convex from the environment scene).
+	# 2026-11-15 实机反馈 #10：此前顶开后只有成就弹窗——可见的木头（曾烘在
+	# 共享网格里）纹丝不动，玩家认不出发生了什么。现在木头本体滚下坡：沿
+	# 坡向 ~6.5 m、翻滚两圈、落地扬起尘土圆环。
 	log.collision_layer = 0
 	for child in log.get_children():
 		if child is CollisionShape3D:
 			child.disabled = true
-	var env := get_node_or_null("PastoralEnvironment")
-	if env != null:
-		for baked in env.find_children("JumpLog", "StaticBody3D", true, false):
-			if baked.global_position.distance_to(log.global_position) < 4.0:
-				baked.visible = false
-				for shape in baked.get_children():
-					if shape is CollisionShape3D:
-						shape.disabled = true
+	var roll := Vector3(-3.0, -1.1, -5.4) # down-slope heading (west-south run)
 	var tween := create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(log, "position", log.position + Vector3(-2.2, -0.6, -3.4), 0.7)
-	tween.tween_property(log, "rotation:z", log.rotation.z + PI * 0.5, 0.7)
-	_gag_at(log.global_position + Vector3.UP * 1.6, "轰隆——倒木被顶得滚下坡！第二条路，开了。", 2.6)
+	tween.tween_property(log, "position", log.position + roll, 1.15)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(log, "rotation:z", log.rotation.z - PI * 2.0, 1.15)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	var landing: Vector3 = log.global_position + roll
+	var settle := create_tween()
+	settle.tween_interval(1.12)
+	settle.tween_callback(func():
+		if is_instance_valid(self):
+			_dust_ring(landing + Vector3.UP * 0.1, 3.2)
+	)
+	_gag_at(log.global_position + Vector3.UP * 1.6, "轰隆隆——倒木翻着跟头滚下坡！第二条路，开了。", 2.6)
 	AchievementManager.unlock("second_path")
 	playground_event.emit("second_path", "")
+
+## 尘土圆环：土色圆盘从落点扩散淡出（倒木落点等处共用，流星坑同款观感）。
+func _dust_ring(pos: Vector3, max_r := 3.0) -> void:
+	var ring := MeshInstance3D.new()
+	ring.name = "DustRing"
+	var disc := CylinderMesh.new()
+	disc.top_radius = 0.5
+	disc.bottom_radius = 0.5
+	disc.height = 0.06
+	ring.mesh = disc
+	var dust := StandardMaterial3D.new()
+	dust.albedo_color = Color("C8B49A")
+	dust.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	ring.material_override = dust
+	add_child(ring)
+	ring.position = pos
+	var puff := create_tween()
+	puff.tween_property(disc, "top_radius", max_r, 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	puff.parallel().tween_property(disc, "bottom_radius", max_r, 0.55)
+	puff.parallel().tween_property(dust, "albedo_color:a", 0.0, 0.55)
+	puff.tween_callback(ring.queue_free)
 
 # ------------------------------------------------------------- playground
 # Ten kinds of body-driven easter eggs down the whole mountain road. Every
@@ -825,24 +849,21 @@ func _build_playground() -> void:
 	_build_scarecrow(Vector3(14, 24, 48))
 
 	# --- Six nibble-grass tufts along the descent
-	for def in [
-		[Vector3(-5, 31.4, 82), "ENV_09_FERN"],
-		[Vector3(-36, 26.4, 95), "ENV_09_REEDS"],
-		[Vector3(14, 24.4, 58), "ENV_09_FERN"],
-		[Vector3(44, 21.3, 14), "ENV_09_REEDS"],
-		[Vector3(-45, 16.3, -55), "ENV_09_FERN"],
-		[Vector3(30, 8.3, -112), "ENV_09_REEDS"],
+	# 2026-11-15 实机反馈 #12：专属「嫩香草」建模——金黄三叶草束 + 奶油冠，
+	# 与路边的绿蕨/绿芦苇一眼区分（此前用的正是环境装饰同款，六丛草根本
+	# 找不出来）。纯配色区分，不加任何发光效果（玩家反馈灯光效果一般）。
+	for grass_pos in [
+		Vector3(-5, 31.4, 82),
+		Vector3(-36, 26.4, 95),
+		Vector3(14, 24.4, 58),
+		Vector3(44, 21.3, 14),
+		Vector3(-45, 16.3, -55),
+		Vector3(30, 8.3, -112),
 	]:
-		var tuft := ASSETS.make(def[1])
-		if tuft == null:
-			tuft = _box(self, "GrassTuft", Vector3(0.9, 0.6, 0.9), def[0], Color("7DB874"), false)
-			add_child(tuft)
-			tuft.position = def[0]
-		else:
-			add_child(tuft)
-			tuft.position = def[0]
+		var tuft := _herb_grass(grass_pos)
 		tuft.name = "NibbleGrass"
 		tuft.add_child(_plaything(PLAYTHING.Kind.GRASS, Vector3(2.6, 2.0, 2.6), 2.5))
+	_label(self, "HerbGrassHint", "★ 嫩香草 ★ 下山路上一共六丛，猪猪的最爱", Vector3(-5, 33.4, 82), 18)
 
 	# --- Hay dive at the bottom of the west zigzag (clear of the roadside fence)
 	# Solid like the pen stack: the diving pig lands in it (and squashes it)
@@ -853,6 +874,27 @@ func _build_playground() -> void:
 	hay.add_child(hay_thing)
 	hay_thing.played.connect(_on_hay_dive.bind(hay, 0.75, hay.position.y))
 	_label(self, "HayDiveLabel", "草垛跳水 · 跳进来！", Vector3(-60.5, 26.1, 72.5), 18)
+	# 2026-11-15 实机反馈 #11：满分入坑看不出在哪完成——草垛顶立靶环，
+	# 坡上起跳点立牌 + 地面箭头，指明「从哪跳、朝哪跳」。
+	var ring := MeshInstance3D.new()
+	ring.name = "HayDiveTargetRing"
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.9
+	torus.outer_radius = 1.22
+	ring.mesh = torus
+	var ring_mat := StandardMaterial3D.new()
+	ring_mat.albedo_color = Color("E74C3C")
+	ring.material_override = ring_mat
+	hay.add_child(ring)
+	ring.position = Vector3(0, 1.56, 0)
+	var launch := Vector3(-57.0, 24.35, 77.8)
+	_label(self, "HayDiveLaunchLabel", "满分入坑 · 从这块牌子朝草垛起跳！", launch + Vector3(0, 1.9, 0), 18)
+	_box(self, "HayDiveSignPost", Vector3(0.14, 1.2, 0.14), launch + Vector3(0, 0.6, 0), Color("8B6846"), false)
+	_box(self, "HayDiveSignBoard", Vector3(1.3, 0.55, 0.08), launch + Vector3(0, 1.35, 0), Color("C9A35E"), false)
+	var aim_yaw := (hay.global_position - launch).signed_angle_to(Vector3.FORWARD, Vector3.UP)
+	for i in 2:
+		var chev := _box(self, "HayDiveChevron%d" % i, Vector3(0.72, 0.05, 0.16), launch + Vector3(0, 0.06, -1.1), Color("FFFBEB"), false)
+		chev.rotation.y = aim_yaw + (-0.7 if i == 0 else 0.7)
 
 	# --- Beehive by the orchard (sting = speed)
 	var hive_stand := _box(self, "Beehive", Vector3(0.7, 1.1, 0.7), Vector3(68, 24.55, 50), Color("D9A441"), true)
@@ -908,6 +950,44 @@ func _build_playground() -> void:
 	# (2026-11-15 playtest #13). 树基 = 台地地面 + 1.3（盒子半高）。
 	_build_apple_tree("AppleTree", Vector3(76, 9.3, -108))
 	_build_apple_tree("AppleTreeOxField", Vector3(8, 25.3, 34))
+
+## 嫩香草（2026-11-15 实机反馈 #12）：「食草动物的本分」的专用建模——
+## 金黄三叶草束 + 奶油色小冠，无碰撞（plaything 感应即啃）、无发光。
+## 与环境装饰的绿蕨/绿芦苇一眼可辨。
+func _herb_grass(pos: Vector3) -> Node3D:
+	var tuft := Node3D.new()
+	tuft.name = "HerbTuft"
+	add_child(tuft)
+	tuft.position = pos
+	var gold := Color("E9C46A")
+	for i in 3:
+		var leaf := MeshInstance3D.new()
+		leaf.name = "HerbLeaf%d" % i
+		var sphere := SphereMesh.new()
+		sphere.radius = 0.32
+		sphere.height = 0.64
+		leaf.mesh = sphere
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = gold.lightened(0.07 * i)
+		mat.roughness = 0.95
+		leaf.material_override = mat
+		var ang := TAU * i / 3.0
+		leaf.position = Vector3(cos(ang) * 0.26, 0.34, sin(ang) * 0.26)
+		leaf.scale = Vector3(1.0, 0.72, 1.0)
+		tuft.add_child(leaf)
+	var crown := MeshInstance3D.new()
+	crown.name = "HerbCrown"
+	var crown_mesh := SphereMesh.new()
+	crown_mesh.radius = 0.18
+	crown_mesh.height = 0.36
+	crown.mesh = crown_mesh
+	var crown_mat := StandardMaterial3D.new()
+	crown_mat.albedo_color = Color("FFF3C4")
+	crown_mat.roughness = 0.9
+	crown.material_override = crown_mat
+	crown.position = Vector3(0, 0.74, 0)
+	tuft.add_child(crown)
+	return tuft
 
 func _build_apple_tree(tree_name: String, pos: Vector3) -> void:
 	var tree := _box(self, tree_name, Vector3(0.5, 2.6, 0.5), pos, Color("665A48"), true)
