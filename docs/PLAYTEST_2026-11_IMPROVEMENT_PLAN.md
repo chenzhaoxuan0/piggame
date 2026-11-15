@@ -99,18 +99,10 @@
 ## 3. P2 — 中型功能
 
 ### 3.1 [#6] 取消林间侧卷心菜球门，全满贯改 3 门
-**现状**：`cabbage_goal_woodland`「林间远射手」的球门放在马场草甸（林间关出口旁），但马场没有卷心菜、牛耕地的菜又太远，实战基本不可达成。
-**修法**：
-- 删除马场草甸的分赛场球门（`CabbageGoal_Woodland` 及其网/柱）；
-- 删除成就 `cabbage_goal_woodland`；`cabbage_grand_slam` 描述与判定改为 3 门（牛耕地联赛门 + 猪圈点球门 + 溪桥门）；
-- 成就墙 33→N，同步改 `achievement_manager.gd` 头注释与 `test_achievements` 的计数/全解锁断言；`capture_cabbage_crossings`、`test_farm_playground` 四门巡游改为三门。
+**已落地（2026-11-16）**：删除 `CabbageGoal_Woodland`（马场草甸）球门；成就表退役 `cabbage_goal_woodland`「林间远射手」；`cabbage_grand_slam` 判定与描述改三门（联赛 + 猪圈 + 溪桥）。台账 33→32（农场玩场 13→12，头注释同步），`test_farm_playground` 巡游改三门（该测试对球门列表是泛化遍历，删门即自动缩）。
 
 ### 3.2 [#14] 拆家小队：全农场农具可撞翻，任意 5 件
-**现状**：只有下山路沿线的 5 件（`_tipple`：Barrel_Zigzag / Wheelbarrow_Meadow / WoolBale_Meadow / Barrel_Track / 稻草人），成就判定 5/5。
-**修法**：
-- 给全农场散布的农具（CART / BARREL / WHEELBARROW / PUMP / CRATE 等，分布在 `farm_dressing.gd`）补 `_tipple` 式可撞翻 plaything——用 group（如 `tippable_props`）统一注册，farm_grounds 与 farm_dressing 两边都能挂；
-- 成就判定改为「全农场撞翻任意 **5 件不同**农具」，下山路 5 件仍是天然路线，但不再限定；
-- 描述文案同步改「全农场的农具都在发抖——撞翻任意五件」。
+**已落地（2026-11-16）**：调研确认 `_react_tippable` 每件一次性（`_one_shot_done`），计数天然按「件」计。新增 6 件跨区农具（猪圈水桶 / 牛耕地木箱×2 / 溪桥手推车 / 马场水泵 / 大门前院木桶），合计 11 件 + 教程猪圈原 3 件——每个区域都有得撞，翻任意 5 件即付。描述改「全农场的农具都在发抖」。测试改跨区组合并断言总数 ≥11。
 
 ### 3.3 [#1] 羊矮棚除草小游戏 + 除草机成就
 **位置**：羊矮棚旁空地（羊毛堆/矮棚一带，约 `(-56,16,-40)` 周边找一块 8×8 净地）。

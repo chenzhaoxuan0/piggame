@@ -837,15 +837,24 @@ func _build_playground() -> void:
 	# 几何中心 z=1；yaw 90 让网口朝东（+x），迎着下游来球与来路——立柱落在
 	# z≈-0.7/2.7，走廊中心的 z≈1 从网口正中穿过，不挡路。
 	_build_cabbage_goal("CabbageGoal_Creek", Vector3(54.0, 22.2, 1.0), "溪桥分赛场 · 卷心菜漂流终点", 90.0, "cabbage_goal_creek")
-	_build_cabbage_goal("CabbageGoal_Woodland", Vector3(18.0, 8.0, -86.0), "林间分赛场 · 卷心菜远征终点", 180.0, "cabbage_goal_woodland")
+	# 2026-11-15 实机反馈 #6：取消林间分赛场（马场没有卷心菜、牛耕地的菜又
+	# 太远，实战不可达成）——全满贯改为三门：联赛 + 猪圈 + 溪桥。
 	_build_pitch_fence()
 
-	# --- Five tippables scattered down the mountain (sprint to topple). Each
-	# keeps its box collision; the Lux3D dressing draws the real object.
+	# --- Tippables farm-wide (sprint to topple). Each keeps its box collision;
+	# the Lux3D dressing draws the real object. 2026-11-15 实机反馈 #14：拆家
+	# 小队从「下山路沿线的五件」扩成全农场——每个区域都有得撞，任意翻够
+	# 五件即付（每件只能翻一次，计数天然按件数）。
 	_tipple("Barrel_Zigzag", Vector3(-34, 25.8, 101), Vector3(0.9, 1.1, 0.9), Color("8F6A42"), "ENV_09_BARREL", "BarrelLux")
+	_tipple("Bucket_Pen", Vector3(6, 32.15, 104), Vector3(0.7, 0.8, 0.7), Color("9C805E"), "ENV_09_BARREL", "BucketLux")
+	_tipple("Crate_Fields", Vector3(20, 24.15, 25), Vector3(1.0, 1.0, 1.0), Color("B08968"), "ENV_06_CRATE", "CrateLux")
+	_tipple("Wheelbarrow_Creek", Vector3(48, 24.15, 22), Vector3(1.4, 0.7, 0.9), Color("B0543F"), "ENV_09_WHEELBARROW", "WheelbarrowLux")
 	_tipple("Wheelbarrow_Meadow", Vector3(-33, 16.6, -50), Vector3(1.4, 0.7, 0.9), Color("B0543F"), "ENV_09_WHEELBARROW", "WheelbarrowLux")
+	_tipple("Crate_Meadow", Vector3(-57, 16.1, -46), Vector3(1.0, 1.0, 1.0), Color("B08968"), "ENV_06_CRATE", "CrateLux")
 	_tipple("WoolBale_Meadow", Vector3(-45, 16.6, -30), Vector3(1.5, 0.9, 1.1), Color("E8E2CE"), "ENV_09_WOOL", "WoolBaleLux")
 	_tipple("Barrel_Track", Vector3(58, 8.6, -132), Vector3(0.9, 1.1, 0.9), Color("8F6A42"), "ENV_09_BARREL", "BarrelLux")
+	_tipple("Pump_Track", Vector3(70, 8.1, -124), Vector3(0.5, 1.2, 0.5), Color("7A8B99"), "ENV_09_PUMP", "PumpLux")
+	_tipple("Barrel_GateCourt", Vector3(-77, 2.1, -219), Vector3(0.9, 1.1, 0.9), Color("8F6A42"), "ENV_09_BARREL", "BarrelLux")
 	_build_scarecrow(Vector3(14, 24, 48))
 
 	# --- Six nibble-grass tufts along the descent
@@ -1180,8 +1189,10 @@ func _on_cabbage_goal(body: Node3D, goal: Node3D, goal_ach_id := "") -> void:
 	# all_courses chase achievement).
 	if not goal_ach_id.is_empty():
 		AchievementManager.unlock(goal_ach_id)
+		# 2026-11-15 实机反馈 #6：全满贯改三门——林间分赛场（马场草甸）已撤，
+		# 那片场地没有卷心菜可踢，实战不可达成。
 		var slam := true
-		for net_id in ["cabbage_goal_pitch", "cabbage_goal_pen", "cabbage_goal_creek", "cabbage_goal_woodland"]:
+		for net_id in ["cabbage_goal_pitch", "cabbage_goal_pen", "cabbage_goal_creek"]:
 			slam = slam and AchievementManager.is_unlocked(net_id)
 		if slam:
 			AchievementManager.unlock("cabbage_grand_slam")

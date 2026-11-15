@@ -119,11 +119,13 @@ func _run() -> void:
 	_check(plot.freeze and plot.global_position.distance_to(plot_home) < 0.1,
 		"The meteor reset is the one restock path back into the bed")
 
-	# --- Branch goals: three more nets bait the farm (pen, creek bridge,
-	# woodland road). Any cabbage ball scores in any of them; each goal fires
-	# its own event, and the achievement stays unlocked-once.
+	# --- Branch goals: two more nets bait the farm (pen, creek bridge). The
+	# woodland road net is retired (2026-11-15 playtest #6: the horse meadow has
+	# no cabbages to kick, so the far net was unearnable in practice) - the grand
+	# slam is three doors now. Any cabbage ball scores in any of them; each goal
+	# fires its own event, and the achievement stays unlocked-once.
 	var goals: Array = farm.find_children("CabbageGoal*", "Node3D", false, false)
-	_check(goals.size() == 4, "Four cabbage goals stand around the farm (pitch + three branches)")
+	_check(goals.size() == 3, "Three cabbage goals stand around the farm (pitch + two branches)")
 	# Send the pitch ball home first: it still rests in the CabbageGoal net
 	# from the earlier score, and the plot tour would materialize inside it.
 	ball.global_position = ball_home
@@ -131,7 +133,7 @@ func _run() -> void:
 	await physics_frame
 	plot.freeze = false # harvest it again for the tour of the nets
 	var net_ach := {"CabbageGoal": "cabbage_goal_pitch", "CabbageGoal_Pen": "cabbage_goal_pen",
-		"CabbageGoal_Creek": "cabbage_goal_creek", "CabbageGoal_Woodland": "cabbage_goal_woodland"}
+		"CabbageGoal_Creek": "cabbage_goal_creek"}
 	for goal in goals:
 		var before: int = goal_events.size()
 		# Park the ball clear of every net for one physics step first: the
@@ -169,7 +171,7 @@ func _run() -> void:
 	pen_ball_score.linear_velocity = Vector3.ZERO
 	pen_ball_score.global_position = Vector3(-3, 32.36, 102)
 	_check(am.is_unlocked("cabbage_striker"), "The striker achievement holds after every net")
-	_check(am.is_unlocked("cabbage_grand_slam"), "Scoring in all four nets pays 卷心菜全满贯")
+	_check(am.is_unlocked("cabbage_grand_slam"), "Scoring in all three nets pays 卷心菜全满贯")
 	# 溪桥网立在路中间（2026-11-15 实机反馈"位置偏了"）：探针实测桥面可行走
 	# 带为 z∈[-1,3]、y≈22.2，网心取 z=1，网口朝东（yaw 90）迎着来路。
 	var creek_net: Node3D = farm.get_node("CabbageGoal_Creek")
@@ -199,16 +201,24 @@ func _run() -> void:
 		log_visual = log.get_node_or_null("VisualMesh")
 	_check(log_visual != null and log_visual.visible, "The rolling log owns a visible model")
 
-	# --- Tippables: five sprint knocks unlock the demolition crew
+	# --- Tippables: five sprint knocks unlock the demolition crew.
+	# 2026-11-15 playtest #14: the rampage went farm-wide - every zone fields at
+	# least one toppleable implement now, and the medal counts ANY five.
+	var tippable_props: Array = []
+	for node in farm.find_children("*", "", true, false):
+		var thing: Node = node.get_node_or_null("Plaything")
+		if thing != null and thing.get("kind") == PLAYTHING.Kind.TIPPABLE:
+			tippable_props.append(node)
+	_check(tippable_props.size() >= 11, "Implements to topple stand in every zone (>= 11, got %d)" % tippable_props.size())
 	_check(not am.is_unlocked("demolition_crew"), "Demolition locked before the rampage")
-	for name_ in ["Barrel_Zigzag", "Wheelbarrow_Meadow", "WoolBale_Meadow", "Barrel_Track", "Scarecrow_Field"]:
+	for name_ in ["Barrel_Zigzag", "Bucket_Pen", "Crate_Fields", "Wheelbarrow_Creek", "Barrel_GateCourt"]:
 		var prop: Node3D = farm.get_node(name_)
 		pig.global_position = prop.global_position + Vector3(0, 0.6, 0.9)
 		pig.dodge_timer = 0.35
 		await physics_frame
 		await physics_frame
 		await create_timer(0.25).timeout
-	_check(am.is_unlocked("demolition_crew"), "Toppling all five props unlocks 拆家小队")
+	_check(am.is_unlocked("demolition_crew"), "Toppling any five farm-wide props unlocks 拆家小队")
 
 	# --- Grass: six tufts nibbled
 	# 2026-11-15 playtest #12: the six tufts are golden herb-grass now, visually
@@ -237,6 +247,10 @@ func _run() -> void:
 	_check(farm.get_node_or_null("HayDiveStack/HayDiveTargetRing") != null,
 		"Hay dive stack wears a target ring")
 	_check(not am.is_unlocked("perfect_dive"), "Perfect dive locked before jumping")
+	# The dive score rolls randi_range(7,10) on the global RNG - 40 retries at
+	# 1/4 still go bust once in ~100k runs (bit us in a suite pass). Pin the
+	# sequence instead: this seed lands a 10 within the retry budget, every run.
+	seed(4702)
 	pig.global_position = hay.global_position + Vector3(0, 2.2, 0)
 	pig.velocity = Vector3(0, -8.0, 0)
 	await physics_frame
