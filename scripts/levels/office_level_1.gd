@@ -630,7 +630,6 @@ func _start_pigpen_tutorial() -> void:
 	if is_instance_valid(start_menu):
 		start_menu.visible = false
 	player.set_dash_enabled(true) # try Shift freely; story gating resumes on start
-	player.force_dodge_available = true
 	player.set_control_mode("explore")
 	camera.snap_to_target()
 	# 键位说明默认隐藏：玩家点右上『键位说明』才展开（10 秒自动收起）。
@@ -906,7 +905,6 @@ func _end_pigpen_tutorial() -> void:
 	_dismiss_title_card()
 	if not GameManager.has_dash_skill:
 		player.set_dash_enabled(false) # dash belongs to 追风's loan again
-	player.force_dodge_available = false
 	_hide_key_strip()
 
 func _snuffle_trough(target: Node3D) -> void:
@@ -1704,8 +1702,6 @@ func _on_playground_event(kind: String, _detail) -> void:
 			_show_toast("落水猪！", "扑通——猪猪的第一次戏水，满分。")
 		"steady_lap":
 			_show_toast("稳稳一圈！", "规规矩矩沿跑道跑完一整圈——值得尊重。")
-		"checkpoint_chaser":
-			_show_toast("抄近道也是本事！", "四个检查点一个不落，路是猪自己选的。")
 		"record_breaker":
 			_show_toast("35 秒新纪录！", "马场计时赛——真·猪跑出来的圈速。")
 		"fence_breaker":

@@ -90,11 +90,12 @@ func stop() -> float:
 func fade_out(delay: float = 2.5) -> void:
 	# 2026-11-16 实机反馈：完赛/取消后计分条一直挂在屏幕顶上不走。让最终
 	# 成绩先亮一会儿（gag 台词同屏），随后淡出——layer 由拥有者按需重建。
+	# CanvasLayer 没有 modulate，渐隐的是徽章面板本体。
 	if state != "stopped":
 		stop()
 	var tween := create_tween()
 	tween.tween_interval(delay)
-	tween.tween_property(self, "modulate:a", 0.0, 0.45)
+	tween.tween_property(_badge, "modulate:a", 0.0, 0.45)
 
 func format_time(t: float) -> String:
 	var minutes := int(t) / 60

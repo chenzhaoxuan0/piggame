@@ -127,7 +127,6 @@ func reset_at(pos: Vector3) -> void:
 	_dodge_cooldown_timer = 0.0
 	knockback_timer = 0.0
 	knockback_velocity = Vector3.ZERO
-	force_dodge_available = false
 	dash_remaining = 0.0
 	cooldown_remaining = 0.0
 	_dodge_animated = false
@@ -150,8 +149,6 @@ func set_dash_enabled(enabled: bool) -> void:
 	else:
 		stamina = max_stamina
 	dash_state_changed.emit(stamina, cooldown_remaining)
-
-var force_dodge_available: bool = false # For unit testing / debug
 
 func is_dodging() -> bool:
 	return dodge_timer > 0.0
@@ -180,13 +177,12 @@ func is_under_dog_threat() -> bool:
 	return false
 
 func can_dodge() -> bool:
+	# 2026-11-17 实机反馈：翻滚是猪的常驻机动——探索赶路、竞速提速都要它。
+	# 旧门槛「只在犬威胁下开放」，而 reset_at（坠落重生/开竞速都走它）会清
+	# 掉教学期的豁免标记，之后 Shift 翻滚彻底失灵。现在只剩冷却限制。
 	if not _can_move():
 		return false
-	if _dodge_cooldown_timer > 0.0:
-		return false
-	if force_dodge_available:
-		return true
-	return is_under_dog_threat()
+	return _dodge_cooldown_timer <= 0.0
 
 func notify_dodge_success(dog: Node3D = null) -> void:
 	_successful_dodges += 1

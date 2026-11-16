@@ -694,12 +694,10 @@ func _on_weed_eaten(body: Node3D, weed: Node3D) -> void:
 
 # ------------------------------------------------------------- ranch race
 # 2026-11-15 实机反馈 #4/#5：马场计时赛。2026-11-16 重做成门架。2026-11-17
-# 第三轮实机反馈落地：①门架/起点线/计分 UI 只在赛跑进行中出现，平时整
-# 组隐藏；②门序重排——起点门 = 离纪录牌最近的北直道西门（检查门 1），
-# 猪固定在它前面起跑，逐门 1→6 顺行，回到起点门冲线（旧序从旧起点出发
-# 先撞到的却是 6 号门，怎么跑都"顺序不对"）；③完赛判定改为过满六门回
-# 起点门即停表（此前自由圈进过内场就永远冲不了线，表停不下来）；④跑
-# 道分成六段点亮砖，猪跑过一段亮一段，完成进度踩在脚下可见。
+# 第三轮：门架/计分只在赛跑中出现；起点门 = 离纪录牌最近的检查门 1，逐门
+# 1→6 回起点冲线；过门点亮身后跑道段。同日第四轮（实机反馈）：近道竞速
+# 整套删除（内场门 / 抄近道章 / 解锁流），只保留原跑道一种竞速——进内场
+# 即本轮取消，规则一眼看懂。
 const RACE_TIMER_SCRIPT = preload("res://scripts/courses/components/race_timer.gd")
 const RACE_TRACK_CENTRE := Vector3(40, 8, -120)
 const RACE_GATES := [
@@ -710,11 +708,6 @@ const RACE_GATES := [
 	{"p": Vector3(27, 8, -131), "t": Vector3(-1, 0, 0)},  # 5 南直道西段
 	{"p": Vector3(4, 8, -120), "t": Vector3(0, 0, 1)},    # 6 西弯顶（15 - 11）
 ]
-const RACE_INFIELD_GATES := [
-	{"p": Vector3(48, 8, -120), "t": Vector3(1, 0, 0)},   # 7 内场东门（向西穿）
-	{"p": Vector3(32, 8, -120), "t": Vector3(1, 0, 0)},   # 8 内场西门
-]
-const RACE_SHORTCUT_SEQ := [2, 6, 7, 5]  # 东弯 → 内场东门 → 内场西门 → 西弯
 const RACE_FINISH := RACE_GATES[0].p  # 起点/终点门合一（检查门 1）
 const RACE_SPAWN := Vector3(20, 8.35, -109)  # 起跑位：起点门西 7 m（判定圈外）
 const RACE_RECORD := 35.0
@@ -736,10 +729,6 @@ var _race_timer = null
 var _race_gantry: Label3D = null
 var _race_running := false
 var _race_next_out := 0        # 外圈六门按序指针
-var _race_next_short := 0      # 抄近道序列指针（首圈后才有意义）
-var _race_stayed_on_track := true
-var _race_full_lap_done := false  # 第一圈完整跑完 → 解锁近道门与自由跑法
-var _race_infield_labels: Array[Label3D] = []
 var _race_props: Array[Node3D] = []          # 门架/起点线/龙门/段砖——仅赛跑时可见
 var _race_segment_tiles: Array[Node3D] = []  # 每段点亮的容器（过门即亮）
 var _race_hint_msec := 0                     # 冲线提示冷却
@@ -750,12 +739,7 @@ func _build_ranch_race() -> void:
 	# 起点线贴在起点门下（与门架同组随赛跑显隐）。
 	_race_props.append(_box(self, "RaceStartLine", Vector3(6.0, 0.08, 0.6), RACE_FINISH + Vector3(0, 0.06, 0), Color("FDE68A"), false))
 	for i in RACE_GATES.size():
-		_race_gate(i, RACE_GATES[i].p, RACE_GATES[i].t, Color("E74C3C"), false)
-	_race_infield_labels.clear()
-	for j in RACE_INFIELD_GATES.size():
-		var label := _race_gate(6 + j, RACE_INFIELD_GATES[j].p, RACE_INFIELD_GATES[j].t, Color("5B8DEF"), true)
-		if label is Label3D:
-			_race_infield_labels.append(label)
+		_race_gate(i, RACE_GATES[i].p, RACE_GATES[i].t, Color("E74C3C"))
 	_race_gantry = _label(self, "RaceGantry", "🏁 计时赛起点 🏁", RACE_FINISH + Vector3(0, 4.4, 0), 22)
 	if _race_gantry is Node3D:
 		_race_props.append(_race_gantry)
@@ -795,10 +779,9 @@ func _light_race_segment(seg: int) -> void:
 	if seg >= 0 and seg < _race_segment_tiles.size() and is_instance_valid(_race_segment_tiles[seg]):
 		_race_segment_tiles[seg].visible = true
 
-## 检查门架：两柱 + 顶梁跨在跑道/内场路径上（柱底微埋 0.15 防悬浮），
-## 顶梁沿柱间连线，编号牌立在梁上。全部节点入 _race_props 随赛跑显隐。
-## locked 的近道门挂锁牌（首圈后 _unlock_infield_gates 换牌开跑）。
-func _race_gate(idx: int, centre: Vector3, tangent: Vector3, colour: Color, locked: bool) -> Label3D:
+## 检查门架：两柱 + 顶梁跨在跑道路径上（柱底微埋 0.15 防悬浮），顶梁沿
+## 柱间连线，编号牌立在梁上。全部节点入 _race_props 随赛跑显隐。
+func _race_gate(idx: int, centre: Vector3, tangent: Vector3, colour: Color) -> Label3D:
 	var side := (tangent as Vector3).cross(Vector3.UP).normalized() * 3.3
 	for tag in ["A", "B"]:
 		var offset := side if tag == "A" else -side
@@ -806,15 +789,9 @@ func _race_gate(idx: int, centre: Vector3, tangent: Vector3, colour: Color, lock
 	var beam := _box(self, "RaceGate%dBeam" % idx, Vector3(7.0, 0.22, 0.22), centre + Vector3(0, 2.62, 0), colour.lightened(0.18), false)
 	beam.rotation.y = Vector3.RIGHT.signed_angle_to(side.normalized(), Vector3.UP)
 	_race_props.append(beam)
-	var text := "🔒 首圈跑完才开" if locked else "检查门 %d" % (idx + 1)
-	var label := _label(self, "RaceGate%dLabel" % idx, text, centre + Vector3(0, 3.15, 0), 15)
+	var label := _label(self, "RaceGate%dLabel" % idx, "检查门 %d" % (idx + 1), centre + Vector3(0, 3.15, 0), 15)
 	_race_props.append(label)
 	return label
-
-func _unlock_infield_gates() -> void:
-	for label in _race_infield_labels:
-		if is_instance_valid(label):
-			label.text = "内场近道门 ✦"
 
 ## 纪录牌对话「开始计时赛」入口（office 的事件分发调用）。倒数期间猪被
 ## 锁在起点门前的起跑位，GO 一响解锁并开始计时；门架与段砖整组亮出。
@@ -824,8 +801,6 @@ func begin_race_trial(player: Node3D) -> bool:
 	if not is_instance_valid(player) or player.control_mode != "explore":
 		return false
 	_race_next_out = 0
-	_race_next_short = 0
-	_race_stayed_on_track = true
 	player.reset_at(RACE_SPAWN)
 	player.look_at(RACE_FINISH, Vector3.UP)
 	if _race_timer != null and is_instance_valid(_race_timer):
@@ -838,13 +813,11 @@ func begin_race_trial(player: Node3D) -> bool:
 		if is_instance_valid(tile):
 			tile.visible = false
 	player.set_control_mode("cinematic")
-	var brief := "跑！按序穿过检查门 1 到 6，回到检查门 1 冲线！" if not _race_full_lap_done \
-		else "跑！全跑道六门，或东弯穿内场近道门抄到西弯——你选！"
 	_race_timer.countdown_finished.connect(func():
 		if is_instance_valid(player):
 			player.set_control_mode("explore")
 		_race_running = true
-		_gag_at(RACE_FINISH + Vector3.UP * 2.0, brief, 2.2)
+		_gag_at(RACE_FINISH + Vector3.UP * 2.0, "跑！按序穿过检查门 1 到 6，回到检查门 1 冲线！", 2.2)
 	)
 	_race_timer.start_countdown(_race_gantry)
 	return true
@@ -859,14 +832,11 @@ func _tick_ranch_race() -> void:
 	if p.distance_to(RACE_TRACK_CENTRE) > 60.0:
 		_cancel_race("离场太远，本轮计时赛取消。")
 		return
-	# 内场检测（跑道内侧椭圆）：进内场即失去「稳稳一圈」资格；首圈进内场
-	# 直接本轮作废（第一圈必须沿跑道完整跑）。
+	# 内场检测（跑道内侧椭圆）：进内场即本轮取消——只有原跑道一种竞速。
 	var oval := pow((p.x - 40.0) / 25.0, 2.0) + pow((p.z + 120.0) / 8.0, 2.0)
 	if oval < 0.8:
-		_race_stayed_on_track = false
-		if not _race_full_lap_done:
-			_cancel_race("第一圈必须沿跑道完整跑——穿内场本轮作废，再来！")
-			return
+		_cancel_race("计时赛要沿跑道跑——穿内场本轮作废，再来！")
+		return
 	# 外圈六门按序推进；过门即点亮身后的那段跑道。
 	if _race_next_out < RACE_GATES.size():
 		var gate: Vector3 = RACE_GATES[_race_next_out].p
@@ -876,52 +846,27 @@ func _tick_ranch_race() -> void:
 			if _race_next_out < RACE_GATES.size():
 				_gag_at(RACE_GATES[_race_next_out].p + Vector3.UP * 2.2,
 					"检查门 %d/%d ✓" % [_race_next_out, RACE_GATES.size()], 1.2)
-	# 抄近道序列（东弯→内东→内西→西弯）按序推进；外圈序列头（东弯门）与
-	# 全跑道共享位置，跑全跑道时近道指针顺带 +1，无碍判定。
-	if _race_full_lap_done and _race_next_short < RACE_SHORTCUT_SEQ.size():
-		var want: int = RACE_SHORTCUT_SEQ[_race_next_short]
-		var wp: Vector3 = RACE_GATES[want].p if want < RACE_GATES.size() else RACE_INFIELD_GATES[want - RACE_GATES.size()].p
-		if p.distance_to(wp) < RACE_CP_RADIUS:
-			_race_next_short += 1
-			if _race_next_short < RACE_SHORTCUT_SEQ.size():
-				_gag_at(p + Vector3.UP * 2.2, "近道 %d/%d ✓" % [_race_next_short, RACE_SHORTCUT_SEQ.size()], 1.2)
-	# 冲线判定（2026-11-17 修复"跑完不停表"）：六门全过回到起点门即完赛
-	# （稳稳一章另由未进内场决定）；自由圈也可走近道序列冲线。二选一提示
-	# 带 1.2 s 冷却，防反复进出判定圈刷屏。
+	# 冲线判定：六门全过回到起点门即完赛停表。提示带 1.2 s 冷却防刷屏。
 	if p.distance_to(RACE_FINISH) < RACE_CP_RADIUS:
-		var ring_lap := _race_next_out >= RACE_GATES.size()
-		var shortcut := _race_next_short >= RACE_SHORTCUT_SEQ.size()
-		if ring_lap or shortcut:
-			_finish_race("full" if ring_lap else "shortcut")
+		if _race_next_out >= RACE_GATES.size():
+			_finish_race()
 		else:
 			var now := Time.get_ticks_msec()
 			if now - _race_hint_msec > 1200:
 				_race_hint_msec = now
-				if not _race_full_lap_done:
-					_gag_at(RACE_FINISH + Vector3.UP * 2.2,
-						"还差 %d 道检查门——第一圈必须沿跑道六门全过！" % (RACE_GATES.size() - _race_next_out), 1.8)
-				else:
-					_gag_at(RACE_FINISH + Vector3.UP * 2.2, "检查门没过齐——全跑道六门或近道四点，选一条跑！", 1.8)
+				_gag_at(RACE_FINISH + Vector3.UP * 2.2,
+					"还差 %d 道检查门——六门全过再回来冲线！" % (RACE_GATES.size() - _race_next_out), 1.8)
 
-func _finish_race(kind: String) -> void:
+func _finish_race() -> void:
 	_race_running = false
 	var t: float = _race_timer.stop()
 	_race_timer.fade_out(2.8)
 	_set_race_props_visible(false)
-	if kind == "full":
-		# 稳稳一章只看"整圈没进内场"；完赛本身过满六门即成立。
-		if _race_stayed_on_track:
-			AchievementManager.unlock("steady_lap")
-		if not _race_full_lap_done:
-			_race_full_lap_done = true
-			_unlock_infield_gates()
-			_gag_at(RACE_FINISH + Vector3.UP * 2.8, "完整一圈达成！内场近道门已开锁——下轮起自由选跑法。", 2.4)
-	else:
-		AchievementManager.unlock("checkpoint_chaser")
+	AchievementManager.unlock("steady_lap")
 	var beat: bool = t >= 0.0 and t < RACE_RECORD
 	if beat:
 		AchievementManager.unlock("record_breaker")
-	var verdict := ("全跑道" if kind == "full" else "抄近道") + "圈速：%s" % _race_timer.format_time(t)
+	var verdict := "圈速：%s" % _race_timer.format_time(t)
 	if beat:
 		verdict += "——35 秒纪录，破了！"
 	_gag_at(RACE_FINISH + Vector3.UP * 2.4, verdict, 2.6)
@@ -1039,7 +984,10 @@ func _tick_horse_lap(delta: float) -> void:
 		var to_home := _horse_home - horse.global_position
 		to_home.y = 0.0
 		# 贴身让行：回家途中猪挡在身前就停步等它挪开（移动的实体不该推猪）。
-		if to_home.length() > 0.35 and pig_pos.distance_to(horse.global_position) > 2.2:
+		# 2026-11-17 修复：猪就站在家门口时，让行会让马卡在离原点 4 m 的等距
+		# 点上够不着家（停哪侧看来向，纯看相位）——到家最后 2.5 m 不再让行，
+		# 直接站上原点转身面对猪（马是直移 NPC，不推挤玩家）。
+		if to_home.length() > 0.35 and (to_home.length() < 2.5 or pig_pos.distance_to(horse.global_position) > 2.2):
 			horse.global_position += to_home.normalized() * minf(11.0 * delta, to_home.length())
 		if pig_pos.distance_to(horse.global_position) > 0.5:
 			horse.look_at(pig_pos, Vector3.UP)
