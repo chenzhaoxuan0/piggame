@@ -38,11 +38,12 @@ func build(farm: Node3D) -> void:
 	_pigpen()
 	_origin = Vector3(50,24,-14)
 	_fields()
-	_collider("OxBarn", Vector3(-33,4.27,46), Vector3(9.10,8.54,9.67))
+	# 2026-11-16 回退：牛棚/剪毛棚回到白模，碰撞体一并回到与白模盒体对齐。
+	_collider("OxBarn", Vector3(-33,2.5,46), Vector3(11,5,8))
 	_origin = Vector3(-40,16,-51)
 	_shearing()
 	_collider("ShedBack",Vector3(-21,1.1,10),Vector3(.3,2.2,6.6))
-	for z in [7.07,12.93]: _collider("ShedSide",Vector3(-16,.7,z),Vector3(10,1.4,.3))
+	for z in [6.75,13.25]: _collider("ShedSide",Vector3(-16,.7,z),Vector3(10,1.4,.3))
 	_origin = Vector3.ZERO
 	_summit_walls()
 	_large_racetrack()
@@ -105,9 +106,10 @@ func _tree(p: Vector3,scale_factor: float=1.0) -> void:
 	q.y=SURFACE.mesh_height_at(q)-.08
 	_dressing.place(id,q,Vector3.ONE*scale_factor*.85,_rng.randf()*TAU)
 
-## 白盒清扫：共享 builder 里的白模地标（谷仓/筒仓/剪毛棚/站台/饲料架/废棚等）
-## 改走 Lux3D 模型——坐标加 _origin 后交给 dressing 批处理烘进场景，与既有
-## 树木/围栏同一条 MultiMesh 通路，材质统一 pastoral_surface 平涂着色。
+## 白盒清扫：共享 builder 里的白模地标改走 Lux3D 模型——坐标加 _origin 后
+## 交给 dressing 批处理烘进场景，与既有树木/围栏同一条 MultiMesh 通路，材质
+## 统一 pastoral_surface 平涂着色。2026-11-16 回退后仍在用模型的地标：水桶、
+## 草捆堆、铁门石柱、长椅（谷仓/筒仓/剪毛棚/站台/饲料架/废棚已回白模）。
 ## scale 传数字（整体等比）或 Vector3（分轴适配，见基类注释）。
 func _place_lux(id: String, local: Vector3, scale = 1.0, yaw := 0.0) -> void:
 	var vec: Vector3 = scale if scale is Vector3 else Vector3.ONE * float(scale)
@@ -412,10 +414,12 @@ func _chase_dressing() -> void:
 
 func _station() -> void:
 	_district="StoneGatewayAndCableStation"
-	# 白盒清扫：索道站台（板面 + 边围栏 + 双立柱 + 横梁）由 ENV_10_STATION
-	# 模型绘制；悬空钢缆仍程序绘制——它要一路拉到 L.TRAVEL 的吊厢线上，
-	# 模型里装不下这根 30 多米的缆。
-	_place_lux("ENV_10_STATION", L.STATION, 1.0)
+	# 2026-11-16 回退：ENV_10_STATION 模型撤销，恢复原程序站台（板面 + 边围栏
+	# + 双立柱 + 横梁）；悬空钢缆照旧程序绘制。
+	for i in 19: _box(L.STATION+Vector3(0,.06,5-i*.5),Vector3(5,.12,.46),WOOD_LIGHT)
+	for x in [-2.8,2.8]: _fence(L.STATION+Vector3(x,0,1),L.STATION+Vector3(x,0,-4),WOOD_DARK)
+	for x in [-2,2]: _box(L.STATION+Vector3(x,2.15,5),Vector3(.25,4.3,.25),WOOD_DARK)
+	_box(L.STATION+Vector3(0,4.3,5),Vector3(4.4,.22,.28),WOOD_DARK)
 	var start:=L.STATION+Vector3(0,4.1,0)
 	_beam(start-L.TRAVEL*.6,start+L.TRAVEL*1.5,.055,.055,IRON)
 	_district="GoldenWilderness"
