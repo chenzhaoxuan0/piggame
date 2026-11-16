@@ -1186,6 +1186,15 @@
       "category": "environment_dressing",
       "triangle_budget": 500,
       "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-16"
+    },
+    "PROP_23_HERB_GRASS": {
+      "path": "res://assets/models/aholo/PROP_23_HERB_GRASS/PROP_23_HERB_GRASS_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 1200,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-16"
     }
   }
 }

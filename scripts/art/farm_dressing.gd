@@ -156,7 +156,10 @@ func _horses() -> void:
 		for sign_side in [-1,1]:
 			e._dressing.place("ENV_09_ROCK",Vector3(42+i*10+sign_side*2.5,8.0,-123),Vector3.ONE*.3,sign_side*1.3+float(i))
 	_put("PUMP",Vector3(77,8,-129),1)
-	_put("BARREL",Vector3(78.2,8,-128),1)
+	# 2026-11-16 实机反馈：桶原位 (78.2,-128) 坐进白模饲料架（77,-127，长 3 m
+	# 带外张斜栅条）的东南角里——ENV_10 模型时代紧凑不显，回退白模后穿模。
+	# 挪到水泵南侧与泵成组，离开饲料架 3.5 m。
+	_put("BARREL",Vector3(77,8,-130.5),1)
 	# 2026-11-13: the wheelbarrow used to poke into the track barn's west wall.
 	_put("WHEELBARROW",Vector3(74.5,8,-133.5),1,.5)
 	for i in 9:

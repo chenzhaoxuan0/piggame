@@ -52,7 +52,7 @@ func _run() -> void:
 	_check(farm.get_node("CabbageBall") is RigidBody3D and farm.get_node("PenCabbageBall") is RigidBody3D,
 		"both cabbage balls are real rigid bodies (impulse kicks, not tweens)")
 	_check(_hit(Vector3(5,34,104.5),Vector3(5,32.2,104.5)),"pen haystack collider catches a falling pig")
-	_check(_hit(Vector3(-60.5,25.4,72.5),Vector3(-60.5,23.4,72.5)),"west zigzag hay dive stack is solid")
+	_check(_hit(Vector3(-6,17.6,-40),Vector3(-6,15.9,-40)),"sheep-pond hay dive stack is solid (2026-11-16 move)")
 	_check(farm.get_node_or_null("PenBallFence")!=null and farm.get_node_or_null("PitchBallFenceN")!=null
 		and farm.get_node_or_null("PitchBallFenceS")!=null and farm.get_node_or_null("PitchBallFenceW")!=null
 		and farm.get_node_or_null("PitchBallFenceE")!=null,

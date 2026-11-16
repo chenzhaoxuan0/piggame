@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_23_HERB_GRASS",
+  "raw_triangles": 8970,
+  "triangles": 1200,
+  "size_blender_xyz": [
+    0.8186031579971313,
+    0.77006995677948,
+    0.800000011920929
+  ],
+  "file_bytes": 95596,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_23_HERB_GRASS/PROP_23_HERB_GRASS_game.glb"
+}

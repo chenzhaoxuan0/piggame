@@ -552,5 +552,16 @@
       "9C805E",
       "C9A35E"
     ]
+  },
+  "PROP_23_HERB_GRASS": {
+    "name": "下山路嫩香草",
+    "subject": "One small tuft of golden tender herb grass: three chubby rounded clover-like leaf clusters in warm golden yellow gathered on short stems around the base, one tiny cream pale blossom crown sitting on the very top center. A bite-sized snack plant, low, wide and plump like a small rounded bush, clearly distinct from green pasture grass. Complete object with intact base.",
+    "height": 0.8,
+    "budget": 1200,
+    "palette": [
+      "E9C46A",
+      "FFF3C4",
+      "C99A45"
+    ]
   }
 }

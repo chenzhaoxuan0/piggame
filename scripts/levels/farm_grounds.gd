@@ -721,8 +721,10 @@ func _build_ranch_race() -> void:
 	_box(self, "RaceStartLine", Vector3(6.0, 0.08, 0.6), RACE_LAP[3] + Vector3(0, 0.06, 0), Color("FDE68A"), false)
 	for i in 4:
 		var cp: Vector3 = RACE_LAP[i]
-		_box(self, "RaceCP%dPole" % i, Vector3(0.18, 2.6, 0.18), cp + Vector3(2.2, 1.3, 0), Color("E74C3C"), false)
-		_label(self, "RaceCP%dLabel" % i, "检查点 %d" % (i + 1), cp + Vector3(2.2, 3.0, 0), 16)
+		# 2026-11-16 实机反馈：柱底原与台地面齐平（y+0），被 ribbon 跑道面
+		# (+.045) 与白线 (+.065) 抬过而显得悬浮——柱体下移 0.15 微埋入地面。
+		_box(self, "RaceCP%dPole" % i, Vector3(0.18, 2.6, 0.18), cp + Vector3(2.2, 1.15, 0), Color("E74C3C"), false)
+		_label(self, "RaceCP%dLabel" % i, "检查点 %d" % (i + 1), cp + Vector3(2.2, 2.85, 0), 16)
 	_race_gantry = _label(self, "RaceGantry", "🏁 计时赛起点 🏁", RACE_LAP[3] + Vector3(0, 4.4, 0), 22)
 
 ## 纪录牌对话「开始计时赛」入口（office 的事件分发调用）。倒数期间猪被
@@ -1184,33 +1186,36 @@ func _build_playground() -> void:
 	_build_scarecrow(Vector3(14, 24, 48))
 
 	# --- Six nibble-grass tufts along the descent
-	# 2026-11-15 实机反馈 #12：专属「嫩香草」建模——金黄三叶草束 + 奶油冠，
-	# 与路边的绿蕨/绿芦苇一眼区分（此前用的正是环境装饰同款，六丛草根本
-	# 找不出来）。纯配色区分，不加任何发光效果（玩家反馈灯光效果一般）。
+	# 2026-11-15 实机反馈 #12：专属「嫩香草」——金黄三叶草束 + 奶油冠，与路边
+	# 的绿蕨/绿芦苇一眼区分。2026-11-16 实机反馈两笔一并落地：①换 Lux3D
+	# PROP_23 模型（文生 3D，土黄采样在线提亮成金黄）；②多丛落在台地外的
+	# 山坡上根本走不到——六丛全部钉回路面/台地内，边走边啃不再绕圈外。
 	for grass_pos in [
-		Vector3(-5, 31.4, 82),
-		Vector3(-36, 26.4, 95),
-		Vector3(14, 24.4, 58),
-		Vector3(44, 21.3, 14),
-		Vector3(-45, 16.3, -55),
-		Vector3(30, 8.3, -112),
+		Vector3(2.5, 31.4, 84),   # 猪圈门下山第一段路上（避开 z≤81 的 ChaseTrigger_1 区）
+		Vector3(-27.5, 26.4, 99), # zigzag 北弯内侧（原 -36,95 在 summit 台地外山坡）
+		Vector3(14, 24.4, 58),    # 牛耕地石堆缺口内（台地内，保留）
+		Vector3(36, 21.3, 10),    # 溪谷路东岸（原 44,14 在坡外）
+		Vector3(-45, 16.3, -55),  # 羊棚草甸林间口（台地内，保留）
+		Vector3(30, 8.3, -112),   # 马场围栏内（保留）
 	]:
 		var tuft := _herb_grass(grass_pos)
 		tuft.name = "NibbleGrass"
 		tuft.add_child(_plaything(PLAYTHING.Kind.GRASS, Vector3(2.6, 2.0, 2.6), 2.5))
-	_label(self, "HerbGrassHint", "★ 嫩香草 ★ 下山路上一共六丛，猪猪的最爱", Vector3(-5, 33.4, 82), 18)
+	_label(self, "HerbGrassHint", "★ 嫩香草 ★ 下山路上一共六丛，猪猪的最爱", Vector3(0.5, 33.3, 81), 18)
 
-	# --- Hay dive at the bottom of the west zigzag (clear of the roadside fence)
+	# --- Hay dive by the sheep-shed pond (2026-11-16 实机反馈：原西 zigzag 坡底
+	# 的落点在圈外根本走不到——搬到羊矮棚水边：三级干草跳台在池塘东北岸，
+	# 顺台阶登上顶、朝南一跃入垛，跳进溅草的水边画面里)。
 	# Solid like the pen stack: the diving pig lands in it (and squashes it)
 	# instead of ghosting through the visual.
-	var hay := _box(self, "HayDiveStack", Vector3(2.8, 1.5, 2.8), Vector3(-60.5, 23.9, 72.5), Color("E8C86A"), true)
+	var hay := _box(self, "HayDiveStack", Vector3(2.8, 1.5, 2.8), Vector3(-6, 16.75, -40), Color("E8C86A"), true)
 	_mount_lux(hay, "PROP_11_HAY_STACK", Vector3(2.8, 1.5, 2.8), "HaystackLux")
 	var hay_thing: FarmPlaything = _plaything(PLAYTHING.Kind.HAYSTACK, Vector3(2.8, 2.6, 2.8), 2.0)
 	hay.add_child(hay_thing)
 	hay_thing.played.connect(_on_hay_dive.bind(hay, 0.75, hay.position.y))
-	_label(self, "HayDiveLabel", "草垛跳水 · 跳进来！", Vector3(-60.5, 26.1, 72.5), 18)
+	_label(self, "HayDiveLabel", "草垛跳水 · 从跳台跳进来！", Vector3(-6, 18.7, -40), 18)
 	# 2026-11-15 实机反馈 #11：满分入坑看不出在哪完成——草垛顶立靶环，
-	# 坡上起跳点立牌 + 地面箭头，指明「从哪跳、朝哪跳」。
+	# 起跳点立牌 + 箭头，指明「从哪跳、朝哪跳」。
 	var ring := MeshInstance3D.new()
 	ring.name = "HayDiveTargetRing"
 	var torus := TorusMesh.new()
@@ -1222,13 +1227,19 @@ func _build_playground() -> void:
 	ring.material_override = ring_mat
 	hay.add_child(ring)
 	ring.position = Vector3(0, 1.56, 0)
-	var launch := Vector3(-57.0, 24.35, 77.8)
-	_label(self, "HayDiveLaunchLabel", "满分入坑 · 从这块牌子朝草垛起跳！", launch + Vector3(0, 1.9, 0), 18)
-	_box(self, "HayDiveSignPost", Vector3(0.14, 1.2, 0.14), launch + Vector3(0, 0.6, 0), Color("8B6846"), false)
-	_box(self, "HayDiveSignBoard", Vector3(1.3, 0.55, 0.08), launch + Vector3(0, 1.35, 0), Color("C9A35E"), false)
+	# 三级干草台阶北低南高（每级 0.8 m 一跳即上），顶台面 y=18.4 正对草垛顶
+	# (17.5)——起跳弧线叠加 0.9 m 落差，入垛下落速度稳过 4 m/s 的计分线。
+	for i in 3:
+		_box(self, "HayDiveStep%d" % i, Vector3(2.6, 0.8, 1.5), Vector3(-6, 16.4 + i * 0.8, -33.0 - i * 1.4), Color("D9B36A"), true)
+	var launch := Vector3(-6.0, 18.4, -36.3)
+	_label(self, "HayDiveLaunchLabel", "满分入坑 · 登上草阶，朝草垛起跳！", launch + Vector3(0, 1.7, 0), 18)
+	# 指示牌立台侧地面（第一级台阶旁）——立台顶正前方会挡起跳视线与跳跃
+	# 动线（验收截图实锤）；箭头贴顶台前沿面。
+	_box(self, "HayDiveSignPost", Vector3(0.14, 1.2, 0.14), Vector3(-4.2, 16.6, -35.0), Color("8B6846"), false)
+	_box(self, "HayDiveSignBoard", Vector3(1.3, 0.55, 0.08), Vector3(-4.2, 17.35, -35.0), Color("C9A35E"), false)
 	var aim_yaw := (hay.global_position - launch).signed_angle_to(Vector3.FORWARD, Vector3.UP)
 	for i in 2:
-		var chev := _box(self, "HayDiveChevron%d" % i, Vector3(0.72, 0.05, 0.16), launch + Vector3(0, 0.06, -1.1), Color("FFFBEB"), false)
+		var chev := _box(self, "HayDiveChevron%d" % i, Vector3(0.72, 0.05, 0.16), launch + Vector3(0, 0.06, -0.2), Color("FFFBEB"), false)
 		chev.rotation.y = aim_yaw + (-0.7 if i == 0 else 0.7)
 
 	# --- Beehive by the orchard (sting = speed)
@@ -1290,11 +1301,18 @@ func _build_playground() -> void:
 ## 金黄三叶草束 + 奶油色小冠，无碰撞（plaything 感应即啃）、无发光。
 ## 与环境装饰的绿蕨/绿芦苇一眼可辨。配色可参数化：#1 除草挑战的杂草
 ## 复用同一建造器换灰绿杂草色。
+## 2026-11-16 实机反馈：嫩香草换 Lux3D PROP_23_HERB_GRASS 模型（文生 3D +
+## Blender 平涂，1200 面）。采样调色偏土黄/卡其——挂载后统一提亮并向暖金
+## 推（_golden_tint），保住「与绿草一眼区分」的设计意图；离线（catalog 缺
+## 失）时程序三叶草球仍是兜底。杂草走参数化配色，不挂模型。
 func _herb_grass(pos: Vector3, leaf_color := Color("E9C46A"), crown_color := Color("FFF3C4")) -> Node3D:
 	var tuft := Node3D.new()
 	tuft.name = "HerbTuft"
 	add_child(tuft)
 	tuft.position = pos
+	if leaf_color == Color("E9C46A") and _mount_lux(tuft, "PROP_23_HERB_GRASS", Vector3(1.0, 0.9, 1.0), "HerbLux", true, "y") != null:
+		_golden_tint(tuft)
+		return tuft
 	for i in 3:
 		var leaf := MeshInstance3D.new()
 		leaf.name = "HerbLeaf%d" % i
@@ -1323,6 +1341,19 @@ func _herb_grass(pos: Vector3, leaf_color := Color("E9C46A"), crown_color := Col
 	crown.position = Vector3(0, 0.74, 0)
 	tuft.add_child(crown)
 	return tuft
+
+## 嫩香草的金黄补偿：Lux3D 采样调色偏土黄/卡其，统一提亮并向暖金推。
+## 材质逐实例 duplicate 后再改——_flat_materials 的平涂材质跨实例共享，
+## 直接改会叠加提亮（六丛 ×1.16 直接过曝）。
+func _golden_tint(root: Node3D) -> void:
+	for mesh in root.find_children("*", "MeshInstance3D", true, false):
+		var mesh_i := mesh as MeshInstance3D
+		var mat := mesh_i.get_active_material(0)
+		if mat is StandardMaterial3D:
+			var flat := (mat as StandardMaterial3D).duplicate()
+			var c: Color = flat.albedo_color
+			flat.albedo_color = Color(minf(c.r * 1.16, 1.0), minf(c.g * 1.14, 1.0), c.b * 0.78)
+			mesh_i.material_override = flat
 
 func _build_apple_tree(tree_name: String, pos: Vector3) -> void:
 	var tree := _box(self, tree_name, Vector3(0.5, 2.6, 0.5), pos, Color("665A48"), true)

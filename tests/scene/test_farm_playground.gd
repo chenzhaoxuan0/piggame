@@ -222,14 +222,17 @@ func _run() -> void:
 
 	# --- Grass: six tufts nibbled
 	# 2026-11-15 playtest #12: the six tufts are golden herb-grass now, visually
-	# distinct from the green roadside dressing (and no glow).
+	# distinct from the green roadside dressing (and no glow). 2026-11-16: the
+	# tufts wear the Lux3D PROP_23 model (HerbLux; procedural HerbCrown only as
+	# the offline fallback), and every tuft stands on a route/terrace tile a
+	# walking pig can actually reach (the playtest had tufts off-range).
 	var herb_tufts: Array = farm.find_children("NibbleGrass*", "", true, false)
 	var golden_all := herb_tufts.size() == 6
 	for tuft in herb_tufts:
-		if tuft.get_node_or_null("HerbCrown") == null:
+		if tuft.get_node_or_null("HerbLux") == null and tuft.get_node_or_null("HerbCrown") == null:
 			golden_all = false
 	_check(herb_tufts.size() == 6, "Six herb tufts stand along the descent")
-	_check(golden_all, "Every tuft is the golden herb model (distinct from green dressing)")
+	_check(golden_all, "Every tuft wears the herb model (Lux3D online, spheres offline)")
 	_check(not am.is_unlocked("grass_gourmet"), "Gourmet locked before grazing")
 	for tuft in farm.find_children("NibbleGrass*", "", true, false):
 		pig.global_position = tuft.global_position + Vector3(0, 0.4, 0.2)
@@ -237,6 +240,9 @@ func _run() -> void:
 		await physics_frame
 		await create_timer(0.2).timeout
 	_check(am.is_unlocked("grass_gourmet"), "Nibbling all six tufts unlocks 食草动物的本分")
+	# 2026-11-16 实机反馈的回归闸：草丛必须钉在路面/台地的可达处——第一版
+	# 新位 (0.5,31.3,81) 踩进了下山追逐触发区，啃一口就把整局拽进 chase。
+	_check(pig.control_mode == "explore", "Nibbling a tuft never trips a chase trigger")
 
 	# --- Sheep meadow extras (2026-11-15 playtest #1/#2): the reed ring is a
 	# real pond now, and the shed clearing grows a weeding challenge.

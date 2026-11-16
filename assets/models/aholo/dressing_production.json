@@ -1512,6 +1512,27 @@
       "remote_status": 3,
       "raw_model": "assets/models/aholo/ENV_10_POTATO/ENV_10_POTATO.glb",
       "sha256": "ffce2b85984c1fbb1bd80cdb7ad3ad20adebd3b3b1eee32dfaa7481580729da1"
+    },
+    "PROP_23_HERB_GRASS": {
+      "task_id": 8125108,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One small tuft of golden tender herb grass: three chubby rounded clover-like leaf clusters in warm golden yellow gathered on short stems around the base, one tiny cream pale blossom crown sitting on the very top center. A bite-sized snack plant, low, wide and plump like a small rounded bush, clearly distinct from green pasture grass. Complete object with intact base.",
+        "style": "cartoon",
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-16T11:08:15.687872+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_23_HERB_GRASS/PROP_23_HERB_GRASS.glb",
+      "sha256": "3d77b367ddd490182f967537e6a4e1ed44e16166550f023598ef648bb0263334"
     }
   }
 }
