@@ -602,6 +602,9 @@ func _skip_prologue_for_ng_plus() -> void:
 	in_start_menu = false
 	if is_instance_valid(start_menu):
 		start_menu.visible = false
+	# 2026-11-16 实机反馈：标题卡必须一并收走——教学旗清了但卡还挂左上角，
+	# 二周目全程左上角都是"开始游戏"，对话停稳 3 秒后它还会淡回来。
+	_dismiss_title_card()
 	GameManager.choose_red() # prologue → exploring，铜插销到手
 	farm.set_pigpen_open(true)
 	if is_instance_valid(player):
@@ -682,6 +685,10 @@ func _show_brain_hole_quiz() -> void:
 	row.add_child(UI.button("不", _answer_brain_hole.bind(true), true))
 	# The quiz owns the screen centre: hold the pig still until it's answered.
 	player.set_control_mode("locked")
+	# 模态让位（同对话的 2026-11-16 反馈）：quiz 挂屏期间标题卡淡出、按钮
+	# 不可点——否则左上角"开始游戏"还能被点，跟脑洞校准抢入口。
+	if is_instance_valid(_title_card) and not _ui_auto_hidden:
+		_set_ui_auto_hidden(true)
 	hud.add_child(panel)
 	_brain_quiz = panel
 	_brain_quiz_x = panel.position.x # shake baseline - a re-shake mid-shake restarts from home, never drifts
@@ -1134,16 +1141,20 @@ var _todo_blink_tween: Tween = null
 func _update_ui_auto_hide(delta: float) -> void:
 	if not is_instance_valid(player):
 		return
-	var blocked: bool = in_start_menu or paused or in_settings or dialogue_open or cinematic
+	var blocked: bool = in_start_menu or paused or in_settings or dialogue_open or cinematic or is_instance_valid(_brain_quiz)
 	if blocked:
 		_ui_idle_time = 0.0
 		_todo_idle_time = 0.0
-		if _ui_auto_hidden:
+		# 对话/脑洞问答期间不把标题卡亮回来（2026-11-16 实机反馈）——左上角
+		# 的"开始游戏"该给台词让位；其余模态（开始菜单/暂停/设置/演出）维持
+		# 亮回，供玩家随时回枢纽。
+		if _ui_auto_hidden and not dialogue_open and not is_instance_valid(_brain_quiz):
 			_set_ui_auto_hidden(false)
 		_stop_todo_blink()
 		return
 	var speed := Vector2(player.velocity.x, player.velocity.z).length()
-	# 标题卡：跑动淡出，停稳 3 秒淡回（只在猪圈枢纽存在，进关后随卡消失）。
+	# 标题卡：跑动淡出，停稳 3 秒淡回（只在猪圈枢纽存在，进关后随卡消失；
+	# 模态期间的亮回/冻结在上方 blocked 分支里处理）。
 	if is_instance_valid(_title_card):
 		if speed > UI_HIDE_SPEED:
 			_ui_idle_time = 0.0
@@ -1433,6 +1444,10 @@ func open_dialogue(key: String) -> void:
 	dialogue_panel.visible = true
 	# 通知流加在对话面板之后（渲染在上层），对话期间藏起，避免残留卡片压住台词。
 	if is_instance_valid(notice_feed): notice_feed.visible = false
+	# 标题卡同样让位（2026-11-16 实机反馈）：对话读台词时左上角不该挂着
+	# "开始游戏"，按钮也不再可点。关掉对话后停稳 3 秒它自然淡回（枢纽期）。
+	if is_instance_valid(_title_card) and not _ui_auto_hidden:
+		_set_ui_auto_hidden(true)
 	if is_instance_valid(toast_panel) and toast_panel.visible: _place_toast()
 	speaker_label.text = str(data.get("speaker", "")) + "  /  " + str(data.get("title", ""))
 	portrait.texture = ART_2D.PORTRAITS.get(str(data.get("speaker", "")))

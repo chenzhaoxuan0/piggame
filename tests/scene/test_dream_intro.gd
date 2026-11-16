@@ -82,6 +82,20 @@ func _run() -> void:
 	if parked != null:
 		parked.queue_free()
 
+	# --- 4.5 (2026-11-16 playtest): the title card steps aside during dialogue.
+	# 左上角标题卡在对话打开时必须淡出且按钮不可点——不能跟台词抢屏幕。
+	var title_card: Control = office.find_child("TitleCard", true, false)
+	_check(title_card != null, "Title card alive in the pigpen hub for the dialogue check")
+	office.open_dialogue(root.get_node("DialogueManager").get_entry_for("goat"))
+	await process_frame
+	await process_frame
+	var title_btn: Button = title_card.find_child("TitleStartButton", true, false) if title_card != null else null
+	_check(title_btn != null and title_btn.mouse_filter == Control.MOUSE_FILTER_IGNORE,
+		"Dialogue fades the title card aside and unclicks its buttons")
+	_check(office.dialogue_open, "Dialogue is open during the title-card check")
+	office.close_dialogue()
+	await process_frame
+
 	# --- 5. NG+ (2026-11-15 playtest #15): the prologue plays exactly once.
 	# Second-visit profiles talk to the goat and go straight out the gate.
 	game.ng_plus = true
@@ -95,6 +109,7 @@ func _run() -> void:
 	_check(not game.tutorial_free_roam and game.has_pin, "NG+ goat talk hands the pin straight over")
 	_check(game.stage == "exploring", "NG+ skips the dream straight into exploration")
 	_check(office.active_course == null and not office.sleep_playing, "NG+ never starts the sleep/dream beat")
+	_check(office.find_child("TitleCard", true, false) == null, "NG+ skip dismisses the title card for the whole run (no corner title during later dialogues)")
 	office.queue_free()
 	await process_frame
 
