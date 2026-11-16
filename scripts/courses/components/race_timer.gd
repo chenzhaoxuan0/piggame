@@ -1,9 +1,10 @@
 extends CanvasLayer
 
-# Real race clock for the courtyard course: a 3-2-1-GO countdown (mirrored on
-# the start gantry label), then a live TIME HUD; stop() freezes the clock and
-# hands the true finish time to RacingFinishGate so "RECORD BROKEN 00:34.88"
-# becomes an earned result instead of a hardcoded banner.
+# Real race clock for the courtyard course and the ranch time trial: a 3-2-1-GO
+# countdown (mirrored on the start gantry label), then a live TIME HUD; stop()
+# freezes the clock and hands the true finish time to RacingFinishGate / the
+# ranch lap check so "金牌杯最佳 00:34.88" / the 35 s medal become earned
+# results instead of hardcoded banners.
 # The layer lives on the course node, so it is freed with it - game_hud/menus
 # stay untouched. (No class_name self-references: fresh class names are
 # invisible to headless runs until the editor rescans the global class cache.)

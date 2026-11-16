@@ -62,9 +62,9 @@ func _build_counter() -> void:
 	_counter.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(_counter)
 	# 2026-11-15 实机反馈 #3：玩家捡了搋子却不知道怎么用——按键提示原本
-	# 只有军械库位置一条世界标签。计数面板常驻副标题，把「按 Q 发射」
-	# 这堂课跟着弹药走。
-	var hint := UI.label("按 Q 发射", 13, Color("57534E"))
+	# 只有军械库位置一条世界标签。计数面板常驻副标题，把「按 Q / 鼠标
+	# 发射」这堂课跟着弹药走。
+	var hint := UI.label("按 Q / 鼠标 发射", 13, Color("57534E"))
 	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(hint)
 

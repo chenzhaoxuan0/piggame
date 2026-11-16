@@ -325,28 +325,32 @@ func _run() -> void:
 	await create_timer(0.2).timeout
 	_check(am.is_unlocked("fence_breaker"), "Standing outside the fence pays 越狱惯犯 (loose judgment)")
 
-	# --- NPC life (2026-11-15 playtest #18, light phase): the ox paces by the
-	# plow, the sheep sways under its tag, and the horse - once told the truth -
-	# stops grinding paces and just runs, stopping when the pig comes close.
+	# --- NPC life (2026-11-15 playtest #18): the ox paces by the plow, the
+	# sheep sways under its tag, and the horse runs the track FROM THE START -
+	# no more standing still: it breaks for home when the pig comes calling and
+	# resumes the lap once the pig leaves.
 	var ox: Node3D = farm.get_node("NPC_ox")
 	var ox_home: Vector3 = farm._npc_origins["ox"]
 	await create_timer(1.5).timeout
 	_check(ox.global_position.distance_to(ox_home) > 0.15,
 		"The ox paces along the furrow instead of standing frozen")
-	farm.set_npc_completed("horse")
-	await create_timer(3.4).timeout # rest tween + the 2.5 s hold
-	_check(farm._horse_lapping, "Truth told, the horse starts running free laps")
 	var horse: Node3D = farm.get_node("NPC_horse")
-	var horse_run_start := horse.global_position.distance_to(farm.RACE_LAP[3])
+	_check(farm._horse_lapping, "The horse laps the track from the very start")
+	var horse_pos_a := horse.global_position
 	await create_timer(1.2).timeout
-	_check(horse.global_position.distance_to(farm.RACE_LAP[3]) > horse_run_start or horse_run_start > 1.5,
-		"The horse is moving around the track")
-	pig.global_position = horse.global_position + Vector3(0, 0.4, 2.0)
-	await create_timer(0.6).timeout
+	_check(horse.global_position.distance_to(horse_pos_a) > 0.8, "The horse is moving around the track")
+	pig.global_position = farm._horse_home + Vector3(0, 0.4, 2.0)
+	await create_timer(1.8).timeout
+	_check(horse.global_position.distance_to(farm._horse_home) < 1.2,
+		"The pig's approach sends the horse home to talk")
 	var horse_when_close := horse.global_position
 	await create_timer(0.8).timeout
 	_check(horse.global_position.distance_to(horse_when_close) < 0.6,
 		"A pig nearby stops the horse mid-stride")
+	pig.global_position = Vector3(40, 8.6, -147.4) # leave the pasture for the apron
+	await create_timer(1.6).timeout
+	_check(horse.global_position.distance_to(horse_when_close) > 0.8,
+		"Pig gone, the lap resumes")
 
 	# --- Hay dive: falling into the stack scores; a 10 lands the achievement
 	var hay: Node3D = farm.get_node("HayDiveStack")

@@ -357,10 +357,6 @@ func set_npc_completed(id: String) -> void:
 		var tween:=create_tween()
 		tween.tween_property(_npcs[id],"position",L.RESTS[id],.8)
 		_npc_tweens[id]=tween
-	# 2026-11-15 实机反馈 #18：追风听完真相不再呆站——归位 2.5 秒后开始
-	# 自由绕场奔跑（猪靠近/对话时停下）。
-	if id == "horse":
-		_start_horse_lap_after_rest()
 
 func reset_world() -> void:
 	for tween in _npc_tweens.values():
@@ -881,13 +877,14 @@ func _on_outside_fence(body: Node3D) -> void:
 	_gag_at(body.global_position + Vector3.UP * 1.8, "越狱成功！围栏外的风，是自由的味道。", 2.4)
 
 # ------------------------------------------------------------- npc life
-# 2026-11-15 实机反馈 #18（轻量期）：对话前的 NPC 不再呆站——老牛在犁边
-# 缓缓踱步、小羊在矮棚里蔫蔫地晃；追风在听完真相（quest 完成）后不再
-# 盲目刷配速，而是自由地绕场奔跑，猪靠近或对话时它会停下来。全部走
-# _npc_tweens/完成态闸门：任务完成即归于 RESTS，钉位置的测试不受扰。
+# 2026-11-15 实机反馈 #18：对话前的 NPC 不再呆站——老牛在犁边缓缓踱步、
+# 小羊在矮棚里蔫蔫地晃；追风从开机起就在跑道上跑圈（不再呆站在原地等
+# 猪），猪进入牧场周边就全速奔回原点站定等对话，猪走开继续跑；听完真相
+# 后照旧自由奔跑。追逐期间马暂停（不抢戏、不挡路）。
 var _horse_lapping := false
 var _horse_waypoints: Array[Vector3] = []
 var _horse_wp_index := 0
+var _horse_home := Vector3(29, 8, -120)
 
 func _begin_npc_life() -> void:
 	# 幂等：boot 时 reset_world 会清一遍 _npc_tweens（把这里的闲逛 tween 也
@@ -895,6 +892,15 @@ func _begin_npc_life() -> void:
 	for idle_key in ["ox", "sheep"]:
 		if _npc_tweens.has(idle_key) and is_instance_valid(_npc_tweens[idle_key]):
 			(_npc_tweens[idle_key] as Tween).kill()
+	# 追风：开机即跑圈（航点 = 四检查点 + 四段中点的八边形环线）。
+	_horse_waypoints = [
+		RACE_LAP[3], (RACE_LAP[3] + RACE_LAP[0]) * 0.5,
+		RACE_LAP[0], (RACE_LAP[0] + RACE_LAP[1]) * 0.5,
+		RACE_LAP[1], (RACE_LAP[1] + RACE_LAP[2]) * 0.5,
+		RACE_LAP[2], (RACE_LAP[2] + RACE_LAP[3]) * 0.5,
+	]
+	_horse_wp_index = 0
+	_horse_lapping = true
 	# 老牛：犁边往返踱步（±1.2m，慢速）。首拍空等 1 秒：reset_world 之后
 	# 有「位置严格等于出生点」的钉子，第一帧不许有位移。
 	var ox_origin: Vector3 = _npc_origins.get("ox", L.NPCS.ox)
@@ -913,37 +919,33 @@ func _begin_npc_life() -> void:
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	_npc_tweens["sheep"] = sheep_sway
 
-func _start_horse_lap_after_rest() -> void:
-	# 追风听完真相 → 先回 RESTS 站定（测试在完成瞬间钉它的归位），2.5 秒
-	# 后开始自由跑圈。八边形航点 = 四检查点 + 四段中点。不再复查
-	# GameManager（本方法只由完成路径调用，测试也会直调 farm 侧）。
-	var rest := create_tween()
-	rest.tween_interval(2.5)
-	rest.tween_callback(func():
-		_horse_waypoints = [
-			RACE_LAP[3], (RACE_LAP[3] + RACE_LAP[0]) * 0.5,
-			RACE_LAP[0], (RACE_LAP[0] + RACE_LAP[1]) * 0.5,
-			RACE_LAP[1], (RACE_LAP[1] + RACE_LAP[2]) * 0.5,
-			RACE_LAP[2], (RACE_LAP[2] + RACE_LAP[3]) * 0.5,
-		]
-		_horse_wp_index = 0
-		_horse_lapping = true
-	)
-	_npc_tweens["horse_lap"] = rest
-
 func _tick_horse_lap(delta: float) -> void:
 	if not _horse_lapping or not _npcs.has("horse") or not is_instance_valid(_npcs.horse):
 		return
 	if not is_instance_valid(_player):
 		return
+	# 追逐/QTE 期间暂停跑圈：不抢戏、不挡路（马原地待命，恢复后继续）。
+	var pig_mode: String = str(_player.control_mode)
+	if pig_mode == "chase" or pig_mode == "qte":
+		return
 	var horse: Node3D = _npcs.horse
-	# 猪靠近（或正在对话）→ 停下来面朝猪；否则沿航点奔跑。
-	var pig_close: bool = _player.global_position.distance_to(horse.global_position) < 6.5
-	var talking: bool = _player.control_mode == "dialogue"
-	if pig_close or talking:
-		var face := _player.global_position
-		if face.distance_to(horse.global_position) > 0.5:
-			horse.look_at(face, Vector3.UP)
+	var pig_pos: Vector3 = _player.global_position
+	# 猪进入牧场周边 → 全速奔回原点站定（面朝猪）：等着被追上、被对话。
+	# 触发半径取 26m：走关机器人在纪录牌（21m）就会叫它回家，读牌+走过去
+	# 的时间足够它从最远的南直道赶回来。
+	if pig_pos.distance_to(_horse_home) < 26.0:
+		var to_home := _horse_home - horse.global_position
+		to_home.y = 0.0
+		# 贴身让行：回家途中猪挡在身前就停步等它挪开（移动的实体不该推猪）。
+		if to_home.length() > 0.35 and pig_pos.distance_to(horse.global_position) > 2.2:
+			horse.global_position += to_home.normalized() * minf(11.0 * delta, to_home.length())
+		if pig_pos.distance_to(horse.global_position) > 0.5:
+			horse.look_at(pig_pos, Vector3.UP)
+		return
+	if pig_mode == "dialogue":
+		return
+	# 常态：沿航点奔跑；猪贴近（6.5m）即停步。
+	if pig_pos.distance_to(horse.global_position) < 6.5:
 		return
 	var target: Vector3 = _horse_waypoints[_horse_wp_index]
 	var to := target - horse.global_position
