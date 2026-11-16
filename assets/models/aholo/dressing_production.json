@@ -1533,6 +1533,27 @@
       "remote_status": 3,
       "raw_model": "assets/models/aholo/PROP_23_HERB_GRASS/PROP_23_HERB_GRASS.glb",
       "sha256": "3d77b367ddd490182f967537e6a4e1ed44e16166550f023598ef648bb0263334"
+    },
+    "PROP_24_WEED": {
+      "task_id": 8177181,
+      "parameters": {
+        "prompt": "A single isolated freestanding game asset in the visual style of Untitled Goose Game. Minimal low polygon pastoral British farm, matte solid broad color blocks, softly rounded edges. No photorealism, no detailed texture, no noise, no floor, no ground plane, no pedestal, no background, no cast shadow geometry, no extra objects, no text. Complete object with intact base. One scraggly garden weed tuft: three to four saggy grey-green ragged leaves drooping outward from a thin dark stem clump, one tiny pale sickly blossom on top. Clearly an unloved stray weed, dull sage grey-green in contrast to lush pasture grass, slightly wilted and drooping. Complete object with intact base.",
+        "style": "cartoon",
+        "version": "G1-Turbo",
+        "faceCount": 10000,
+        "outputFormat": [
+          "zip",
+          "glb"
+        ],
+        "enablePbr": true,
+        "aiPredictSize": false,
+        "wait": false
+      },
+      "status": "downloaded",
+      "generated_at": "2026-11-16T19:10:12.998240+00:00",
+      "remote_status": 3,
+      "raw_model": "assets/models/aholo/PROP_24_WEED/PROP_24_WEED.glb",
+      "sha256": "f851b50c79a462f6ad95e14ae3c29f3aac8d0f76584b25b30c3fa9cfbe026c42"
     }
   }
 }

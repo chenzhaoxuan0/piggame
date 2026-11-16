@@ -598,6 +598,9 @@ func start_dream_intro() -> void:
 ## 一周目演一次。二周目 F 老岩羊 → 直接拿插销、开圈门、进入探索（intro_
 ## dream_done 早在猪圈开机时点过，噩梦纪念章一周目已到手）。
 func _skip_prologue_for_ng_plus() -> void:
+	# 2026-11-17 实机反馈：二周目不再直接出圈——保留岩羊的红/蓝选择对话，
+	# 「温热的泥浆」（蓝色安稳结局）在二周目以后也必须能完成。噩梦与键位
+	# 教学仍然跳过（每会话只演一次），只把最后的选择权还给玩家。
 	GameManager.tutorial_free_roam = false
 	in_start_menu = false
 	if is_instance_valid(start_menu):
@@ -605,12 +608,13 @@ func _skip_prologue_for_ng_plus() -> void:
 	# 2026-11-16 实机反馈：标题卡必须一并收走——教学旗清了但卡还挂左上角，
 	# 二周目全程左上角都是"开始游戏"，对话停稳 3 秒后它还会淡回来。
 	_dismiss_title_card()
-	GameManager.choose_red() # prologue → exploring，铜插销到手
-	farm.set_pigpen_open(true)
+	if not GameManager.has_dash_skill:
+		player.set_dash_enabled(false)
+	_hide_key_strip()
+	_show_notice("二周目：噩梦与键位教学只演一次——但两条路仍然由你选。")
 	if is_instance_valid(player):
 		player.set_control_mode("explore")
-	_show_toast("二周目 · 直接出圈", "老岩羊：又是你啊。插销还是红的，门还是那扇门——去吧！")
-	_show_notice("序章已跳过（二周目）：噩梦与键位教学只在首次游玩时上演。")
+	open_dialogue("cliff_goat_choice")
 
 func skip_dream_intro() -> void:
 	# Skip path (the in-game start menu's 跳过序章 button): the dream never

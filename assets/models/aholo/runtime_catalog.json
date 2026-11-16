@@ -1195,6 +1195,15 @@
       "category": "environment_dressing",
       "triangle_budget": 2600,
       "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-16"
+    },
+    "PROP_24_WEED": {
+      "path": "res://assets/models/aholo/PROP_24_WEED/PROP_24_WEED_game.glb",
+      "accepted": true,
+      "yaw_degrees": 0,
+      "triangles": 1000,
+      "category": "environment_dressing",
+      "triangle_budget": 2600,
+      "validation": "Isolated Lux3D subject and flat palette game preview visually reviewed; 2026-11-17"
     }
   }
 }

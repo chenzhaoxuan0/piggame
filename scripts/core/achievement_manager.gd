@@ -70,6 +70,11 @@ var _popup_title: Label
 var _popup_desc: Label
 
 func _ready() -> void:
+	# headless（测试进程）绝不碰真实成就档：测试与玩家游戏并发读写同一个
+	# achievements.json 会互相覆盖丢档（2026-11-17 实机反馈：一周目成就莫名
+	# 消失）。测试要验证持久化就显式重定向 save_path（game_manager 同款纪律）。
+	if DisplayServer.get_name() == "headless" and save_path == DEFAULT_SAVE_PATH:
+		save_path = "user://test_achievements.json"
 	_load()
 	_build_popup()
 	# 状态驱动解锁：信号无参，回读字段比对（reset_run 也发此信号，字段全 false）。
@@ -161,12 +166,32 @@ func _load() -> void:
 	for id in parsed.get("unlocked", []):
 		if _def_index(str(id)) >= 0:
 			unlocked[str(id)] = true
+	# 空档回退：主档被并发覆盖成空/半截时，用上一次成功的备份自愈（写前
+	# 备份，.bak 永远落后主档一个版本）。
+	if unlocked.is_empty() and FileAccess.file_exists(save_path + ".bak"):
+		var bak := FileAccess.open(save_path + ".bak", FileAccess.READ)
+		if bak != null:
+			var bak_parsed = JSON.parse_string(bak.get_as_text())
+			if bak_parsed is Dictionary:
+				for id in bak_parsed.get("unlocked", []):
+					if _def_index(str(id)) >= 0:
+						unlocked[str(id)] = true
 
 func _save() -> void:
 	var file := FileAccess.open(save_path, FileAccess.WRITE)
 	if file == null:
 		return # 只读环境下静默降级为仅内存
-	file.store_string(JSON.stringify({"unlocked": unlocked.keys()}))
+	var payload := JSON.stringify({"unlocked": unlocked.keys()})
+	# 写前把上一版留进 .bak：覆盖清空/半截写坏时 _load 有得回退。
+	if FileAccess.file_exists(save_path):
+		var prev := FileAccess.open(save_path, FileAccess.READ)
+		if prev != null:
+			var prev_text := prev.get_as_text()
+			prev.close()
+			var bak := FileAccess.open(save_path + ".bak", FileAccess.WRITE)
+			if bak != null:
+				bak.store_string(prev_text)
+	file.store_string(payload)
 
 # ------------------------------------------------------------- unlock popup
 func _build_popup() -> void:

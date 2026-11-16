@@ -710,17 +710,12 @@ const RACE_GATES := [
 ]
 const RACE_FINISH := RACE_GATES[0].p  # 起点/终点门合一（检查门 1）
 const RACE_SPAWN := Vector3(20, 8.35, -109)  # 起跑位：起点门西 7 m（判定圈外）
+# 赛道中心线（与烘焙 ribbon 同一副数学：直道 2×50 m + 半圆 2×π×11 m），
+# 段点亮砖沿它采样，砖心永远落在跑道上。参数 s∈[0,1) 从北直道西端出发
+# 与比赛同向（向东）。
+const RACE_RING_LEN := 100.0 + TAU * 11.0
 const RACE_RECORD := 35.0
 const RACE_CP_RADIUS := 6.0
-# 六段点亮砖的路径关键点（门 i → 门 i+1，弯道用三点折线近似弧）。
-const RACE_SEGMENTS := [
-	[Vector3(27, 8, -109), Vector3(53, 8, -109)],
-	[Vector3(53, 8, -109), Vector3(66, 8, -110), Vector3(74, 8, -116), Vector3(76, 8, -120)],
-	[Vector3(76, 8, -120), Vector3(74, 8, -124), Vector3(66, 8, -130), Vector3(53, 8, -131)],
-	[Vector3(53, 8, -131), Vector3(27, 8, -131)],
-	[Vector3(27, 8, -131), Vector3(14, 8, -130), Vector3(6, 8, -124), Vector3(4, 8, -120)],
-	[Vector3(4, 8, -120), Vector3(6, 8, -116), Vector3(14, 8, -110), Vector3(27, 8, -109)],
-]
 
 # RaceTimer extends CanvasLayer but carries its own state/stop/format_time
 # API - keep the reference untyped so those members resolve (a CanvasLayer-typed
@@ -746,21 +741,62 @@ func _build_ranch_race() -> void:
 	_build_race_segments()
 	_set_race_props_visible(false)
 
-## 赛道分段点亮：每段一串亮黄砖贴在跑道上（y 抬 5.5 cm 避开路面/白线共
-## 面），默认全暗；过门 i 时点亮第 i 段（门 i 身后那段路）。
+## 赛道中心线采样（与烘焙 ribbon 同一副数学）：s∈[0,1) 从北直道西端向东
+## （比赛同向）走过 东弧 → 南直道（向西）→ 西弧 → 回北直道。返回位置与
+## 行进切线角。2026-11-17 修复：旧砖用手估折线点，整圈黄砖与跑道模型错
+## 位；现在砖心严格落在 ribbon 中心线上。
+func _race_ring_pose(s: float) -> Dictionary:
+	var centre := RACE_TRACK_CENTRE
+	var d := fposmod(s, 1.0) * RACE_RING_LEN
+	var straight := 50.0
+	var arc := PI * 11.0
+	if d < straight:  # 北直道，向东
+		return {"p": Vector3(centre.x - 25.0 + d, centre.y + 0.055, centre.z + 11.0), "yaw": 0.0}
+	d -= straight
+	if d < arc:  # 东弧，angle 从 π/2 递减（北端 → 南端）
+		var angle := PI * 0.5 - d / 11.0
+		var pos := centre + Vector3(25.0 + cos(angle) * 11.0, 0.055, sin(angle) * 11.0)
+		return {"p": pos, "yaw": -angle + PI * 0.5}
+	d -= arc
+	if d < straight:  # 南直道，向西
+		return {"p": Vector3(centre.x + 25.0 - d, centre.y + 0.055, centre.z - 11.0), "yaw": PI}
+	d -= straight
+	var angle2 := -PI * 0.5 - (d - 0.0) / 11.0  # 西弧，南端 → 北端
+	var pos2 := centre + Vector3(-25.0 + cos(angle2) * 11.0, 0.055, sin(angle2) * 11.0)
+	return {"p": pos2, "yaw": -angle2 + PI * 0.5}
+
+## 门位对应的赛道参数 s（比赛同向）。
+func _race_gate_s(idx: int) -> float:
+	var gate: Vector3 = RACE_GATES[idx].p
+	var centre := RACE_TRACK_CENTRE
+	# 北/南直道上的门按 x 线性；弯顶门在弧中点。
+	if absf(gate.z - (centre.z - 11.0)) < 0.5:  # 北直道 z = -109
+		return (gate.x - (centre.x - 25.0)) / RACE_RING_LEN
+	if absf(gate.z - (centre.z + 11.0)) < 0.5:  # 南直道 z = -131
+		return (50.0 + PI * 11.0 + (centre.x + 25.0 - gate.x)) / RACE_RING_LEN
+	if gate.x > centre.x:  # 东弯顶
+		return (50.0 + PI * 11.0 * 0.5) / RACE_RING_LEN
+	return (100.0 + PI * 11.0 * 1.5) / RACE_RING_LEN  # 西弯顶
+
+## 赛道分段点亮：每段一串亮黄砖沿中心线采样（y 抬 5.5 cm 避开路面/白线
+## 共面），默认全暗；过门 i 时点亮第 i 段（门 i 身后那段路）。
 func _build_race_segments() -> void:
-	for seg in RACE_SEGMENTS.size():
+	for seg in RACE_GATES.size():
 		var holder := Node3D.new()
 		holder.name = "RaceSegment%d" % seg
 		add_child(holder)
-		var path: Array = RACE_SEGMENTS[seg]
-		for i in path.size() - 1:
-			var a: Vector3 = path[i]
-			var b: Vector3 = path[i + 1]
-			var mid := (a + b) * 0.5
-			var length := a.distance_to(b) + 1.2
-			var tile := _box(holder, "RaceSeg%dTile%d" % [seg, i], Vector3(length, 0.04, 4.2), mid + Vector3(0, 0.055, 0), Color("FDE68A"), false)
-			tile.rotation.y = Vector3.RIGHT.signed_angle_to((b - a).normalized(), Vector3.UP)
+		var s0 := _race_gate_s(seg)
+		var s1 := _race_gate_s((seg + 1) % RACE_GATES.size())
+		if s1 <= s0:
+			s1 += 1.0
+		var length_m := (s1 - s0) * RACE_RING_LEN
+		var tiles := maxi(1, ceili(length_m / 4.5))
+		for i in tiles:
+			var mid_s := s0 + (s1 - s0) * (i + 0.5) / tiles
+			var pose := _race_ring_pose(mid_s)
+			var tile := _box(holder, "RaceSeg%dTile%d" % [seg, i],
+				Vector3(length_m / tiles + 1.1, 0.04, 4.2), pose.p, Color("FDE68A"), false)
+			tile.rotation.y = pose.yaw
 		holder.visible = false
 		_race_segment_tiles.append(holder)
 		_race_props.append(holder)
@@ -1397,6 +1433,14 @@ func _herb_grass(pos: Vector3, leaf_color := Color("E9C46A"), crown_color := Col
 	tuft.position = pos
 	if leaf_color == Color("E9C46A") and _mount_lux(tuft, "PROP_23_HERB_GRASS", Vector3(1.0, 0.9, 1.0), "HerbLux", true, "y") != null:
 		_golden_tint(tuft)
+		return tuft
+	# 2026-11-17 实机反馈：除草挑战的杂草同样换 Lux3D 模型（PROP_24 灰绿
+	# 原色，垂叶病态感与嫩香草的饱满金黄一眼两分）；离线兜底仍走程序球。
+	if leaf_color == Color("6B7F5A") and _mount_lux(tuft, "PROP_24_WEED", Vector3(0.9, 0.8, 0.9), "WeedLux", true, "y") != null:
+		return tuft
+	# 2026-11-17 实机反馈：除草挑战的杂草同样换 Lux3D 模型（PROP_24 灰绿
+	# 原色，垂叶病态感与嫩香草的饱满金黄一眼两分）；离线兜底仍走程序球。
+	if leaf_color == Color("6B7F5A") and _mount_lux(tuft, "PROP_24_WEED", Vector3(0.9, 0.8, 0.9), "WeedLux", true, "y") != null:
 		return tuft
 	for i in 3:
 		var leaf := MeshInstance3D.new()
