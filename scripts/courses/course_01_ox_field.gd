@@ -166,9 +166,9 @@ func _build_surroundings() -> void:
 	_prop("ENV_09_BIRCH", Vector3(7, 0, 11), 130, Vector3(.5, 2, .5), 1.0 * .85)
 	_prop("ENV_09_PINE", Vector3(-5, 0, -103), 200, Vector3(.5, 2, .5), .9 * .85)
 	_prop("ENV_09_OAK", Vector3(5, 0, -103), 310, Vector3(.5, 2, .5), 1.0 * .85)
-	_prop("ENV_09_ROCK", Vector3(7.2, 0.1, -2), 20, Vector3(0, 0, 0), 1.1)
-	_prop("ENV_09_ROCK", Vector3(-7.0, 0.1, 6), 70, Vector3(0, 0, 0), 0.9)
-	_prop("ENV_09_ROCK", Vector3(5.2, 0.1, -95), 160, Vector3(0, 0, 0), 1.0)
+	_prop("ENV_09_ROCK", Vector3(7.2, 0, -2), 20, Vector3(0, 0, 0), 1.1)
+	_prop("ENV_09_ROCK", Vector3(-7.0, 0, 6), 70, Vector3(0, 0, 0), 0.9)
+	_prop("ENV_09_ROCK", Vector3(5.2, 0, -95), 160, Vector3(0, 0, 0), 1.0)
 	# Grass tufts and flowers scattered over the terrace ground for detail.
 	env._district = "Ground_Detail"
 	for p in [Vector3(-5, 0.02, 2), Vector3(4, 0.02, 0), Vector3(-2, 0.02, 10), Vector3(6, 0.02, 8),

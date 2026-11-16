@@ -68,8 +68,10 @@ func _ready() -> void:
 	_pigpen_gate.get_node("VisualMesh").hide()
 	# 白盒清扫：圈门改挂 ENV_10_GATE_TIMBER（三扇分区门同款模型，缩到 4.4 m
 	# 跨度）；烘焙栅栏插片与灰盒照旧隐藏，TimberGate 节点保留测试引用。
-	ASSETS.hide_procedural_visuals(_pigpen_gate)
-	ASSETS.mount_visual(_pigpen_gate, "ENV_10_GATE_TIMBER", Vector3(4.4, 1.9, 0.42), "PigpenGateLux", true, "box")
+	# 离线兜底同上：模型缺失时白模照常显示。
+	if ASSETS.make("ENV_10_GATE_TIMBER") != null:
+		ASSETS.hide_procedural_visuals(_pigpen_gate)
+		ASSETS.mount_visual(_pigpen_gate, "ENV_10_GATE_TIMBER", Vector3(4.4, 1.9, 0.42), "PigpenGateLux", true, "box")
 	_named_gates["pigpen"] = _pigpen_gate
 
 	# The pigpen trough: the tutorial's one true interactable (拱食槽 gag +
@@ -444,8 +446,10 @@ func _create_timber_gate(id: String, pos: Vector3, size: Vector3, label_text: St
 	# 白盒清扫：门体由 ENV_10_GATE_TIMBER 模型绘制（门柱、横梁、双门扇一体
 	# 生成，按碰撞盒整体适配）；程序柱梁与门扇保留结构但不再显示。开门时
 	# 整扇门照旧整体隐藏（_set_barrier 的既有语义），门扇的开合转轴原样保留。
-	ASSETS.hide_procedural_visuals(gate)
-	ASSETS.mount_visual(gate, "ENV_10_GATE_TIMBER", Vector3(size.x, size.y * 1.25, 0.4), "GateLux", true, "box")
+	# 离线兜底：先确认模型可用再隐藏白模——make 失败时灰盒照常显示（review 纠偏）。
+	if ASSETS.make("ENV_10_GATE_TIMBER") != null:
+		ASSETS.hide_procedural_visuals(gate)
+		ASSETS.mount_visual(gate, "ENV_10_GATE_TIMBER", Vector3(size.x, size.y * 1.25, 0.4), "GateLux", true, "box")
 
 	var label := _label(gate, "GateLabel_" + id, label_text + " / LOCKED", Vector3(0, size.y * 0.9, 0), 20)
 	_gate_labels[id] = label

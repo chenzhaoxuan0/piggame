@@ -326,7 +326,9 @@ func _summit_walls() -> void:
 	for log_data in [L.LOGS[1]]:
 		var a: Vector3=log_data.a; var b: Vector3=log_data.b
 		var p:=a.lerp(b,log_data.t)
-		var side:=(b-a).normalized().cross(Vector3.UP).normalized()*3.05
+		# 凸包半跨从 3.05 收到 1.8——与 farm_grounds 挂的 PROP_19 模型（3.6 m
+		# 长）对齐，模型外不再留隐形木段碰撞（review 纠偏）。
+		var side:=(b-a).normalized().cross(Vector3.UP).normalized()*1.8
 		_district="JumpLogs"
 		var corners: Array[Vector3]=[p-side+Vector3(.0,.52,-.25),p+side+Vector3(0,.52,-.25),p+side+Vector3(0,.52,.25),p-side+Vector3(0,.52,.25)]
 		_convex("JumpLog",corners,.52)
@@ -381,10 +383,13 @@ func _chase_dressing() -> void:
 	_barn(Vector3(-59,2,-174),Vector3(8,3.3,7))
 	# Off-centre stacks constrict alternating sides, leaving a clear running line.
 	# 白盒清扫：追逐草捆堆改挂 PROP_11_HAY_STACK 模型（原高 1.1 m，放大到
-	# 1.3 m 碰撞高度），碰撞体保持原来的偏置方盒。
+	# 1.3 m 碰撞高度）。圆捆视觉铺不满 3 m 碰撞长轴——每处双捆沿长轴并排，
+	# 视觉≈碰撞体，不再有隐形碰撞圈（review 纠偏）。
 	for p in [Vector3(-57,4,-154),Vector3(-76,3.3,-176),Vector3(-46,2,-201)]:
 		var size:=Vector3(3,1.3,2.4) if p.x==-57 else Vector3(2.4,1.3,3)
-		_place_lux("PROP_11_HAY_STACK", p, 1.3 / 1.1, p.x * .13)
+		var along:=Vector3(1,0,0) if size.x>size.z else Vector3(0,0,1)
+		_place_lux("PROP_11_HAY_STACK", p-along*.72, 1.3 / 1.1, p.x * .13)
+		_place_lux("PROP_11_HAY_STACK", p+along*.72, 1.3 / 1.1, p.x * .13 + 1.1)
 		_collider("ChaseHayStack",p+Vector3.UP*.65,size)
 	# Closed gateway is the very end of the obstacle course.
 	_district="StoneGatewayAndCableStation"

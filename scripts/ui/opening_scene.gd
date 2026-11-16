@@ -87,19 +87,22 @@ func _build_stage() -> void:
 		pen.add_child(wall)
 		var length: float = maxf(side[1].x, side[1].z)
 		var height: float = side[1].y
-		var segment_width: float = 4.0 * height / 1.1 * 0.98
-		var count := maxi(1, int(ceil(length / segment_width)))
-		var span := length / float(count)
+		# 段长从实件量出（review 纠偏：模型实长 2.97 m，spec 里的“四米”没落地），
+		# 用首段实测 AABB 反推铺段数，避免按提示词假设值铺出露洞。
+		var probe := ASSETS.make("ENV_09_WALL")
 		var modeled := false
-		for i in count:
-			var seg := ASSETS.make("ENV_09_WALL")
-			if seg == null:
-				break
-			wall.add_child(seg)
-			seg.scale = Vector3.ONE * (height / 1.1)
-			seg.scale.x *= span / (4.0 * height / 1.1)
-			seg.position = Vector3(-length * 0.5 + span * (float(i) + 0.5), -height * 0.5, 0)
-			modeled = true
+		if probe != null:
+			var seg_len: float = maxf(ASSETS._model_aabb(probe).size.x, 0.5)
+			var seg_scale := height / 1.1
+			var count := maxi(1, int(ceil(length / (seg_len * seg_scale * 0.98))))
+			var span := length / float(count)
+			for i in count:
+				var seg := probe if i == 0 else ASSETS.make("ENV_09_WALL")
+				wall.add_child(seg)
+				seg.scale = Vector3.ONE * seg_scale
+				seg.scale.x *= span / seg_len
+				seg.position = Vector3(-length * 0.5 + span * (float(i) + 0.5), -height * 0.5, 0)
+				modeled = true
 		if not modeled:
 			var wall_box := BoxMesh.new()
 			wall_box.size = side[1]
