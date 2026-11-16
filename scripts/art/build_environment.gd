@@ -25,5 +25,12 @@ func _build() -> void:
 	if result == OK:
 		DirAccess.make_dir_recursive_absolute("res://assets/environments")
 		result = ResourceSaver.save(packed, "res://assets/environments/pastoral_farm.scn", ResourceSaver.FLAG_COMPRESS)
-	print("PASTORAL_BUILD result=%d" % result)
-	quit(0 if result == OK else 1)
+	# 2026-11-16 实机连环 bug 的出口闸：外部工具（另一版本的 Godot 编辑器）
+	# 曾把烘焙产物重写成半损坏的资源，引擎按坏头报「format version 不支
+	# 持」，开局猪无限坠落。保存后立刻回读——解析不动就非零退出，坏件永
+	# 远到不了 git。
+	var verify: PackedScene = null
+	if result == OK:
+		verify = load("res://assets/environments/pastoral_farm.scn") as PackedScene
+	print("PASTORAL_BUILD result=%d verify=%s" % [result, verify != null])
+	quit(0 if (result == OK and verify != null) else 1)
