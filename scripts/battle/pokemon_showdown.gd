@@ -756,23 +756,14 @@ func _stage_pig_slump() -> void:
 func _spark_burst(at: Vector3, tint: Color, count: int) -> void:
 	var host := _stage_host()
 	if host == null: return
-	var sparks := CPUParticles3D.new()
-	sparks.amount = count
-	sparks.lifetime = 0.45
-	sparks.one_shot = true
-	sparks.explosiveness = 1.0
-	sparks.local_coords = false
-	sparks.direction = Vector3.UP
-	sparks.spread = 70.0
-	sparks.initial_velocity_min = 1.8
-	sparks.initial_velocity_max = 3.6
-	sparks.gravity = Vector3(0, -6.0, 0)
-	sparks.scale_amount_min = 0.05
-	sparks.scale_amount_max = 0.11
-	sparks.color = tint
+	# tween-mesh 火花（项目惯例）：CPUParticles3D 在 headless dummy 渲染器下
+	# 会随机 segfault，演出层不能带这种风险进测试套件。
+	var sparks := preload("res://scripts/art/puff_emitter.gd").new()
+	sparks.tint = tint
+	sparks.puff_size = 0.06
 	host.add_child(sparks)
 	sparks.global_position = at
-	sparks.emitting = true
+	sparks.burst(count, 3.0)
 	var tw := create_tween()
 	tw.tween_interval(0.9)
 	tw.tween_callback(sparks.queue_free)

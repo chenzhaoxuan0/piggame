@@ -107,7 +107,7 @@ func _run() -> void:
 	await create_timer(0.2).timeout
 	var vfx_found := false
 	for child in level.get_children():
-		if child is CPUParticles3D or child is Label3D:
+		if child is Label3D or child.get_script() == preload("res://scripts/art/puff_emitter.gd"):
 			vfx_found = true
 	_check(vfx_found, "Pig attack spawns 3D sparks/shout staging")
 	await create_timer(0.5).timeout

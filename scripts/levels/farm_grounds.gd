@@ -7,6 +7,7 @@ signal secret_pipe_entered(course_id: String)
 signal playground_event(kind: String, detail)
 const ASSETS = preload("res://scripts/art/asset_library.gd")
 const NPC_CLIPS = preload("res://scripts/art/npc_clips.gd")
+const PUFF = preload("res://scripts/art/puff_emitter.gd")
 const PLAYTHING = preload("res://scripts/levels/farm_plaything.gd")
 const L = preload("res://scripts/levels/farm_layout.gd")
 const SPAWN := L.SPAWN
@@ -706,24 +707,13 @@ func _on_pond_exited(body: Node3D) -> void:
 
 ## 入水水花：一蓬水珠 + 两圈扩散涟漪（视觉-only，不碰碰撞）。
 func _pond_splash(at: Vector3) -> void:
-	var drops := CPUParticles3D.new()
+	var drops := PUFF.new()
 	drops.name = "PondSplash"
-	drops.amount = 28
-	drops.lifetime = 0.75
-	drops.one_shot = true
-	drops.explosiveness = 1.0
-	drops.local_coords = false
-	drops.direction = Vector3.UP
-	drops.spread = 55.0
-	drops.initial_velocity_min = 2.5
-	drops.initial_velocity_max = 4.5
-	drops.gravity = Vector3(0, -9.8, 0)
-	drops.scale_amount_min = 0.05
-	drops.scale_amount_max = 0.12
-	drops.color = Color("BFE6F2")
+	drops.tint = Color("BFE6F2")
+	drops.puff_size = 0.07
 	add_child(drops)
 	drops.global_position = Vector3(at.x, POND_CENTRE.y - 0.05, at.z)
-	drops.emitting = true
+	drops.burst(24, 4.0)
 	var cleanup := create_tween()
 	cleanup.tween_interval(1.3)
 	cleanup.tween_callback(drops.queue_free)
@@ -1196,7 +1186,7 @@ func _tick_horse_lap(delta: float) -> void:
 	var pig_pos: Vector3 = _player.global_position
 	var actor := _actor_of("horse")
 	var visual := _visual_of("horse")
-	var dust: CPUParticles3D = visual.get_node_or_null("HoofDust") if visual != null else null
+	var dust: Node3D = visual.get_node_or_null("HoofDust") if visual != null else null
 	# 猪进入牧场周边 → 全速奔回原点站定（面朝猪）：等着被追上、被对话。
 	# 触发半径取 26m：走关机器人在纪录牌（21m）就会叫它回家，读牌+走过去
 	# 的时间足够它从最远的南直道赶回来。
@@ -1274,22 +1264,15 @@ func _visual_of(id: String) -> Node3D:
 			return child
 	return null
 
-func _make_dust(dust_name: String, tint: Color, count: int) -> CPUParticles3D:
-	var dust := CPUParticles3D.new()
+func _make_dust(dust_name: String, tint: Color, count: int) -> Node3D:
+	# tween-mesh 发射器（项目惯例）：CPUParticles3D 会让 headless dummy 渲染器
+	# 随机 segfault，全量套件曾因此整轮崩溃。
+	var dust := PUFF.new()
 	dust.name = dust_name
-	dust.amount = count
-	dust.lifetime = 0.8
-	dust.local_coords = false
-	dust.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
-	dust.emission_sphere_radius = 0.2
-	dust.direction = Vector3(0, 1, 0.5)
-	dust.spread = 40.0
-	dust.gravity = Vector3(0, -2.0, 0)
-	dust.initial_velocity_min = 0.3
-	dust.initial_velocity_max = 0.9
-	dust.scale_amount_min = 0.05
-	dust.scale_amount_max = 0.13
-	dust.color = tint
+	dust.tint = tint
+	dust.rate = float(count)
+	dust.puff_size = 0.09
+	dust.speed = 0.7
 	dust.emitting = false
 	return dust
 
