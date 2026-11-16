@@ -401,6 +401,33 @@ static func _build_settings_menu(host: Node) -> void:
 	var sep := HSeparator.new()
 	vbox.add_child(sep)
 
+	# 画质档位（2026-11-17 评测新增）：低/中/高三档，即点即生效并持久化。
+	var gm := host.get_node_or_null("/root/GraphicsManager")
+	if gm != null:
+		var quality_tag := UI.name_tag("🎨 画质档位 · QUALITY", UI.SUNNY, UI.INK, 15)
+		quality_tag.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		vbox.add_child(quality_tag)
+		var quality_row := HBoxContainer.new()
+		quality_row.name = "QualityRow"
+		quality_row.add_theme_constant_override("separation", 8)
+		quality_row.alignment = BoxContainer.ALIGNMENT_CENTER
+		vbox.add_child(quality_row)
+		for tier_id in gm.TIERS:
+			var qbtn := UI.button(gm.TIER_NAMES[tier_id], gm.set_tier.bind(tier_id))
+			qbtn.name = "BtnQuality_" + tier_id
+			qbtn.custom_minimum_size = Vector2(160, 34)
+			qbtn.add_theme_font_size_override("font_size", 15)
+			quality_row.add_child(qbtn)
+		var refresh_quality := func(_t: String = ""):
+			for tier_id in gm.TIERS:
+				var b: Button = quality_row.get_node("BtnQuality_" + tier_id)
+				b.modulate = Color(1, 1, 1, 1) if gm.tier == tier_id else Color(0.72, 0.72, 0.72, 0.85)
+		gm.quality_changed.connect(refresh_quality)
+		refresh_quality.call()
+		var quality_hint := UI.label("低：无阴影·降分辨率省电 ／ 中：均衡 ／ 高：4×抗锯齿·远阴影·色彩分级", 12, UI.INK_SOFT)
+		quality_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vbox.add_child(quality_hint)
+
 	var toggle_high := CheckButton.new()
 	toggle_high.name = "TestHighCamera"
 	toggle_high.text = "测试用高视角（原高度 / 原视野）"

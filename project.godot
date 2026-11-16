@@ -23,6 +23,7 @@ GameManager="*res://scripts/core/game_manager.gd"
 DialogueManager="*res://scripts/core/dialogue_manager.gd"
 AchievementManager="*res://scripts/core/achievement_manager.gd"
 MusicManager="*res://scripts/core/music_manager.gd"
+GraphicsManager="*res://scripts/core/graphics_manager.gd"
 
 [display]
 
