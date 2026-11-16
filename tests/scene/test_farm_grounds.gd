@@ -40,6 +40,38 @@ func _run() -> void:
 		_check(not _hit(point+Vector3(0,.7,1),point+Vector3(0,.7,-1)),"open gate clears passage")
 	for terrace in L.TERRACES:
 		_check(_hit(terrace.center+Vector3.UP,terrace.center-Vector3.UP),"terrace floor at declared altitude: "+terrace.id)
+	# 2026-11-16 实机开局的物理闸：0a5244d 那次烘焙的场景产物带碰撞洞——
+	# raycast pin 全绿，猪却在 spawn 无限坠落（用户实机 + boot 采样实锤）。
+	# raycast 走 broadphase 命中不代表窄相能接住角色，这里用真实刚体落体
+	# 复刻故障模式：小球从每个台地中心上方落下，1 秒内必须停在台地高度。
+	for terrace in L.TERRACES:
+		# 候选落点：台地中心 + 四向偏移（EquipmentCourt 的中心被工作谷仓占
+		# 着，球停在仓顶同样是好物理——换空位落点验证地面本身）。
+		var drop_offsets: Array[Vector3] = [
+			Vector3(0, 2, 0),
+			Vector3(terrace.half.x * .55, 2, terrace.half.y * .3),
+			Vector3(-terrace.half.x * .55, 2, -terrace.half.y * .3),
+			Vector3(terrace.half.x * .3, 2, -terrace.half.y * .55),
+		]
+		var ball_settled := false
+		for off in drop_offsets:
+			var ball := RigidBody3D.new()
+			var ball_shape := CollisionShape3D.new()
+			var ball_sphere := SphereShape3D.new()
+			ball_sphere.radius = 0.3
+			ball_shape.shape = ball_sphere
+			ball.add_child(ball_shape)
+			ball.position = terrace.center + off
+			root.add_child(ball)
+			for i in 60:
+				await physics_frame
+			if absf(ball.global_position.y - terrace.center.y) < 1.0:
+				ball_settled = true
+			ball.queue_free()
+			if ball_settled:
+				break
+		_check(ball_settled,
+			"dropped ball settles on the terrace floor (real physics, not raycast): " + terrace.id)
 	for id in L.ROUTES:
 		var points:=L.path(id)
 		for i in points.size()-1:
