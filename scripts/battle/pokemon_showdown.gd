@@ -42,6 +42,8 @@ var turn_header_label: Label
 var move_buttons: Array[Button] = []
 var floating_container: Control
 
+const MOVE_ACCENTS := [Color("E8836B"), Color("A9744F"), Color("5FB8A6"), Color("8FC97A")]
+
 const MOVES := [
 	{
 		"name": "【 斗 志 冲 击 】",
@@ -134,6 +136,7 @@ func _build_ui() -> void:
 	console_panel = PanelContainer.new()
 	console_panel.name = "ConsolePanel"
 	console_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	console_panel.clip_contents = true
 	console_panel.add_theme_stylebox_override("panel", _panel_style(Color(0.98, 0.96, 0.90, 0.98), Color(0.40, 0.32, 0.22), 16, 4))
 	root_box.add_child(console_panel)
 
@@ -159,6 +162,9 @@ func _build_ui() -> void:
 
 	narrative_label = _label("农场主 挡在大铁门前，手中高压电击棍滋滋作响！\n请选择一口猪的对抗招式：", 16)
 	narrative_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# autowrap 标签在布局前宽度为 0，会把「每字一行」的高度当成最小高度，
+	# 把整个指挥台撑到屏幕外（技能格全_off-screen_）。钉一个最小宽度锁住换行。
+	narrative_label.custom_minimum_size = Vector2(430, 0)
 	narrative_label.add_theme_color_override("font_color", UI.INK)
 	narrative_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	log_vbox.add_child(narrative_label)
@@ -276,7 +282,9 @@ func _create_move_button(index: int, title: String, subtext: String) -> Button:
 	# so assigning btn.text while also adding child labels causes severe text overlap / double-rendering!
 	btn.text = ""
 
-	var normal_style := UI.pill(UI.WHITE, 16, UI.PAPER_EDGE, 2, Vector2(12, 8))
+	# 宝可梦式属性色：每招一个伙伴色系边框，聚焦时标题前亮出 ▶ 光标。
+	var accent: Color = MOVE_ACCENTS[index % MOVE_ACCENTS.size()]
+	var normal_style := UI.pill(UI.WHITE, 16, accent, 3, Vector2(12, 8))
 	var hover_style := UI.pill(UI.SAGE, 16, UI.TEAL, 2, Vector2(12, 8))
 	var pressed_style := UI.pill(UI.SAGE_DEEP, 16, Color.TRANSPARENT, 0, Vector2(12, 8))
 	btn.add_theme_stylebox_override("normal", normal_style)
@@ -291,7 +299,8 @@ func _create_move_button(index: int, title: String, subtext: String) -> Button:
 	vbox.add_theme_constant_override("separation", 3)
 	btn.add_child(vbox)
 
-	var title_lbl := _label("[ %d ]  %s" % [index + 1, title], 15)
+	var base_title := "[ %d ]  %s" % [index + 1, title]
+	var title_lbl := _label(base_title, 15)
 	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_lbl.add_theme_font_override("font", UI.font_bold())
 	title_lbl.add_theme_color_override("font_color", UI.INK)
@@ -306,9 +315,11 @@ func _create_move_button(index: int, title: String, subtext: String) -> Button:
 	var update_colors := func(highlighted: bool):
 		if not is_instance_valid(title_lbl) or not is_instance_valid(sub_lbl): return
 		if highlighted or btn.has_focus():
+			title_lbl.text = "▶ " + base_title
 			title_lbl.add_theme_color_override("font_color", UI.TEAL_DEEP)
 			sub_lbl.add_theme_color_override("font_color", UI.INK)
 		else:
+			title_lbl.text = base_title
 			title_lbl.add_theme_color_override("font_color", UI.INK)
 			sub_lbl.add_theme_color_override("font_color", UI.INK_SOFT)
 
@@ -353,6 +364,7 @@ func start_battle(level: Node) -> void:
 	_enable_buttons(true)
 	if move_buttons.size() > 0:
 		move_buttons[0].grab_focus()
+	_stage_battle_intro()
 
 func execute_move(move_index: int) -> void:
 	if is_busy or not battle_active or move_index < 0 or move_index >= MOVES.size():
@@ -384,10 +396,12 @@ func execute_move(move_index: int) -> void:
 		3:
 			pig_log = "一口猪 借追风四蹄翻腾极速：‘奔跑为了感受山风！’【借马之风】闪避电击棍并绕后猛冲！"
 
-	narrative_label.text = pig_log
+	_type_narrative(pig_log)
 	if is_misfire:
 		narrative_label.text += "\n……可是时机不对！这一招没能咬住他的话头——"
+		narrative_label.visible_characters = -1
 	_screen_shake()
+	_stage_pig_attack(move_index)
 
 	# Deal damage to Farmer
 	farmer_hp = maxf(0.0, farmer_hp - dmg)
@@ -395,6 +409,7 @@ func execute_move(move_index: int) -> void:
 
 	var dmg_text := "-%d 克制破防!" % int(dmg) if is_counter else ("-%d 收效甚微…" % int(dmg) if is_misfire else "-%d 意志冲击!" % int(dmg))
 	_spawn_damage_text(farmer_plate.global_position + Vector2(180, 40), dmg_text, Color(0.85, 0.25, 0.15))
+	_stage_farmer_hit(dmg_text)
 
 	await get_tree().create_timer(0.22).timeout
 
@@ -433,11 +448,14 @@ func _farmer_counter_turn(was_countered: bool) -> void:
 	if current_turn == 2 and is_instance_valid(level_ref) and level_ref.has_method("play_dialogue_vo"):
 		level_ref.play_dialogue_vo("ordeal_turn_2")
 
+	_stage_farmer_attack()
 	pig_hp = maxf(0.0, pig_hp - pig_dmg)
 	_animate_hp_change(pig_hp_bar, pig_hp, pig_hp_label, pig_max_hp)
 	_spawn_damage_text(pig_plate.global_position + Vector2(180, 40), "-%d 动摇" % int(pig_dmg), Color(0.55, 0.40, 0.25))
+	_stage_pig_hit("-%d 动摇" % int(pig_dmg))
 
 	narrative_label.text += farmer_log
+	narrative_label.visible_characters = -1
 
 	# The pig's will breaks first: down, or the farmer withstood all
 	# three rounds. Either way the showdown is lost - and can be retried.
@@ -463,7 +481,9 @@ func _resolve_victory() -> void:
 		level_ref.play_dialogue_vo("ordeal_aftermath")
 	if pig_hp <= 40.0:
 		narrative_label.text += "\n\n（你浑身发抖，就剩一口喘着的气——可是门，开了。）"
+	narrative_label.visible_characters = -1
 	_screen_shake(8.0)
+	_stage_farmer_collapse()
 
 	await get_tree().create_timer(0.35).timeout
 	is_busy = false
@@ -477,7 +497,9 @@ func _resolve_defeat() -> void:
 	_update_pig_status("[ 意志溃散 ]", Color(0.55, 0.50, 0.45))
 	turn_header_label.text = "【 败 下 阵 来 】"
 	narrative_label.text = "电击棍的麻意爬满四肢……你的四蹄一软，跪在了铁门前。\n农场主喘着粗气把拖索扣回你的项圈：“闹够了？回圈。明早的车，不等人。”\n\n（黎明之前，把话说得再硬一点——再来。）"
+	narrative_label.visible_characters = -1
 	_screen_shake(8.0)
+	_stage_pig_slump()
 
 	await get_tree().create_timer(0.35).timeout
 	is_busy = false
@@ -587,3 +609,190 @@ func _unhandled_input(event: InputEvent) -> void:
 						break
 				if not has_btn_focus and move_buttons.size() > 0:
 					execute_move(0)
+
+# -------------------------------------------------------------
+# 3D Battle Staging（宝可梦式演出层）
+# 回合逻辑与时序完全不变；演出全部是视觉-only 的 tween/粒子/Label3D，
+# headless 安全。每场开战先恢复上一场留下的演员变换（瘫倒/跪地）。
+# -------------------------------------------------------------
+var _actor_rest: Dictionary = {}
+
+func _pig_visual() -> Node3D:
+	if is_instance_valid(level_ref) and "player" in level_ref and is_instance_valid(level_ref.player):
+		return level_ref.player.get_node_or_null("VisualMesh") as Node3D
+	return null
+
+func _farmer_visual() -> Node3D:
+	if is_instance_valid(level_ref) and "farm" in level_ref and is_instance_valid(level_ref.farm):
+		return level_ref.farm._visual_of("farmer")
+	return null
+
+func _pig_actor() -> Node:
+	var visual := _pig_visual()
+	if visual == null: return null
+	var found := visual.find_children("ActorAnimation", "Node", true, false)
+	return found[0] if not found.is_empty() else null
+
+func _farmer_actor() -> Node:
+	if is_instance_valid(level_ref) and "farm" in level_ref and is_instance_valid(level_ref.farm):
+		return level_ref.farm._actor_of("farmer")
+	return null
+
+func _stage_host() -> Node3D:
+	if is_instance_valid(level_ref) and level_ref is Node3D:
+		return level_ref
+	return null
+
+func _stage_battle_intro() -> void:
+	for key in _actor_rest:
+		var node: Node3D = _actor_rest[key].node
+		if is_instance_valid(node):
+			node.position = _actor_rest[key].position
+			node.rotation = _actor_rest[key].rotation
+	_actor_rest.clear()
+	for visual in [_pig_visual(), _farmer_visual()]:
+		if visual != null:
+			_actor_rest[visual.get_instance_id()] = {"node": visual, "position": visual.position, "rotation": visual.rotation}
+	# 状态板弹入、指挥台升起、旁白打字机——宝可梦开场那一下。
+	for plate in [farmer_plate, pig_plate]:
+		if is_instance_valid(plate):
+			plate.scale = Vector2(0.85, 0.85)
+			plate.modulate.a = 0.0
+			var tw := create_tween()
+			tw.tween_property(plate, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tw.parallel().tween_property(plate, "modulate:a", 1.0, 0.2)
+	if is_instance_valid(console_panel):
+		var base_y := console_panel.position.y
+		console_panel.position.y = base_y + 90.0
+		console_panel.modulate.a = 0.0
+		var tw := create_tween()
+		tw.tween_property(console_panel, "position:y", base_y, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(console_panel, "modulate:a", 1.0, 0.25)
+	_type_narrative(narrative_label.text)
+
+func _type_narrative(text: String) -> void:
+	narrative_label.text = text
+	narrative_label.visible_characters = 0
+	var tw := create_tween()
+	tw.tween_property(narrative_label, "visible_characters", text.length(), 0.45)
+
+func _lunge(visual: Node3D, toward: Vector3) -> void:
+	if visual == null: return
+	var local_dir := visual.global_transform.basis.inverse() * (toward - visual.global_position)
+	local_dir.y = 0.0
+	local_dir = local_dir.normalized() * 1.1 if local_dir.length_squared() > 0.01 else Vector3(0, 0, -1.1)
+	var base := visual.position
+	var tw := create_tween()
+	tw.tween_property(visual, "position", base + local_dir, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(visual, "position", base, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+func _hit_shake(visual: Node3D) -> void:
+	if visual == null: return
+	var base_z := visual.rotation.z
+	var tw := create_tween()
+	tw.tween_property(visual, "rotation:z", base_z + 0.14, 0.05)
+	tw.tween_property(visual, "rotation:z", base_z - 0.1, 0.06)
+	tw.tween_property(visual, "rotation:z", base_z, 0.07)
+
+func _stage_pig_attack(move_index: int) -> void:
+	var pig := _pig_visual()
+	var farmer := _farmer_visual()
+	var actor := _pig_actor()
+	if actor != null and actor.has_method("play_oneshot"):
+		actor.play_oneshot("attack", 1.3)
+	if pig != null and farmer != null:
+		_lunge(pig, farmer.global_position)
+		var mid := (pig.global_position + farmer.global_position) * 0.5 + Vector3.UP * 1.2
+		match move_index:
+			0:
+				_spark_burst(mid, Color("E8836B"), 18)
+			1:
+				_spark_burst(mid, Color("A9744F"), 22)
+				_shout(mid, "哞——!", Color("A9744F"))
+			2:
+				_spark_burst(mid, Color("5FB8A6"), 22)
+				_shout(mid, "咩!", Color("5FB8A6"))
+			3:
+				_spark_burst(mid, Color("8FC97A"), 22)
+				_shout(mid, "嘶——!", Color("8FC97A"))
+
+func _stage_farmer_hit(dmg_text: String) -> void:
+	var farmer := _farmer_visual()
+	_hit_shake(farmer)
+	if farmer != null:
+		_spark_burst(farmer.global_position + Vector3.UP * 1.3, Color("F2C14E"), 14)
+		_float_text(farmer.global_position + Vector3.UP * 2.3, dmg_text, Color(0.85, 0.25, 0.15))
+
+func _stage_farmer_attack() -> void:
+	var farmer := _farmer_visual()
+	var pig := _pig_visual()
+	var actor := _farmer_actor()
+	if actor != null and actor.has_method("play_oneshot"):
+		actor.play_oneshot("attack", 1.3)
+	if farmer != null and pig != null:
+		_lunge(farmer, pig.global_position)
+		_shout(pig.global_position + Vector3.UP * 2.0, "滋啦——!", Color("F2C14E"))
+
+func _stage_pig_hit(dmg_text: String) -> void:
+	var pig := _pig_visual()
+	_hit_shake(pig)
+	if pig != null:
+		_spark_burst(pig.global_position + Vector3.UP * 1.0, Color("F2C14E"), 14)
+		_float_text(pig.global_position + Vector3.UP * 2.0, dmg_text, Color(0.55, 0.40, 0.25))
+
+func _stage_farmer_collapse() -> void:
+	var farmer := _farmer_visual()
+	if farmer == null: return
+	var tw := create_tween()
+	tw.tween_property(farmer, "rotation:x", farmer.rotation.x - 1.25, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(farmer, "position:y", farmer.position.y - 0.2, 0.4)
+
+func _stage_pig_slump() -> void:
+	var pig := _pig_visual()
+	if pig == null: return
+	var tw := create_tween()
+	tw.tween_property(pig, "rotation:x", pig.rotation.x - 0.5, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+func _spark_burst(at: Vector3, tint: Color, count: int) -> void:
+	var host := _stage_host()
+	if host == null: return
+	var sparks := CPUParticles3D.new()
+	sparks.amount = count
+	sparks.lifetime = 0.45
+	sparks.one_shot = true
+	sparks.explosiveness = 1.0
+	sparks.local_coords = false
+	sparks.direction = Vector3.UP
+	sparks.spread = 70.0
+	sparks.initial_velocity_min = 1.8
+	sparks.initial_velocity_max = 3.6
+	sparks.gravity = Vector3(0, -6.0, 0)
+	sparks.scale_amount_min = 0.05
+	sparks.scale_amount_max = 0.11
+	sparks.color = tint
+	host.add_child(sparks)
+	sparks.global_position = at
+	sparks.emitting = true
+	var tw := create_tween()
+	tw.tween_interval(0.9)
+	tw.tween_callback(sparks.queue_free)
+
+func _shout(at: Vector3, text: String, tint: Color) -> void:
+	_float_text(at, text, tint, 26)
+
+func _float_text(at: Vector3, text: String, tint: Color, font_size: int = 22) -> void:
+	var host := _stage_host()
+	if host == null: return
+	var lbl := Label3D.new()
+	lbl.text = text
+	lbl.font_size = font_size
+	lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	lbl.modulate = tint
+	lbl.outline_modulate = Color("292524")
+	lbl.outline_size = 5
+	host.add_child(lbl)
+	lbl.global_position = at
+	var tw := create_tween()
+	tw.tween_property(lbl, "global_position:y", at.y + 0.9, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(lbl, "modulate:a", 0.0, 0.6).set_delay(0.25)
+	tw.tween_callback(lbl.queue_free)
