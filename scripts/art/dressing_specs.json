@@ -426,5 +426,131 @@
       "515A5A",
       "665A48"
     ]
+  },
+  "ENV_10_GATE_TIMBER": {
+    "name": "农场双扇木门",
+    "subject": "One rustic timber farm gate standing between two square wooden posts: two plank door leaves meeting at the centre, each leaf framed with horizontal planks and a diagonal brace, one chunky crossbeam over the posts. Four and a half metres wide compared with two and a quarter metres tall overall. Chunky pale weathered wood.",
+    "height": 2.25,
+    "budget": 2200,
+    "palette": [
+      "9C805E",
+      "B39A70",
+      "665A48",
+      "7A6345"
+    ]
+  },
+  "ENV_10_FEED_RACK": {
+    "name": "木制饲料架",
+    "subject": "One wooden hay feed rack for livestock: a long open tray box raised on four short square legs, two rows of slanted side slats flaring outward like an open cradle, a small mound of loose hay resting in the tray. Two and a half metres long compared with one metre tall. Chunky plain wood.",
+    "height": 1.15,
+    "budget": 1400,
+    "palette": [
+      "665A48",
+      "9C805E",
+      "B39A70",
+      "C9B16C"
+    ]
+  },
+  "ENV_10_BARN": {
+    "name": "红墙谷仓",
+    "subject": "One small red farm barn: rectangular red plank walls with pale cream corner posts, a tall slate grey gable roof, big double dark wooden stable doors with cream cross braces on the long wall, a small hayloft hatch above the doors. Wide low proportions, seven metres wide compared with five metres tall including the roof.",
+    "height": 5.0,
+    "budget": 4500,
+    "palette": [
+      "A96550",
+      "626F75",
+      "E1DDC5",
+      "665A48"
+    ]
+  },
+  "ENV_10_SILO": {
+    "name": "灰筒仓塔",
+    "subject": "One tall grey farm silo tower: a slightly tapered round concrete tower with a few broad horizontal seam bands, capped by a pointed slate grey cone roof. Five metres diameter compared with ten metres tall.",
+    "height": 10.0,
+    "budget": 2600,
+    "palette": [
+      "A8AEAB",
+      "8B9093",
+      "626F75"
+    ]
+  },
+  "ENV_10_SHED_SHEAR": {
+    "name": "剪毛矮棚",
+    "subject": "One long low open-fronted wooden sheep shearing shed: dark plank walls on chunky timber posts, slate grey roof covering only the back slope leaving the tall front side open, a plain wooden shearing table and a neat stack of creamy wool sacks visible inside, straw scattered on the floor. Ten metres long compared with three and a half metres tall.",
+    "height": 3.7,
+    "budget": 5000,
+    "palette": [
+      "665A48",
+      "9C805E",
+      "626F75",
+      "E1DDC5",
+      "C9B16C"
+    ]
+  },
+  "ENV_10_BENCH": {
+    "name": "公园长椅",
+    "subject": "One simple park bench: three wooden seat slats and two backrest slats in warm plain wood, four short dark iron legs. Two and a third metres long compared with one metre tall.",
+    "height": 0.95,
+    "budget": 900,
+    "palette": [
+      "9C805E",
+      "665A48",
+      "515A5A"
+    ]
+  },
+  "ENV_10_STONE_PILLAR": {
+    "name": "石砌门柱",
+    "subject": "One squat stone gate pillar: a square column of large pale grey rounded masonry blocks with a slightly wider flat cap stone on top. Under one metre wide compared with two and a half metres tall.",
+    "height": 2.7,
+    "budget": 800,
+    "palette": [
+      "A5A69F",
+      "8B9093"
+    ]
+  },
+  "ENV_10_STATION": {
+    "name": "索道站台",
+    "subject": "One small wooden cable car boarding platform on short stilts: a low deck of pale planks, simple dark wooden fence rails along the deck edges, two sturdy dark posts rising at one end carrying a heavy header beam overhead. Nine metres long compared with four and a half metres tall overall.",
+    "height": 4.4,
+    "budget": 4000,
+    "palette": [
+      "B39A70",
+      "665A48",
+      "515A5A"
+    ]
+  },
+  "ENV_10_RUINED_SHED": {
+    "name": "废弃矮棚",
+    "subject": "One small ruined wooden shelter: two standing dark plank walls meeting at a corner, chunky corner posts, a broken roof of grey slate sheets covering only the far half with the near half open to the sky, a little straw scattered inside. Five metres wide compared with two and a half metres tall.",
+    "height": 2.8,
+    "budget": 3200,
+    "palette": [
+      "665A48",
+      "9C805E",
+      "626F75",
+      "C9B16C"
+    ]
+  },
+  "ENV_10_APPLE_FRUIT": {
+    "name": "红苹果果实",
+    "subject": "One single ripe red apple fruit with a tiny brown stem, broad soft blush shading from deep red into a faint golden patch, a subtle highlight dimple at the top. Freestanding single fruit, complete all around.",
+    "height": 0.34,
+    "budget": 500,
+    "palette": [
+      "D94F3D",
+      "A96550",
+      "E8C86A"
+    ]
+  },
+  "ENV_10_POTATO": {
+    "name": "拱出的土豆",
+    "subject": "One single freshly dug potato tuber, lumpy irregular oval body in warm earthy tan brown, a few small broad smooth eyes, faint dusty soil dusting. Freestanding single vegetable, complete all around.",
+    "height": 0.36,
+    "budget": 500,
+    "palette": [
+      "B98A5A",
+      "9C805E",
+      "C9A35E"
+    ]
   }
 }

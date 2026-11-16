@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_10_STONE_PILLAR",
+  "raw_triangles": 7704,
+  "triangles": 800,
+  "size_blender_xyz": [
+    1.183328628540039,
+    1.1822808980941772,
+    2.700000047683716
+  ],
+  "file_bytes": 64412,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_10_STONE_PILLAR/ENV_10_STONE_PILLAR_game.glb"
+}

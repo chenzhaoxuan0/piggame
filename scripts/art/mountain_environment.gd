@@ -38,11 +38,11 @@ func build(farm: Node3D) -> void:
 	_pigpen()
 	_origin = Vector3(50,24,-14)
 	_fields()
-	_collider("OxBarn", Vector3(-33,2.5,46), Vector3(11,5,8))
+	_collider("OxBarn", Vector3(-33,4.27,46), Vector3(9.10,8.54,9.67))
 	_origin = Vector3(-40,16,-51)
 	_shearing()
 	_collider("ShedBack",Vector3(-21,1.1,10),Vector3(.3,2.2,6.6))
-	for z in [6.75,13.25]: _collider("ShedSide",Vector3(-16,.7,z),Vector3(10,1.4,.3))
+	for z in [7.07,12.93]: _collider("ShedSide",Vector3(-16,.7,z),Vector3(10,1.4,.3))
 	_origin = Vector3.ZERO
 	_summit_walls()
 	_large_racetrack()
@@ -104,6 +104,14 @@ func _tree(p: Vector3,scale_factor: float=1.0) -> void:
 	# The old roadside trees were placed at road height over empty space.
 	q.y=SURFACE.mesh_height_at(q)-.08
 	_dressing.place(id,q,Vector3.ONE*scale_factor*.85,_rng.randf()*TAU)
+
+## 白盒清扫：共享 builder 里的白模地标（谷仓/筒仓/剪毛棚/站台/饲料架/废棚等）
+## 改走 Lux3D 模型——坐标加 _origin 后交给 dressing 批处理烘进场景，与既有
+## 树木/围栏同一条 MultiMesh 通路，材质统一 pastoral_surface 平涂着色。
+## scale 传数字（整体等比）或 Vector3（分轴适配，见基类注释）。
+func _place_lux(id: String, local: Vector3, scale = 1.0, yaw := 0.0) -> void:
+	var vec: Vector3 = scale if scale is Vector3 else Vector3.ONE * float(scale)
+	_dressing.place(id, local + _origin, vec, yaw)
 
 func _convex(label: String, top: Array[Vector3], depth: float = .6) -> void:
 	var points := PackedVector3Array()
@@ -316,17 +324,19 @@ func _summit_walls() -> void:
 		_collider("PigpenWall",(a+b)*.5+Vector3.UP*.75,(b-a).abs()+Vector3(.55,1.5,.55))
 	# 2026-11-15 实机反馈 #10：山顶倒木（LOGS[0]）改为 farm_grounds 侧的可动
 	# 本体（被冲刺顶开时会真的滚下坡），不再烘进共享网格——共享几何没法单
-	# 独动，此前顶开后木头看起来还立在原地。林间倒木（LOGS[1]）不可顶动，
-	# 照旧烘焙。
+	# 独动，此前顶开后木头看起来还立在原地。
+	# 2026-11-16 白盒清扫：林间倒木（LOGS[1]）与山顶倒木穿同一件
+	# PROP_19_FALLEN_LOG，烘焙侧只留 JumpLog 凸包碰撞，横梁与奶油端盖不再进
+	# 共享网格（layout_version 9→10）。
 	for log_data in [L.LOGS[1]]:
 		var a: Vector3=log_data.a; var b: Vector3=log_data.b
 		var p:=a.lerp(b,log_data.t)
-		var side:=(b-a).normalized().cross(Vector3.UP).normalized()*3.05
+		# 凸包半跨从 3.05 收到 1.8——与 farm_grounds 挂的 PROP_19 模型（3.6 m
+		# 长）对齐，模型外不再留隐形木段碰撞（review 纠偏）。
+		var side:=(b-a).normalized().cross(Vector3.UP).normalized()*1.8
 		_district="JumpLogs"
-		_beam(p-side+Vector3.UP*.26,p+side+Vector3.UP*.26,.55,.52,WOOD_DARK)
 		var corners: Array[Vector3]=[p-side+Vector3(.0,.52,-.25),p+side+Vector3(0,.52,-.25),p+side+Vector3(0,.52,.25),p-side+Vector3(0,.52,.25)]
 		_convex("JumpLog",corners,.52)
-		for x in [-.6,.6]: _box(p+Vector3(x,.54,0),Vector3(.18,.035,.4),CREAM)
 	_district="CreekCrossing"
 	var p:=L.CREEK_CENTER
 	var direction:=(L.path("creek")[3]-L.path("creek")[2]).normalized()
@@ -377,10 +387,14 @@ func _chase_dressing() -> void:
 	_district="FarmWorkingYard"
 	_barn(Vector3(-59,2,-174),Vector3(8,3.3,7))
 	# Off-centre stacks constrict alternating sides, leaving a clear running line.
+	# 白盒清扫：追逐草捆堆改挂 PROP_11_HAY_STACK 模型（原高 1.1 m，放大到
+	# 1.3 m 碰撞高度）。圆捆视觉铺不满 3 m 碰撞长轴——每处双捆沿长轴并排，
+	# 视觉≈碰撞体，不再有隐形碰撞圈（review 纠偏）。
 	for p in [Vector3(-57,4,-154),Vector3(-76,3.3,-176),Vector3(-46,2,-201)]:
 		var size:=Vector3(3,1.3,2.4) if p.x==-57 else Vector3(2.4,1.3,3)
-		_box(p+Vector3.UP*.65,size,STRAW)
-		_box(p+Vector3.UP*1.32,Vector3(.15,.07,size.z+.04),WOOD)
+		var along:=Vector3(1,0,0) if size.x>size.z else Vector3(0,0,1)
+		_place_lux("PROP_11_HAY_STACK", p-along*.72, 1.3 / 1.1, p.x * .13)
+		_place_lux("PROP_11_HAY_STACK", p+along*.72, 1.3 / 1.1, p.x * .13 + 1.1)
 		_collider("ChaseHayStack",p+Vector3.UP*.65,size)
 	# Closed gateway is the very end of the obstacle course.
 	_district="StoneGatewayAndCableStation"
@@ -389,17 +403,19 @@ func _chase_dressing() -> void:
 		var b:=L.GATE+Vector3(sign_x*9,0,0)
 		_stone_wall(a,b,2,.7)
 		_collider("GateWall",(a+b)*.5+Vector3.UP,Vector3(6.5,2,.7))
+	# 白盒清扫：铁门石柱改挂 ENV_10_STONE_PILLAR 模型（分轴缩到原 0.85 m
+	# 方柱截面，2.7 m 高不变）。
 	for x in [-2.65,2.65]:
-		_box(L.GATE+Vector3(x,1.35,0),Vector3(.85,2.7,.85),STONE_LIGHT)
+		_place_lux("ENV_10_STONE_PILLAR", L.GATE+Vector3(x,0,0), Vector3(0.85 / 1.183, 1.0, 0.85 / 1.182))
 	# Fence the court edges: no route around the locked gate.
 	for x in [-8.5,8.5]: _edge_wall(L.GATE+Vector3(x,0,0),L.GATE+Vector3(x,0,9),true)
 
 func _station() -> void:
 	_district="StoneGatewayAndCableStation"
-	for i in 19: _box(L.STATION+Vector3(0,.06,5-i*.5),Vector3(5,.12,.46),WOOD_LIGHT)
-	for x in [-2.8,2.8]: _fence(L.STATION+Vector3(x,0,1),L.STATION+Vector3(x,0,-4),WOOD_DARK)
-	for x in [-2,2]: _box(L.STATION+Vector3(x,2.15,5),Vector3(.25,4.3,.25),WOOD_DARK)
-	_box(L.STATION+Vector3(0,4.3,5),Vector3(4.4,.22,.28),WOOD_DARK)
+	# 白盒清扫：索道站台（板面 + 边围栏 + 双立柱 + 横梁）由 ENV_10_STATION
+	# 模型绘制；悬空钢缆仍程序绘制——它要一路拉到 L.TRAVEL 的吊厢线上，
+	# 模型里装不下这根 30 多米的缆。
+	_place_lux("ENV_10_STATION", L.STATION, 1.0)
 	var start:=L.STATION+Vector3(0,4.1,0)
 	_beam(start-L.TRAVEL*.6,start+L.TRAVEL*1.5,.055,.055,IRON)
 	_district="GoldenWilderness"

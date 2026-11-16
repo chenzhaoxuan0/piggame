@@ -111,12 +111,14 @@ func _fields() -> void:
 	# Raised vegetable beds beyond the story lane, with broad readable crop heads.
 	# Trimmed to three rows south of the diagonal lane: the fourth sat dead-center
 	# on the ox->creek lane where it crosses z=29 at x=64.
+	# 白盒清扫：菜畦作物头由 PROP_08_CABBAGE 模型绘制（0.8 m 原高缩到 0.4 m，
+	# 原本的 LEAF_LIGHT 白模团与真卷心菜联赛用球同源）。
 	for row in 3:
 		var p:=Vector3(55+row*3,24.09,26)
 		e._patch(p,Vector2(1.1,3.5),e.SOIL,12,.02)
 		for j in 6:
 			var q:=p+Vector3(0,.15,-2.8+j*1.1)
-			e._boulder(q,Vector3(.38,.34,.4),e.LEAF_LIGHT,j)
+			e._dressing.place("PROP_08_CABBAGE",q,Vector3(.5,.42,.5),j)
 			e._tuft(q+Vector3.UP*.1,.35,e.LEAF)
 	for i in 5:
 		_put("REEDS",Vector3(24+i*3,24,33.3),.65,i)
@@ -126,7 +128,8 @@ func _fields() -> void:
 
 func _sheep() -> void:
 	e._district="ShearingAndWetMeadow"
-	for p in [Vector3(-58,16,-39),Vector3(-59,16,-43),Vector3(-54,16,-43)]: _put("WOOL",p,1.1,p.x)
+	# 剪毛棚外第四堆羊毛：棚侧的白模羊毛团拆除后由实体羊毛模型补位。
+	for p in [Vector3(-58,16,-39),Vector3(-59,16,-43),Vector3(-54,16,-43),Vector3(-50.5,16,-37.5)]: _put("WOOL",p,1.1,p.x)
 	_put("BARREL",Vector3(-61,16,-37),.85)
 	# 2026-11-13: the cart sat on the holding-pen's west fence corner; nudged south
 	# onto open meadow, clear of every fence rail.
@@ -148,8 +151,10 @@ func _horses() -> void:
 	for i in 3:
 		_put("HURDLE",Vector3(42+i*10,8,-123),.95,PI*.5)
 		e._patch(Vector3(42+i*10,8.04,-123),Vector2(3.0,1.8),e.PATH.darkened(.07),16,.06)
+		# 白模清扫：跨栏两侧的奶白方块标记墩改挂小号 ENV_09_ROCK（与山路路侧
+		# 标记石 Rock_Creek_Side 同源，苔石轮廓比裸盒子更像训练场道具）。
 		for sign_side in [-1,1]:
-			e._box(Vector3(42+i*10+sign_side*2.5,8.22,-123),Vector3(.35,.44,.35),e.CREAM)
+			e._dressing.place("ENV_09_ROCK",Vector3(42+i*10+sign_side*2.5,8.0,-123),Vector3.ONE*.3,sign_side*1.3+float(i))
 	_put("PUMP",Vector3(77,8,-129),1)
 	_put("BARREL",Vector3(78.2,8,-128),1)
 	# 2026-11-13: the wheelbarrow used to poke into the track barn's west wall.

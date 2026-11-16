@@ -120,6 +120,65 @@ static func hide_procedural_visuals(parent: Node3D) -> void:
 		if child is Node3D and not child is CollisionObject3D and not child is CollisionShape3D and not child is Label3D:
 			child.hide()
 
+## Swap a white-box prop's flat VisualMesh for its Lux3D model: the body keeps
+## its collision, scripts and playthings, and the model is scaled uniformly to
+## the replaced box height with its base dropped onto the box bottom, so every
+## transform gag (tip / squash / kick) keeps driving the same root. No-ops
+## without the asset - offline runs keep the box (same contract as the
+## NibbleGrass tufts). `centered` matches how the body root was placed: true
+## for _box/_sphere roots (origin at box centre), false for ground-level roots.
+## Shared by farm_grounds._mount_lux, the course scenes and the plaything
+## pickups - one fit contract everywhere (farm_grounds.gd 2026-11-15).
+static func mount_visual(body: Node3D, asset_id: String, box_size: Vector3, lux_name := "", centered := true, fit_axis := "y") -> Node3D:
+	var art := make(asset_id)
+	if art == null:
+		return null
+	var mesh := body.get_node_or_null("VisualMesh")
+	if mesh != null:
+		mesh.visible = false
+	var aabb := _model_aabb(art)
+	# fit_axis picks the fitted dimension: height for standing props, width for
+	# wide-assembled props, or the full per-axis box when the art's aspect
+	# differs from its collider (the low hurdle's posts stay put while its
+	# poles and feet stretch along the road - all X-aligned prisms).
+	var scale_vec := Vector3.ONE
+	if fit_axis == "box" and aabb.size.x > 0.001 and aabb.size.y > 0.001:
+		scale_vec = Vector3(
+			box_size.x / aabb.size.x,
+			box_size.y / aabb.size.y,
+			box_size.z / maxf(aabb.size.z, 0.001))
+	else:
+		var target: float = box_size.y if fit_axis == "y" else box_size.x
+		var authored: float = aabb.size.y if fit_axis == "y" else aabb.size.x
+		var fit := target / authored if authored > 0.001 else 1.0
+		scale_vec = Vector3.ONE * fit
+	art.scale = scale_vec
+	# Models are metre-normalized with the base at the origin; drop the scaled
+	# base onto the bottom face of the collision box it dresses.
+	art.position = Vector3(0, (-box_size.y * 0.5 if centered else 0.0) - aabb.position.y * scale_vec.y, 0)
+	if lux_name != "":
+		art.name = lux_name
+	body.add_child(art)
+	return art
+
+## Merged local-space bounds of every mesh under a freshly made (still out
+## of tree) model, in the model's own coordinates.
+static func _model_aabb(node: Node3D) -> AABB:
+	var found := false
+	var merged := AABB()
+	if node is VisualInstance3D:
+		merged = (node as VisualInstance3D).get_aabb()
+		found = true
+	for child in node.get_children():
+		if not (child is Node3D):
+			continue
+		var child_box: AABB = (child as Node3D).transform * _model_aabb(child)
+		if child_box.size == Vector3.ZERO:
+			continue
+		merged = merged.merge(child_box) if found else child_box
+		found = true
+	return merged
+
 ## Cover a slab's top with a grid of one ground asset (zone floors/meadows).
 ## The tile asset is Blender-normalized to `tile_size` (X,Y,Z metres); copies
 ## sink `sink` metres into the slab so seams never z-fight. Tiles stretch on

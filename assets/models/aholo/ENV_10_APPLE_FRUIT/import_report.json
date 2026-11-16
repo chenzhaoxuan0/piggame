@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_10_APPLE_FRUIT",
+  "raw_triangles": 9136,
+  "triangles": 500,
+  "size_blender_xyz": [
+    0.34707608819007874,
+    0.34365519881248474,
+    0.3399999737739563
+  ],
+  "file_bytes": 41860,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_10_APPLE_FRUIT/ENV_10_APPLE_FRUIT_game.glb"
+}

@@ -19,6 +19,7 @@ signal noticed(text: String)
 enum Kind { GRASS, TIPPABLE, CABBAGE, HAYSTACK, BEEHIVE, MAILBOX, HORN, MUDPIT, NEST, POTATO, APPLE_TREE, METEOR_BUTTON }
 
 const UI = preload("res://scripts/ui/ui_kit.gd")
+const ASSETS = preload("res://scripts/art/asset_library.gd")
 
 # Cabbage punt tuning: hoof strength and the upward lift that makes it hop.
 # The ball is a light football now (mass 0.4, low damp - see farm_grounds
@@ -259,6 +260,9 @@ func _react_potato() -> void:
 	mat.albedo_color = Color("B98A5A")
 	mat.roughness = 0.95
 	potato.material_override = mat
+	# 白盒清扫：拱出的土豆换 ENV_10_POTATO 模型；离线兜底保留原球体。
+	if ASSETS.mount_visual(potato, "ENV_10_POTATO", Vector3(0.42, 0.36, 0.42), "PotatoLux"):
+		potato.mesh = null
 	add_child(potato)
 	potato.position = Vector3(0.3, 0.1, 0.3)
 	var tween := create_tween()
@@ -290,6 +294,9 @@ func _react_apple_tree(body: Node3D) -> void:
 		mat.albedo_color = Color("D94F3D")
 		mat.roughness = 0.6
 		mesh.material_override = mat
+		# 白盒清扫：苹果雨的苹果换 ENV_10_APPLE_FRUIT 模型；离线兜底保留原球体。
+		if ASSETS.mount_visual(mesh, "ENV_10_APPLE_FRUIT", Vector3(0.32, 0.32, 0.32), "AppleLux"):
+			mesh.mesh = null
 		apple.add_child(mesh)
 		var land := Vector3(randf_range(-1.2, 1.2), 0.16, randf_range(-1.2, 1.2))
 		apple.position = Vector3(randf_range(-1.0, 1.0), 3.2, randf_range(-1.0, 1.0))

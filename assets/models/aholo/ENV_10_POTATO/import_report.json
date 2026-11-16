@@ -1,0 +1,13 @@
+{
+  "asset_id": "ENV_10_POTATO",
+  "raw_triangles": 9022,
+  "triangles": 500,
+  "size_blender_xyz": [
+    0.2748877704143524,
+    0.2972531318664551,
+    0.35999998450279236
+  ],
+  "file_bytes": 40176,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/ENV_10_POTATO/ENV_10_POTATO_game.glb"
+}

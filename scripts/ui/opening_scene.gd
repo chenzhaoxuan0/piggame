@@ -67,22 +67,49 @@ func _build_stage() -> void:
 	grass.material_override = grass_mat
 	grass.position = Vector3(0, -0.5, 4)
 	pen.add_child(grass)
+	# 白盒清扫：背景猪圈的石墙由 ENV_09_WALL 干砌石墙模型按墙高等比缩放成
+	# 段铺开；离线兜底保留原灰盒（与食槽/猪的离线契约一致）。
 	var wall_mat := StandardMaterial3D.new()
 	wall_mat.albedo_color = Color("8E8E86")
 	wall_mat.roughness = 0.9
-	for side in [
-		[Vector3(0, 0.35, -2), Vector3(12.5, 0.7, 0.5)], # front wall low: no grey band across the frame
-		[Vector3(0, 0.7, 10), Vector3(12.5, 1.4, 0.5)],
-		[Vector3(-6, 0.7, 4), Vector3(0.5, 1.4, 12.5)],
-		[Vector3(6, 0.7, 4), Vector3(0.5, 1.4, 12.5)],
-	]:
-		var wall := MeshInstance3D.new()
-		var wall_box := BoxMesh.new()
-		wall_box.size = side[1]
-		wall.mesh = wall_box
-		wall.material_override = wall_mat
+	var walls := [
+		[Vector3(0, 0.35, -2), Vector3(12.5, 0.7, 0.5), 0.0], # front wall low: no grey band across the frame
+		[Vector3(0, 0.7, 10), Vector3(12.5, 1.4, 0.5), 0.0],
+		[Vector3(-6, 0.7, 4), Vector3(0.5, 1.4, 12.5), PI / 2.0],
+		[Vector3(6, 0.7, 4), Vector3(0.5, 1.4, 12.5), PI / 2.0],
+	]
+	for wall_index in walls.size():
+		var side: Array = walls[wall_index]
+		var wall := Node3D.new()
+		wall.name = "BackdropWall%d" % wall_index
 		wall.position = side[0]
+		wall.rotation.y = side[2]
 		pen.add_child(wall)
+		var length: float = maxf(side[1].x, side[1].z)
+		var height: float = side[1].y
+		# 段长从实件量出（review 纠偏：模型实长 2.97 m，spec 里的“四米”没落地），
+		# 用首段实测 AABB 反推铺段数，避免按提示词假设值铺出露洞。
+		var probe := ASSETS.make("ENV_09_WALL")
+		var modeled := false
+		if probe != null:
+			var seg_len: float = maxf(ASSETS._model_aabb(probe).size.x, 0.5)
+			var seg_scale := height / 1.1
+			var count := maxi(1, int(ceil(length / (seg_len * seg_scale * 0.98))))
+			var span := length / float(count)
+			for i in count:
+				var seg := probe if i == 0 else ASSETS.make("ENV_09_WALL")
+				wall.add_child(seg)
+				seg.scale = Vector3.ONE * seg_scale
+				seg.scale.x *= span / seg_len
+				seg.position = Vector3(-length * 0.5 + span * (float(i) + 0.5), -height * 0.5, 0)
+				modeled = true
+		if not modeled:
+			var wall_box := BoxMesh.new()
+			wall_box.size = side[1]
+			var wall_mesh := MeshInstance3D.new()
+			wall_mesh.mesh = wall_box
+			wall_mesh.material_override = wall_mat
+			wall.add_child(wall_mesh)
 	var trough_art: Node3D = ASSETS.make("ENV_01_TROUGH")
 	if trough_art == null:
 		var fallback := MeshInstance3D.new()
