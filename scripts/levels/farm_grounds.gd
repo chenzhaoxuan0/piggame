@@ -1299,10 +1299,11 @@ func _build_plow() -> Node3D:
 	plow.name = "OxPlow"
 	# 1.4×：原尺寸木色犁在牛身后读不出来，放大一档才像「在拉犁」。
 	plow.scale = Vector3(1.4, 1.4, 1.4)
+	# 挂骨 socket 的朝向使犁局部 +z 指向牛身后：梁/扶手朝 +z 伸才露在牛体外。
 	_box_mesh(plow, Vector3(0.3, 0.26, 0.08), Vector3(0, 0.14, 0.05), _material(Color("515A5A"))).rotation.x = -0.4
-	_box_mesh(plow, Vector3(0.1, 0.1, 1.1), Vector3(0, 0.42, -0.4), _material(Color("8F6A42"))).rotation.x = 0.35
-	_box_mesh(plow, Vector3(0.06, 0.5, 0.06), Vector3(-0.2, 0.72, -0.1), _material(Color("9C805E"))).rotation.x = -0.3
-	_box_mesh(plow, Vector3(0.06, 0.5, 0.06), Vector3(0.2, 0.72, -0.1), _material(Color("9C805E"))).rotation.x = -0.3
+	_box_mesh(plow, Vector3(0.1, 0.1, 1.1), Vector3(0, 0.42, 0.4), _material(Color("8F6A42"))).rotation.x = 0.35
+	_box_mesh(plow, Vector3(0.06, 0.5, 0.06), Vector3(-0.2, 0.72, 0.1), _material(Color("9C805E"))).rotation.x = 0.3
+	_box_mesh(plow, Vector3(0.06, 0.5, 0.06), Vector3(0.2, 0.72, 0.1), _material(Color("9C805E"))).rotation.x = 0.3
 	var dust := _make_dust("PlowDust", Color("A8906B"), 10)
 	dust.position = Vector3(0, 0.1, 0.15)
 	dust.emitting = true
