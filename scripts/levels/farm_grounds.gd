@@ -701,10 +701,10 @@ func _on_weed_eaten(body: Node3D, weed: Node3D) -> void:
 const RACE_TIMER_SCRIPT = preload("res://scripts/courses/components/race_timer.gd")
 const RACE_TRACK_CENTRE := Vector3(40, 8, -120)
 const RACE_GATES := [
-	{"p": Vector3(65, 8, -120), "t": Vector3(0, 0, -1)},  # 0 东弯（行进向南）
+	{"p": Vector3(76, 8, -120), "t": Vector3(0, 0, -1)},  # 0 东弯顶（半圆中心 65 + 半径 11，旧值 65 立在内场）
 	{"p": Vector3(53, 8, -131), "t": Vector3(-1, 0, 0)},  # 1 南直道东段
 	{"p": Vector3(27, 8, -131), "t": Vector3(-1, 0, 0)},  # 2 南直道西段
-	{"p": Vector3(15, 8, -120), "t": Vector3(0, 0, 1)},   # 3 西弯（行进向北）
+	{"p": Vector3(4, 8, -120), "t": Vector3(0, 0, 1)},   # 3 西弯顶（15 - 11，旧值 15 同样在内场）
 	{"p": Vector3(27, 8, -109), "t": Vector3(1, 0, 0)},   # 4 北直道西段
 	{"p": Vector3(53, 8, -109), "t": Vector3(1, 0, 0)},   # 5 北直道东段
 ]
@@ -749,8 +749,10 @@ func _race_gate(idx: int, centre: Vector3, tangent: Vector3, colour: Color, lock
 	for tag in ["A", "B"]:
 		var offset := side if tag == "A" else -side
 		_box(self, "RaceGate%dPost%s" % [idx, tag], Vector3(0.2, 2.7, 0.2), centre + offset + Vector3(0, 1.2, 0), colour, false)
+	# 2026-11-17 实机反馈：顶梁曾对齐行进切线（旋转 90°，横在跑道上而不是
+	# 连接两柱）——梁长轴必须沿 side（柱间连线）。
 	var beam := _box(self, "RaceGate%dBeam" % idx, Vector3(7.0, 0.22, 0.22), centre + Vector3(0, 2.62, 0), colour.lightened(0.18), false)
-	beam.rotation.y = Vector3.RIGHT.signed_angle_to(tangent, Vector3.UP)
+	beam.rotation.y = Vector3.RIGHT.signed_angle_to(side.normalized(), Vector3.UP)
 	var text := "🔒 首圈跑完才开" if locked else "检查门 %d" % (idx + 1)
 	return _label(self, "RaceGate%dLabel" % idx, text, centre + Vector3(0, 3.15, 0), 15)
 
