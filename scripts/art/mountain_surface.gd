@@ -26,8 +26,8 @@ static func height_at(p: Vector3) -> float:
 		# Octagonal corners follow the collision plateau, including its bevels.
 		var outside := maxf(maxf(delta.x-r.x,delta.y-r.y),(delta.x/r.x+delta.y/r.y-1.78)*minf(r.x,r.y)*.7)
 		outside = maxf(0,outside)
-		height = maxf(height,c.y-.24-outside*.58)
-		if outside<1.5: ceiling=minf(ceiling,c.y-.24)
+		height = maxf(height,c.y-.05-outside*.58)
+		if outside<1.5: ceiling=minf(ceiling,c.y-.05)
 	for id in L.ROUTES:
 		var route: Array = L.ROUTES[id]
 		for i in route.size()-1:
@@ -38,8 +38,8 @@ static func height_at(p: Vector3) -> float:
 			var distance := q.distance_to(a.lerp(b,t))
 			var level := lerpf(route[i].y,route[i+1].y,t)
 			var shoulder := 5.5 if id=="chase" else 5.0
-			height=maxf(height,level-.24-maxf(0,distance-shoulder)*.62)
-			if distance<7.5: ceiling=minf(ceiling,level-.24+maxf(0,distance-4.5)*.18)
+			height=maxf(height,level-.05-maxf(0,distance-shoulder)*.62)
+			if distance<7.5: ceiling=minf(ceiling,level-.05+maxf(0,distance-4.5)*.18)
 	# A real hollow under the broken bridge keeps its missing planks readable.
 	var creek := L.CREEK_CENTER
 	var forward := (L.path("creek")[3]-L.path("creek")[2]).normalized()

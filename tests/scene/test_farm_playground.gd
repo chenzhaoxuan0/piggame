@@ -273,14 +273,17 @@ func _run() -> void:
 		await create_timer(0.15).timeout
 	_check(am.is_unlocked("lawn_mower"), "Eating the whole patch unlocks 除草机")
 
-	# --- Ranch time trial (2026-11-15 playtest #4/#5): the record board moved to
-	# the woodland-exit crossing, talks you into the race, and the lap pays two
-	# ways (steady ring lap / all-checkpoints shortcut) plus a real-clock 35 s.
+	# --- Ranch time trial (2026-11-16 redesign): the record board talks you into
+	# the race; checkpoints are GATES now - six ring gates + two infield gates.
+	# Lap one must run the full ring; only after a complete lap do the infield
+	# gates unlock the shortcut line, and later trials pick either route freely.
 	var board: Node3D = farm.get_node("RecordBoard")
 	_check(board.global_position.distance_to(Vector3(27, 8, -103.5)) < 6.0,
 		"The record board stands at the woodland-exit crossing (pigs meet it before the horse)")
-	_check(farm.get_node_or_null("RaceStartLine") != null and farm.get_node_or_null("RaceCP3Pole") != null,
-		"The lap race is built (start line + checkpoint poles)")
+	_check(farm.get_node_or_null("RaceStartLine") != null and farm.get_node_or_null("RaceGate5Beam") != null,
+		"The lap race is built (start line + six ring gate frames)")
+	_check(farm.get_node_or_null("RaceGate6Beam") != null and farm.get_node_or_null("RaceGate7Beam") != null,
+		"Two infield shortcut gates stand in the field")
 	var dm_node: Node = Node.new()
 	dm_node.set_script(load("res://scripts/core/dialogue_manager.gd"))
 	var board_dialogue: Dictionary = dm_node.dialogue_tree["inspect_record_board"]
@@ -290,34 +293,53 @@ func _run() -> void:
 			offers_race = true
 	_check(offers_race, "The board dialogue offers 开始计时赛")
 
-	# Leg A - shortcut run: ring to CP3, then cut the infield to the line.
+	# Leg A - first trial: cutting the infield voids the lap outright.
 	_check(farm.begin_race_trial(pig), "The trial starts from the board's dialogue entry")
 	_check(pig.control_mode == "cinematic", "Pig is held at the start line during the countdown")
 	await create_timer(3.4).timeout # 3-2-1-GO
 	_check(farm._race_running and pig.control_mode == "explore", "GO! releases the pig with the clock running")
-	for cp in [farm.RACE_LAP[0], farm.RACE_LAP[1], farm.RACE_LAP[2]]:
-		pig.global_position = cp + Vector3(0, 0.3, 0)
-		await physics_frame
-		await physics_frame
-	pig.global_position = Vector3(40, 8.3, -127) # cut straight across the infield
-	await physics_frame
-	pig.global_position = farm.RACE_LAP[3] + Vector3(0, 0.3, 0)
+	pig.global_position = Vector3(48, 8.3, -120) # straight into the infield
 	await physics_frame
 	await physics_frame
-	await create_timer(0.3).timeout
-	_check(am.is_unlocked("checkpoint_chaser"), "Four checkpoints + finish pays 抄近道也是本事")
-	_check(not am.is_unlocked("steady_lap"), "The infield cut costs 稳稳一圈")
-	_check(am.is_unlocked("record_breaker"), "A sub-35 s lap pays 35 秒新纪录 (real clock)")
+	await create_timer(0.2).timeout
+	_check(not farm._race_running, "An infield cut on lap one cancels the trial outright")
+	_check(not am.is_unlocked("steady_lap") and not am.is_unlocked("checkpoint_chaser"),
+		"An voided lap one pays nothing")
 
-	# Leg B - clean lap on the ring: the steady medal lands.
-	_check(farm.begin_race_trial(pig), "A second trial starts after the first")
+	# Leg B - lap one done properly: all six ring gates in order, medal + unlock.
+	_check(farm.begin_race_trial(pig), "A fresh trial starts after the voided one")
 	await create_timer(3.4).timeout
-	for cp in farm.RACE_LAP:
-		pig.global_position = cp + Vector3(0, 0.3, 0)
+	for gate in farm.RACE_GATES:
+		pig.global_position = gate.p + Vector3(0, 0.3, 0)
 		await physics_frame
 		await physics_frame
+	pig.global_position = farm.RACE_FINISH + Vector3(0, 0.3, 0)
+	await physics_frame
+	await physics_frame
 	await create_timer(0.3).timeout
-	_check(am.is_unlocked("steady_lap"), "A clean ring lap pays 稳稳一圈")
+	_check(am.is_unlocked("steady_lap"), "Six ring gates + finish pays 稳稳一圈")
+	_check(farm._race_full_lap_done, "A complete ring lap unlocks the infield shortcut gates")
+	_check(am.is_unlocked("record_breaker"), "A sub-35 s lap pays 35 秒新纪录 (real clock)")
+	_check(not am.is_unlocked("checkpoint_chaser"), "The ring lap alone does not pay the shortcut medal")
+
+	# Leg C - free choice: east bend, through both infield gates, west bend, line.
+	_check(farm.begin_race_trial(pig), "A third trial starts after the clean lap")
+	await create_timer(3.4).timeout
+	pig.global_position = farm.RACE_GATES[0].p + Vector3(0, 0.3, 0) # east bend
+	await physics_frame
+	await physics_frame
+	for gate in farm.RACE_INFIELD_GATES:
+		pig.global_position = gate.p + Vector3(0, 0.3, 0)
+		await physics_frame
+		await physics_frame
+	pig.global_position = farm.RACE_GATES[3].p + Vector3(0, 0.3, 0) # west bend
+	await physics_frame
+	await physics_frame
+	pig.global_position = farm.RACE_FINISH + Vector3(0, 0.3, 0)
+	await physics_frame
+	await physics_frame
+	await create_timer(0.3).timeout
+	_check(am.is_unlocked("checkpoint_chaser"), "East bend → infield gates → west bend pays 抄近道也是本事")
 
 	# --- Outside the fence (2026-11-15 playtest #19, phase A): the ranch fence
 	# grows gaps (baked crossings) and a walkable clifftop apron rings the
