@@ -54,6 +54,7 @@ var _pending_interact: bool = false
 var _pending_dash: bool = false
 var _jump_buffer := 0.0
 var _coyote_time := 0.0
+var _idle_snuffle_time := 0.0
 var jumps := 0
 var voice: PigVoice = null
 var _click_route: Array[Vector3] = []
@@ -90,6 +91,11 @@ func _has_skeletal_locomotion() -> bool:
 
 func _ready() -> void:
 	preload("res://scripts/art/asset_library.gd").replace_visuals(visual_mesh, "CHAR_01")
+	var animator := _resolve_animator()
+	if animator != null:
+		var snuffle_clip: Animation = preload("res://scripts/art/npc_clips.gd").snuffle(visual_mesh)
+		if snuffle_clip != null:
+			animator.register_clip("snuffle", snuffle_clip, false)
 	target_destination = global_position
 	camera = get_viewport().get_camera_3d()
 	floor_snap_length = 0.3
@@ -438,6 +444,19 @@ func _keyboard_direction() -> Vector3:
 	right.y = 0.0
 	backward.y = 0.0
 	return (right.normalized() * axis.x + backward.normalized() * axis.y).limit_length(1.0)
+
+## 站太久自己拱地嗅嗅：玩家放下键盘时猪也不该变成雕像。
+func _process(delta: float) -> void:
+	if control_mode != "explore":
+		_idle_snuffle_time = 0.0
+		return
+	if velocity.length() < 0.3 and is_on_floor():
+		_idle_snuffle_time += delta
+		if _idle_snuffle_time > 7.0:
+			_play_action("snuffle", 1.0)
+			_idle_snuffle_time = -randf_range(3.0, 6.0)
+	else:
+		_idle_snuffle_time = 0.0
 
 func _physics_process(delta: float) -> void:
 	if not _can_move():

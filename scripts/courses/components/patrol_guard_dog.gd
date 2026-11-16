@@ -31,6 +31,7 @@ signal guard_stunned(duration: float)
 var is_stunned: bool = false
 
 var _patrol_next: int = 0
+var _trot_phase: float = 0.0
 
 var _stun_time_left: float = 0.0
 var _nip_cooldown_left: float = 0.0
@@ -120,7 +121,15 @@ func _self_patrol(delta: float) -> void:
 		_patrol_next = (_patrol_next + 1) % patrol_points.size()
 		return
 	global_position += to.normalized() * minf(patrol_speed * delta, to.length())
-	look_at(global_position + to.normalized(), Vector3.UP)
+	# 平滑转向 + 小跑颠簸：巡逻犬不再是平移的圆柱（模型面朝 -Z）。
+	var goal := global_transform.looking_at(global_position + to.normalized(), Vector3.UP)
+	global_transform.basis = Basis(global_transform.basis.get_rotation_quaternion()\
+		.slerp(goal.basis.get_rotation_quaternion(), minf(1.0, 8.0 * delta)))
+	_trot_phase += delta * 9.0
+	var hound := get_node_or_null("HoundLux") as Node3D
+	if hound != null:
+		hound.position.y = absf(sin(_trot_phase)) * 0.06
+		hound.rotation.z = sin(_trot_phase) * 0.05
 
 func stun(duration: float = 4.0, _knockback: Vector3 = Vector3.ZERO) -> void:
 	# Same contract as ChaseDog.stun(): called by the cardboard box bowling dive
@@ -188,4 +197,12 @@ func _on_nip_entered(body: Node3D) -> void:
 	away = away.normalized() if away.length_squared() > 0.001 else Vector3.FORWARD
 	if body.has_method("apply_knockback"):
 		body.apply_knockback(away * nip_power + Vector3.UP * nip_up, 0.6)
+	# 扑咬前扑：视觉-only 的前冲回弹，咬人要有咬人的样子。
+	var hound := get_node_or_null("HoundLux") as Node3D
+	if hound != null:
+		var lunge := create_tween()
+		lunge.tween_property(hound, "position:z", -0.35, 0.1)\
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		lunge.tween_property(hound, "position:z", 0.0, 0.22)\
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	guard_nipped.emit(body)

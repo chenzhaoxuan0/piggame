@@ -6,6 +6,7 @@ signal stage_chase_completed(gate_id: String)
 signal secret_pipe_entered(course_id: String)
 signal playground_event(kind: String, detail)
 const ASSETS = preload("res://scripts/art/asset_library.gd")
+const NPC_CLIPS = preload("res://scripts/art/npc_clips.gd")
 const PLAYTHING = preload("res://scripts/levels/farm_plaything.gd")
 const L = preload("res://scripts/levels/farm_layout.gd")
 const SPAWN := L.SPAWN
@@ -308,6 +309,13 @@ func set_npc_completed(id: String) -> void:
 	if not _npcs.has(id): return
 	if id=="sheep": _sheep_tag.hide()
 	if _npc_tweens.has(id) and is_instance_valid(_npc_tweens[id]): _npc_tweens[id].kill()
+	if id == "sheep" and _npc_tweens.has("sheep_sigh") and is_instance_valid(_npc_tweens["sheep_sigh"]):
+		_npc_tweens["sheep_sigh"].kill()
+	# 听完真相不再僵立：解除工作循环，当场欢呼一下再回到自由待机。
+	var actor := _actor_of(id)
+	if actor != null:
+		actor.clear_force()
+		actor.play_oneshot("celebrate", 1.0)
 	if L.RESTS.has(id):
 		var tween:=create_tween()
 		tween.tween_property(_npcs[id],"position",L.RESTS[id],.8)
@@ -318,7 +326,9 @@ func reset_world() -> void:
 		if is_instance_valid(tween): tween.kill()
 	_npc_tweens.clear()
 	_horse_lapping = false
-	for id in _npc_origins: _npcs[id].position=_npc_origins[id]
+	for id in _npc_origins:
+		_npcs[id].position=_npc_origins[id]
+		_npcs[id].rotation=Vector3(0, PI, 0)
 	_sheep_tag.show()
 	_farmer_baton.show()
 	set_gate_open(false)
@@ -582,32 +592,78 @@ func _build_sheep_meadow_extras() -> void:
 	_build_weeding_patch()
 
 func _build_sheep_pond() -> void:
-	# 半透明水面圆盘（顶面与草地齐平，呼吸微动读出「是水」）+ 卵石收口；
-	# 水域感应：入水降速 + 扑通 gag + 首次点亮「落水猪」。
+	# 真水池（2026-11-17 评测重做）：下沉池底 + 沙岸环 + 自定义水 shader
+	# （顶点波/菲涅尔深浅/游走波光）+ 卵石收口 + 睡莲；入水溅水花与涟漪。
+	# 水域感应契约不变：入水降速 55% + 扑通 gag + 首次点亮「落水猪」。
+	var bed := MeshInstance3D.new()
+	bed.name = "PondBed"
+	var bed_disc := CylinderMesh.new()
+	bed_disc.top_radius = 6.3
+	bed_disc.bottom_radius = 5.4
+	bed_disc.height = 0.5
+	bed.mesh = bed_disc
+	bed.material_override = _material(Color("2E4A44"))
+	add_child(bed)
+	bed.position = POND_CENTRE - Vector3.UP * 0.45
+	var bank := MeshInstance3D.new()
+	bank.name = "PondBank"
+	var bank_ring := TorusMesh.new()
+	bank_ring.inner_radius = 5.9
+	bank_ring.outer_radius = 6.8
+	bank_ring.rings = 28
+	bank_ring.ring_segments = 10
+	bank.mesh = bank_ring
+	bank.material_override = _material(Color("B8A47E"))
+	add_child(bank)
+	bank.position = POND_CENTRE - Vector3.UP * 0.07
 	var water := MeshInstance3D.new()
 	water.name = "PondWater"
 	var disc := CylinderMesh.new()
-	disc.top_radius = 6.4
-	disc.bottom_radius = 6.4
-	disc.height = 0.16
+	disc.top_radius = 6.25
+	disc.bottom_radius = 6.25
+	disc.height = 0.08
+	disc.radial_segments = 48
 	water.mesh = disc
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color("4FA8C9")
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.roughness = 0.25
-	water.material_override = mat
+	var water_mat := ShaderMaterial.new()
+	water_mat.shader = preload("res://scripts/art/pond_water.gdshader")
+	water.material_override = water_mat
 	add_child(water)
-	water.position = POND_CENTRE - Vector3.UP * 0.08
+	water.position = POND_CENTRE - Vector3.UP * 0.12
 	var breathe := create_tween().set_loops()
-	breathe.tween_property(water, "position:y", POND_CENTRE.y - 0.03, 2.2)\
+	breathe.tween_property(water, "position:y", POND_CENTRE.y - 0.09, 2.6)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	breathe.tween_property(water, "position:y", POND_CENTRE.y - 0.08, 2.2)\
+	breathe.tween_property(water, "position:y", POND_CENTRE.y - 0.15, 2.6)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	for i in 9:
 		var ang := TAU * i / 9.0
 		var stone := _box(self, "PondStone%d" % i, Vector3(0.8, 0.4, 0.6),
 			POND_CENTRE + Vector3(cos(ang) * 6.9, 0.0, sin(ang) * 6.0), Color("8D8073"), false)
 		stone.rotation.y = ang
+	for i in 3:
+		var pad_ang := TAU * i / 3.0 + 0.5
+		var pad := MeshInstance3D.new()
+		pad.name = "LilyPad%d" % i
+		var pad_disc := CylinderMesh.new()
+		pad_disc.top_radius = 0.55
+		pad_disc.bottom_radius = 0.55
+		pad_disc.height = 0.04
+		pad.mesh = pad_disc
+		pad.material_override = _material(Color("4E8A4A"))
+		add_child(pad)
+		pad.position = POND_CENTRE + Vector3(cos(pad_ang) * 3.4, -0.06, sin(pad_ang) * 2.8)
+		if i == 0:
+			var flower := MeshInstance3D.new()
+			flower.name = "LilyFlower"
+			var bloom := SphereMesh.new()
+			bloom.radius = 0.14
+			bloom.height = 0.2
+			flower.mesh = bloom
+			flower.material_override = _material(Color("F2B8C6"))
+			pad.add_child(flower)
+			flower.position = Vector3(0.15, 0.12, 0.1)
+	var ripple_loop := create_tween().set_loops()
+	ripple_loop.tween_interval(2.4)
+	ripple_loop.tween_callback(_pond_ambient_ripple)
 	var pond := Area3D.new()
 	pond.name = "PondWaterSense"
 	pond.collision_layer = 0
@@ -631,6 +687,7 @@ func _on_pond_entered(body: Node3D) -> void:
 		_pond_slowed = true
 		_pond_base_speed = body.move_speed
 		body.move_speed = _pond_base_speed * 0.55
+	_pond_splash(body.global_position)
 	_gag_at(body.global_position + Vector3.UP * 1.4, "扑通！猪猪戏水～（水里走得慢）", 1.6)
 	if not _pond_medal_paid:
 		_pond_medal_paid = true
@@ -646,6 +703,62 @@ func _on_pond_exited(body: Node3D) -> void:
 		body.move_speed = _pond_base_speed
 	_pond_slowed = false
 	_pond_base_speed = 0.0
+
+## 入水水花：一蓬水珠 + 两圈扩散涟漪（视觉-only，不碰碰撞）。
+func _pond_splash(at: Vector3) -> void:
+	var drops := CPUParticles3D.new()
+	drops.name = "PondSplash"
+	drops.amount = 28
+	drops.lifetime = 0.75
+	drops.one_shot = true
+	drops.explosiveness = 1.0
+	drops.local_coords = false
+	drops.direction = Vector3.UP
+	drops.spread = 55.0
+	drops.initial_velocity_min = 2.5
+	drops.initial_velocity_max = 4.5
+	drops.gravity = Vector3(0, -9.8, 0)
+	drops.scale_amount_min = 0.05
+	drops.scale_amount_max = 0.12
+	drops.color = Color("BFE6F2")
+	add_child(drops)
+	drops.global_position = Vector3(at.x, POND_CENTRE.y - 0.05, at.z)
+	drops.emitting = true
+	var cleanup := create_tween()
+	cleanup.tween_interval(1.3)
+	cleanup.tween_callback(drops.queue_free)
+	_pond_ripple(at)
+	_pond_ripple(at, 0.18)
+
+func _pond_ambient_ripple() -> void:
+	var ang := randf() * TAU
+	var rad := randf_range(0.5, 4.5)
+	_pond_ripple(POND_CENTRE + Vector3(cos(ang) * rad, 0, sin(ang) * rad))
+
+func _pond_ripple(at: Vector3, delay := 0.0) -> void:
+	var ring := MeshInstance3D.new()
+	ring.name = "PondRipple"
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.42
+	torus.outer_radius = 0.5
+	torus.rings = 20
+	torus.ring_segments = 8
+	ring.mesh = torus
+	var ring_mat := StandardMaterial3D.new()
+	ring_mat.albedo_color = Color("E8F7FB")
+	ring_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	ring_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ring.material_override = ring_mat
+	add_child(ring)
+	ring.global_position = Vector3(at.x, POND_CENTRE.y - 0.05, at.z)
+	ring.scale = Vector3(0.4, 1.0, 0.4)
+	var tw := create_tween()
+	if delay > 0.0:
+		tw.tween_interval(delay)
+	tw.tween_property(ring, "scale", Vector3(3.2, 1.0, 3.2), 0.9)\
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(ring_mat, "albedo_color:a", 0.0, 0.9)
+	tw.tween_callback(ring.queue_free)
 
 func _build_weeding_patch() -> void:
 	# 除草挑战：十二株灰绿杂草（与金黄嫩香草互为反差），啃一株少一株，
@@ -986,11 +1099,12 @@ var _horse_lapping := false
 var _horse_waypoints: Array[Vector3] = []
 var _horse_wp_index := 0
 var _horse_home := Vector3(29, 8, -120)
+var _horse_idle_time := 0.0
 
 func _begin_npc_life() -> void:
 	# 幂等：boot 时 reset_world 会清一遍 _npc_tweens（把这里的闲逛 tween 也
 	# 杀掉），所以 reset_world 末尾会再次调用本函数重启生活感。
-	for idle_key in ["ox", "sheep"]:
+	for idle_key in ["ox", "sheep", "sheep_sigh"]:
 		if _npc_tweens.has(idle_key) and is_instance_valid(_npc_tweens[idle_key]):
 			(_npc_tweens[idle_key] as Tween).kill()
 	# 追风：开机即跑圈（航点 = 外圈六道检查门 + 相邻门中点的十二边形环线）。
@@ -1003,23 +1117,71 @@ func _begin_npc_life() -> void:
 		_horse_waypoints.append((a + b) * 0.5)
 	_horse_wp_index = 0
 	_horse_lapping = true
-	# 老牛：犁边往返踱步（±1.2m，慢速）。首拍空等 1 秒：reset_world 之后
-	# 有「位置严格等于出生点」的钉子，第一帧不许有位移。
+	_horse_idle_time = 0.0
+	# ---- 骨骼级生活感（2026-11-17 评测重做）：位移 tween 只负责走位，
+	# 真正的「在干什么」由自定义骨夹表达——牛低头拉犁、羊耷拉脑袋、
+	# 马奔跑步态、农场主拄棍环视。对话完成后 clear_force + celebrate。
+	var ox_actor := _actor_of("ox")
+	var ox_visual := _visual_of("ox")
+	if ox_actor != null and ox_visual != null:
+		var plow_clip: Animation = NPC_CLIPS.plow(ox_visual)
+		if plow_clip != null:
+			ox_actor.register_clip("plow", plow_clip, true)
+			ox_actor.force_clip("plow", 0.85)
+		if ox_visual.get_node_or_null("OxPlow") == null:
+			ASSETS.attach_to_bone(ox_visual, "Body", _build_plow(), Vector3(0, 0.05, 1.05))
+	var sheep_actor := _actor_of("sheep")
+	var sheep_visual := _visual_of("sheep")
+	if sheep_actor != null and sheep_visual != null:
+		var mope_clip: Animation = NPC_CLIPS.mope(sheep_visual)
+		if mope_clip != null:
+			sheep_actor.register_clip("mope", mope_clip, true)
+			sheep_actor.force_clip("mope", 1.0)
+		var sigh_clip: Animation = NPC_CLIPS.sigh(sheep_visual)
+		if sigh_clip != null:
+			sheep_actor.register_clip("sigh", sigh_clip, false)
+	var horse_actor := _actor_of("horse")
+	var horse_visual := _visual_of("horse")
+	if horse_actor != null and horse_visual != null:
+		var stamp_clip: Animation = NPC_CLIPS.stamp(horse_visual)
+		if stamp_clip != null:
+			horse_actor.register_clip("stamp", stamp_clip, false)
+		if horse_visual.get_node_or_null("HoofDust") == null:
+			var hoof_dust := _make_dust("HoofDust", Color("C9B48A"), 14)
+			hoof_dust.position = Vector3(0, 0.1, 0.3)
+			horse_visual.add_child(hoof_dust)
+	var farmer_actor := _actor_of("farmer")
+	var farmer_visual := _visual_of("farmer")
+	if farmer_actor != null and farmer_visual != null:
+		var guard_clip: Animation = NPC_CLIPS.guard(farmer_visual)
+		if guard_clip != null:
+			farmer_actor.register_clip("guard", guard_clip, true)
+			farmer_actor.force_clip("guard", 1.0)
+	# 老牛：犁沟往返（±1.2m，慢速），到头转身再拉回来。首拍空等 1 秒：
+	# reset_world 之后有「位置严格等于出生点」的钉子，第一帧不许有位移。
 	var ox_origin: Vector3 = _npc_origins.get("ox", L.NPCS.ox)
 	var ox_pace = create_tween().set_loops()
 	ox_pace.tween_interval(1.0)
 	ox_pace.tween_property(_npcs.ox, "position", ox_origin + Vector3(0, 0, 1.2), 4.0)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	ox_pace.tween_property(_npcs.ox, "rotation:y", 0.0, 0.7)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	ox_pace.tween_property(_npcs.ox, "position", ox_origin - Vector3(0, 0, 1.2), 4.0)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	ox_pace.tween_property(_npcs.ox, "rotation:y", PI, 0.7)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	_npc_tweens["ox"] = ox_pace
-	# 小羊：蔫蔫地左右轻晃（读完残次牌的忧郁）。
+	# 小羊：蔫蔫地左右轻晃 + 每 7 秒叹一口气冒个「咩……」泡泡。
 	var sheep_sway = create_tween().set_loops()
 	sheep_sway.tween_property(_npcs.sheep, "rotation:z", 0.06, 2.6)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	sheep_sway.tween_property(_npcs.sheep, "rotation:z", -0.06, 2.6)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	_npc_tweens["sheep"] = sheep_sway
+	var sheep_sigh = create_tween().set_loops()
+	sheep_sigh.tween_interval(7.0)
+	sheep_sigh.tween_callback(_sheep_sigh)
+	_npc_tweens["sheep_sigh"] = sheep_sigh
 
 func _tick_horse_lap(delta: float) -> void:
 	if not _horse_lapping or not _npcs.has("horse") or not is_instance_valid(_npcs.horse):
@@ -1032,22 +1194,50 @@ func _tick_horse_lap(delta: float) -> void:
 		return
 	var horse: Node3D = _npcs.horse
 	var pig_pos: Vector3 = _player.global_position
+	var actor := _actor_of("horse")
+	var visual := _visual_of("horse")
+	var dust: CPUParticles3D = visual.get_node_or_null("HoofDust") if visual != null else null
 	# 猪进入牧场周边 → 全速奔回原点站定（面朝猪）：等着被追上、被对话。
 	# 触发半径取 26m：走关机器人在纪录牌（21m）就会叫它回家，读牌+走过去
 	# 的时间足够它从最远的南直道赶回来。
 	if pig_pos.distance_to(_horse_home) < 26.0:
 		var to_home := _horse_home - horse.global_position
 		to_home.y = 0.0
-		# 贴身让行：回家途中猪挡在身前就停步等它挪开（移动的实体不该推猪）。
-		if to_home.length() > 0.35 and pig_pos.distance_to(horse.global_position) > 2.2:
-			horse.global_position += to_home.normalized() * minf(11.0 * delta, to_home.length())
+		var moving_home := false
+		if to_home.length() > 0.35:
+			var dir := to_home.normalized()
+			# 贴身让行：猪挡在回家路上就绕开它（不推猪，也不傻停在半路）。
+			if pig_pos.distance_to(horse.global_position) < 2.2:
+				var away := horse.global_position - pig_pos
+				away.y = 0.0
+				if away.length_squared() > 0.001:
+					dir = (dir + away.normalized() * 1.2).normalized()
+			horse.global_position += dir * minf(11.0 * delta, to_home.length())
+			moving_home = true
 		if pig_pos.distance_to(horse.global_position) > 0.5:
-			horse.look_at(pig_pos, Vector3.UP)
+			_face_toward(horse, pig_pos, delta)
+		if actor != null:
+			if moving_home:
+				actor.force_clip("run", 1.5)
+			else:
+				# 站定等对话：idle 里偶尔刨蹄甩头，不再是木头马。
+				actor.clear_force()
+				_horse_idle_time += delta
+				if _horse_idle_time > 4.5:
+					actor.play_oneshot("stamp", 1.0)
+					_horse_idle_time = -randf_range(2.0, 5.0)
+		if dust != null:
+			dust.emitting = moving_home
 		return
 	if pig_mode == "dialogue":
 		return
 	# 常态：沿航点奔跑；猪贴近（6.5m）即停步。
 	if pig_pos.distance_to(horse.global_position) < 6.5:
+		if actor != null:
+			actor.clear_force()
+		if dust != null:
+			dust.emitting = false
+		_face_toward(horse, pig_pos, delta)
 		return
 	var target: Vector3 = _horse_waypoints[_horse_wp_index]
 	var to := target - horse.global_position
@@ -1056,7 +1246,82 @@ func _tick_horse_lap(delta: float) -> void:
 		_horse_wp_index = (_horse_wp_index + 1) % _horse_waypoints.size()
 		return
 	horse.global_position += to.normalized() * minf(5.2 * delta, to.length())
-	horse.look_at(horse.global_position + to.normalized(), Vector3.UP)
+	_face_toward(horse, horse.global_position + to.normalized(), delta)
+	if actor != null:
+		actor.force_clip("run", 1.0)
+	if dust != null:
+		dust.emitting = true
+	_horse_idle_time = 0.0
+
+## 平滑转向：四元数球面插值代替 look_at 瞬移朝向（跑圈过弯不再「啪」地扭头）。
+func _face_toward(body: Node3D, target: Vector3, delta: float) -> void:
+	var dir := target - body.global_position
+	dir.y = 0.0
+	if dir.length_squared() < 0.01: return
+	var goal := body.global_transform.looking_at(target, Vector3.UP)
+	var cur := body.global_transform.basis.get_rotation_quaternion()
+	body.global_transform.basis = Basis(cur.slerp(goal.basis.get_rotation_quaternion(), minf(1.0, 7.0 * delta)))
+
+func _actor_of(id: String) -> Node:
+	if not _npcs.has(id) or not is_instance_valid(_npcs[id]): return null
+	var found: Array = _npcs[id].find_children("ActorAnimation", "Node", true, false)
+	return found[0] if not found.is_empty() else null
+
+func _visual_of(id: String) -> Node3D:
+	if not _npcs.has(id) or not is_instance_valid(_npcs[id]): return null
+	for child in _npcs[id].get_children():
+		if child is Node3D and str(child.name).begins_with("CHAR_"):
+			return child
+	return null
+
+func _make_dust(dust_name: String, tint: Color, count: int) -> CPUParticles3D:
+	var dust := CPUParticles3D.new()
+	dust.name = dust_name
+	dust.amount = count
+	dust.lifetime = 0.8
+	dust.local_coords = false
+	dust.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	dust.emission_sphere_radius = 0.2
+	dust.direction = Vector3(0, 1, 0.5)
+	dust.spread = 40.0
+	dust.gravity = Vector3(0, -2.0, 0)
+	dust.initial_velocity_min = 0.3
+	dust.initial_velocity_max = 0.9
+	dust.scale_amount_min = 0.05
+	dust.scale_amount_max = 0.13
+	dust.color = tint
+	dust.emitting = false
+	return dust
+
+## 老牛的木犁：挂在 Body 骨上跟着步态起伏，犁刃处持续扬土。
+func _build_plow() -> Node3D:
+	var plow := Node3D.new()
+	plow.name = "OxPlow"
+	# 1.4×：原尺寸木色犁在牛身后读不出来，放大一档才像「在拉犁」。
+	plow.scale = Vector3(1.4, 1.4, 1.4)
+	_box_mesh(plow, Vector3(0.3, 0.26, 0.08), Vector3(0, 0.14, 0.05), _material(Color("515A5A"))).rotation.x = -0.4
+	_box_mesh(plow, Vector3(0.1, 0.1, 1.1), Vector3(0, 0.42, -0.4), _material(Color("8F6A42"))).rotation.x = 0.35
+	_box_mesh(plow, Vector3(0.06, 0.5, 0.06), Vector3(-0.2, 0.72, -0.1), _material(Color("9C805E"))).rotation.x = -0.3
+	_box_mesh(plow, Vector3(0.06, 0.5, 0.06), Vector3(0.2, 0.72, -0.1), _material(Color("9C805E"))).rotation.x = -0.3
+	var dust := _make_dust("PlowDust", Color("A8906B"), 10)
+	dust.position = Vector3(0, 0.1, 0.15)
+	dust.emitting = true
+	plow.add_child(dust)
+	return plow
+
+func _sheep_sigh() -> void:
+	var actor := _actor_of("sheep")
+	if actor != null:
+		actor.play_oneshot("sigh", 1.0)
+	if not _npcs.has("sheep") or not is_instance_valid(_npcs.sheep): return
+	var bubble := _label(self, "SheepSigh%d" % Time.get_ticks_msec(), "咩……",
+		_npcs.sheep.global_position + Vector3(0, 2.7, 0), 20)
+	bubble.modulate.a = 0.0
+	var tw := create_tween()
+	tw.tween_property(bubble, "modulate:a", 1.0, 0.4)
+	tw.tween_interval(1.4)
+	tw.tween_property(bubble, "modulate:a", 0.0, 0.6)
+	tw.tween_callback(bubble.queue_free)
 
 # ------------------------------------------------------------- playground
 # Ten kinds of body-driven easter eggs down the whole mountain road. Every
