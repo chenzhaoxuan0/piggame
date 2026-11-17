@@ -1458,11 +1458,10 @@ func open_dialogue(key: String) -> void:
 		var gate_for_chase := {"chase_1": "ox", "chase_2": "sheep", "chase_3": "horse"}
 		if gate_for_chase.has(rescued_chase) and is_instance_valid(farm):
 			farm.set_named_gate_open(gate_for_chase[rescued_chase], false)
-		# 安全区门口弹起脱险栅栏（与过门脱险同一视觉）：走缺口的人也能看到。
-		var gate_pos_map := {"chase_1": L.GATE_OX, "chase_2": L.GATE_SHEEP, "chase_3": L.GATE_HORSE}
-		if gate_pos_map.has(rescued_chase) and is_instance_valid(farm):
-			var road: Vector3 = Vector3(1, 0, 0) if rescued_chase == "chase_1" else Vector3(0, 0, 1)
-			farm.spawn_rescue_barrier(gate_pos_map[rescued_chase], road)
+		# 安全区栅栏弹起（与过门脱险同一视觉）：走缺口的人也能看到。
+		var fence_map := {"chase_1": "SafeFenceOx", "chase_2": "SafeFenceSheep", "chase_3": "SafeFenceHorse"}
+		if fence_map.has(rescued_chase) and is_instance_valid(farm):
+			farm.show_safe_fence(fence_map[rescued_chase])
 		_show_toast("恶犬不敢上前", "跑到了伙伴身边——猎犬在几步外徘徊着退开了。")
 	if paused:
 		_resume()
