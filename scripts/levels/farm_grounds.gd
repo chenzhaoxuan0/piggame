@@ -2011,7 +2011,7 @@ func set_named_gate_open(gate_id: String, open: bool) -> void:
 
 ## 脱险屏障（2026-11-18 实机反馈）：追逐在伙伴身边/门口结束时，关门
 ## 对走缺口的人不可见（门在身后远处）。在猪的来路方向 3 m 处弹起一道
-## 木栅栏——两根立柱 + 双横梁，从地面升起、站立 2.5 s 后沉回地面淡出，
+## 木栅栏——两根立柱 + 双横梁，从地面升起、站立 8 s（够读完对话回头看到）后沉回地面淡出，
 ## 这就是「狗被挡住了」的眼前答案。
 func spawn_rescue_barrier(at_pos: Vector3, facing_from: Vector3) -> void:
 	var dir := (at_pos - facing_from)
@@ -2036,7 +2036,7 @@ func spawn_rescue_barrier(at_pos: Vector3, facing_from: Vector3) -> void:
 	var rise := create_tween().set_parallel(true)
 	for child in root.get_children():
 		rise.tween_property(child, "scale:y", 1.0, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	rise.chain().tween_interval(2.5)
+	rise.chain().tween_interval(8.0)
 	rise.chain().tween_property(root, "scale:y", 0.01, 0.3)
 	rise.chain().tween_callback(root.queue_free)
 
