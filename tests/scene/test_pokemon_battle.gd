@@ -9,6 +9,20 @@ func _check(condition: bool, message: String) -> void:
 		_failures += 1
 		printerr("POKEMON_BATTLE_TEST FAIL: %s" % message)
 
+## 轮询等回合推进/战斗结束：固定 sleep 在负载机上会输给引擎调度（分支
+## 提交自己都写着 "flaked on loaded machines"）——等状态而不是等时间。
+func _await_turn(b: Node, target_turn: int, want_active := true, timeout_s := 4.0) -> void:
+	var waited := 0.0
+	while waited < timeout_s:
+		await create_timer(0.05).timeout
+		waited += 0.05
+		if not is_instance_valid(b):
+			return
+		if not want_active and not b.battle_active:
+			return
+		if want_active and b.battle_active and b.current_turn >= target_turn and not b.is_busy:
+			return
+
 func _init() -> void:
 	call_deferred("_run")
 
@@ -48,7 +62,7 @@ func _run() -> void:
 
 	# 4. Turn 1: Execute Move 2 (【借羊之眸】破妄暴击)
 	level.pokemon_battle.execute_move(2)
-	await create_timer(0.65).timeout
+	await _await_turn(level.pokemon_battle, 2)
 	_check(level.pokemon_battle.farmer_hp <= 65.0, "Turn 1 deal massive crit damage to Farmer: %.1f" % level.pokemon_battle.farmer_hp)
 	_check(level.pokemon_battle.current_turn == 2, "Turn advances to Turn 2")
 	_check(level.pokemon_battle.pig_hp > 80.0, "Pig withstood Farmer's sweet mash temptation")
@@ -56,14 +70,14 @@ func _run() -> void:
 
 	# 5. Turn 2: Execute Move 1 (【借牛之坚】坚韧反震)
 	level.pokemon_battle.execute_move(1)
-	await create_timer(0.65).timeout
+	await _await_turn(level.pokemon_battle, 3)
 	_check(level.pokemon_battle.farmer_hp <= 35.0, "Turn 2 deal heavy stagger damage to Farmer: %.1f" % level.pokemon_battle.farmer_hp)
 	_check(level.pokemon_battle.current_turn == 3, "Turn advances to Turn 3")
 	_check(level.options.get_child_count() == 4, "Options synchronized for Turn 3")
 
 	# 6. Turn 3: Execute Move 3 (【借马之风】极速闪避并撞门)
 	level.pokemon_battle.execute_move(3)
-	await create_timer(0.8).timeout
+	await _await_turn(level.pokemon_battle, 3, false)
 	_check(level.pokemon_battle.farmer_hp == 0.0, "Farmer authority HP reduced to 0")
 	_check(game.stage == "cablecar_ready", "Game stage transitions to cablecar_ready upon showdown victory")
 	_check(not level.pokemon_battle.visible, "Battle arena hides upon completion")
@@ -76,9 +90,11 @@ func _run() -> void:
 	await process_frame
 	_check(level.pokemon_battle.battle_active and level.pokemon_battle.farmer_hp == 100.0
 		and level.pokemon_battle.pig_hp == 100.0, "Rematch restarts the duel with full HP on both sides")
+	# 开场演出期的出拳会被吞——轮询等第一回合就绪再开打。
+	await _await_turn(level.pokemon_battle, 1)
 	for i in 3:
 		level.pokemon_battle.execute_move(0)
-		await create_timer(0.65 if i < 2 else 0.9).timeout
+		await _await_turn(level.pokemon_battle, i + 2 if i < 2 else 3, i < 2)
 	_check(not level.pokemon_battle.battle_active, "Three plain charges lose the reworked duel")
 	_check(game.stage == "showdown", "Defeat keeps the showdown stage - the gate stays shut")
 	_check(level.overlay.visible, "Failure ending overlay shows the dragged-back-to-pen beat")
@@ -88,9 +104,14 @@ func _run() -> void:
 	await process_frame
 	_check(not level.overlay.visible and level.pokemon_battle.battle_active
 		and level.pokemon_battle.pig_hp == 100.0, "Rematch button reopens the battle fully reset")
-	for pair in [[2, 0.65], [1, 0.65], [3, 0.9]]:
-		level.pokemon_battle.execute_move(pair[0])
-		await create_timer(pair[1]).timeout
+	# 同段 7：轮询等开场就绪，三击各自等回合推进/终局。
+	await _await_turn(level.pokemon_battle, 1)
+	level.pokemon_battle.execute_move(2)
+	await _await_turn(level.pokemon_battle, 2)
+	level.pokemon_battle.execute_move(1)
+	await _await_turn(level.pokemon_battle, 3)
+	level.pokemon_battle.execute_move(3)
+	await _await_turn(level.pokemon_battle, 3, false)
 	_check(game.stage == "cablecar_ready", "Counter sequence wins after a defeat - lose, retry, survive")
 
 	# Cleanup

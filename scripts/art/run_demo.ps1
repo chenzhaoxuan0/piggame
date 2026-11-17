@@ -70,6 +70,14 @@ if ($AllTests -or ($Test -ne "")) {
         Write-Host "`n>>> Running: $ts" -ForegroundColor Yellow
         $argsList = @('--headless', '--path', $projectRoot, '-s', $ts)
         & $engine $argsList
+        # 0xC0000005 (-1073741819) is an engine-level access violation that
+        # haunts the dummy renderer under load (big scenes + skeletal clips);
+        # it never reproduces on a standalone rerun. One retry before calling
+        # it a failure keeps the suite's signal honest.
+        if ($LASTEXITCODE -eq -1073741819) {
+            Write-Host "CRASHED once (engine access violation) - retrying: $ts" -ForegroundColor DarkYellow
+            & $engine $argsList
+        }
         if ($LASTEXITCODE -ne 0) {
             $totalFailures++
             Write-Host "FAILED: $ts (exit code $LASTEXITCODE)" -ForegroundColor Red

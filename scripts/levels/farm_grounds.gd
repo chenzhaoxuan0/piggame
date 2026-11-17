@@ -1083,14 +1083,14 @@ func _begin_npc_life() -> void:
 	for idle_key in ["ox", "sheep", "sheep_sigh"]:
 		if _npc_tweens.has(idle_key) and is_instance_valid(_npc_tweens[idle_key]):
 			(_npc_tweens[idle_key] as Tween).kill()
-	# 追风：开机即跑圈（航点 = 外圈六道检查门 + 相邻门中点的十二边形环线）。
+	# 追风：开机即沿跑道中心线跑圈——与段点亮砖同一套 ring 数学采样（直道
+	# + 弯道弧），约 7 m 一个航点：折线近似弧的弓高 <0.6 m，全程落在半宽
+	# 2.2 m 的跑道内。旧版六门+中点的十二边形在弯道上弦切进草地（2026-11-17
+	# 实机反馈：马跑在跑道外）。
 	_horse_waypoints.clear()
-	var gate_count := RACE_GATES.size()
-	for i in gate_count:
-		var a: Vector3 = RACE_GATES[i].p
-		var b: Vector3 = RACE_GATES[(i + 1) % gate_count].p
-		_horse_waypoints.append(a)
-		_horse_waypoints.append((a + b) * 0.5)
+	var wp_count := roundi(RACE_RING_LEN / 7.0)
+	for i in wp_count:
+		_horse_waypoints.append(_race_ring_pose(float(i) / float(wp_count)).p)
 	_horse_wp_index = 0
 	_horse_lapping = true
 	_horse_idle_time = 0.0

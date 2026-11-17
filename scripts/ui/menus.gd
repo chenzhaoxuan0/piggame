@@ -400,18 +400,32 @@ static func _build_settings_menu(host: Node) -> void:
 
 	var sep := HSeparator.new()
 	vbox.add_child(sep)
+	# 2026-11-17 实机反馈：设置项越加越多（画质三档 + 开关组 + 重置周目 +
+	# 关卡直达七连），整卡高度超出屏幕。标题与返回固定，中间内容进滚动区，
+	# 高度封顶为视口的 62%——小屏滚着看，大屏一屏尽收。
+	var scroll := ScrollContainer.new()
+	scroll.name = "SettingsScroll"
+	scroll.custom_minimum_size = Vector2(0, minf(430.0, host.get_viewport().get_visible_rect().size.y * 0.62))
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_child(scroll)
+	var content := VBoxContainer.new()
+	content.name = "SettingsContent"
+	content.add_theme_constant_override("separation", 7)
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(content)
 
 	# 画质档位（2026-11-17 评测新增）：低/中/高三档，即点即生效并持久化。
 	var gm := host.get_node_or_null("/root/GraphicsManager")
 	if gm != null:
 		var quality_tag := UI.name_tag("🎨 画质档位 · QUALITY", UI.SUNNY, UI.INK, 15)
 		quality_tag.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		vbox.add_child(quality_tag)
+		content.add_child(quality_tag)
 		var quality_row := HBoxContainer.new()
 		quality_row.name = "QualityRow"
 		quality_row.add_theme_constant_override("separation", 8)
 		quality_row.alignment = BoxContainer.ALIGNMENT_CENTER
-		vbox.add_child(quality_row)
+		content.add_child(quality_row)
 		for tier_id in gm.TIERS:
 			var qbtn := UI.button(gm.TIER_NAMES[tier_id], gm.set_tier.bind(tier_id))
 			qbtn.name = "BtnQuality_" + tier_id
@@ -426,7 +440,7 @@ static func _build_settings_menu(host: Node) -> void:
 		refresh_quality.call()
 		var quality_hint := UI.label("低：无阴影·降分辨率省电 ／ 中：均衡 ／ 高：4×抗锯齿·远阴影·色彩分级", 12, UI.INK_SOFT)
 		quality_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		vbox.add_child(quality_hint)
+		content.add_child(quality_hint)
 
 	var toggle_high := CheckButton.new()
 	toggle_high.name = "TestHighCamera"
@@ -434,7 +448,7 @@ static func _build_settings_menu(host: Node) -> void:
 	toggle_high.add_theme_font_size_override("font_size", 16)
 	toggle_high.button_pressed = host.camera.test_high_view
 	toggle_high.toggled.connect(host.camera.set_test_high_view)
-	vbox.add_child(toggle_high)
+	content.add_child(toggle_high)
 
 	var toggle_fs := CheckButton.new()
 	toggle_fs.name = "FullscreenToggle"
@@ -444,7 +458,7 @@ static func _build_settings_menu(host: Node) -> void:
 	toggle_fs.toggled.connect(func(pressed: bool):
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if pressed else DisplayServer.WINDOW_MODE_WINDOWED)
 	)
-	vbox.add_child(toggle_fs)
+	content.add_child(toggle_fs)
 
 	var toggle_mute := CheckButton.new()
 	toggle_mute.name = "MuteAudioToggle"
@@ -454,7 +468,7 @@ static func _build_settings_menu(host: Node) -> void:
 	toggle_mute.toggled.connect(func(pressed: bool):
 		AudioServer.set_bus_mute(0, pressed)
 	)
-	vbox.add_child(toggle_mute)
+	content.add_child(toggle_mute)
 
 	# 2026-11-17 实机反馈：周目档案只有通关累加没有出口——加一个彻底重置，
 	# 清掉 finished_runs / seen_endings / NG+ 并回到开场（成就档不受影响）。
@@ -467,24 +481,24 @@ static func _build_settings_menu(host: Node) -> void:
 	btn_reset_week.name = "ResetWeekButton"
 	btn_reset_week.custom_minimum_size.y = 40
 	btn_reset_week.add_theme_font_size_override("font_size", 15)
-	vbox.add_child(btn_reset_week)
+	content.add_child(btn_reset_week)
 
 	var sep_level := HSeparator.new()
-	vbox.add_child(sep_level)
+	content.add_child(sep_level)
 
 	var lvl_tag := UI.name_tag("🚩 关卡直达 · LEVEL SELECT", UI.SUNNY, UI.INK, 15)
 	lvl_tag.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	vbox.add_child(lvl_tag)
+	content.add_child(lvl_tag)
 
 	var lvl_sub := UI.label("点击直接跳转到对应关卡，独立测试玩法与机制", 12, UI.INK_SOFT)
 	lvl_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(lvl_sub)
+	content.add_child(lvl_sub)
 
 	var grid := GridContainer.new()
 	grid.name = "LevelSelectGrid"
 	grid.columns = 1
 	grid.add_theme_constant_override("v_separation", 4)
-	vbox.add_child(grid)
+	content.add_child(grid)
 
 	var levels: Array[Dictionary] = [
 		{"id": "course_0", "name": "序章: 噩梦屠宰场 (困雾逃窜/机关/追逐)"},
@@ -506,17 +520,17 @@ static func _build_settings_menu(host: Node) -> void:
 	btn_farm.name = "BtnSelect_farm"
 	btn_farm.custom_minimum_size.y = 36
 	btn_farm.add_theme_font_size_override("font_size", 15)
-	vbox.add_child(btn_farm)
+	content.add_child(btn_farm)
 
 	var sep2 := HSeparator.new()
-	vbox.add_child(sep2)
+	content.add_child(sep2)
 
 	# 关于游戏：BGM（Kevin MacLeod，CC BY 4.0）等开放素材的署名义务从这里可查。
 	var btn_about := UI.button("📜  关于游戏（BGM 署名与致谢）", host._open_credits_from_settings)
 	btn_about.name = "AboutGameButton"
 	btn_about.custom_minimum_size.y = 38
 	btn_about.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_child(btn_about)
+	content.add_child(btn_about)
 
 	var btn_back := UI.button("◀  返回", host._close_settings)
 	btn_back.name = "BackButton"
