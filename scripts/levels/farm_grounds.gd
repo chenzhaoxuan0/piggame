@@ -1546,7 +1546,7 @@ func _build_playground() -> void:
 	var herb_marks := ["❶", "❷", "❸", "❹", "❺", "❻"]
 	var herb_i := 0
 	for grass_pos in [
-		Vector3(2.5, 31.4, 84),   # ❶ 猪圈门下山第一段路上（避开 z≤81 的 ChaseTrigger_1 区）
+		Vector3(5.0, 31.3, 80),   # ❶ 出门口正前路东边（原 2.5,84 紧贴圈墙外侧，出门视角被墙挡死；避开 x≤3 的 ChaseTrigger_1 区）
 		Vector3(-27.5, 26.4, 99), # ❷ zigzag 北弯内侧（原 -36,95 在 summit 台地外山坡）
 		Vector3(14, 24.4, 58),    # ❸ 牛耕地石堆缺口内（台地内，保留）
 		Vector3(36, 21.3, 10),    # ❹ 溪谷路东岸（原 44,14 在坡外）
@@ -1561,7 +1561,7 @@ func _build_playground() -> void:
 		var mark: String = herb_marks[herb_i]
 		herb_i += 1
 		_label(tuft, "HerbTuftMark", mark, Vector3(0, 1.5, 0), 24)
-	_label(self, "HerbGrassHint", "★ 嫩香草 ★ 下山路上一共六丛（❶-❻ 编号牌），猪猪的最爱", Vector3(0.5, 33.3, 81), 18)
+	_label(self, "HerbGrassHint", "★ 嫩香草 ★ 下山路上一共六丛，猪猪的最爱", Vector3(5.0, 33.0, 80), 18)
 
 	# --- Hay dive by the sheep-shed pond (2026-11-16 实机反馈：原西 zigzag 坡底
 	# 的落点在圈外根本走不到——搬到羊矮棚水边：三级干草跳台在池塘东北岸，
