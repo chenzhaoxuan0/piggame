@@ -2080,6 +2080,9 @@ func set_named_gate_open(gate_id: String, open: bool) -> void:
 
 func _on_gate_passed(body: Node3D, gate_id: String) -> void:
 	if body.is_in_group("player"):
+		# 安全区栅栏无条件弹起（2026-11-18 实机反馈）：不管有没有追逐在跑，
+		# 穿过安全区线 = 「狗被挡在外面了」——栅栏是这条线的视觉标记。
+		show_safe_fence("SafeFence" + gate_id.capitalize())
 		var main_loop := Engine.get_main_loop() as SceneTree
 		var gm = main_loop.root.get_node_or_null("GameManager") if main_loop and main_loop.root else null
 		var in_chase: bool = gm.is_in_chase() if gm and gm.has_method("is_in_chase") else false
@@ -2091,8 +2094,6 @@ func _on_gate_passed(body: Node3D, gate_id: String) -> void:
 			var gate: StaticBody3D = _named_gates.get(gate_id, null)
 			if is_instance_valid(gate):
 				_gag_at(gate.global_position + Vector3.UP * 2.4, "恶犬在门前刹住脚步，悻悻折返……", 2.4)
-			# 安全区栅栏弹起——「狗被挡在门外」的可见答案。
-			show_safe_fence("SafeFence" + gate_id.capitalize())
 			show_safe_fence("SafeFence" + gate_id.capitalize())
 
 func _build_secret_mario_pipe() -> void:
