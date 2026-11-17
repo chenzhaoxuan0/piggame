@@ -437,16 +437,19 @@ func _build_all_gates() -> void:
 	_ox_gate = _create_timber_gate("ox", L.GATE_OX + Vector3.UP * 0.9, Vector3(4.8, 1.8, 0.4), "牛耕地门 · OX GATE")
 	_named_gates["ox"] = _ox_gate
 	_area("GateOxTrigger", L.GATE_OX + Vector3(3.5, 1.0, 0), Vector3(3.5, 3.0, 3.5), _on_gate_passed.bind("ox"))
+	_label(self, "SafeSignOx", "恶犬止步 · 门内即安全区", L.GATE_OX + Vector3(0, 3.1, 0), 20)
 
 	# Build Sheep Gate at SheepMeadow entrance
 	_sheep_gate = _create_timber_gate("sheep", L.GATE_SHEEP + Vector3.UP * 0.9, Vector3(4.8, 1.8, 0.4), "羊棚木门 · SHEEP GATE")
 	_named_gates["sheep"] = _sheep_gate
 	_area("GateSheepTrigger", L.GATE_SHEEP + Vector3(-3.5, 1.0, 0), Vector3(3.5, 3.0, 3.5), _on_gate_passed.bind("sheep"))
+	_label(self, "SafeSignSheep", "恶犬止步 · 门内即安全区", L.GATE_SHEEP + Vector3(0, 3.1, 0), 20)
 
 	# Build Horse Gate at HorsePasture entrance
 	_horse_gate = _create_timber_gate("horse", L.GATE_HORSE + Vector3.UP * 0.9, Vector3(4.8, 1.8, 0.4), "马场围栏 · HORSE GATE")
 	_named_gates["horse"] = _horse_gate
 	_area("GateHorseTrigger", L.GATE_HORSE + Vector3(3.5, 1.0, 0), Vector3(3.5, 3.0, 3.5), _on_gate_passed.bind("horse"))
+	_label(self, "SafeSignHorse", "恶犬止步 · 门内即安全区", L.GATE_HORSE + Vector3(0, 3.1, 0), 20)
 
 func _create_timber_gate(id: String, pos: Vector3, size: Vector3, label_text: String) -> StaticBody3D:
 	var gate := _box(self, "Gate_" + id, size, pos, Color("7A6345"), true) as StaticBody3D
@@ -1071,6 +1074,8 @@ var _horse_waypoints: Array[Vector3] = []
 var _horse_wp_index := 0
 var _horse_home := Vector3(29, 8, -120)
 var _horse_idle_time := 0.0
+var _horse_halted := false
+var _horse_infield_waypoints: Array[Vector3] = []
 
 func _begin_npc_life() -> void:
 	# 幂等：boot 时 reset_world 会清一遍 _npc_tweens（把这里的闲逛 tween 也
@@ -1089,6 +1094,11 @@ func _begin_npc_life() -> void:
 	_horse_wp_index = 0
 	_horse_lapping = true
 	_horse_idle_time = 0.0
+	# 内场训练椭圆（赛跑时用）：环线内侧留足余量，不碰参赛猪的线。
+	_horse_infield_waypoints.clear()
+	for i in 12:
+		var ang := TAU * i / 12.0
+		_horse_infield_waypoints.append(Vector3(40 + cos(ang) * 24.0, 8, -120 + sin(ang) * 10.0))
 	# ---- 骨骼级生活感（2026-11-17 评测重做）：位移 tween 只负责走位，
 	# 真正的「在干什么」由自定义骨夹表达——牛低头拉犁、羊耷拉脑袋、
 	# 马奔跑步态、农场主拄棍环视。对话完成后 clear_force + celebrate。
@@ -1157,64 +1167,37 @@ func _begin_npc_life() -> void:
 func _tick_horse_lap(delta: float) -> void:
 	if not _horse_lapping or not _npcs.has("horse") or not is_instance_valid(_npcs.horse):
 		return
+	# 独立 farm 测试架（无猪无相机）不跑马：生活感属于有关卡宿主的运行时。
 	if not is_instance_valid(_player):
 		return
-	# 追逐/QTE 期间暂停跑圈：不抢戏、不挡路（马原地待命，恢复后继续）。
-	var pig_mode: String = str(_player.control_mode)
-	if pig_mode == "chase" or pig_mode == "qte":
-		return
 	var horse: Node3D = _npcs.horse
-	var pig_pos: Vector3 = _player.global_position
 	var actor := _actor_of("horse")
 	var visual := _visual_of("horse")
 	var dust: Node3D = visual.get_node_or_null("HoofDust") if visual != null else null
-	# 猪进入牧场周边 → 全速奔回原点站定（面朝猪）：等着被追上、被对话。
-	# 触发半径取 26m：走关机器人在纪录牌（21m）就会叫它回家，读牌+走过去
-	# 的时间足够它从最远的南直道赶回来。
-	if pig_pos.distance_to(_horse_home) < 26.0:
-		var to_home := _horse_home - horse.global_position
-		to_home.y = 0.0
-		var moving_home := false
-		if to_home.length() > 0.35:
-			var dir := to_home.normalized()
-			# 贴身让行：猪挡在回家路上就绕开它（不推猪，也不傻停在半路）。
-			if pig_pos.distance_to(horse.global_position) < 2.2:
-				var away := horse.global_position - pig_pos
-				away.y = 0.0
-				if away.length_squared() > 0.001:
-					dir = (dir + away.normalized() * 1.2).normalized()
-			horse.global_position += dir * minf(11.0 * delta, to_home.length())
-			moving_home = true
-		if pig_pos.distance_to(horse.global_position) > 0.5:
-			_face_toward(horse, pig_pos, delta)
-		if actor != null:
-			if moving_home:
-				actor.force_clip("run", 1.5)
-			else:
-				# 站定等对话：idle 里偶尔刨蹄甩头，不再是木头马。
-				actor.clear_force()
-				_horse_idle_time += delta
-				if _horse_idle_time > 4.5:
-					actor.play_oneshot("stamp", 1.0)
-					_horse_idle_time = -randf_range(2.0, 5.0)
-		if dust != null:
-			dust.emitting = moving_home
-		return
-	if pig_mode == "dialogue":
-		return
-	# 常态：沿航点奔跑；猪贴近（6.5m）即停步。
-	if pig_pos.distance_to(horse.global_position) < 6.5:
+	# 2026-11-17 导演反馈：马完全自主跑圈训练，与猪的位置/朝向零绑定——
+	# 猪站到身边也照跑。唯一截停 = 猪靠近按 F 进入与马的对话（office 置
+	# _horse_halted），对话结束马从原地继续跑。赛跑期间改跑内场椭圆训练，
+	# 不挡参赛猪的环线（这是玩法模式切换，不是猪 proximity 绑定）。
+	var halted := _horse_halted and is_instance_valid(_player) and str(_player.control_mode) == "dialogue"
+	if not halted:
+		_horse_halted = false
+	if halted:
 		if actor != null:
 			actor.clear_force()
+			_horse_idle_time += delta
+			if _horse_idle_time > 4.5:
+				actor.play_oneshot("stamp", 1.0)
+				_horse_idle_time = -randf_range(2.0, 5.0)
 		if dust != null:
 			dust.emitting = false
-		_face_toward(horse, pig_pos, delta)
 		return
-	var target: Vector3 = _horse_waypoints[_horse_wp_index]
+	_horse_idle_time = 0.0
+	var waypoints := _horse_infield_waypoints if _race_running else _horse_waypoints
+	var target: Vector3 = waypoints[_horse_wp_index % waypoints.size()]
 	var to := target - horse.global_position
 	to.y = 0.0
 	if to.length() < 1.2:
-		_horse_wp_index = (_horse_wp_index + 1) % _horse_waypoints.size()
+		_horse_wp_index = (_horse_wp_index + 1) % waypoints.size()
 		return
 	horse.global_position += to.normalized() * minf(5.2 * delta, to.length())
 	_face_toward(horse, horse.global_position + to.normalized(), delta)
@@ -1222,7 +1205,10 @@ func _tick_horse_lap(delta: float) -> void:
 		actor.force_clip("run", 1.0)
 	if dust != null:
 		dust.emitting = true
-	_horse_idle_time = 0.0
+
+## 对话截停开关：office 在与马开对话时置 true、close_dialogue 置 false。
+func set_horse_halted(halted: bool) -> void:
+	_horse_halted = halted
 
 ## 平滑转向：四元数球面插值代替 look_at 瞬移朝向（跑圈过弯不再「啪」地扭头）。
 func _face_toward(body: Node3D, target: Vector3, delta: float) -> void:
@@ -2018,6 +2004,10 @@ func _on_gate_passed(body: Node3D, gate_id: String) -> void:
 			# When the player races across the gate during chase, slam it shut!
 			set_named_gate_open(gate_id, false)
 			stage_chase_completed.emit(gate_id)
+			# 弃追反馈：狗在判定点（门）前刹住折返，玩家看得见为什么安全了。
+			var gate: StaticBody3D = _named_gates.get(gate_id, null)
+			if is_instance_valid(gate):
+				_gag_at(gate.global_position + Vector3.UP * 2.4, "恶犬在门前刹住脚步，悻悻折返……", 2.4)
 
 func _build_secret_mario_pipe() -> void:
 	var pipe_root := Node3D.new()

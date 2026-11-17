@@ -49,23 +49,32 @@ func _run() -> void:
 	_check(farmer_actor != null and farmer_actor.current_clip() == "guard",
 		"Farmer guards with baton sway instead of freezing")
 
-	# 4. 追风跑圈时播放 run 骨夹 + 蹄尘（猪在远处围坪）。
-	pig.global_position = Vector3(40, 8.6, -147.4)
-	await create_timer(0.6).timeout
+	# 4. 追风自主跑圈：猪贴在身边也照跑（与猪零绑定）+ run 骨夹 + 蹄尘。
 	var horse_actor = farm._actor_of("horse")
-	_check(horse_actor != null and horse_actor.current_clip() == "run",
-		"Lapping horse plays the run clip (no more sliding idle)")
 	var horse_visual = farm._visual_of("horse")
+	pig.global_position = farm._npcs.horse.global_position + Vector3(1.5, 0.4, 1.5)
+	await create_timer(0.6).timeout
+	_check(horse_actor != null and horse_actor.current_clip() == "run",
+		"Horse keeps galloping with the pig right beside it (no pig binding)")
 	var dust = horse_visual.get_node_or_null("HoofDust") if horse_visual != null else null
 	_check(dust != null and dust.emitting, "Galloping horse kicks up hoof dust")
 
-	# 5. 猪靠近 → 马回家站定，不再原地狂奔；刨蹄小动作已注册。
-	pig.global_position = farm._horse_home + Vector3(0, 0.4, 2.0)
-	await create_timer(5.0).timeout
-	_check(farm._npcs.horse.global_position.distance_to(farm._horse_home) < 1.5,
-		"Horse returns home to the pig")
+	# 5. 截停只认对话：halted+dialogue 站定刨蹄；解除后从原地继续跑。
+	farm.set_horse_halted(true)
+	pig.set_control_mode("dialogue")
+	var halted_pos: Vector3 = farm._npcs.horse.global_position
+	await create_timer(0.7).timeout
+	_check(farm._npcs.horse.global_position.distance_to(halted_pos) < 0.3,
+		"F-dialogue intercepts the horse mid-lap")
 	_check(horse_actor.has_clip("stamp"), "Horse owns the hoof-stamp idle gesture")
-	_check(horse_actor.current_clip() != "run", "Waiting horse is not galloping in place")
+	_check(horse_actor.current_clip() != "run", "Halted horse idles instead of galloping in place")
+	farm.set_horse_halted(false)
+	pig.set_control_mode("explore")
+	await create_timer(0.8).timeout
+	_check(farm._npcs.horse.global_position.distance_to(halted_pos) > 0.8,
+		"Dialogue over, the lap resumes from where the horse stood")
+	_check(farm.get_node_or_null("SafeSignHorse") != null,
+		"Pasture entrance wears the dog-stop safe-zone sign")
 
 	# 6. 对话完成：解除工作循环，当场欢呼（拒绝僵立）。
 	farm.set_npc_completed("sheep")

@@ -71,6 +71,28 @@ func _run() -> void:
 	await _shot("horse_gallop")
 	_free_cam(cam)
 
+	# 3b. 猪站在跑道边，马照跑不误（零绑定）。
+	pig.global_position = farm._npcs.horse.global_position + Vector3(2.0, 0.4, 2.0)
+	await create_timer(0.5).timeout
+	var horse_pos2: Vector3 = farm._npcs.horse.global_position
+	cam = Camera3D.new()
+	root.add_child(cam)
+	cam.global_position = horse_pos2 + Vector3(6, 3.5, 6)
+	cam.look_at(horse_pos2 + Vector3(0, 1.0, 0), Vector3.UP)
+	cam.current = true
+	await _shot("horse_autonomous")
+	_free_cam(cam)
+
+	# 3c. 牛耕地入口安全门 + 恶犬止步标识。
+	var gate_pos: Vector3 = farm.L.GATE_OX
+	cam = Camera3D.new()
+	root.add_child(cam)
+	cam.global_position = gate_pos + Vector3(6, 3.2, 9)
+	cam.look_at(gate_pos + Vector3(0, 1.6, 0), Vector3.UP)
+	cam.current = true
+	await _shot("safe_gate")
+	_free_cam(cam)
+
 	# 4. 真水池：猪刚跳进去，水花 + 涟漪 + 波光。
 	pig.global_position = farm.POND_CENTRE + Vector3(1.5, 0.5, 1.0)
 	await create_timer(0.3).timeout

@@ -354,25 +354,41 @@ func _run() -> void:
 	var horse_pos_a := horse.global_position
 	await create_timer(1.2).timeout
 	_check(horse.global_position.distance_to(horse_pos_a) > 0.8, "The horse is moving around the track")
+	# 2026-11-17 导演反馈：马与猪零绑定——猪站到门口马也照跑训练圈；
+	# 截停只认「靠近按 F 对话」，对话结束马从原地继续跑。
 	pig.global_position = farm._horse_home + Vector3(0, 0.4, 2.0)
-	# The lap phase when the pig calls decides the gallop distance - poll for the
-	# arrival instead of a fixed wait (a far-straight start needs ~4 s at 11 m/s;
-	# the fixed 1.8 s window only passed by phase luck and flaked in full runs).
-	var horse_home_now := false
-	for i in 14:
-		await create_timer(0.5).timeout
-		if horse.global_position.distance_to(farm._horse_home) < 1.2:
-			horse_home_now = true
-			break
-	_check(horse_home_now, "The pig's approach sends the horse home to talk")
-	var horse_when_close := horse.global_position
+	var horse_near_a := horse.global_position
+	await create_timer(1.2).timeout
+	_check(horse.global_position.distance_to(horse_near_a) > 0.8,
+		"Pig standing at the post does NOT stop the training lap")
+	farm.set_horse_halted(true)
+	pig.set_control_mode("dialogue")
+	var horse_halted_pos := horse.global_position
 	await create_timer(0.8).timeout
-	_check(horse.global_position.distance_to(horse_when_close) < 0.6,
-		"A pig nearby stops the horse mid-stride")
+	_check(horse.global_position.distance_to(horse_halted_pos) < 0.3,
+		"F-dialogue intercepts the horse mid-lap")
+	farm.set_horse_halted(false)
+	pig.set_control_mode("explore")
+	await create_timer(1.2).timeout
+	_check(horse.global_position.distance_to(horse_halted_pos) > 0.8,
+		"Dialogue over, the horse resumes its lap from where it stood")
 	pig.global_position = Vector3(40, 8.6, -147.4) # leave the pasture for the apron
-	await create_timer(1.6).timeout
-	_check(horse.global_position.distance_to(horse_when_close) > 0.8,
-		"Pig gone, the lap resumes")
+
+	# --- Safe-zone gates: dog-stop signage at every entrance + the chase
+	# give-up judgment point slams the gate shut behind the pig.
+	for sign_name in ["SafeSignOx", "SafeSignSheep", "SafeSignHorse"]:
+		_check(farm.get_node_or_null(sign_name) != null,
+			"Entrance gate wears a dog-stop safe-zone sign: " + sign_name)
+	var gm: Node = root.get_node("GameManager")
+	office.start_stage_chase("chase_1")
+	await process_frame
+	farm._on_gate_passed(pig, "ox")
+	await physics_frame
+	_check(gm.chase_completed.get("chase_1", false),
+		"Ox gate is the chase give-up judgment point")
+	_check(farm._named_gates["ox"].collision_layer == 1,
+		"The gate slams shut behind the pig, dog locked out")
+	_check(pig.control_mode == "explore", "Chase over at the gate, control restored")
 
 	# --- Hay dive: falling into the stack scores; a 10 lands the achievement
 	var hay: Node3D = farm.get_node("HayDiveStack")

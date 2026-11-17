@@ -1421,6 +1421,9 @@ func _on_interact(target: Node3D) -> void:
 			return
 	var entry: String = DialogueManager.get_entry_for(id)
 	if GameManager.npc_met.has(id): GameManager.npc_met[id] = true
+	# 马的截停只认对话：靠近按 F 才停，对话结束继续自主跑圈。
+	if id == "horse" and not entry.is_empty():
+		farm.set_horse_halted(true)
 	if not entry.is_empty(): open_dialogue(entry)
 
 func open_dialogue(key: String) -> void:
@@ -1628,6 +1631,8 @@ func close_dialogue() -> void:
 			start_menu.visible = false
 	dialogue_open = false
 	dialogue_panel.visible = false
+	if is_instance_valid(farm):
+		farm.set_horse_halted(false)
 	if dialogue_vo != null:
 		dialogue_vo.stop()
 	if is_instance_valid(notice_feed): notice_feed.visible = true
