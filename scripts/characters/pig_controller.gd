@@ -371,7 +371,10 @@ func handle_click_or_tap(screen_pos: Vector2) -> void:
 	moved_to_target.emit(target_destination)
 
 func get_nearest_interactable() -> Node3D:
-	if control_mode != "explore" or not is_inside_tree():
+	# 2026-11-17 实机反馈第三轮：这里也曾 explore-only——追逐中 F 键找不
+	# 到任何可交互对象（连 null 都传不出去）。与 _try_interact 同步放行
+	# chase 模式，墙缺口路径的牛对话才真正通了。
+	if (control_mode != "explore" and control_mode != "chase") or not is_inside_tree():
 		return null
 	var nearest: Node3D = null
 	var best_distance: float = interact_distance
