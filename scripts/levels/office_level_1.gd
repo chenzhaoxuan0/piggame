@@ -1449,9 +1449,15 @@ func open_dialogue(key: String) -> void:
 	# 交互不来），这里只处理"追着但没咬住"。
 	if GameManager.is_in_chase():
 		chase.stop_chase()
-		GameManager.complete_stage_chase(current_chase_id)
+		var rescued_chase := current_chase_id
+		GameManager.complete_stage_chase(rescued_chase)
 		if is_instance_valid(player):
 			player.set_control_mode("explore")
+		# 关上本段追逐的区域门（牛/羊/马），门栓横上——「狗被挡在门外」的
+		# 视觉答案，走墙缺口进来的人也能看到。
+		var gate_for_chase := {"chase_1": "ox", "chase_2": "sheep", "chase_3": "horse"}
+		if gate_for_chase.has(rescued_chase) and is_instance_valid(farm):
+			farm.set_named_gate_open(gate_for_chase[rescued_chase], false)
 		_show_toast("恶犬不敢上前", "跑到了伙伴身边——猎犬在几步外徘徊着退开了。")
 	if paused:
 		_resume()

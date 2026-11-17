@@ -191,6 +191,8 @@ func _run() -> void:
 	# 不结束、牛说不上话。现在追逐中 F 牛 = 直接开对话 + 停狗脱险。
 	game.stage = "chase_1"
 	game.current_chase = "chase_1"
+	office.current_chase_id = "chase_1"
+	var ox_gate: Node3D = office.farm._named_gates.get("ox", null)
 	var ox_body: Node3D = office.farm.get_node_or_null("NPC_ox")
 	if ox_body != null:
 		office._on_interact(ox_body)
@@ -198,11 +200,12 @@ func _run() -> void:
 		await process_frame
 		_check(office.dialogue_open, "F on the ox mid-chase opens the dialogue (wall-gap path)")
 		_check(not game.is_in_chase(), "Opening an NPC dialogue mid-chase stops the hounds")
+		var ox_bolt: Node3D = ox_gate.find_child("GateBolt", true, false) if ox_gate != null else null
+		_check(ox_bolt != null and ox_bolt.visible, "Rescuing at the ox slams the ox gate shut with its bolt showing")
 		if office.dialogue_open:
 			office.close_dialogue()
 			await process_frame
 	# 门栓：关门后 GateBolt 可见，开门收起。
-	var ox_gate: Node3D = office.farm._named_gates.get("ox", null)
 	if ox_gate != null:
 		office.farm.set_named_gate_open("ox", false)
 		var bolt: Node3D = ox_gate.find_child("GateBolt", true, false)

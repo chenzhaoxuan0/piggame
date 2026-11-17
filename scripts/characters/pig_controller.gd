@@ -402,7 +402,10 @@ func _has_line_of_sight(target: Node3D) -> bool:
 	return collider == target or (collider != null and target.is_ancestor_of(collider))
 
 func _try_interact(target: Node3D) -> bool:
-	if not is_instance_valid(target) or control_mode != "explore":
+	# 2026-11-17 实机反馈：追逐中也允许 F 交互——从墙缺口进牛耕地的人绕过
+	# 了门口安全区，追逐不结束就永远说不上话；office 侧的 open_dialogue
+	# 会在对话打开时停狗脱险。对话/暂停/演出态依旧不可交互。
+	if not is_instance_valid(target) or (control_mode != "explore" and control_mode != "chase"):
 		return false
 	var offset: Vector3 = target.global_position - global_position
 	if absf(offset.y) > 2.0:
