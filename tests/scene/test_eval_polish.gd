@@ -123,10 +123,15 @@ func _run() -> void:
 	level.pokemon_battle.execute_move(1)
 	await create_timer(0.7).timeout
 	level.pokemon_battle.execute_move(3)
-	await create_timer(0.9).timeout
+	# 瘫倒 tween 0.4s + 回合内部 await：固定窗口在满载机器上会擦边，轮询等到位。
 	var farmer_visual = farm._visual_of("farmer")
-	_check(farmer_visual != null and farmer_visual.rotation.x < -0.8,
-		"Defeated farmer collapses (staged fall)")
+	var collapsed := false
+	for i in 20:
+		await create_timer(0.15).timeout
+		if farmer_visual != null and farmer_visual.rotation.x < -0.8:
+			collapsed = true
+			break
+	_check(collapsed, "Defeated farmer collapses (staged fall)")
 	game.stage = "showdown"
 	level._retry_farmer_showdown()
 	await process_frame

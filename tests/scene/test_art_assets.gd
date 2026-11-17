@@ -42,6 +42,12 @@ func _scan(node: Node, style: String) -> void:
 	for child in node.get_children(): _scan(child, style)
 
 func _run() -> void:
+	# headless dummy 渲染器在「实例释放后再建 farm」时会踩共享资源的悬垂引用
+	# （segfault，仅 headless；实机与其余用例不受影响）。资产实例挂到 holder
+	# 上活到测试结束再统一释放，断言与顺序不变，只改释放时机。
+	var holder := Node3D.new()
+	holder.name = "AssetHolder"
+	root.add_child(holder)
 	var catalog: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/models/aholo/runtime_catalog.json"))
 	var core := 0
 	var dressing := 0
@@ -66,7 +72,7 @@ func _run() -> void:
 		var budget:=90000 if id.begins_with("CHAR_") else (7000 if id=="ENV_09_WOOL" else 6000)
 		_check(triangles - before <= budget, "model fits triangle budget: " + id)
 		if id.begins_with("CHAR_"):
-			root.add_child(visual)
+			holder.add_child(visual)
 			await process_frame
 			var players := visual.find_children("*", "AnimationPlayer", true, false)
 			var skeletons := visual.find_children("*", "Skeleton3D", true, false)
@@ -86,8 +92,8 @@ func _run() -> void:
 				player.seek(0.25, true)
 				await process_frame
 				_check(not pose.is_equal_approx(skeleton.get_bone_pose_rotation(bone)), "walk actually articulates leg: " + id)
-		visual.queue_free()
-		await process_frame
+		if visual.get_parent() == null:
+			holder.add_child(visual)
 		await process_frame
 	_check(ASSETS.make("UNREVIEWED_ASSET") == null, "unreviewed asset cannot enter runtime")
 	for texture in ART_2D.PORTRAITS.values():
@@ -119,6 +125,7 @@ func _run() -> void:
 	_check(farm._sheep_tag.visible and farm._farmer_baton.visible, "reset restores removable props")
 	_check(absf(left.rotation.y) < 0.01 and absf(right.rotation.y) < 0.01, "reset closes gate hinges")
 	farm.queue_free()
+	holder.queue_free()
 	await process_frame
 	print("ART_ASSETS_TEST assertions=%d failures=%d triangles=%d" % [assertions, failures, triangles])
 	quit(0 if failures == 0 else 1)
