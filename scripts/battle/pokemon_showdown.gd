@@ -616,12 +616,6 @@ func _unhandled_input(event: InputEvent) -> void:
 # headless 安全。每场开战先恢复上一场留下的演员变换（瘫倒/跪地）。
 # -------------------------------------------------------------
 var _actor_rest: Dictionary = {}
-var _actor_tweens: Array[Tween] = []
-
-func _stage_tween() -> Tween:
-	var tw := create_tween()
-	_actor_tweens.append(tw)
-	return tw
 
 func _pig_visual() -> Node3D:
 	if is_instance_valid(level_ref) and "player" in level_ref and is_instance_valid(level_ref.player):
@@ -650,11 +644,6 @@ func _stage_host() -> Node3D:
 	return null
 
 func _stage_battle_intro() -> void:
-	# 上一场未跑完的演出 tween（瘫倒/跪地/前冲）会覆盖恢复后的站姿——先杀干净。
-	for tw in _actor_tweens:
-		if is_instance_valid(tw):
-			tw.kill()
-	_actor_tweens.clear()
 	for key in _actor_rest:
 		var node: Node3D = _actor_rest[key].node
 		if is_instance_valid(node):
@@ -693,14 +682,14 @@ func _lunge(visual: Node3D, toward: Vector3) -> void:
 	local_dir.y = 0.0
 	local_dir = local_dir.normalized() * 1.1 if local_dir.length_squared() > 0.01 else Vector3(0, 0, -1.1)
 	var base := visual.position
-	var tw := _stage_tween()
+	var tw := create_tween()
 	tw.tween_property(visual, "position", base + local_dir, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.tween_property(visual, "position", base, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func _hit_shake(visual: Node3D) -> void:
 	if visual == null: return
 	var base_z := visual.rotation.z
-	var tw := _stage_tween()
+	var tw := create_tween()
 	tw.tween_property(visual, "rotation:z", base_z + 0.14, 0.05)
 	tw.tween_property(visual, "rotation:z", base_z - 0.1, 0.06)
 	tw.tween_property(visual, "rotation:z", base_z, 0.07)
@@ -754,14 +743,14 @@ func _stage_pig_hit(dmg_text: String) -> void:
 func _stage_farmer_collapse() -> void:
 	var farmer := _farmer_visual()
 	if farmer == null: return
-	var tw := _stage_tween()
+	var tw := create_tween()
 	tw.tween_property(farmer, "rotation:x", farmer.rotation.x - 1.25, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.parallel().tween_property(farmer, "position:y", farmer.position.y - 0.2, 0.4)
 
 func _stage_pig_slump() -> void:
 	var pig := _pig_visual()
 	if pig == null: return
-	var tw := _stage_tween()
+	var tw := create_tween()
 	tw.tween_property(pig, "rotation:x", pig.rotation.x - 0.5, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
 func _spark_burst(at: Vector3, tint: Color, count: int) -> void:
