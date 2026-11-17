@@ -475,7 +475,9 @@ func _create_timber_gate(id: String, pos: Vector3, size: Vector3, label_text: St
 
 	# 2026-11-17 实机反馈：关门（恶犬止步）后该有个门栓一样的横木表示
 	# 「狗被挡在外面」——关门即显示、开门收起。斜跨双扇的一根粗闩木。
-	var bolt := _box(gate, "GateBolt", Vector3(size.x * 0.9, 0.22, 0.18), Vector3(0, size.y * 0.45, 0.14), Color("6B4F2E"), false)
+	# z=0.32：ENV_10_GATE_TIMBER 模型深度 0.4（z -0.2~0.2），旧 z=0.14 的
+	# 门栓整根被模型几何包住（headless 实测 AABB 确认）——挪到模型前面。
+	var bolt := _box(gate, "GateBolt", Vector3(size.x * 0.9, 0.22, 0.18), Vector3(0, size.y * 0.45, 0.32), Color("6B4F2E"), false)
 	bolt.rotation.z = 0.18
 	bolt.visible = false
 	var label := _label(gate, "GateLabel_" + id, label_text + " / LOCKED", Vector3(0, size.y * 0.9, 0), 20)
