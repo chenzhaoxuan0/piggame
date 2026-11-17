@@ -1154,6 +1154,10 @@ var _horse_wp_index := 0
 var _horse_home := Vector3(29, 8, -120)
 var _horse_idle_time := 0.0
 var _horse_halted := false
+# review R1：tick 每帧递归 find_children 太贵——生活感启动时缓存引用。
+var _horse_actor: Node = null
+var _horse_visual: Node3D = null
+var _horse_dust: Node3D = null
 
 func _begin_npc_life() -> void:
 	# 幂等：boot 时 reset_world 会清一遍 _npc_tweens（把这里的闲逛 tween 也
@@ -1204,6 +1208,9 @@ func _begin_npc_life() -> void:
 			var hoof_dust := _make_dust("HoofDust", Color("C9B48A"), 14)
 			hoof_dust.position = Vector3(0, 0.1, 0.3)
 			horse_visual.add_child(hoof_dust)
+	_horse_actor = _actor_of("horse")
+	_horse_visual = _visual_of("horse")
+	_horse_dust = _horse_visual.get_node_or_null("HoofDust") if _horse_visual != null else null
 	var farmer_actor := _actor_of("farmer")
 	var farmer_visual := _visual_of("farmer")
 	if farmer_actor != null and farmer_visual != null:
@@ -1244,9 +1251,8 @@ func _tick_horse_lap(delta: float) -> void:
 	if not is_instance_valid(_player):
 		return
 	var horse: Node3D = _npcs.horse
-	var actor := _actor_of("horse")
-	var visual := _visual_of("horse")
-	var dust: Node3D = visual.get_node_or_null("HoofDust") if visual != null else null
+	var actor := _horse_actor
+	var dust := _horse_dust
 	# 2026-11-17 导演反馈：马完全自主跑圈训练，与猪的位置/朝向零绑定——
 	# 猪站到身边也照跑。唯一截停 = 猪靠近按 F 进入与马的对话（office 置
 	# _horse_halted），对话结束马从原地继续跑。马永远沿跑道环线跑（内场

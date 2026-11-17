@@ -93,6 +93,17 @@ func _run() -> void:
 	await _shot("safe_gate")
 	_free_cam(cam)
 
+	# 3d. 安全区栅栏：任意过门即升起（master round 7 的反应式栅栏）。
+	farm._on_gate_passed(pig, "ox")
+	await create_timer(0.6).timeout
+	cam = Camera3D.new()
+	root.add_child(cam)
+	cam.global_position = gate_pos + Vector3(5, 2.6, 7)
+	cam.look_at(gate_pos + Vector3(0, 1.2, 0), Vector3.UP)
+	cam.current = true
+	await _shot("safe_fence")
+	_free_cam(cam)
+
 	# 4. 真水池：猪刚跳进去，水花 + 涟漪 + 波光。
 	pig.global_position = farm.POND_CENTRE + Vector3(1.5, 0.5, 1.0)
 	await create_timer(0.3).timeout
