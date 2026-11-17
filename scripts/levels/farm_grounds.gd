@@ -464,7 +464,9 @@ func _build_safe_fence(fence_name: String, centre: Vector3, road: Vector3) -> vo
 	var root := Node3D.new()
 	root.name = fence_name
 	add_child(root)
-	var yaw := road.signed_angle_to(Vector3.FORWARD, Vector3.UP) + PI / 2
+	# 横梁长边须垂直于路方向：BoxMesh 长边默认沿 x，yaw 把它转到路的垂线。
+	# road=(1,0,0) → 角度=PI/2（长边 x→z ✓）；road=(0,0,1) → 角度=PI（长边仍沿 x ✓）
+	var yaw := road.signed_angle_to(Vector3.FORWARD, Vector3.UP)
 	# 不走 _box（其 pastoral_surface 着色器会按地形规则雾化运行时 mesh）——
 	# 栅栏用 StandardMaterial3D，永远实体可见。
 	var make := func(n: String, sz: Vector3, p: Vector3, c: Color) -> Node3D:
