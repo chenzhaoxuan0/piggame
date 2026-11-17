@@ -438,18 +438,61 @@ func _build_all_gates() -> void:
 	_named_gates["ox"] = _ox_gate
 	_area("GateOxTrigger", L.GATE_OX + Vector3(3.5, 1.0, 0), Vector3(3.5, 3.0, 3.5), _on_gate_passed.bind("ox"))
 	_label(self, "SafeSignOx", "恶犬止步 · 门内即安全区", L.GATE_OX + Vector3(0, 3.1, 0), 20)
+	# 2026-11-18 实机反馈：安全区提示牌下面只有两块石头，什么门/栅栏都
+	# 没有——建一道永久可见的矮木栅栏（1.1 m，无碰撞），标识「恶犬止步线」。
+	_build_safe_fence("SafeFenceOx", L.GATE_OX, Vector3(1, 0, 0))
 
 	# Build Sheep Gate at SheepMeadow entrance
 	_sheep_gate = _create_timber_gate("sheep", L.GATE_SHEEP + Vector3.UP * 0.9, Vector3(4.8, 1.8, 0.4), "羊棚木门 · SHEEP GATE")
 	_named_gates["sheep"] = _sheep_gate
 	_area("GateSheepTrigger", L.GATE_SHEEP + Vector3(-3.5, 1.0, 0), Vector3(3.5, 3.0, 3.5), _on_gate_passed.bind("sheep"))
 	_label(self, "SafeSignSheep", "恶犬止步 · 门内即安全区", L.GATE_SHEEP + Vector3(0, 3.1, 0), 20)
+	_build_safe_fence("SafeFenceSheep", L.GATE_SHEEP, Vector3(0, 0, 1))
 
 	# Build Horse Gate at HorsePasture entrance
 	_horse_gate = _create_timber_gate("horse", L.GATE_HORSE + Vector3.UP * 0.9, Vector3(4.8, 1.8, 0.4), "马场围栏 · HORSE GATE")
 	_named_gates["horse"] = _horse_gate
 	_area("GateHorseTrigger", L.GATE_HORSE + Vector3(3.5, 1.0, 0), Vector3(3.5, 3.0, 3.5), _on_gate_passed.bind("horse"))
 	_label(self, "SafeSignHorse", "恶犬止步 · 门内即安全区", L.GATE_HORSE + Vector3(0, 3.1, 0), 20)
+	_build_safe_fence("SafeFenceHorse", L.GATE_HORSE, Vector3(0, 0, 1))
+
+## 安全区永久栅栏（2026-11-18 实机反馈）：提示牌下面只有石头没有结构。
+## 一道矮木栅栏（4 根柱 + 双横梁，1.1 m，无碰撞纯视觉）横跨路面，永远
+## 在那里——走到这里就看到「恶犬止步线」，追逐关门时门+门栓叠在上方。
+func _build_safe_fence(fence_name: String, centre: Vector3, road: Vector3) -> void:
+	var side := road.cross(Vector3.UP).normalized() * 2.4
+	var root := Node3D.new()
+	root.name = fence_name
+	add_child(root)
+	var yaw := road.signed_angle_to(Vector3.FORWARD, Vector3.UP) + PI / 2
+	# 不走 _box（其 pastoral_surface 着色器会按地形规则雾化运行时 mesh）——
+	# 栅栏用 StandardMaterial3D，永远实体可见。
+	var make := func(n: String, sz: Vector3, p: Vector3, c: Color) -> Node3D:
+		var node := Node3D.new()
+		node.name = n
+		node.position = p
+		node.rotation.y = yaw
+		root.add_child(node)
+		var mi := MeshInstance3D.new()
+		mi.name = "VisualMesh"
+		var bm := BoxMesh.new()
+		bm.size = sz
+		mi.mesh = bm
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = c
+		mat.roughness = 0.9
+		mi.material_override = mat
+		node.add_child(mi)
+		return node
+	for i in 3:
+		make.call("Post%d" % i, Vector3(0.35, 1.5, 0.35), centre + side * (-1.0 + i) + Vector3(0, 0.75, 0), Color("5A4730"))
+	for h in [0.3, 0.7, 1.1]:
+		make.call("Beam%d" % int(h * 100), Vector3(5.2, 0.16, 0.12), centre + Vector3(0, h, 0), Color("7A6345"))
+	# 中央 X 交叉——牧场栅栏的经典标志
+	var ca: Node3D = make.call("CrossA", Vector3(5.0, 0.14, 0.1), centre + Vector3(0, 0.65, 0), Color("8B7355"))
+	ca.rotation.z = 0.35
+	var cb: Node3D = make.call("CrossB", Vector3(5.0, 0.14, 0.1), centre + Vector3(0, 0.65, 0), Color("8B7355"))
+	cb.rotation.z = -0.35
 
 func _create_timber_gate(id: String, pos: Vector3, size: Vector3, label_text: String) -> StaticBody3D:
 	var gate := _box(self, "Gate_" + id, size, pos, Color("7A6345"), true) as StaticBody3D
