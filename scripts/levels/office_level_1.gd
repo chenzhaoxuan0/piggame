@@ -1458,6 +1458,11 @@ func open_dialogue(key: String) -> void:
 		var gate_for_chase := {"chase_1": "ox", "chase_2": "sheep", "chase_3": "horse"}
 		if gate_for_chase.has(rescued_chase) and is_instance_valid(farm):
 			farm.set_named_gate_open(gate_for_chase[rescued_chase], false)
+		# 眼前屏障：走缺口的人看不到身后的门关了——在猪的来路方向弹起
+		# 一道木栅栏，狗被挡住的视觉答案就在眼前。
+		if is_instance_valid(farm) and is_instance_valid(player):
+			var facing := player.global_position - player.velocity.normalized() if player.velocity.length_squared() > 0.1 else player.global_position + Vector3.FORWARD
+			farm.spawn_rescue_barrier(player.global_position, facing)
 		_show_toast("恶犬不敢上前", "跑到了伙伴身边——猎犬在几步外徘徊着退开了。")
 	if paused:
 		_resume()
