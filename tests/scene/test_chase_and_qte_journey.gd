@@ -185,5 +185,31 @@ func _run() -> void:
 	_check(game.chase_completed.get("chase_final", false), "Final chase completed")
 	_check(game.stage == "showdown", "Proceeded to showdown stage with farmer")
 
+
+	
+	# 2026-11-17 实机反馈回归闸：从墙缺口进牛耕地绕过门口安全区，追逐
+	# 不结束、牛说不上话。现在追逐中 F 牛 = 直接开对话 + 停狗脱险。
+	game.stage = "chase_1"
+	game.current_chase = "chase_1"
+	var ox_body: Node3D = office.farm.get_node_or_null("NPC_ox")
+	if ox_body != null:
+		office._on_interact(ox_body)
+		await process_frame
+		await process_frame
+		_check(office.dialogue_open, "F on the ox mid-chase opens the dialogue (wall-gap path)")
+		_check(not game.is_in_chase(), "Opening an NPC dialogue mid-chase stops the hounds")
+		if office.dialogue_open:
+			office.close_dialogue()
+			await process_frame
+	# 门栓：关门后 GateBolt 可见，开门收起。
+	var ox_gate: Node3D = office.farm._named_gates.get("ox", null)
+	if ox_gate != null:
+		office.farm.set_named_gate_open("ox", false)
+		var bolt: Node3D = ox_gate.find_child("GateBolt", true, false)
+		_check(bolt != null and bolt.visible, "A closed safety gate shows its bolt bar (dogs stay out)")
+		office.farm.set_named_gate_open("ox", true)
+		_check(bolt == null or not bolt.visible, "Opening the gate retracts the bolt")
+
+
 	print("\nALL CHASE AND QTE JOURNEY TESTS PASSED: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

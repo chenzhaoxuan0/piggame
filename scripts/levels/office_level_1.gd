@@ -1399,7 +1399,13 @@ func _refresh_hud() -> void:
 			_refresh_todo_list()
 
 func _on_interact(target: Node3D) -> void:
-	if dialogue_open or overlay.visible or cinematic or GameManager.is_in_chase() or GameManager.stage == "ending": return
+	# 2026-11-17 实机反馈：从墙缺口进牛耕地绕过了门口安全区，追逐不结束，
+	# 牛就永远说不上话——NPC（牛/羊/马/岩羊）在追逐中也可交互；对话打开的
+	# 瞬间脱险（open_dialogue 内停狗），狗不可能在对话里咬猪。
+	var target_id := str(target.get_meta("interaction_id", "")) if is_instance_valid(target) else ""
+	var npc_talk_in_chase: bool = GameManager.is_in_chase() and target_id in ["ox", "sheep", "horse", "goat"]
+	if dialogue_open or overlay.visible or cinematic or GameManager.stage == "ending": return
+	if GameManager.is_in_chase() and not npc_talk_in_chase: return
 	if not is_instance_valid(target): return
 	var id := str(target.get_meta("interaction_id", ""))
 	if id == "trough":
@@ -1438,6 +1444,15 @@ func open_dialogue(key: String) -> void:
 		in_start_menu = false
 		if is_instance_valid(start_menu):
 			start_menu.visible = false
+	# 追逐中打开任何对话 = 跑到了伙伴/牌旁，恶犬不再上前（与过门脱险同一
+	# 语义：停狗、记完成、回探索态）。咬住中的 QTE 不该进对话（qte 模式下
+	# 交互不来），这里只处理"追着但没咬住"。
+	if GameManager.is_in_chase():
+		chase.stop_chase()
+		GameManager.complete_stage_chase(current_chase_id)
+		if is_instance_valid(player):
+			player.set_control_mode("explore")
+		_show_toast("恶犬不敢上前", "跑到了伙伴身边——猎犬在几步外徘徊着退开了。")
 	if paused:
 		_resume()
 	if key == "ordeal_encounter":

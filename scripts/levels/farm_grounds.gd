@@ -473,6 +473,11 @@ func _create_timber_gate(id: String, pos: Vector3, size: Vector3, label_text: St
 		ASSETS.hide_procedural_visuals(gate)
 		ASSETS.mount_visual(gate, "ENV_10_GATE_TIMBER", Vector3(size.x, size.y * 1.25, 0.4), "GateLux", true, "box")
 
+	# 2026-11-17 实机反馈：关门（恶犬止步）后该有个门栓一样的横木表示
+	# 「狗被挡在外面」——关门即显示、开门收起。斜跨双扇的一根粗闩木。
+	var bolt := _box(gate, "GateBolt", Vector3(size.x * 0.9, 0.22, 0.18), Vector3(0, size.y * 0.45, 0.14), Color("6B4F2E"), false)
+	bolt.rotation.z = 0.18
+	bolt.visible = false
 	var label := _label(gate, "GateLabel_" + id, label_text + " / LOCKED", Vector3(0, size.y * 0.9, 0), 20)
 	_gate_labels[id] = label
 	return gate
@@ -1991,6 +1996,9 @@ func set_named_gate_open(gate_id: String, open: bool) -> void:
 	var label: Label3D = _gate_labels.get(gate_id, null)
 	if is_instance_valid(label):
 		label.text = label.text.split(" / ")[0] + (" / OPEN" if open else " / LOCKED")
+	var bolt := gate.find_child("GateBolt", true, false) as Node3D
+	if bolt != null:
+		bolt.visible = not open
 	var leaf_l := gate.find_child("LeafL", true, false) as Node3D
 	var leaf_r := gate.find_child("LeafR", true, false) as Node3D
 	if leaf_l and leaf_r:
