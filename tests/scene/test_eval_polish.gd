@@ -123,10 +123,17 @@ func _run() -> void:
 	level.pokemon_battle.execute_move(1)
 	await create_timer(0.7).timeout
 	level.pokemon_battle.execute_move(3)
-	# 瘫倒 tween 0.4s + 回合内部 await：固定窗口在满载机器上会擦边，轮询等到位。
+	# 先钉战斗结果（排除"没赢"），再轮询瘫倒演出（排除固定窗口擦边）。
 	var farmer_visual = farm._visual_of("farmer")
-	var collapsed := false
+	var won := false
 	for i in 20:
+		await create_timer(0.15).timeout
+		if level.pokemon_battle.farmer_hp <= 0.0:
+			won = true
+			break
+	_check(won, "Counter sequence defeats the farmer (hp reaches 0)")
+	var collapsed := false
+	for i in 30:
 		await create_timer(0.15).timeout
 		if farmer_visual != null and farmer_visual.rotation.x < -0.8:
 			collapsed = true
