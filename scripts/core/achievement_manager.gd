@@ -1,7 +1,7 @@
 extends Node
 
 # AchievementManager — 《一口猪在金牌农场》成就系统（autoload）。
-# 37 个成就覆盖全流程：故事 5 + 伙伴 3 + 闯关 4 + 身手 3 + 农场玩场 17 + 二周目 5。
+# 36 枚成就覆盖全流程：故事 5 + 伙伴 3 + 闯关 4 + 身手 3 + 农场玩场 17 + 二周目 5。
 # 2026-11-16 #6：林间远射手随林间分赛场一起退役（马场没有卷心菜可踢，
 # 实战不可达成），卷心菜全满贯改为三门。
 # 2026-11-16 #1/#2：羊矮棚新增除草机（杂草区啃食）与落水猪（水池首游）。
@@ -146,6 +146,8 @@ func reset_progress(wipe_file := false) -> void:
 		_popup.modulate.a = 0.0
 	if wipe_file:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path))
+		# .bak 一并清掉：否则空主档会让 _load 回退"复活"刚被玩家清空的成就。
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path + ".bak"))
 
 func _def_index(id: String) -> int:
 	for i in DEFS.size():
@@ -155,17 +157,17 @@ func _def_index(id: String) -> int:
 
 # ------------------------------------------------------------- persistence
 func _load() -> void:
-	if not FileAccess.file_exists(save_path):
-		return
-	var file := FileAccess.open(save_path, FileAccess.READ)
-	if file == null:
-		return
-	var parsed = JSON.parse_string(file.get_as_text())
-	if parsed == null or not parsed is Dictionary:
-		return
-	for id in parsed.get("unlocked", []):
-		if _def_index(str(id)) >= 0:
-			unlocked[str(id)] = true
+	# 主档三种坏态（缺失/打不开/解析失败）都不提前 return——统一落到下面
+	# 的 .bak 回退：半截 JSON 也是真实事故形态（2026-11-17 review 抓出原
+	# 实现解析失败直接放弃，自愈永远轮不到）。
+	if FileAccess.file_exists(save_path):
+		var file := FileAccess.open(save_path, FileAccess.READ)
+		if file != null:
+			var parsed = JSON.parse_string(file.get_as_text())
+			if parsed is Dictionary:
+				for id in parsed.get("unlocked", []):
+					if _def_index(str(id)) >= 0:
+						unlocked[str(id)] = true
 	# 空档回退：主档被并发覆盖成空/半截时，用上一次成功的备份自愈（写前
 	# 备份，.bak 永远落后主档一个版本）。
 	if unlocked.is_empty() and FileAccess.file_exists(save_path + ".bak"):
@@ -178,11 +180,9 @@ func _load() -> void:
 						unlocked[str(id)] = true
 
 func _save() -> void:
-	var file := FileAccess.open(save_path, FileAccess.WRITE)
-	if file == null:
-		return # 只读环境下静默降级为仅内存
-	var payload := JSON.stringify({"unlocked": unlocked.keys()})
-	# 写前把上一版留进 .bak：覆盖清空/半截写坏时 _load 有得回退。
+	# 写前把上一版留进 .bak——必须在 WRITE 打开主档【之前】完成：Godot 的
+	# WRITE 在 open 瞬间就截断文件，先开主档再去读"上一版"只能读到空串，
+	# 备份就成了永远空文件的死功能（2026-11-17 review P1-2 实测抓出）。
 	if FileAccess.file_exists(save_path):
 		var prev := FileAccess.open(save_path, FileAccess.READ)
 		if prev != null:
@@ -191,7 +191,10 @@ func _save() -> void:
 			var bak := FileAccess.open(save_path + ".bak", FileAccess.WRITE)
 			if bak != null:
 				bak.store_string(prev_text)
-	file.store_string(payload)
+	var file := FileAccess.open(save_path, FileAccess.WRITE)
+	if file == null:
+		return # 只读环境下静默降级为仅内存
+	file.store_string(JSON.stringify({"unlocked": unlocked.keys()}))
 
 # ------------------------------------------------------------- unlock popup
 func _build_popup() -> void:

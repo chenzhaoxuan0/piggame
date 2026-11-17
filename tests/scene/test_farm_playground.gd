@@ -282,6 +282,15 @@ func _run() -> void:
 		"The record board stands at the woodland-exit crossing (pigs meet it before the horse)")
 	_check(farm.get_node_or_null("RaceStartLine") != null and farm.get_node_or_null("RaceGate5Beam") != null,
 		"The lap race is built (start line + six ring gate frames)")
+	# 2026-11-17 review P1-1 的回归闸：段砖的直道参数曾交叉配对，每段铺满
+	# 84% 整圈（32 块砖互相重叠五倍）。单段 26-29 m / 4.5 m 一砖 = 6-7 块。
+	var segments_sane := true
+	for seg in 6:
+		var tiles: int = farm.get_node("RaceSegment%d" % seg).get_child_count()
+		if tiles > 8:
+			segments_sane = false
+			push_error("Segment %d lays %d tiles - gates/straights crossed again" % [seg, tiles])
+	_check(segments_sane, "Every segment tiles its own track slice (<=8 tiles, no whole-lap overlap)")
 	_check(not farm.get_node("RaceGate0PostA").visible and not farm.get_node("RaceGantry").visible,
 		"Gate frames and the gantry stay hidden until a race starts")
 	var dm_node: Node = Node.new()
@@ -299,6 +308,22 @@ func _run() -> void:
 	_check(farm.get_node("RaceGate0PostA").visible, "Starting a race brings the gate frames out")
 	await create_timer(3.4).timeout # 3-2-1-GO
 	_check(farm._race_running and pig.control_mode == "explore", "GO! releases the pig with the clock running")
+	# 2026-11-17 实机：开赛曾让马切内场训练椭圆而轨迹乱窜（两套环线共用
+	# 索引）。导演轮语义下马完全自主、唯一截停是对话——正确契约 = 赛跑期
+	# 间马仍沿跑道中心线环线推进（两次采样都贴环线且确有位移，无瞬移）。
+	var race_horse: Node3D = farm.get_node("NPC_horse")
+	var ring_dist := func(pos: Vector3) -> float:
+		var best := 999.0
+		for k in 100:
+			var d: float = pos.distance_to(farm._race_ring_pose(float(k) / 100.0).p)
+			best = minf(best, d)
+		return best
+	var horse_a := race_horse.global_position
+	await create_timer(1.2).timeout
+	var horse_b := race_horse.global_position
+	_check(ring_dist.call(horse_a) < 3.0 and ring_dist.call(horse_b) < 3.0,
+		"During a race the horse keeps to the track centre-line (both samples)")
+	_check(horse_a.distance_to(horse_b) > 3.0, "During a race the horse keeps galloping (no freeze, no teleport)")
 	pig.global_position = Vector3(48, 8.3, -120) # straight into the infield
 	await physics_frame
 	await physics_frame
@@ -420,6 +445,25 @@ func _run() -> void:
 		await physics_frame
 		await create_timer(0.25).timeout
 	_check(am.is_unlocked("perfect_dive"), "A 10.0 hay dive unlocks 满分入坑")
+	# 2026-11-17 review：冷却 0.8 s 与 -1.5 m/s 门槛的契约（此前冷却 2.0 从
+	# 未落地、无 pin）。played 信号计数：慢速下落不 roll；冷却过后立刻再跳
+	# 就 roll——0.9 s 的等待窗口正好区分 0.8 与 2.0。
+	# GDScript 闭包按值捕获局部变量——计数必须走容器，否则外层永远读到 0。
+	var dive_log := {"count": 0}
+	var dive_thing: Node = hay.get_node("Plaything")
+	dive_thing.played.connect(func(_kind, _score): dive_log["count"] += 1)
+	dive_thing._cool_timer = 0.0
+	pig.velocity = Vector3(0, -1.0, 0)
+	dive_thing._react_haystack(pig)
+	_check(dive_log["count"] == 0, "A slow drop (-1.0 m/s) does not roll a dive score")
+	dive_thing._cool_timer = 0.0
+	pig.velocity = Vector3(0, -8.0, 0)
+	dive_thing._react_haystack(pig)
+	_check(dive_log["count"] == 1, "A fast dive rolls immediately")
+	await create_timer(0.9).timeout
+	pig.velocity = Vector3(0, -8.0, 0)
+	dive_thing._react_haystack(pig)
+	_check(dive_log["count"] == 2, "0.9 s later the stack rolls again (cooldown is 0.8, not 2.0)")
 
 	# --- Beehive: the sting buff speeds the pig up and wears off
 	var hive: Node3D = farm.get_node("Beehive")

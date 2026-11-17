@@ -876,10 +876,13 @@ func _race_gate_s(idx: int) -> float:
 	var gate: Vector3 = RACE_GATES[idx].p
 	var centre := RACE_TRACK_CENTRE
 	# 北/南直道上的门按 x 线性；弯顶门在弧中点。
-	if absf(gate.z - (centre.z - 11.0)) < 0.5:  # 北直道 z = -109
-		return (gate.x - (centre.x - 25.0)) / RACE_RING_LEN
-	if absf(gate.z - (centre.z + 11.0)) < 0.5:  # 南直道 z = -131
+	# 2026-11-17 review P1-1 修复：两直道的条件与公式曾交叉配对（北门算出
+	# 南门参数，段砖因此每段铺满 84% 整圈）。centre.z-11 = 南直道 z=-131，
+	# 行进自东向西；centre.z+11 = 北直道 z=-109，自西向东。
+	if absf(gate.z - (centre.z - 11.0)) < 0.5:  # 南直道 z = -131（自东向西）
 		return (50.0 + PI * 11.0 + (centre.x + 25.0 - gate.x)) / RACE_RING_LEN
+	if absf(gate.z - (centre.z + 11.0)) < 0.5:  # 北直道 z = -109（自西向东）
+		return (gate.x - (centre.x - 25.0)) / RACE_RING_LEN
 	if gate.x > centre.x:  # 东弯顶
 		return (50.0 + PI * 11.0 * 0.5) / RACE_RING_LEN
 	return (100.0 + PI * 11.0 * 1.5) / RACE_RING_LEN  # 西弯顶
@@ -1068,7 +1071,7 @@ func _on_outside_fence(body: Node3D) -> void:
 # 2026-11-15 实机反馈 #18：对话前的 NPC 不再呆站——老牛在犁边缓缓踱步、
 # 小羊在矮棚里蔫蔫地晃；追风从开机起就在跑道上跑圈（不再呆站在原地等
 # 猪），猪进入牧场周边就全速奔回原点站定等对话，猪走开继续跑；听完真相
-# 后照旧自由奔跑。追逐期间马暂停（不抢戏、不挡路）。
+# 后照旧自由奔跑。追逐/对话期间马暂停（不抢戏、不挡路）。
 var _horse_lapping := false
 var _horse_waypoints: Array[Vector3] = []
 var _horse_wp_index := 0
@@ -1170,8 +1173,8 @@ func _tick_horse_lap(delta: float) -> void:
 	var dust: Node3D = visual.get_node_or_null("HoofDust") if visual != null else null
 	# 2026-11-17 导演反馈：马完全自主跑圈训练，与猪的位置/朝向零绑定——
 	# 猪站到身边也照跑。唯一截停 = 猪靠近按 F 进入与马的对话（office 置
-	# _horse_halted），对话结束马从原地继续跑。赛跑期间改跑内场椭圆训练，
-	# 不挡参赛猪的环线（这是玩法模式切换，不是猪 proximity 绑定）。
+	# _horse_halted），对话结束马从原地继续跑。马永远沿跑道环线跑（内场
+	# 训练椭圆已删——两套环线共用索引曾让开赛瞬间马轨迹错乱）。
 	var halted := _horse_halted and is_instance_valid(_player) and str(_player.control_mode) == "dialogue"
 	if not halted:
 		_horse_halted = false
@@ -1567,7 +1570,7 @@ func _build_playground() -> void:
 	# instead of ghosting through the visual.
 	var hay := _box(self, "HayDiveStack", Vector3(2.8, 1.5, 2.8), Vector3(-6, 16.75, -40), Color("E8C86A"), true)
 	_mount_lux(hay, "PROP_11_HAY_STACK", Vector3(2.8, 1.5, 2.8), "HaystackLux")
-	var hay_thing: FarmPlaything = _plaything(PLAYTHING.Kind.HAYSTACK, Vector3(2.8, 2.6, 2.8), 2.0)
+	var hay_thing: FarmPlaything = _plaything(PLAYTHING.Kind.HAYSTACK, Vector3(2.8, 2.6, 2.8), 0.8)
 	hay.add_child(hay_thing)
 	hay_thing.played.connect(_on_hay_dive.bind(hay, 0.75, hay.position.y))
 	_label(self, "HayDiveLabel", "草垛跳水 · 从跳台跳进来！", Vector3(-6, 18.7, -40), 18)
@@ -1674,10 +1677,7 @@ func _herb_grass(pos: Vector3, leaf_color := Color("E9C46A"), crown_color := Col
 	# 原色，垂叶病态感与嫩香草的饱满金黄一眼两分）；离线兜底仍走程序球。
 	if leaf_color == Color("6B7F5A") and _mount_lux(tuft, "PROP_24_WEED", Vector3(0.9, 0.8, 0.9), "WeedLux", true, "y") != null:
 		return tuft
-	# 2026-11-17 实机反馈：除草挑战的杂草同样换 Lux3D 模型（PROP_24 灰绿
-	# 原色，垂叶病态感与嫩香草的饱满金黄一眼两分）；离线兜底仍走程序球。
-	if leaf_color == Color("6B7F5A") and _mount_lux(tuft, "PROP_24_WEED", Vector3(0.9, 0.8, 0.9), "WeedLux", true, "y") != null:
-		return tuft
+
 	for i in 3:
 		var leaf := MeshInstance3D.new()
 		leaf.name = "HerbLeaf%d" % i

@@ -1338,9 +1338,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if dialogue_open and not busy and not cinematic and (pokemon_battle == null or not pokemon_battle.battle_active):
 		if options.get_child_count() > 0 and (event.is_action_pressed("move_up") or event.is_action_pressed("move_down")):
 			var step := -1 if event.is_action_pressed("move_up") else 1
-			_dialogue_focus = posmod(_dialogue_focus + step, options.get_child_count())
-			(options.get_child(_dialogue_focus) as Control).grab_focus()
-			_refresh_dialogue_focus()
+			var target := posmod(_dialogue_focus + step, options.get_child_count())
+			(options.get_child(target) as Control).grab_focus()
 			get_viewport().set_input_as_handled()
 			return
 		var advance: bool = event.is_action_pressed("ui_accept") or event.is_action_pressed("action_interact") or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed) or (event is InputEventScreenTouch and event.pressed)
@@ -1537,6 +1536,10 @@ func _split_lines(content: String) -> Array:
 ## 对话选项的键盘高亮：W/S 移动焦点（真实 grab_focus，空格/回车由焦点
 ## 按钮在 GUI 层吃掉），同时用 modulate 画出选中态——主题没有可见的
 ## focus 样式，纯焦点玩家看不见选到哪一行。
+func _on_dialogue_focus_moved(index: int) -> void:
+	_dialogue_focus = index
+	_refresh_dialogue_focus()
+
 func _refresh_dialogue_focus() -> void:
 	for i in options.get_child_count():
 		var button: Button = options.get_child(i)
@@ -1549,7 +1552,11 @@ func _show_current_line() -> void:
 	if on_last_line and options.get_child_count() == 0:
 		for index in range(current_options.size()):
 			var option: Dictionary = current_options[index]
-			options.add_child(_button(str(option.get("text", "继续")), _select_option.bind(index), true))
+			var option_button := _button(str(option.get("text", "继续")), _select_option.bind(index), true)
+			# 高亮完全由焦点驱动（2026-11-17 review P2-4）：方向键在 GUI 层挪
+			# 真实焦点、鼠标点击也先取焦点——单一事实源，W/S 只是 grab_focus。
+			option_button.focus_entered.connect(_on_dialogue_focus_moved.bind(index))
+			options.add_child(option_button)
 		if options.get_child_count() > 0:
 			_dialogue_focus = 0
 			options.get_child(0).grab_focus()

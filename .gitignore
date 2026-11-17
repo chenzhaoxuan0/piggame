@@ -44,3 +44,4 @@ assets/models/aholo/_ipc/
 
 # AI session state
 .zcode/
+.session-export/

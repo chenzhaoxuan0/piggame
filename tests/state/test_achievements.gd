@@ -180,5 +180,27 @@ func _run() -> void:
 	await process_frame
 
 	am.reset_progress(true) # leave the test file clean
+
+	# 2026-11-17 review P1-2 回归闸：主档被并发写坏（解析为空）时，.bak 里
+	# 上一版成就要能自愈回来（备份必须在主档截断【前】落盘）。
+	var bak_probe := """{"unlocked":["nightmare_survivor"]}"""
+	var am_save: Node = root.get_node("AchievementManager")
+	am_save.save_path = "user://achievements_baktest.json"
+	am_save.unlocked = {"nightmare_survivor": true}
+	am_save._save()
+	am_save.unlocked = {}
+	am_save._save()  # 第二次写：主档仍是上版内容，.bak 应持有 nightmare_survivor
+	# 人为把主档写坏（半截 JSON）
+	var bad := FileAccess.open("user://achievements_baktest.json", FileAccess.WRITE)
+	bad.store_string("{\"unlocked\": [")
+	bad.close()
+	var am_restore: Node = load("res://scripts/core/achievement_manager.gd").new()
+	am_restore.save_path = "user://achievements_baktest.json"
+	root.add_child(am_restore)
+	await create_timer(0.2).timeout
+	_check(am_restore.is_unlocked("nightmare_survivor"), "A truncated main save self-heals from the .bak backup")
+	am_restore.reset_progress(true)
+	am_restore.queue_free()
+
 	print("\nALL ACHIEVEMENT TESTS DONE: %d failures" % failures)
 	quit(0 if failures == 0 else 1)

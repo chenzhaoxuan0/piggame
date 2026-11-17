@@ -116,6 +116,32 @@ func _run() -> void:
 	for i in ng_choice.size():
 		if str(ng_choice[i].get("event", "")) == "choose_red":
 			red_index = i
+	# W/S 键盘导航（2026-11-17）：S 把焦点移到第二项（蓝），W 移回第一项；
+	# 高亮由焦点信号驱动。确认蓝可达即确认「温热的泥浆」二周目可完成。
+	# 台词先推进到选项行（options 只在最后一句台词后构建）。
+	for i in 12:
+		if office.options.get_child_count() > 0:
+			break
+		office._advance_dialogue()
+		await process_frame
+		await process_frame
+	var press := func(action: String):
+		var ev := InputEventAction.new()
+		ev.action = action
+		ev.pressed = true
+		Input.parse_input_event(ev)
+		var rel := InputEventAction.new()
+		rel.action = action
+		rel.pressed = false
+		Input.parse_input_event(rel)
+	press.call("move_down")
+	await process_frame
+	var blue_button: Control = office.options.get_child(maxi(1 - red_index, 0)) if office.options.get_child_count() > 1 else null
+	_check(office.options.get_child_count() > 1 and office._dialogue_focus != red_index,
+		"S moves the dialogue selection off the first option (keyboard navigation)")
+	press.call("move_up")
+	await process_frame
+	_check(office._dialogue_focus == red_index, "W moves it back - both ends of the cycle work")
 	if red_index >= 0:
 		office._select_option(red_index)
 		await process_frame

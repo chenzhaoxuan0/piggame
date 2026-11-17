@@ -405,7 +405,7 @@ static func _build_settings_menu(host: Node) -> void:
 	# 高度封顶为视口的 62%——小屏滚着看，大屏一屏尽收。
 	var scroll := ScrollContainer.new()
 	scroll.name = "SettingsScroll"
-	scroll.custom_minimum_size = Vector2(0, minf(430.0, host.get_viewport().get_visible_rect().size.y * 0.62))
+	scroll.custom_minimum_size = Vector2(0, host.get_viewport().get_visible_rect().size.y * 0.72)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.add_child(scroll)
