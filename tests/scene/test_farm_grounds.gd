@@ -96,7 +96,8 @@ func _run() -> void:
 	_check(not _hit(Vector3(10.2,25.0,56.0),Vector3(10.2,25.0,53.0)),"crossing A road rail is open at the seam")
 	_check(not _hit(Vector3(10.2,25.0,60.2),Vector3(10.2,25.0,58.2)),"crossing A pasture boundary is open at the bevel")
 	_check(not _hit(Vector3(21.7,25.0,55.5),Vector3(21.7,25.0,52.8)),"crossing B road rail is open at the seam")
-	_check(_hit(Vector3(-2,25.0,51.5),Vector3(-2,25.0,48.5)),"summit road rail still blocks away from the crossings")
+	# 2026-11-18：石墙空气墙降为 0.85m（可跳上），射线改 0.6m 高验证"护栏仍在"。
+	_check(_hit(Vector3(-2,24.6,51.5),Vector3(-2,24.6,48.5)),"summit road rail still blocks away from the crossings")
 	_check(_hit(Vector3(10.2,25.2,57.0),Vector3(10.2,23.8,57.0)),"crossing A stepping stone is solid")
 	_check(_hit(Vector3(22.9,25.2,56.0),Vector3(22.9,23.8,56.0)),"crossing B stepping stone is solid")
 	_check(L.length_of(L.path("summit"))>150,"substantial winding summit descent")

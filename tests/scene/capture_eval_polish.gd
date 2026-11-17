@@ -18,6 +18,46 @@ func _shot(name: String) -> void:
 func _free_cam(cam: Camera3D) -> void:
 	cam.queue_free()
 
+func _flat_only(bodies: Array) -> Array:
+	var out: Array = []
+	for b in bodies:
+		var y: float = _top_center(b).y
+		var horiz: float = _seg_len(b)
+		if y > 6.5 and y < 9.5 and horiz >= 3.0:
+			out.append(b)
+	if out.is_empty():
+		for b in bodies:
+			var y2: float = _top_center(b).y
+			if y2 > 22.5 and y2 < 25.5 and _seg_len(b) >= 3.0:
+				out.append(b)
+	return out if not out.is_empty() else bodies
+
+func _seg_dir(body: Node3D) -> Vector3:
+	var hull: ConvexPolygonShape3D = body.get_child(0).shape
+	var d: Vector3 = hull.points[2] - hull.points[0]
+	d.y = 0
+	return d.normalized() if d.length() > 0.01 else Vector3.FORWARD
+
+func _seg_len(body: Node3D) -> float:
+	var hull: ConvexPolygonShape3D = body.get_child(0).shape
+	var d: Vector3 = hull.points[2] - hull.points[0]
+	d.y = 0
+	return d.length()
+
+func _top_center(body: Node3D) -> Vector3:
+	var shape := body.get_child(0) as CollisionShape3D
+	var hull := shape.shape as ConvexPolygonShape3D
+	var max_y := -1e9
+	for p in hull.points:
+		max_y = maxf(max_y, p.y)
+	var sum := Vector3.ZERO
+	var n := 0
+	for p in hull.points:
+		if absf(p.y - max_y) < 0.01:
+			sum += p
+			n += 1
+	return sum / maxf(n, 1)
+
 func _run() -> void:
 	var office: Node = load("res://scenes/levels/office_level_1.tscn").instantiate()
 	root.add_child(office)
@@ -104,6 +144,35 @@ func _run() -> void:
 	await _shot("safe_fence")
 	_free_cam(cam)
 
+	# 3e. 两段跳逃出圈：猪站石墙空气墙顶 / 站圈外草架。
+	var stones: Array = _flat_only(_by_kind(farm, "RailStone"))
+	var aprons: Array = _flat_only(_by_kind(farm, "RailApron"))
+	if not stones.is_empty() and not aprons.is_empty():
+		var spot: Vector3 = _top_center(stones[0])
+		var out_spot: Vector3 = _top_center(aprons[0])
+		# 外方向 = 石墙指向草架；相机放台地内侧拍墙顶，避免崖面挡镜头。
+		var outward: Vector3 = out_spot - spot
+		outward.y = 0
+		outward = outward.normalized() if outward.length() > 0.01 else Vector3.FORWARD
+		pig.global_position = spot + Vector3.UP * 0.3
+		await create_timer(0.6).timeout
+		cam = Camera3D.new()
+		root.add_child(cam)
+		cam.global_position = spot - outward * 1.5 + Vector3.UP * 6.0
+		cam.look_at(spot + Vector3(0, 0.4, 0), Vector3.UP)
+		cam.current = true
+		await _shot("wall_stand")
+		_free_cam(cam)
+		pig.global_position = out_spot + Vector3.UP * 0.3
+		await create_timer(0.6).timeout
+		cam = Camera3D.new()
+		root.add_child(cam)
+		cam.global_position = out_spot + outward * 5.0 + Vector3.UP * 2.6
+		cam.look_at(out_spot + Vector3(0, 0.6, 0), Vector3.UP)
+		cam.current = true
+		await _shot("outside_stand")
+		_free_cam(cam)
+
 	# 4. 真水池：猪刚跳进去，水花 + 涟漪 + 波光。
 	pig.global_position = farm.POND_CENTRE + Vector3(1.5, 0.5, 1.0)
 	await create_timer(0.3).timeout
@@ -156,3 +225,10 @@ func _run() -> void:
 
 	office.queue_free()
 	quit(0)
+
+func _by_kind(farm: Node, kind: String) -> Array:
+	var out: Array = []
+	for b in farm.find_children("*", "StaticBody3D", true, false):
+		if b.get_meta("rail_kind", "") == kind:
+			out.append(b)
+	return out
