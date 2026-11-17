@@ -108,7 +108,7 @@ var dialogue_tree: Dictionary = {
 		"content": "旧字：追风，41 秒，三年前冠军。\n新牌：闪电，35 秒，去年春天。\n\n旁边的小字：老马追风已退出竞赛梯队。\n（牌背还钉着一张赛程表：马场计时赛，随时开跑。）",
 		"options": [
 			{"text": "记下 35 秒的新纪录。", "event": "read_record", "next": ""},
-			{"text": "开始计时赛！（绕场一圈，稳跑或抄近道都有奖）", "event": "start_race", "next": ""}
+			{"text": "开始计时赛！（按序穿过六道检查门，绕场一圈）", "event": "start_race", "next": ""}
 		]
 	},
 	"zhuifeng_interaction": {

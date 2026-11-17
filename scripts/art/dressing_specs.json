@@ -563,5 +563,16 @@
       "FFF3C4",
       "C99A45"
     ]
+  },
+  "PROP_24_WEED": {
+    "name": "除草挑战灰绿杂草",
+    "subject": "One scraggly garden weed tuft: three to four saggy grey-green ragged leaves drooping outward from a thin dark stem clump, one tiny pale sickly blossom on top. Clearly an unloved stray weed, dull sage grey-green in contrast to lush pasture grass, slightly wilted and drooping. Complete object with intact base.",
+    "height": 0.7,
+    "budget": 1000,
+    "palette": [
+      "6B7F5A",
+      "9BB07C",
+      "57684A"
+    ]
   }
 }

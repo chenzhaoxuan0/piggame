@@ -456,6 +456,19 @@ static func _build_settings_menu(host: Node) -> void:
 	)
 	vbox.add_child(toggle_mute)
 
+	# 2026-11-17 实机反馈：周目档案只有通关累加没有出口——加一个彻底重置，
+	# 清掉 finished_runs / seen_endings / NG+ 并回到开场（成就档不受影响）。
+	var btn_reset_week := UI.button("↺  重置周目数（回到一周目，重新开始整个游戏）", func():
+		var game_reset: Node = Engine.get_main_loop().root.get_node_or_null("GameManager")
+		if game_reset != null and game_reset.has_method("reset_profile"):
+			game_reset.reset_profile()
+		Engine.get_main_loop().change_scene_to_file("res://scenes/ui/boot_farm.tscn")
+	)
+	btn_reset_week.name = "ResetWeekButton"
+	btn_reset_week.custom_minimum_size.y = 40
+	btn_reset_week.add_theme_font_size_override("font_size", 15)
+	vbox.add_child(btn_reset_week)
+
 	var sep_level := HSeparator.new()
 	vbox.add_child(sep_level)
 

@@ -106,8 +106,21 @@ func _run() -> void:
 	office._on_interact(office.farm.get_node("NPC_goat"))
 	await process_frame
 	await process_frame
-	_check(not game.tutorial_free_roam and game.has_pin, "NG+ goat talk hands the pin straight over")
-	_check(game.stage == "exploring", "NG+ skips the dream straight into exploration")
+	# 2026-11-17 实机反馈：NG+ 不再直接出圈——岩羊的红/蓝选择对话保留，
+	# 「温热的泥浆」二周目以后也能完成。选红仍然一步出圈进探索。
+	_check(not game.tutorial_free_roam, "NG+ goat talk ends the tutorial sandbox")
+	_check(office.dialogue_open and office.current_dialogue == "cliff_goat_choice", "NG+ goat talk opens the red/blue choice dialogue")
+	_check(not game.has_pin and game.stage == "prologue", "The pin waits for the choice - blue stays reachable for 温热的泥浆")
+	var ng_choice: Array = office.current_options
+	var red_index := -1
+	for i in ng_choice.size():
+		if str(ng_choice[i].get("event", "")) == "choose_red":
+			red_index = i
+	if red_index >= 0:
+		office._select_option(red_index)
+		await process_frame
+		await process_frame
+	_check(game.has_pin and game.stage == "exploring", "Picking red hands the pin over and steps into exploration")
 	_check(office.active_course == null and not office.sleep_playing, "NG+ never starts the sleep/dream beat")
 	_check(office.find_child("TitleCard", true, false) == null, "NG+ skip dismisses the title card for the whole run (no corner title during later dialogues)")
 	office.queue_free()

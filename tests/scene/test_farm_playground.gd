@@ -282,8 +282,6 @@ func _run() -> void:
 		"The record board stands at the woodland-exit crossing (pigs meet it before the horse)")
 	_check(farm.get_node_or_null("RaceStartLine") != null and farm.get_node_or_null("RaceGate5Beam") != null,
 		"The lap race is built (start line + six ring gate frames)")
-	_check(farm.get_node_or_null("RaceGate6Beam") != null and farm.get_node_or_null("RaceGate7Beam") != null,
-		"Two infield shortcut gates stand in the field")
 	_check(not farm.get_node("RaceGate0PostA").visible and not farm.get_node("RaceGantry").visible,
 		"Gate frames and the gantry stay hidden until a race starts")
 	var dm_node: Node = Node.new()
@@ -307,8 +305,7 @@ func _run() -> void:
 	await create_timer(0.2).timeout
 	_check(not farm._race_running, "An infield cut on lap one cancels the trial outright")
 	_check(not farm.get_node("RaceGate0PostA").visible, "Cancelling hides the gates again")
-	_check(not am.is_unlocked("steady_lap") and not am.is_unlocked("checkpoint_chaser"),
-		"A voided lap one pays nothing")
+	_check(not am.is_unlocked("steady_lap"), "A voided lap pays nothing")
 
 	# Leg B - lap one done properly: gates 1..6 in order, segment lights, medal.
 	_check(farm.begin_race_trial(pig), "A fresh trial starts after the voided one")
@@ -327,24 +324,9 @@ func _run() -> void:
 	await create_timer(0.3).timeout
 	_check(not farm._race_running, "Six gates + return to the start gate STOPS the clock")
 	_check(am.is_unlocked("steady_lap"), "Six ring gates + finish pays 稳稳一圈")
-	_check(farm._race_full_lap_done, "A complete ring lap unlocks the infield shortcut gates")
 	_check(am.is_unlocked("record_breaker"), "A sub-35 s lap pays 35 秒新纪录 (real clock)")
-	_check(not am.is_unlocked("checkpoint_chaser"), "The ring lap alone does not pay the shortcut medal")
 	_check(not farm.get_node("RaceGate0PostA").visible, "Finishing hides the gates and segments again")
 
-	# Leg C - free choice: the shortcut sequence drives the teleport tour.
-	_check(farm.begin_race_trial(pig), "A third trial starts after the clean lap")
-	await create_timer(3.4).timeout
-	for want in farm.RACE_SHORTCUT_SEQ:
-		var gate_p: Vector3 = farm.RACE_GATES[want].p if want < farm.RACE_GATES.size() else farm.RACE_INFIELD_GATES[want - farm.RACE_GATES.size()].p
-		pig.global_position = gate_p + Vector3(0, 0.3, 0)
-		await physics_frame
-		await physics_frame
-	pig.global_position = farm.RACE_FINISH + Vector3(0, 0.3, 0)
-	await physics_frame
-	await physics_frame
-	await create_timer(0.3).timeout
-	_check(am.is_unlocked("checkpoint_chaser"), "The shortcut line (bend → infield gates → bend) pays 抄近道也是本事")
 
 	# --- Outside the fence (2026-11-15 playtest #19, phase A): the ranch fence
 	# grows gaps (baked crossings) and a walkable clifftop apron rings the
@@ -373,9 +355,16 @@ func _run() -> void:
 	await create_timer(1.2).timeout
 	_check(horse.global_position.distance_to(horse_pos_a) > 0.8, "The horse is moving around the track")
 	pig.global_position = farm._horse_home + Vector3(0, 0.4, 2.0)
-	await create_timer(1.8).timeout
-	_check(horse.global_position.distance_to(farm._horse_home) < 1.2,
-		"The pig's approach sends the horse home to talk")
+	# The lap phase when the pig calls decides the gallop distance - poll for the
+	# arrival instead of a fixed wait (a far-straight start needs ~4 s at 11 m/s;
+	# the fixed 1.8 s window only passed by phase luck and flaked in full runs).
+	var horse_home_now := false
+	for i in 14:
+		await create_timer(0.5).timeout
+		if horse.global_position.distance_to(farm._horse_home) < 1.2:
+			horse_home_now = true
+			break
+	_check(horse_home_now, "The pig's approach sends the horse home to talk")
 	var horse_when_close := horse.global_position
 	await create_timer(0.8).timeout
 	_check(horse.global_position.distance_to(horse_when_close) < 0.6,

@@ -1,0 +1,13 @@
+{
+  "asset_id": "PROP_24_WEED",
+  "raw_triangles": 9554,
+  "triangles": 1000,
+  "size_blender_xyz": [
+    0.6528186202049255,
+    0.4982157051563263,
+    0.7000000476837158
+  ],
+  "file_bytes": 80784,
+  "postprocess": "Lux3D silhouette welded and normals repaired; reduction; sampled solid palette with tree trunk/crown correction; no textures; ground origin; metre scale",
+  "runtime": "assets/models/aholo/PROP_24_WEED/PROP_24_WEED_game.glb"
+}

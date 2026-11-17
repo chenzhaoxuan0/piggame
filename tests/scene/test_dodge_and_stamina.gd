@@ -27,12 +27,13 @@ func _run() -> void:
 	await process_frame
 	var player: PigController = level.player
 
-	# 2. Test Dodge Restriction: Cannot dodge without dog red-circle threat
+	# 2. Dodge is a standing move now (2026-11-17 playtest: it used to need a dog
+	# threat, which died silently after any reset_at respawn or race start) - a
+	# plain Shift tap rolls with no threat around; only the cooldown gates it.
 	_check(not player.is_dodging(), "Pig is initially not dodging")
-	_check(not player.can_dodge(), "can_dodge() is false when no dog is preparing to pounce")
+	_check(player.can_dodge(), "can_dodge() is true with no dog around (standing move, cooldown only)")
 	_check(player.stamina == player.max_stamina, "Initial stamina is at max (3.0)")
-	
-	# Tap action_dash when no dog is attacking
+
 	var ev := InputEventAction.new()
 	ev.action = "action_dash"
 	ev.pressed = true
@@ -45,8 +46,12 @@ func _run() -> void:
 	await physics_frame
 	await physics_frame
 
-	_check(not player.is_dodging(), "Shift tap without threat does NOT trigger dodge (infinite spam prevented)")
-	_check(player.dodge_timer == 0.0, "Dodge timer remains 0.0")
+	_check(player.is_dodging(), "Shift tap with no threat still rolls (respawn/race-safe)")
+	_check(player.dodge_timer > 0.0, "Threatless dodge timer active")
+	# Cooldown blocks the chain; wait it out so the dog-threat leg starts clean.
+	await create_timer(1.1).timeout
+	_check(not player.is_dodging(), "Threatless dodge expires naturally")
+	_check(player.can_dodge(), "Dodge cools down and comes back")
 
 	# 3. Spawn Dog in Windup (Red warning circle under player)
 	var dog := ChaseDog.new()
@@ -95,7 +100,7 @@ func _run() -> void:
 	_check(dog.phase == "recover", "Dog lunge whiffed against dodging pig and entered recover skid")
 	_check(player._successful_dodges >= 1, "Successful dodge counter incremented (%d)" % player._successful_dodges)
 	_check(not dog.is_threatening_player(), "Dog in recover is no longer threatening player")
-	_check(not player.can_dodge(), "Player cannot immediately chain dodge once threat is resolved")
+	_check(not player.can_dodge(), "Dodge cooldown blocks an immediate chain dodge")
 
 	# Wait for dodge to finish
 	await create_timer(0.45).timeout

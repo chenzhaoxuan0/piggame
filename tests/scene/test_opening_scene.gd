@@ -117,7 +117,7 @@ func _run() -> void:
 	if tcard != null and todo_hub != null:
 		_check(absf(tcard.get_global_rect().position.y - todo_hub.get_global_rect().position.y) < 6.0,
 			"Title card top edge aligns with the todo hub top edge")
-	_check(office.player.dash_enabled and office.player.force_dodge_available, "Shift sprint and dodge are armed for the sandbox")
+	_check(office.player.dash_enabled and office.player.can_dodge(), "Shift sprint and dodge are armed for the sandbox (dodge is always cooled down to start)")
 	var spawn_dist: float = office.player.global_position.distance_to(office.farm.get_spawn_position())
 	_check(spawn_dist < 1.0, "Pig wakes at the real pigpen spawn")
 	var strip: Control = office.find_child("KeyTestStrip", true, false)
@@ -236,7 +236,6 @@ func _run() -> void:
 			_check(not office.dialogue_open, "The dream door never opens the goat story dialogue")
 			_check(office.find_child("TitleCard", true, false) == null, "Title card leaves with the tutorial sandbox")
 			_check(not office.player.dash_enabled, "Dash returns to story gating after the sandbox")
-			_check(not office.player.force_dodge_available, "Free dodge disarms after the sandbox")
 			_check(not strip.visible, "Key strip hides once the game starts")
 			_check(pigpen_gate.collision_layer == 1, "Gate is still bolted - the red/blue choice opens it, not the dream door")
 			var waited := 0.0

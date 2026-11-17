@@ -6,7 +6,7 @@ extends Node
 # 实战不可达成），卷心菜全满贯改为三门。
 # 2026-11-16 #1/#2：羊矮棚新增除草机（杂草区啃食）与落水猪（水池首游）。
 # 2026-11-16 #4/#5：35 秒纪录改由马场计时赛真实圈速驱动（大院只报金牌杯
-# 最佳），新增稳稳一圈与抄近道一圈两枚圈赛章。
+# 最佳），圈赛章一枚：稳稳一圈（近道竞速 2026-11-17 实机反馈删除，只留原跑道）。
 # 2026-11-16 #19：围栏开缺口 + 圈外崖边草带（马场），新增越狱惯犯。
 # 解锁来源两层：状态驱动（监听 GameManager.state_changed 回读字段，reset_run
 # 发的信号字段全 false 天然无副作用）+ 关卡侧直挂（管道发现/闪避/QTE/破纪录/
@@ -47,7 +47,6 @@ const DEFS := [
 	{"id": "lawn_mower", "title": "除草机", "desc": "羊矮棚旁的杂草区被你啃得寸草不留——十二株，一株不剩。"},
 	{"id": "pig_paddle", "title": "落水猪", "desc": "扑通！羊棚草甸的水池里溅起了猪形水花。"},
 	{"id": "steady_lap", "title": "稳稳一圈", "desc": "和纪录牌约好后，老老实实沿马场跑道跑完一整圈回到起点。"},
-	{"id": "checkpoint_chaser", "title": "抄近道也是本事", "desc": "计时赛里按顺序踩满全部四个检查点并冲线——穿场内草地抄近道？随你。"},
 	{"id": "fence_breaker", "title": "越狱惯犯", "desc": "从围栏的缺口钻了出去，站上了圈外的崖边野草带——风是自由的味道。"},
 	{"id": "grass_gourmet", "title": "食草动物的本分", "desc": "啃遍了下山路上全部六丛嫩草。"},
 	{"id": "perfect_dive", "title": "满分入坑", "desc": "从山坡跳进草垛，麻雀评委打出了 10 分。"},
@@ -71,6 +70,11 @@ var _popup_title: Label
 var _popup_desc: Label
 
 func _ready() -> void:
+	# headless（测试进程）绝不碰真实成就档：测试与玩家游戏并发读写同一个
+	# achievements.json 会互相覆盖丢档（2026-11-17 实机反馈：一周目成就莫名
+	# 消失）。测试要验证持久化就显式重定向 save_path（game_manager 同款纪律）。
+	if DisplayServer.get_name() == "headless" and save_path == DEFAULT_SAVE_PATH:
+		save_path = "user://test_achievements.json"
 	_load()
 	_build_popup()
 	# 状态驱动解锁：信号无参，回读字段比对（reset_run 也发此信号，字段全 false）。
@@ -162,12 +166,32 @@ func _load() -> void:
 	for id in parsed.get("unlocked", []):
 		if _def_index(str(id)) >= 0:
 			unlocked[str(id)] = true
+	# 空档回退：主档被并发覆盖成空/半截时，用上一次成功的备份自愈（写前
+	# 备份，.bak 永远落后主档一个版本）。
+	if unlocked.is_empty() and FileAccess.file_exists(save_path + ".bak"):
+		var bak := FileAccess.open(save_path + ".bak", FileAccess.READ)
+		if bak != null:
+			var bak_parsed = JSON.parse_string(bak.get_as_text())
+			if bak_parsed is Dictionary:
+				for id in bak_parsed.get("unlocked", []):
+					if _def_index(str(id)) >= 0:
+						unlocked[str(id)] = true
 
 func _save() -> void:
 	var file := FileAccess.open(save_path, FileAccess.WRITE)
 	if file == null:
 		return # 只读环境下静默降级为仅内存
-	file.store_string(JSON.stringify({"unlocked": unlocked.keys()}))
+	var payload := JSON.stringify({"unlocked": unlocked.keys()})
+	# 写前把上一版留进 .bak：覆盖清空/半截写坏时 _load 有得回退。
+	if FileAccess.file_exists(save_path):
+		var prev := FileAccess.open(save_path, FileAccess.READ)
+		if prev != null:
+			var prev_text := prev.get_as_text()
+			prev.close()
+			var bak := FileAccess.open(save_path + ".bak", FileAccess.WRITE)
+			if bak != null:
+				bak.store_string(prev_text)
+	file.store_string(payload)
 
 # ------------------------------------------------------------- unlock popup
 func _build_popup() -> void:

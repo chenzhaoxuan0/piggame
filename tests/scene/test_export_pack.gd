@@ -26,10 +26,10 @@ func _run() -> void:
 			course += 1
 		else:
 			core += 1
-	_check(core == 90, "90 core assets delivered (got %d)" % core)
+	_check(core == 91, "90 core assets delivered (got %d)" % core)
 	_check(dressing == 29, "29 diverse dressing modules delivered (got %d)" % dressing)
 	_check(course == 13, "13 course-1 props delivered (got %d)" % course)
-	_check(catalog.assets.size() == 132, "catalog holds 132 runtime models (got %d)" % catalog.assets.size())
+	_check(catalog.assets.size() == 133, "catalog holds 133 runtime models (got %d)" % catalog.assets.size())
 	for id in catalog.assets:
 		var visual: Node3D = assets.make(id)
 		_check(visual != null, "packed model loads: " + id)

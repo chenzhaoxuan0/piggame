@@ -132,6 +132,16 @@ func clear_course_skills() -> void:
 	for id in course_skill_bonuses:
 		course_skill_bonuses[id] = false
 
+## 彻底清档回一周目（设置面板「重置周目数」）：周目档案（finished_runs /
+## seen_endings / NG+）连文件一起清，局内状态走 reset_run。成就档不在此列
+## ——成就墙自带自己的重置。
+func reset_profile() -> void:
+	finished_runs = 0
+	seen_endings = {}
+	ng_plus = false
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(progress_path))
+	reset_run()
+
 func reset_run() -> void:
 	stage = "prologue"
 	current_chase = "chase_1"
