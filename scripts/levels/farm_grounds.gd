@@ -437,7 +437,9 @@ func _build_all_gates() -> void:
 	# Build Ox Gate at OxTerrace entrance
 	_ox_gate = _create_timber_gate("ox", L.GATE_OX + Vector3.UP * 0.9, Vector3(4.8, 1.8, 0.4), "牛耕地门 · OX GATE")
 	_named_gates["ox"] = _ox_gate
-	_area("GateOxTrigger", L.GATE_OX + Vector3(3.5, 1.0, 0), Vector3(3.5, 3.0, 3.5), _on_gate_passed.bind("ox"))
+	# 触发区罩住门两侧的路面（旧版偏在门东 3.5 m、宽 3.5——从西沿路走来
+	# 的猪根本进不了 x 31.75~35.25 的范围，安全区永不触发）。
+	_area("GateOxTrigger", L.GATE_OX + Vector3.UP, Vector3(10.0, 3.0, 6.0), _on_gate_passed.bind("ox"))
 	_label(self, "SafeSignOx", "恶犬止步 · 门内即安全区", L.GATE_OX + Vector3(0, 3.1, 0), 20)
 	# 2026-11-18 实机反馈：安全区提示牌下面只有两块石头，什么门/栅栏都
 	# 没有——建一道永久可见的矮木栅栏（1.1 m，无碰撞），标识「恶犬止步线」。
@@ -446,14 +448,14 @@ func _build_all_gates() -> void:
 	# Build Sheep Gate at SheepMeadow entrance
 	_sheep_gate = _create_timber_gate("sheep", L.GATE_SHEEP + Vector3.UP * 0.9, Vector3(4.8, 1.8, 0.4), "羊棚木门 · SHEEP GATE")
 	_named_gates["sheep"] = _sheep_gate
-	_area("GateSheepTrigger", L.GATE_SHEEP + Vector3(-3.5, 1.0, 0), Vector3(3.5, 3.0, 3.5), _on_gate_passed.bind("sheep"))
+	_area("GateSheepTrigger", L.GATE_SHEEP + Vector3.UP, Vector3(6.0, 3.0, 10.0), _on_gate_passed.bind("sheep"))
 	_label(self, "SafeSignSheep", "恶犬止步 · 门内即安全区", L.GATE_SHEEP + Vector3(0, 3.1, 0), 20)
 	_build_safe_fence("SafeFenceSheep", L.GATE_SHEEP, Vector3(0, 0, 1))
 
 	# Build Horse Gate at HorsePasture entrance
 	_horse_gate = _create_timber_gate("horse", L.GATE_HORSE + Vector3.UP * 0.9, Vector3(4.8, 1.8, 0.4), "马场围栏 · HORSE GATE")
 	_named_gates["horse"] = _horse_gate
-	_area("GateHorseTrigger", L.GATE_HORSE + Vector3(3.5, 1.0, 0), Vector3(3.5, 3.0, 3.5), _on_gate_passed.bind("horse"))
+	_area("GateHorseTrigger", L.GATE_HORSE + Vector3.UP, Vector3(6.0, 3.0, 10.0), _on_gate_passed.bind("horse"))
 	_label(self, "SafeSignHorse", "恶犬止步 · 门内即安全区", L.GATE_HORSE + Vector3(0, 3.1, 0), 20)
 	_build_safe_fence("SafeFenceHorse", L.GATE_HORSE, Vector3(0, 0, 1))
 
