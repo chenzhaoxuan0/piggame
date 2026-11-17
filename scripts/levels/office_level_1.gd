@@ -50,6 +50,7 @@ var paused := false
 var busy := false
 var current_dialogue := ""
 var current_options: Array = []
+var _dialogue_focus := 0  # W/S 键盘导航的当前选项（2026-11-17 实机反馈）
 var dialogue_lines: Array = []
 var line_index := 0
 var pressure := 999.0
@@ -1332,11 +1333,18 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 
+	# W/S 在选项间循环移动（2026-11-17 实机反馈：键盘玩家不碰鼠标也能选）；
+	# 空格交给焦点按钮激活（GUI 层先于 unhandled，不会误推进台词）。
 	if dialogue_open and not busy and not cinematic and (pokemon_battle == null or not pokemon_battle.battle_active):
-		var advance: bool = event.is_action_pressed("ui_accept") or event.is_action_pressed("action_interact") \
-			or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed) \
-			or (event is InputEventScreenTouch and event.pressed)
-		if advance:
+		if options.get_child_count() > 0 and (event.is_action_pressed("move_up") or event.is_action_pressed("move_down")):
+			var step := -1 if event.is_action_pressed("move_up") else 1
+			_dialogue_focus = posmod(_dialogue_focus + step, options.get_child_count())
+			(options.get_child(_dialogue_focus) as Control).grab_focus()
+			_refresh_dialogue_focus()
+			get_viewport().set_input_as_handled()
+			return
+		var advance: bool = event.is_action_pressed("ui_accept") or event.is_action_pressed("action_interact") or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed) or (event is InputEventScreenTouch and event.pressed)
+		if advance and options.get_child_count() == 0:
 			_advance_dialogue()
 			get_viewport().set_input_as_handled()
 			return
@@ -1526,6 +1534,14 @@ func _split_lines(content: String) -> Array:
 		lines.append("")
 	return lines
 
+## 对话选项的键盘高亮：W/S 移动焦点（真实 grab_focus，空格/回车由焦点
+## 按钮在 GUI 层吃掉），同时用 modulate 画出选中态——主题没有可见的
+## focus 样式，纯焦点玩家看不见选到哪一行。
+func _refresh_dialogue_focus() -> void:
+	for i in options.get_child_count():
+		var button: Button = options.get_child(i)
+		button.modulate = Color(1.15, 1.08, 0.85) if i == _dialogue_focus else Color(0.82, 0.82, 0.82)
+
 func _show_current_line() -> void:
 	content_label.text = str(dialogue_lines[line_index])
 	var on_last_line := line_index >= dialogue_lines.size() - 1
@@ -1535,7 +1551,9 @@ func _show_current_line() -> void:
 			var option: Dictionary = current_options[index]
 			options.add_child(_button(str(option.get("text", "继续")), _select_option.bind(index), true))
 		if options.get_child_count() > 0:
+			_dialogue_focus = 0
 			options.get_child(0).grab_focus()
+			_refresh_dialogue_focus()
 
 func _advance_dialogue() -> void:
 	if not dialogue_open or busy:
@@ -1551,7 +1569,9 @@ func _advance_dialogue() -> void:
 func _select_option(index: int) -> void:
 	if busy or index < 0 or index >= current_options.size(): return
 	busy = true
-	for button in options.get_children(): button.disabled = true
+	for button in options.get_children():
+		button.disabled = true
+		button.modulate = Color(1, 1, 1)
 	var option: Dictionary = current_options[index].duplicate()
 	var event_id: String = str(option.get("event", ""))
 	var ok := true

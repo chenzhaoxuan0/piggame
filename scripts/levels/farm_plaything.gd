@@ -36,7 +36,7 @@ const CABBAGE_KICK_LIFT := 2.4
 ## Sense box size (the Area3D footprint).
 @export var sense_size := Vector3(2.4, 2.4, 2.4)
 ## Per-thing cooldown so one walk-by doesn't machine-gun the gag.
-@export var cooldown := 2.0
+@export var cooldown := 0.8
 
 var _cool_timer := 0.0
 var _one_shot_done := false
@@ -158,8 +158,11 @@ func _react_cabbage(body: Node3D) -> void:
 	_gag("咔嚓——卷心菜连根被踢飞！" if harvested else "咚！（卷心菜被踢出去一大步）", 1.2)
 
 func _react_haystack(body: Node3D) -> void:
-	# A real dive needs downward speed - walking in does not score.
-	if body.velocity.y > -4.0:
+	# A real dive needs downward speed - walking in does not score. The bar
+	# drops from -4 to -1.5 (2026-11-17 playtest: a plain hop from the pen-side
+	# ground never reached 4 m/s, so after one scored dive the stack went silent
+	# until a world respawn) - every jump onto the stack now rolls a score.
+	if body.velocity.y > -1.5:
 		return
 	if not _ready_cool():
 		return

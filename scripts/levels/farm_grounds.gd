@@ -1075,7 +1075,6 @@ var _horse_wp_index := 0
 var _horse_home := Vector3(29, 8, -120)
 var _horse_idle_time := 0.0
 var _horse_halted := false
-var _horse_infield_waypoints: Array[Vector3] = []
 
 func _begin_npc_life() -> void:
 	# 幂等：boot 时 reset_world 会清一遍 _npc_tweens（把这里的闲逛 tween 也
@@ -1094,11 +1093,6 @@ func _begin_npc_life() -> void:
 	_horse_wp_index = 0
 	_horse_lapping = true
 	_horse_idle_time = 0.0
-	# 内场训练椭圆（赛跑时用）：环线内侧留足余量，不碰参赛猪的线。
-	_horse_infield_waypoints.clear()
-	for i in 12:
-		var ang := TAU * i / 12.0
-		_horse_infield_waypoints.append(Vector3(40 + cos(ang) * 24.0, 8, -120 + sin(ang) * 10.0))
 	# ---- 骨骼级生活感（2026-11-17 评测重做）：位移 tween 只负责走位，
 	# 真正的「在干什么」由自定义骨夹表达——牛低头拉犁、羊耷拉脑袋、
 	# 马奔跑步态、农场主拄棍环视。对话完成后 clear_force + celebrate。
@@ -1192,7 +1186,10 @@ func _tick_horse_lap(delta: float) -> void:
 			dust.emitting = false
 		return
 	_horse_idle_time = 0.0
-	var waypoints := _horse_infield_waypoints if _race_running else _horse_waypoints
+	# 2026-11-17 实机反馈：计时赛期间马曾被切去内场训练椭圆——航点索引在
+	# 两套环线间错位，马的轨迹当场乱掉。马永远沿跑道中心线环线跑，赛跑
+	# 期间也在原路线上（训练椭圆删除）。
+	var waypoints := _horse_waypoints
 	var target: Vector3 = waypoints[_horse_wp_index % waypoints.size()]
 	var to := target - horse.global_position
 	to.y = 0.0
@@ -1543,18 +1540,25 @@ func _build_playground() -> void:
 	# 的绿蕨/绿芦苇一眼区分。2026-11-16 实机反馈两笔一并落地：①换 Lux3D
 	# PROP_23 模型（文生 3D，土黄采样在线提亮成金黄）；②多丛落在台地外的
 	# 山坡上根本走不到——六丛全部钉回路面/台地内，边走边啃不再绕圈外。
+	var herb_marks := ["❶", "❷", "❸", "❹", "❺", "❻"]
+	var herb_i := 0
 	for grass_pos in [
-		Vector3(2.5, 31.4, 84),   # 猪圈门下山第一段路上（避开 z≤81 的 ChaseTrigger_1 区）
-		Vector3(-27.5, 26.4, 99), # zigzag 北弯内侧（原 -36,95 在 summit 台地外山坡）
-		Vector3(14, 24.4, 58),    # 牛耕地石堆缺口内（台地内，保留）
-		Vector3(36, 21.3, 10),    # 溪谷路东岸（原 44,14 在坡外）
-		Vector3(-45, 16.3, -55),  # 羊棚草甸林间口（台地内，保留）
-		Vector3(30, 8.3, -112),   # 马场围栏内（保留）
+		Vector3(2.5, 31.4, 84),   # ❶ 猪圈门下山第一段路上（避开 z≤81 的 ChaseTrigger_1 区）
+		Vector3(-27.5, 26.4, 99), # ❷ zigzag 北弯内侧（原 -36,95 在 summit 台地外山坡）
+		Vector3(14, 24.4, 58),    # ❸ 牛耕地石堆缺口内（台地内，保留）
+		Vector3(36, 21.3, 10),    # ❹ 溪谷路东岸（原 44,14 在坡外）
+		Vector3(-45, 16.3, -55),  # ❺ 羊棚草甸林间口（台地内，保留）
+		Vector3(30, 8.3, -112),   # ❻ 马场围栏内（保留）
 	]:
 		var tuft := _herb_grass(grass_pos)
 		tuft.name = "NibbleGrass"
 		tuft.add_child(_plaything(PLAYTHING.Kind.GRASS, Vector3(2.6, 2.0, 2.6), 2.5))
-	_label(self, "HerbGrassHint", "★ 嫩香草 ★ 下山路上一共六丛，猪猪的最爱", Vector3(0.5, 33.3, 81), 18)
+		# 2026-11-17 实机反馈：玩家只找到 5 丛（成就却要 6 丛）——每丛头顶
+		# 挂编号牌 ❶-❻，照着编号找齐。
+		var mark: String = herb_marks[herb_i]
+		herb_i += 1
+		_label(tuft, "HerbTuftMark", mark, Vector3(0, 1.5, 0), 24)
+	_label(self, "HerbGrassHint", "★ 嫩香草 ★ 下山路上一共六丛（❶-❻ 编号牌），猪猪的最爱", Vector3(0.5, 33.3, 81), 18)
 
 	# --- Hay dive by the sheep-shed pond (2026-11-16 实机反馈：原西 zigzag 坡底
 	# 的落点在圈外根本走不到——搬到羊矮棚水边：三级干草跳台在池塘东北岸，

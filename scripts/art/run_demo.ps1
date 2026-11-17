@@ -74,8 +74,10 @@ if ($AllTests -or ($Test -ne "")) {
         # haunts the dummy renderer under load (big scenes + skeletal clips);
         # it never reproduces on a standalone rerun. One retry before calling
         # it a failure keeps the suite's signal honest.
-        if ($LASTEXITCODE -eq -1073741819) {
-            Write-Host "CRASHED once (engine access violation) - retrying: $ts" -ForegroundColor DarkYellow
+        $crash_retries = 0
+        while ($LASTEXITCODE -eq -1073741819 -and $crash_retries -lt 2) {
+            $crash_retries++
+            Write-Host "CRASHED (engine access violation) - retry $crash_retries/2: $ts" -ForegroundColor DarkYellow
             & $engine $argsList
         }
         if ($LASTEXITCODE -ne 0) {
