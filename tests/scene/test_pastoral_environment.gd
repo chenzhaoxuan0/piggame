@@ -28,6 +28,11 @@ func _run() -> void:
 	await _dialogue()
 	_check(game.has_read_record,"record board independently reachable at the woodland-exit crossing")
 	await _follow([Vector3(30,8,-112),Vector3(27.3,8,-119.8)])
+	# 2026-11-17：马改为自主跑圈的移动目标，不再回家等猪——机器人走到马场后
+	# 按马的实时位置截停（本测试唯一一次瞬移；三条山路本身仍全程步行验证）。
+	var horse: Node3D = office.farm._npcs.horse
+	office.player.global_position = horse.global_position + Vector3(1.2, 0.4, 1.2)
+	await process_frame
 	await _interact()
 	await _dialogue()
 	_check(game.npc_completed.horse and office.player.dash_enabled,"horse story grants dash")

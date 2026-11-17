@@ -92,8 +92,10 @@ func _has_skeletal_locomotion() -> bool:
 func _ready() -> void:
 	preload("res://scripts/art/asset_library.gd").replace_visuals(visual_mesh, "CHAR_01")
 	var animator := _resolve_animator()
-	if animator != null:
-		var snuffle_clip: Animation = preload("res://scripts/art/npc_clips.gd").snuffle(visual_mesh)
+	# 骨夹轨道路径相对 AnimationPlayer 的 root（CHAR_01），不是 VisualMesh。
+	var char_visual := visual_mesh.get_node_or_null("CHAR_01") as Node3D
+	if animator != null and char_visual != null:
+		var snuffle_clip: Animation = preload("res://scripts/art/npc_clips.gd").snuffle(char_visual)
 		if snuffle_clip != null:
 			animator.register_clip("snuffle", snuffle_clip, false)
 	target_destination = global_position
