@@ -112,17 +112,25 @@ func _run() -> void:
 	_check(btn0_rect.position.y >= console_rect.position.y
 		and btn0_rect.position.y + btn0_rect.size.y <= console_rect.position.y + console_rect.size.y + 1.0,
 		"Move buttons stay inside the console (clickable, on screen)")
-	level.pokemon_battle.execute_move(2)
-	await create_timer(0.2).timeout
-	var vfx_found := false
-	for child in level.get_children():
-		if child is Label3D or child.get_script() == preload("res://scripts/art/puff_emitter.gd"):
-			vfx_found = true
-	_check(vfx_found, "Pig attack spawns 3D sparks/shout staging")
-	await create_timer(0.5).timeout
-	level.pokemon_battle.execute_move(1)
-	await create_timer(0.7).timeout
-	level.pokemon_battle.execute_move(3)
+	# 出招前轮询 busy 释放：固定间隔在套件负载下会落进 busy 窗口，
+	# 克制回合错位导致"没赢"——轮询消除一切时序假设。
+	for move_index in [2, 1, 3]:
+		for i in 40:
+			if not level.pokemon_battle.is_busy and level.pokemon_battle.battle_active:
+				break
+			await create_timer(0.1).timeout
+		level.pokemon_battle.execute_move(move_index)
+		printerr("EVALDBG after move %d: turn=%d farmer_hp=%.1f pig_hp=%.1f" % [
+			move_index, level.pokemon_battle.current_turn,
+			level.pokemon_battle.farmer_hp, level.pokemon_battle.pig_hp])
+		if move_index == 2:
+			await create_timer(0.2).timeout
+			var vfx_found := false
+			for child in level.get_children():
+				if child is Label3D or child.get_script() == preload("res://scripts/art/puff_emitter.gd"):
+					vfx_found = true
+			_check(vfx_found, "Pig attack spawns 3D sparks/shout staging")
+		await create_timer(0.3).timeout
 	# 先钉战斗结果（排除"没赢"），再轮询瘫倒演出（排除固定窗口擦边）。
 	var farmer_visual = farm._visual_of("farmer")
 	var won := false
