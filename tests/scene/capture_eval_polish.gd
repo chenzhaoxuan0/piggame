@@ -144,9 +144,10 @@ func _run() -> void:
 	await _shot("safe_fence")
 	_free_cam(cam)
 
-	# 3e. 两段跳逃出圈：猪站石墙空气墙顶 / 站圈外草架。
+	# 3e. 两段跳逃出圈：猪站石墙空气墙顶 / 站圈外山体皮肤（草架板已回滚，
+	# 圈外站立由 SlopeStandable 逐格碰撞承担）。
 	var stones: Array = _flat_only(_by_kind(farm, "RailStone"))
-	var aprons: Array = _flat_only(_by_kind(farm, "RailApron"))
+	var aprons: Array = _flat_only(_by_kind(farm, "SlopeStandable"))
 	if not stones.is_empty() and not aprons.is_empty():
 		var spot: Vector3 = _top_center(stones[0])
 		var out_spot: Vector3 = _top_center(aprons[0])

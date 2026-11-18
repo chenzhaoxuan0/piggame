@@ -1,6 +1,8 @@
 extends SceneTree
 ## 2026-11-18 导演反馈：石墙空气墙比木栅栏矮、可两段跳上、圈外可站立。
-## 钉几何契约（高度序/可站顶面/圈外草架）+ 真实物理站立验证。
+## 钉几何契约（高度序/可站顶面）+ 真实物理站立验证。
+## 第二轮：外圈草架板回滚（挡下山路视野/压路/共面闪烁）——圈外站立改由
+## 山体皮肤逐格碰撞（SlopeStandable）承担，板的存在本身转为反向钉。
 
 var _failures: int = 0
 
@@ -41,9 +43,11 @@ func _run() -> void:
 	var stones: Array = _by_kind(farm, "RailStone")
 	var woods: Array = _by_kind(farm, "RailWood")
 	var aprons: Array = _by_kind(farm, "RailApron")
-	_check(stones.size() > 0 and woods.size() > 0 and aprons.size() > 0,
-		"Per-segment stone/wood air walls and outside aprons exist (%d/%d/%d)" % [stones.size(), woods.size(), aprons.size()])
-	if stones.is_empty() or woods.is_empty() or aprons.is_empty():
+	var slopes: Array = _by_kind(farm, "SlopeStandable")
+	_check(aprons.is_empty(), "Round-8 apron shelf ring is gone (%d RailApron left)" % aprons.size())
+	_check(stones.size() > 0 and woods.size() > 0 and slopes.size() > 0,
+		"Per-segment stone/wood air walls and slope skin collision exist (%d/%d/%d)" % [stones.size(), woods.size(), slopes.size()])
+	if stones.is_empty() or woods.is_empty() or slopes.is_empty():
 		quit(1)
 		return
 
@@ -61,16 +65,30 @@ func _run() -> void:
 	_check(apex >= stone_h and apex >= wood_h - stone_h,
 		"Jump apex %.2f covers ground->stone and stone->wood hops" % apex)
 
-	# 真实物理：石墙顶 / 木栅栏顶 / 圈外草架 三处都站得住（不坠空不重生）。
+	# 圈外站立点：离石墙段最近的皮肤格。相邻性契约——跳出护栏即落在山体上，
+	# 而不是落在远处或什么都没有。
+	var rail_spot: Vector3 = _top_center(stones[0])
+	var nearest: Node3D = null
+	var nearest_d: float = 1e9
+	for s in slopes:
+		var flat: Vector3 = _top_center(s) - rail_spot
+		flat.y = 0
+		if flat.length() < nearest_d:
+			nearest_d = flat.length()
+			nearest = s
+	_check(nearest != null and nearest_d <= 12.0,
+		"Slope collision within 12 m of the rail line (got %.1f)" % nearest_d)
+
+	# 真实物理：石墙顶 / 木栅栏顶 / 圈外山体 三处都站得住（不坠空不重生）。
 	var recoveries_before: int = farm.recoveries
-	for pair in [["stone top", stones[0]], ["wood top", woods[0]], ["outside apron", aprons[0]]]:
+	for pair in [["stone top", stones[0]], ["wood top", woods[0]], ["outside slope", nearest]]:
 		var spot: Vector3 = _top_center(pair[1])
 		pig.global_position = spot + Vector3.UP * 0.3
 		pig.velocity = Vector3.ZERO
 		await create_timer(0.7).timeout
 		_check(pig.is_on_floor() and absf(pig.global_position.y - spot.y) < 0.35,
 			"Pig stands on %s (y=%.2f target=%.2f)" % [pair[0], pig.global_position.y, spot.y])
-	_check(farm.recoveries == recoveries_before, "No fall recovery while standing on walls/apron")
+	_check(farm.recoveries == recoveries_before, "No fall recovery while standing on walls/slope")
 
 	office.queue_free()
 	await process_frame

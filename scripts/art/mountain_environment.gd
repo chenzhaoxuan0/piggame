@@ -27,7 +27,7 @@ func build(farm: Node3D) -> void:
 	_farm = farm
 	_rng.seed = 4701
 	name = "PastoralEnvironment"
-	set_meta("layout_version", 10)
+	set_meta("layout_version", 11)
 	_material = ShaderMaterial.new()
 	_material.shader = preload("res://scripts/art/pastoral_surface.gdshader")
 	_mountainside()
@@ -61,7 +61,8 @@ func _slope_height(p: Vector3) -> float:
 
 func _mountainside() -> void:
 	# A continuous slope beneath the ledges connects the farm into one mountain.
-	# It is scenery below the recoverable drop, never a shortcut collision floor.
+	# 2026-11-18 导演反馈第二轮：皮肤不再只是风景——逐格加凸板碰撞（见
+	# _slope_standable），跳出围栏后猪直接站在可见山体上；陡崖格保持坠落。
 	_district="MountainSlopes"
 	var rows: Array=[]
 	for z in range(-380,179,3):
@@ -79,6 +80,7 @@ func _mountainside() -> void:
 			var d: Vector3=rows[row+1][col]
 			var color:=GRASS_DARK.lerp(GRASS,.3+.16*sin(a.x*.024+a.z*.036))
 			_quad(a,b,c,d,color,Vector3.UP)
+	_slope_standable(rows)
 	# Close the far rim below the normal camera's sight line.
 	for row in rows.size()-1:
 		for col in [0,rows[row].size()-1]:
@@ -90,6 +92,68 @@ func _mountainside() -> void:
 			var a: Vector3=rows[row][col]
 			var b: Vector3=rows[row][col+1]
 			_quad(a,b,Vector3(b.x,-90,b.z),Vector3(a.x,-90,a.z),ROCK,Vector3.FORWARD if row==0 else Vector3.BACK)
+
+func _slope_standable(rows: Array) -> void:
+	# 给山体皮肤逐格补碰撞（rail_kind="SlopeStandable"）：四角与视觉 quad
+	# 完全同点采样（同一高度函数、同一 3m 网格）——猪站上去就是站在可见
+	# 地形上，不会浮空；碰撞不渲染，不挡视野、无共面闪烁。沿用「道路视觉
+	# 与碰撞共享同一组顶点」的既有惯例。三类格排除：
+	# - 台地轮廓内：圈内已有台地地板碰撞，皮肤板纯属冗余；
+	# - CROSSINGS 半径内：溪桥跳缺口/石阶穿越必须保持真空
+	#   （test_farm_grounds 钉了溪中心向下射线打空；高度函数本身也在桥下
+	#   挖了 2.7m 深的沟）；
+	# - 陡格：3m 内四角高差 > 3.5m（≈49°坡）超过猪 floor_max_angle 能站的
+	#   坡——悬崖过渡区保持坠落软重生语义，不给猪一块站不住又看得见的板。
+	# - 断桥溪沟空腔（mountain_surface 同式放宽余量）：跳缺口失败必须坠空
+	#   软重生——test_mountain_controls 钉 recoveries==1，沟底不能给板接住猪。
+	var polys: Array[PackedVector2Array] = []
+	var boxes: Array = []
+	for terrace in L.TERRACES:
+		var contour := _octagon_contour(terrace.center, terrace.half)
+		var pts: PackedVector2Array = PackedVector2Array()
+		var lo: Vector2 = Vector2(contour[0].x, contour[0].z)
+		var hi: Vector2 = lo
+		for q: Vector3 in contour:
+			pts.append(Vector2(q.x, q.z))
+			lo = lo.min(Vector2(q.x, q.z))
+			hi = hi.max(Vector2(q.x, q.z))
+		polys.append(pts)
+		boxes.append([lo, hi])
+	var creek_fwd: Vector3 = L.path("creek")[3] - L.path("creek")[2]
+	creek_fwd.y = 0
+	creek_fwd = creek_fwd.normalized()
+	var creek_side: Vector3 = creek_fwd.cross(Vector3.UP).normalized()
+	for row in rows.size()-1:
+		for col in rows[row].size()-1:
+			var a: Vector3=rows[row][col]
+			var b: Vector3=rows[row][col+1]
+			var c: Vector3=rows[row+1][col+1]
+			var d: Vector3=rows[row+1][col]
+			if maxf(maxf(a.y,b.y),maxf(c.y,d.y))-minf(minf(a.y,b.y),minf(c.y,d.y)) > 3.5: continue
+			var mid:=(a+c)*.5
+			var skip:=false
+			for crossing in CROSSINGS:
+				if Vector2(mid.x,mid.z).distance_to(Vector2(crossing.center.x,crossing.center.z)) < crossing.radius+1.0:
+					skip=true
+					break
+			if skip: continue
+			var dc: Vector3 = mid - L.CREEK_CENTER
+			dc.y = 0
+			if absf(dc.dot(creek_fwd)) < 6.0 and absf(dc.dot(creek_side)) < 20.5: continue
+			for t in polys.size():
+				if mid.x<boxes[t][0].x or mid.x>boxes[t][1].x or mid.z<boxes[t][0].y or mid.z>boxes[t][1].y: continue
+				if Geometry2D.is_point_in_polygon(Vector2(mid.x,mid.z),polys[t]):
+					skip=true
+					break
+			if skip: continue
+			_convex("SlopeStandable",[a,b,c,d],1.5)
+
+func _octagon_contour(p: Vector3, r: Vector2) -> Array[Vector3]:
+	# 切角八边形台地轮廓：地板凸板、牧场护栏与皮肤碰撞的排除判定共用。
+	var contour: Array[Vector3] = []
+	for v in [Vector2(-1,-.78),Vector2(-.83,-1),Vector2(.83,-1),Vector2(1,-.78),Vector2(1,.78),Vector2(.83,1),Vector2(-.83,1),Vector2(-1,.78)]:
+		contour.append(p+Vector3(v.x*r.x,0,v.y*r.y))
+	return contour
 
 func _tri(a: Vector3,b: Vector3,c: Vector3,color: Color,outward: Vector3) -> void:
 	var offset := Vector3.ZERO if _district == "PigGateGeometry" else _origin
@@ -138,10 +202,8 @@ func _terrace(data: Dictionary) -> void:
 	_district = "Ground_"+data.id
 	var p: Vector3 = data.center
 	var r: Vector2 = data.half
-	var contour: Array[Vector3] = []
 	# Bevelled grass ledges with faceted retaining cliffs, never a giant flat floor.
-	for v in [Vector2(-1,-.78),Vector2(-.83,-1),Vector2(.83,-1),Vector2(1,-.78),Vector2(1,.78),Vector2(.83,1),Vector2(-.83,1),Vector2(-1,.78)]:
-		contour.append(p+Vector3(v.x*r.x,0,v.y*r.y))
+	var contour := _octagon_contour(p, r)
 	_convex(data.id+"Floor",contour)
 	for i in contour.size():
 		var a := contour[i]
@@ -183,12 +245,14 @@ func _terrace(data: Dictionary) -> void:
 		if data.id == "HorsePasture" and absf(q.z+120)<15: continue
 		_tuft(q,.45)
 
-func _edge_wall(a: Vector3,b: Vector3,hedge: bool=false,outward: Vector3=Vector3.ZERO) -> void:
+func _edge_wall(a: Vector3,b: Vector3,hedge: bool=false) -> void:
 	# 2026-11-18 导演反馈：空气墙逐段建、与可见护栏同高——石墙段 0.85m
 	# （猪跳跃顶点约 0.93m，可直接跳上），木栅栏段 1.45/1.7m（从石墙顶
-	# 二段跳可达），顶面加宽到 0.5m 可站立；护栏外加可行走草架，跳出去
-	# 不再坠空摔死。旧版整段统一高度的凸板让石墙空气墙和木栅栏一样高，
-	# 且全都跳不上去。
+	# 二段跳可达），顶面加宽到 0.5m 可站立。旧版整段统一高度的凸板让石墙
+	# 空气墙和木栅栏一样高，且全都跳不上去。
+	# 2026-11-18 导演反馈第二轮：护栏外不再加草架板——板的面片挡住下山路
+	# 视野、延伸压路，还与既有地形共面闪烁。跳出去后直接站在山体皮肤上
+	# （见 _mountainside 的逐格 SlopeStandable 碰撞），回程跳石墙顶即可。
 	var h := 1.7 if hedge else 1.45
 	var direction := (b-a).normalized()
 	var side_vector:=direction.cross(Vector3.UP).normalized()
@@ -212,33 +276,12 @@ func _edge_wall(a: Vector3,b: Vector3,hedge: bool=false,outward: Vector3=Vector3
 		var side := side_vector*.25
 		_convex("RailStone" if seg_h < 1.0 else "RailWood",
 			[first-side+Vector3.UP*seg_h,first+side+Vector3.UP*seg_h,last+side+Vector3.UP*seg_h,last-side+Vector3.UP*seg_h],seg_h)
-	# 可行走草架：两侧同建（免判内外）——内侧埋入路面下 3cm（不可见、
-	# 碰撞在行走面之下），外侧 6m 宽、顶面低于护栏地面 3cm，跳出后落草不坠空。
-	# 外侧方向：道路段由调用者传入（只建外侧草架+内侧 0.75m 暗架，避免填平
-	# 溪桥跳缺口这类路面洞）；台地方向未知时两侧同建（台地面无洞）。
-	var sides: Array = [outward] if outward != Vector3.ZERO else [side_vector, -side_vector]
-	for s in sides:
-		var sv: Vector3 = s
-		# 内侧暗架：顶面低 6cm 埋在地面下（不可见、不 coplanar）。
-		var ia: Vector3 = a-sv*0.75-Vector3.UP*0.06
-		var ib: Vector3 = b-sv*0.75-Vector3.UP*0.06
-		var ic: Vector3 = b-Vector3.UP*0.06
-		var idv: Vector3 = a-Vector3.UP*0.06
-		_convex("RailApron",[ia,ib,ic,idv],0.6)
-		# 外侧草架：顶面与边缘地面齐平——3cm 台阶会把猪困在架子上回不来。
-		var oa: Vector3 = a
-		var ob: Vector3 = b
-		var oc: Vector3 = b+sv*6.25
-		var od: Vector3 = a+sv*6.25
-		_convex("RailApron",[oa,ob,oc,od],0.6)
-		_quad(oa,ob,oc,od,GRASS,Vector3.UP)
-		_quad(od,oc,oc-Vector3.UP*0.5,od-Vector3.UP*0.5,GRASS_DARK,sv)
 
 ## Road-edge wall with the rocky crossings cut out: the span inside a
 ## CROSSINGS zone is skipped entirely (visible fence AND rail convex - the
 ## convex alone was the invisible wall the user could not see past), the rest
 ## still builds as ordinary _edge_wall runs.
-func _edge_wall_with_gaps(a: Vector3, b: Vector3, hedge: bool = false, outward: Vector3 = Vector3.ZERO) -> void:
+func _edge_wall_with_gaps(a: Vector3, b: Vector3, hedge: bool = false) -> void:
 	var gaps: Array[Vector2] = [] # skipped t-intervals on [a,b]
 	var steps := 48
 	var step := 1.0 / steps
@@ -255,16 +298,16 @@ func _edge_wall_with_gaps(a: Vector3, b: Vector3, hedge: bool = false, outward: 
 		if t_lo < 0.0: continue
 		gaps.append(Vector2(maxf(0.0, t_lo - step), minf(1.0, t_hi + step)))
 	if gaps.is_empty():
-		_edge_wall(a, b, hedge, outward)
+		_edge_wall(a, b, hedge)
 		return
 	gaps.sort()
 	var cursor := 0.0
 	for gap in gaps:
 		if gap.x > cursor:
-			_edge_wall(a.lerp(b, cursor), a.lerp(b, gap.x), hedge, outward)
+			_edge_wall(a.lerp(b, cursor), a.lerp(b, gap.x), hedge)
 		cursor = maxf(cursor, gap.y)
 	if cursor < 1.0:
-		_edge_wall(a.lerp(b, cursor), b, hedge, outward)
+		_edge_wall(a.lerp(b, cursor), b, hedge)
 
 func _build_crossings() -> void:
 	# One climbable rock per crossing: the stone is the shortcut's read (a
@@ -289,7 +332,6 @@ func _road(id: String) -> void:
 	var half := 3.8 if id=="chase" else 3.2
 	var left: Array[Vector3] = []
 	var right: Array[Vector3] = []
-	var normals: Array[Vector3] = []
 	# Miter joints keep the road and fence continuous at every bend.
 	for i in points.size():
 		var before := (points[i]-points[maxi(0,i-1)])
@@ -303,7 +345,6 @@ func _road(id: String) -> void:
 		var side := n*half/maxf(.45,n.dot(n1))
 		left.append(points[i]-side)
 		right.append(points[i]+side)
-		normals.append(n)
 	for i in points.size()-1:
 		_district = "Ground_Route_"+id
 		var intervals := [Vector2(0,1)]
@@ -337,8 +378,8 @@ func _road(id: String) -> void:
 		_district = "RouteEdges_"+id
 		# Open at terrace connections; rail endpoints meet without blocking the lane.
 		# Rocky crossings cut their gap out of whichever edge passes the seam.
-		_edge_wall_with_gaps(left[i],left[i+1],id=="chase",-normals[i])
-		_edge_wall_with_gaps(right[i],right[i+1],id=="chase",normals[i])
+		_edge_wall_with_gaps(left[i],left[i+1],id=="chase")
+		_edge_wall_with_gaps(right[i],right[i+1],id=="chase")
 		var middle := (points[i]+points[i+1])*.5
 		var outward := (right[i]-left[i]).normalized()
 		if id!="chase":

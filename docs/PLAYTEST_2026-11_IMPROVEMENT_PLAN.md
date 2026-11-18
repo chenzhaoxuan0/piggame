@@ -214,3 +214,4 @@
 
 全量 42 用例九轮迭代终绿（round 9/10/11）；单用例二分归因留痕见 qwentest/test_results/。
 - **round 8（59680d9，导演反馈）**：空气墙逐段与可见护栏同高（石 0.85 可跳上 / 木 1.45/1.7 二段跳），顶面 0.5m 可站；护栏外 6m 可行走草架，跳出不再坠空；道路段传外法线保留溪桥跳缺口；test_guardrail_escape 真实物理钉三处站立。
+- **round 9（导演反馈第二轮）**：外圈草架板整体回滚——板面挡住下山路视野、延伸压路、与既有地形共面闪烁。圈外站立改由山体皮肤本身承担：`_mountainside` 逐格凸板碰撞（rail_kind=SlopeStandable），顶面与视觉 quad 同点采样零浮空；台地轮廓内/CROSSINGS 半径内/陡格（高差>3.5m）排除，溪桥跳缺口契约不变；两段跳空气墙（石 0.85/木 1.45/1.7）原样保留。layout_version 10→11 重烘；test_guardrail_escape 反钉 RailApron=0 + 皮肤相邻性与站立；test_farm_grounds 增栏外射线钉。

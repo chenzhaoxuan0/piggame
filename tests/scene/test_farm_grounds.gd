@@ -25,7 +25,7 @@ func _run() -> void:
 	await physics_frame
 	_check(farm.get_spawn_position()==L.SPAWN,"summit spawn contract")
 	_check(get_nodes_in_group("interactable").size()==8,"eight story interaction targets (5 NPCs + record board + cablecar + pigpen trough)")
-	_check(farm.get_node("PastoralEnvironment").get_meta("layout_version")==10,"mountain bake is current")
+	_check(farm.get_node("PastoralEnvironment").get_meta("layout_version")==11,"mountain bake is current")
 	_check(farm.get_node("PastoralEnvironment").get_script()==null,"runtime uses baked geometry")
 	_check(farm.get_node_or_null("Ground")==null,"old giant flat floor removed")
 	for point in [L.GATE,L.PIG_GATE]:
@@ -79,6 +79,12 @@ func _run() -> void:
 				var point:=points[i].lerp(points[i+1],t)
 				_check(_hit(point+Vector3.UP,point-Vector3.UP*.5),"walkable slope "+id+" segment "+str(i))
 	_check(not _hit(L.CREEK_CENTER+Vector3.UP*.4,L.CREEK_CENTER-Vector3.UP*.8),"creek bridge has a real jump gap")
+	# 2026-11-18 导演反馈第二轮：草架板回滚后，圈外站立由山体皮肤逐格碰撞
+	# （SlopeStandable）承担——牛耕地东栏/羊牧场西栏外的向下射线必须命中皮肤格，
+	# 猪跳出围栏才真的站在可见地形上（马场一侧由运行时草带+playground 用例覆盖）。
+	for outside in [Vector3(99, 25.0, 40), Vector3(-83, 17.0, -40)]:
+		_check(_hit(outside, outside + Vector3.DOWN * 4.0),
+			"slope skin stands outside the fence: " + str(outside))
 	_check(_hit(Vector3(-54,4.6,-154),Vector3(-60,4.6,-154)),"central hay stack blocks straight sprint")
 	_check(_hit(Vector3(-46,2.6,-198),Vector3(-46,2.6,-204)),"second stack forces opposite side")
 	_check(farm.get_node("CabbageBall") is RigidBody3D and farm.get_node("PenCabbageBall") is RigidBody3D,
