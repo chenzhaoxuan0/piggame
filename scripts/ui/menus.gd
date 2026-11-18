@@ -365,10 +365,12 @@ static func _build_pause_menu(host: Node) -> void:
 	btn_restart.custom_minimum_size.y = 44
 	vbox.add_child(btn_restart)
 
-	var btn_main := UI.button("⌂  返回主菜单", host._return_to_main_menu)
-	btn_main.name = "MainMenuButton"
-	btn_main.custom_minimum_size.y = 44
-	vbox.add_child(btn_main)
+	# 2026-11-18 导演反馈：暂停菜单不做「返回主菜单」——主菜单（开场猪圈）
+	# 只属于开机流程，对局中离开就该直接退出游戏。
+	var btn_quit := UI.button("⏻  退出游戏", func(): host.get_tree().quit())
+	btn_quit.name = "QuitGameButton"
+	btn_quit.custom_minimum_size.y = 44
+	vbox.add_child(btn_quit)
 
 static func _build_settings_menu(host: Node) -> void:
 	host.settings_menu = Control.new()

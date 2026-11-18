@@ -16,8 +16,6 @@ const CHASE_STAGE_WINDOW_END := {
 	"chase_2": Vector3(-66, 15, -76),
 	"chase_3": Vector3(-30, 4, -172),
 }
-## 前置伙伴：该段追逐必须先完成对应伙伴的故事（与 office 的守卫一致）。
-const CHASE_STAGE_NPC := {"chase_2": "ox", "chase_3": "sheep"}
 var _chase_trigger_progress: Dictionary = {}
 var _chase_trigger_window_end: Dictionary = {}
 var _terrace_polys: Array[PackedVector2Array] = []
@@ -289,10 +287,10 @@ func _physics_process(delta: float) -> void:
 	if _player.global_position.distance_to(closest.point) < 14.0:
 		_checkpoint = closest.point + Vector3.UP * 0.1
 	# 旅程进度兜底触发（注释见 ChaseTrigger_* 构建处）：每帧只对「未完成、
-	# 不在追逐中、前置伙伴已完成」的段做判定；且猪必须在台地之外（台地是
-	# 啃草/赛跑的安全区）、进度在该段的窗口内（过了羊棚的猪不被 Creek 旧段
-	# 捞回）。守卫未满足时 office 侧会静默拒绝，这里不落 flag——下帧继续，
-	# 直到真正开追。
+	# 不在追逐中」的段做判定；且猪必须在台地之外（台地是啃草/赛跑的安全
+	# 区）、进度在该段的窗口内（过了羊棚的猪不被 Creek 旧段捞回）。追逐与
+	# 伙伴故事互相独立——不检查 NPC 对话完成与否。守卫未满足时 office 侧
+	# 会静默拒绝，这里不落 flag——下帧继续，直到真正开追。
 	if not GameManager.is_in_chase() and GameManager.stage != "showdown" and GameManager.stage != "ending":
 		var pos2 := Vector2(_player.global_position.x, _player.global_position.z)
 		var in_terrace := false
@@ -305,8 +303,6 @@ func _physics_process(delta: float) -> void:
 				if GameManager.chase_completed.get(stage_id, false): continue
 				if closest.progress < _chase_trigger_progress[stage_id]: continue
 				if closest.progress >= _chase_trigger_window_end[stage_id]: continue
-				var npc: String = CHASE_STAGE_NPC.get(stage_id, "")
-				if npc != "" and not GameManager.npc_completed.get(npc, false): continue
 				chase_triggered.emit(stage_id)
 	if not _pipe_entering:
 		if _player.global_position.y < closest.point.y - 7.5 or _player.global_position.y < -5.0:

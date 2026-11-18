@@ -1101,14 +1101,6 @@ func _close_achievements() -> void:
 			if is_instance_valid(achv_btn):
 				achv_btn.grab_focus()
 
-func _return_to_main_menu() -> void:
-	# The opening key-test scene IS the main menu now (it lives in its own
-	# scene so the boot flow can offer the key playground before the dream).
-	paused = false
-	in_settings = false
-	GameManager.pending_boot = ""
-	get_tree().change_scene_to_file("res://scenes/ui/opening_scene.tscn")
-
 func _resume() -> void:
 	paused = false
 	in_settings = false
@@ -1716,11 +1708,9 @@ func _restore_control() -> void:
 func _on_farm_chase_triggered(stage_id: String) -> void:
 	if dialogue_open or cinematic or overlay.visible or GameManager.is_in_chase(): return
 	if GameManager.chase_completed.get(stage_id, false): return
-	
-	# Pre-requisite checks
-	if stage_id == "chase_2" and not GameManager.npc_completed.get("ox", false): return
-	if stage_id == "chase_3" and not GameManager.npc_completed.get("sheep", false): return
-	
+
+	# 2026-11-18 导演反馈：追逐事件与伙伴故事互相独立——走到该段的地方就
+	# 开追，跟有没有跟牛/羊对话无关（旧版的前置检查会静默吞掉整段追逐）。
 	start_stage_chase(stage_id)
 
 func start_stage_chase(stage_id: String) -> void:

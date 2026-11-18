@@ -1,8 +1,8 @@
 extends SceneTree
-## 2026-11-18 导演反馈：护栏可跳（round 8）+ 山坡可走（round 9）之后，猪可以
-## 不走公路——6×6 的路标触发盒被越野绕过，第二/三段追逐不再出现。
-## 钉「旅程进度兜底触发」：任意路线走到该段进度线即触发；前置 NPC 未完成时
-## 不触发、补做后立即触发（迟补仍开追）。
+## 2026-11-18 导演反馈：追逐事件与伙伴故事互相独立——不管有没有跟牛/羊
+## 对话，走到对应的地方就直接开追（旧版的前置 NPC 检查会静默吞掉整段追逐；
+## 护栏可跳 + 山坡可走后越野抄近路更必然撞上）。钉「旅程进度兜底触发」：
+## 越野到进度线即开追、台地安全区豁免、窗口上限防旧段捞回。
 
 var _failures: int = 0
 
@@ -26,7 +26,7 @@ func _run() -> void:
 	office.start_game()
 	await create_timer(0.4).timeout
 	var gm: Node = root.get_node("GameManager")
-	# 序章红选项：拿图钉（has_pin）——没有它 start_stage_chase 对 chase_2+ 一律拒发。
+	# 序章红选项：拿图钉（has_pin）——游戏开局流程的一部分。
 	office.open_dialogue("cliff_goat_intro")
 	await create_timer(0.3).timeout
 	for i in 3:
@@ -39,6 +39,8 @@ func _run() -> void:
 	_check(gm.has_pin and gm.stage == "exploring", "prologue red choice grants the pin (has_pin)")
 	var pig: Node3D = office.player
 	pig.set_control_mode("explore")
+	_check(not gm.npc_completed.get("ox", false) and not gm.npc_completed.get("sheep", false),
+		"no companion story done at all (independent events)")
 
 	# 起手：真实触发处理器开 chase_1，再走真实的过门脱险（GateOxTrigger）。
 	office._on_farm_chase_triggered("chase_1")
@@ -50,16 +52,12 @@ func _run() -> void:
 	_check(gm.stage == "exploring" and gm.chase_completed.chase_1,
 		"ox-gate crossing rescues chase_1 back to exploring")
 
-	# 越野场景 A：猪抄近路到溪谷路以南（远离 6×6 路标盒），先不做牛的故事。
+	# 导演场景原样复现：完全走场外（越野，远离 6×6 路标盒），全程没跟任何
+	# 伙伴对话——走到牛耕地去羊棚的进度线，追逐直接开。
 	pig.global_position = Vector3(44, 21.0, -10)
 	pig.velocity = Vector3.ZERO
 	await _wait_frames(office, 40)
-	_check(gm.stage != "chase_2", "past-threshold off-road without the ox story does NOT arm chase_2 (prerequisite)")
-
-	# 补做牛的故事：下一帧立即补触发——迟到的旅程照样开追。
-	gm.complete_npc("ox")
-	await _wait_frames(office, 20)
-	_check(gm.stage == "chase_2", "completing the ox arms chase_2 off-road (progress fallback)")
+	_check(gm.stage == "chase_2", "off-road past the creek line arms chase_2 with NO dialogue (independent events)")
 	_check(office.chase.running and office.chase._dogs.size() > 0,
 		"chase_2 has real dogs on the pig (%d)" % office.chase._dogs.size())
 
@@ -69,12 +67,11 @@ func _run() -> void:
 	await _wait_frames(office, 15)
 	_check(gm.chase_completed.chase_2, "sheep-gate crossing rescues chase_2")
 
-	# 越野场景 B：羊棚去马场这段同样抄近路（远离 ChaseTrigger_3 的路标盒）。
-	gm.complete_npc("sheep")
+	# 越野场景 B：羊棚去马场这段同样抄近路，也没跟羊对话过。
 	pig.global_position = Vector3(-55, 14.5, -79)
 	pig.velocity = Vector3.ZERO
 	await _wait_frames(office, 30)
-	_check(gm.stage == "chase_3", "chase_3 arms off-road past the woodland threshold (progress fallback)")
+	_check(gm.stage == "chase_3", "chase_3 arms off-road past the woodland threshold (independent events)")
 
 	# chase_3 真实脱险：马门。
 	pig.global_position = Vector3(18, 8, -90)

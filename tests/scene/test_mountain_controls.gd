@@ -60,6 +60,12 @@ func _run() -> void:
 	# point, not at the pre-walk `start` position.
 	_check(office.player.position.distance_to(office.farm._checkpoint)<.5,"recovery returns to the rolling safe point")
 	# Real entry trigger, pause, capture and retry preserve completed companions.
+	# 2026-11-18 追逐独立后：溪桥这一段站在进度线上，chase_2 会如实开追——
+	# 先按真实路径到羊门脱险（stage 回 exploring），再记伙伴进度。
+	office.player.global_position = Vector3(-40, 16, -22)
+	office.player.velocity = Vector3.ZERO
+	for i in 15: await physics_frame
+	_check(game.chase_completed.chase_2, "creek-leg chase rescued at the sheep gate (independent chase)")
 	game.complete_npc("ox")
 	office.player.reset_at(L.RETRY)
 	office.farm._checkpoint=L.RETRY
