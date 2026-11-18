@@ -3,6 +3,10 @@ class_name ChaseDog
 
 signal caught_player
 signal grapple_started(dog: ChaseDog)
+# Phantom dogs announce their dissolve BEFORE the 0.4 s shrink tween: the
+# chase manager drops its ref here (queue_free only lands later), so no
+# consumer is left holding a freed dog in its roster.
+signal dissolved(dog: ChaseDog)
 
 @export var chase_speed: float = 5.4
 @export var lunge_speed: float = 9.2
@@ -159,6 +163,7 @@ func dissolve_phantom() -> void:
 	if _is_dissolving: return
 	_is_dissolving = true
 	active = false
+	dissolved.emit(self)
 	var tween := create_tween()
 	tween.tween_property(_visual, "scale", Vector3.ZERO, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	await tween.finished

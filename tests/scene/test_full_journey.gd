@@ -43,7 +43,10 @@ func _walk_to(point: Vector3) -> void:
 		if office.in_qte:
 			office._on_qte_tapped()
 		for dog in office.chase._dogs:
-			dog_progress=maxf(dog_progress,L.closest_on_path(dog.global_position,L.chase_course()).progress)
+			# 溶解中的幽灵犬在同一物理帧仍可能短暂挂在 _dogs 上——跳过；
+			# 游戏侧遍历（simple_chase）同样带 is_instance_valid 护栏。
+			if is_instance_valid(dog):
+				dog_progress=maxf(dog_progress,L.closest_on_path(dog.global_position,L.chase_course()).progress)
 		var right: Vector3 = office.camera.global_basis.x
 		var back: Vector3 = office.camera.global_basis.z
 		right.y = 0

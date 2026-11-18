@@ -52,6 +52,7 @@ func start_stage(stage_id: String, player: Node3D, config: Dictionary, route_poi
 		dog.chase_speed = speed
 		dog.caught_player.connect(_on_player_caught.bind(dog))
 		dog.grapple_started.connect(_on_dog_grapple)
+		dog.dissolved.connect(_on_dog_dissolved)
 		dog.configure(player, 0.4 + index * 0.3)
 	
 	# Spawn phantom dogs if applicable
@@ -68,6 +69,7 @@ func start_stage(stage_id: String, player: Node3D, config: Dictionary, route_poi
 			_dogs.append(p_dog)
 			p_dog.caught_player.connect(_on_player_caught.bind(p_dog))
 			p_dog.grapple_started.connect(_on_dog_grapple)
+			p_dog.dissolved.connect(_on_dog_dissolved)
 			p_dog.configure(player, 0.6 + p_idx * 0.3)
 
 func can_dog_grapple() -> bool:
@@ -194,6 +196,12 @@ func stop_chase() -> void:
 			dog.queue_free()
 	_dogs.clear()
 
+func _on_dog_dissolved(dog: ChaseDog) -> void:
+	# A discerned phantom melts away on its own clock (queue_free lands 0.4 s
+	# after dissolve_phantom announces) - drop it from the roster at the
+	# announcement so no consumer ever iterates a freed dog.
+	_dogs.erase(dog)
+
 func set_active(enabled: bool) -> void:
 	active = enabled and running
 	for dog: ChaseDog in _dogs:
@@ -247,6 +255,7 @@ func _spawn_ambush_dog(ambush: Dictionary, can_discern: bool) -> void:
 	_dogs.append(dog)
 	dog.caught_player.connect(_on_player_caught.bind(dog))
 	dog.grapple_started.connect(_on_dog_grapple)
+	dog.dissolved.connect(_on_dog_dissolved)
 	dog.configure(_player, 0.45)
 	# Ambush dog lunges forward dynamically from bushes
 	var dir := (_player.global_position - spawn_pos).normalized()
