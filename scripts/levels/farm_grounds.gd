@@ -371,7 +371,7 @@ func set_gate_open(open: bool) -> void:
 func set_pigpen_open(open: bool) -> void:
 	_set_barrier(_pigpen_gate, open)
 
-func _box(parent: Node3D, node_name: String, size: Vector3, pos: Vector3, color: Color, solid: bool = false) -> Node3D:
+func _box(parent: Node3D, node_name: String, size: Vector3, pos: Vector3, color: Color, solid: bool = false, visible_mesh: bool = true) -> Node3D:
 	var root: Node3D
 	if solid:
 		var body := StaticBody3D.new()
@@ -384,13 +384,14 @@ func _box(parent: Node3D, node_name: String, size: Vector3, pos: Vector3, color:
 	root.set_meta("blockout_name", node_name)
 	root.position = pos
 	parent.add_child(root)
-	var mesh := MeshInstance3D.new()
-	mesh.name = "VisualMesh"
-	var box := BoxMesh.new()
-	box.size = size
-	mesh.mesh = box
-	mesh.material_override = _material(color)
-	root.add_child(mesh)
+	if visible_mesh:
+		var mesh := MeshInstance3D.new()
+		mesh.name = "VisualMesh"
+		var box := BoxMesh.new()
+		box.size = size
+		mesh.mesh = box
+		mesh.material_override = _material(color)
+		root.add_child(mesh)
 	if solid:
 		var collision := CollisionShape3D.new()
 		collision.name = "CollisionShape3D"
@@ -1106,14 +1107,19 @@ func _cancel_race(reason: String) -> void:
 # 2026-11-15 实机反馈 #19（A 期）：围栏开出缺口（烘焙侧 CROSSINGS 马场北/
 # 西各一道），圈外贴崖加一圈可行走草带——猪真的能站到围栏外面去了，
 # 首次出圈点亮「越狱惯犯」。坠落本身早已是软重生（回检查点），不再即死。
-const APRON_TOP_Y := 7.70 # 条带顶面 7.95：压在牧场台面(8.0)与皮肤(7.95)之下 5cm，杜绝共面闪烁
+const APRON_TOP_Y := 7.70 # 条带顶面 7.95：与山体皮肤同高，猪踩上来与踩皮肤一致
 var _fence_medal_paid := false
 
 func _build_fence_apron() -> void:
-	# 马场围栏外的崖边环带（北/南/东/西四条），顶面与牧场地面齐平。
-	_box(self, "FenceApronN", Vector3(104, 0.5, 8), Vector3(40, APRON_TOP_Y, -147.4), Color("6F9D62"), true)
-	_box(self, "FenceApronS", Vector3(104, 0.5, 8), Vector3(40, APRON_TOP_Y, -92.6), Color("6F9D62"), true)
-	_box(self, "FenceApronE", Vector3(8, 0.5, 62.8), Vector3(94, APRON_TOP_Y, -120), Color("6F9D62"), true)
+	# 马场围栏外的崖边环带（北/南/东三条），顶面与皮肤齐平。
+	# 2026-11-18 导演反馈：环带的绿色盒面与皮肤（7.95）完全共面——入口必经
+	# 路两侧整条 104m 频闪，观感极差；且东条远端地形已降到 5.6，盒面悬空
+	# 2.3m。layout_version 11 起皮肤本身逐格可站立（round 9），环带的「可行走」
+	# 视觉标记已无意义——三条改为纯碰撞体（节点/传感器/奖章契约不变），
+	# 地面就是皮肤本身，闪烁源头整个消失。
+	_box(self, "FenceApronN", Vector3(104, 0.5, 8), Vector3(40, APRON_TOP_Y, -147.4), Color("6F9D62"), true, false)
+	_box(self, "FenceApronS", Vector3(104, 0.5, 8), Vector3(40, APRON_TOP_Y, -92.6), Color("6F9D62"), true, false)
+	_box(self, "FenceApronE", Vector3(8, 0.5, 62.8), Vector3(94, APRON_TOP_Y, -120), Color("6F9D62"), true, false)
 	_label(self, "FenceApronLabel", "围栏外 · 崖边野草带（缺口可以钻出去）", Vector3(40, 10.4, -147.4), 16)
 	# 出圈判定：宽松——站上任意一条圈外草带即点亮。（西边没有环带：
 	# 下山路的 approach 段贴着牧场西界走，不能盖路面。）
