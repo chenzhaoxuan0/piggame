@@ -2,6 +2,25 @@ extends Node3D
 ## Gameplay roots and interaction state. Terrain is baked from farm_layout.gd.
 signal chase_entered
 signal chase_triggered(stage_id: String)
+
+## 旅程进度兜底触发的两段追逐与其在旅程路径上的基准点（同路标盒位置）。
+## chase_1 不进兜底：出猪圈门的路只有一条，路标盒必经；而自由漫游的猪在
+## 山顶随处都过了它的进度线，兜底反而会把啃草/赛跑拽进追逐。
+const CHASE_STAGE_POINTS := {
+	"chase_2": Vector3(72, 23, 8),
+	"chase_3": Vector3(-66, 15, -76),
+}
+## 窗口上限：追逐段的失效线（chase_2 到羊段进度线为止，chase_3 到终局
+## 赛道入口为止）——过了羊棚再往终局走的猪，不该被 Creek 路的旧追逐捞回。
+const CHASE_STAGE_WINDOW_END := {
+	"chase_2": Vector3(-66, 15, -76),
+	"chase_3": Vector3(-30, 4, -172),
+}
+## 前置伙伴：该段追逐必须先完成对应伙伴的故事（与 office 的守卫一致）。
+const CHASE_STAGE_NPC := {"chase_2": "ox", "chase_3": "sheep"}
+var _chase_trigger_progress: Dictionary = {}
+var _chase_trigger_window_end: Dictionary = {}
+var _terrace_polys: Array[PackedVector2Array] = []
 signal stage_chase_completed(gate_id: String)
 signal secret_pipe_entered(course_id: String)
 signal playground_event(kind: String, detail)
@@ -139,6 +158,23 @@ func _ready() -> void:
 	_area("ChaseTrigger_1", Vector3(0, 31, 78) + Vector3.UP, Vector3(6, 4, 6), _on_stage_chase_trigger.bind("chase_1"))
 	_area("ChaseTrigger_2", Vector3(72, 23, 8) + Vector3.UP, Vector3(6, 4, 6), _on_stage_chase_trigger.bind("chase_2"))
 	_area("ChaseTrigger_3", Vector3(-66, 15, -76) + Vector3.UP, Vector3(6, 4, 6), _on_stage_chase_trigger.bind("chase_3"))
+	# 2026-11-18 导演反馈：路标盒只是追逐触发的快路——护栏可跳（round 8）、
+	# 山坡可走（round 9）之后，猪可以完全不上公路，从牛耕地直接翻栏切山坡去
+	# 羊棚，6×6 的盒被整个绕过，第二/三段追逐就再也不来。以旅程路径进度做
+	# 兜底：任意路线走到该段的进度线即触发（前置 NPC 未完成时不触发，补做
+	# 后下一帧立即补触发；在路上的猪由上面的 Area 先一步触发，进追逐后
+	# is_in_chase 会拦住这里的重复触发）。
+	for stage_id in CHASE_STAGE_POINTS:
+		_chase_trigger_progress[stage_id] = L.closest_on_path(CHASE_STAGE_POINTS[stage_id], L.journey()).progress
+		_chase_trigger_window_end[stage_id] = L.closest_on_path(CHASE_STAGE_WINDOW_END[stage_id], L.journey()).progress
+	# 台地内部是安全活动区（啃草/赛跑/伙伴对话）：兜底触发只在台地之间的
+	# 山坡上生效——猪在台地里时追逐线已经过了也不开追。
+	for terrace in L.TERRACES:
+		var pts: PackedVector2Array = PackedVector2Array()
+		for v in [Vector2(-1,-.78),Vector2(-.83,-1),Vector2(.83,-1),Vector2(1,-.78),Vector2(1,.78),Vector2(.83,1),Vector2(-.83,1),Vector2(-1,.78)]:
+			var q: Vector3 = terrace.center + Vector3(v.x * terrace.half.x, 0, v.y * terrace.half.y)
+			pts.append(Vector2(q.x, q.z))
+		_terrace_polys.append(pts)
 	for point in L.journey():
 		_area("TrailCheckpoint", point + Vector3.UP * 1.5, Vector3(14, 6, 14), _on_checkpoint.bind(point))
 	# Trail signs stand clear of the roadside fences (the jump-log and cablecar
@@ -252,6 +288,26 @@ func _physics_process(delta: float) -> void:
 	var closest := L.closest_on_path(_player.global_position, L.journey())
 	if _player.global_position.distance_to(closest.point) < 14.0:
 		_checkpoint = closest.point + Vector3.UP * 0.1
+	# 旅程进度兜底触发（注释见 ChaseTrigger_* 构建处）：每帧只对「未完成、
+	# 不在追逐中、前置伙伴已完成」的段做判定；且猪必须在台地之外（台地是
+	# 啃草/赛跑的安全区）、进度在该段的窗口内（过了羊棚的猪不被 Creek 旧段
+	# 捞回）。守卫未满足时 office 侧会静默拒绝，这里不落 flag——下帧继续，
+	# 直到真正开追。
+	if not GameManager.is_in_chase() and GameManager.stage != "showdown" and GameManager.stage != "ending":
+		var pos2 := Vector2(_player.global_position.x, _player.global_position.z)
+		var in_terrace := false
+		for poly in _terrace_polys:
+			if Geometry2D.is_point_in_polygon(pos2, poly):
+				in_terrace = true
+				break
+		if not in_terrace:
+			for stage_id in _chase_trigger_progress:
+				if GameManager.chase_completed.get(stage_id, false): continue
+				if closest.progress < _chase_trigger_progress[stage_id]: continue
+				if closest.progress >= _chase_trigger_window_end[stage_id]: continue
+				var npc: String = CHASE_STAGE_NPC.get(stage_id, "")
+				if npc != "" and not GameManager.npc_completed.get(npc, false): continue
+				chase_triggered.emit(stage_id)
 	if not _pipe_entering:
 		if _player.global_position.y < closest.point.y - 7.5 or _player.global_position.y < -5.0:
 			recoveries += 1
