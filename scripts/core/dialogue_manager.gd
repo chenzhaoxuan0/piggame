@@ -186,6 +186,21 @@ var dialogue_tree: Dictionary = {
 		"speaker": "一口猪", "title": "最后一步", "avatar": "",
 		"content": "木吊厢悬在山风里。猪把一路叼着的铜插销对准卡槽。\n\n咔嗒。前面没有食槽，只有旷野。",
 		"options": [{"text": "插入铜插销，出发。", "event": "launch_cablecar", "next": ""}]
+	},
+	# 速通记录数据牌（2026-11-19 速通玩法）：二周目解锁。hub 的 content 与
+	# options 由 get_dialogue_node 按档案纪录与计时状态动态合成。
+	"speedrun_board_locked": {
+		"speaker": "速通记录牌", "title": "蒙尘的牌面", "avatar": "",
+		"content": "牌面蒙着一层灰，边角刻着一行小字：\n「逃出金牌农场一次，再来刷新纪录。」\n\n（速通挑战 · 二周目解锁）",
+		"options": [{"text": "记住这句话。", "next": ""}]
+	},
+	"speedrun_board_hub": {
+		"speaker": "速通记录牌", "title": "速通挑战", "avatar": "",
+		"content": "",
+		"options": [
+			{"text": "开始速通！（世界重置为一局全新开始，3-2-1-GO 开表）", "event": "start_speedrun", "next": ""},
+			{"text": "先离开。", "next": ""}
+		]
 	}
 }
 
@@ -195,13 +210,34 @@ func get_dialogue_node(key: String) -> Dictionary:
 	var node: Dictionary = dialogue_tree.get(key, {}).duplicate(true)
 	# 注入解析后的真实节点 id：对话配音（dialogue_vo）按它对应 assets/audio/vo/{id}.mp3。
 	node["id"] = key
+	if key == "speedrun_board_hub":
+		node["content"] = _speedrun_hub_content()
+		# 计时进行中不再给开赛选项——重开一局等于放弃本轮成绩。
+		if GameManager.speedrun_active:
+			node["options"] = [{"text": "（计时进行中——冲向后山索道！）", "next": ""}]
 	return node
+
+## 速通牌主界面内容：规则 + 档案纪录（最佳 / 最近 5 次）动态合成。
+func _speedrun_hub_content() -> String:
+	var lines := "从这圈泥窝出发，一路奔向后山索道。\n乘上吊厢的那一刻，计时停止。怎么走都算数。\n\n"
+	if GameManager.speedrun_best < 0.0:
+		lines += "最佳纪录：虚位以待"
+	else:
+		lines += "最佳纪录：%s" % GameManager.format_speedrun_time(GameManager.speedrun_best)
+	if not GameManager.speedrun_recent.is_empty():
+		var recent: Array[String] = []
+		for t in GameManager.speedrun_recent:
+			recent.append(GameManager.format_speedrun_time(t))
+		lines += "\n最近 %d 次：%s" % [recent.size(), " / ".join(recent)]
+	return lines
 
 func get_entry_for(interaction_id: String) -> String:
 	match interaction_id:
 		"goat":
 			return "cliff_goat_intro" if GameManager.stage == "prologue" else "goat_after_choice"
 		"record_board": return "inspect_record_board"
+		"speedrun_board":
+			return "speedrun_board_hub" if GameManager.ng_plus else "speedrun_board_locked"
 		"farmer":
 			if GameManager.stage == "showdown": return "ordeal_encounter"
 			if GameManager.stage == "cablecar_ready": return "ordeal_aftermath"

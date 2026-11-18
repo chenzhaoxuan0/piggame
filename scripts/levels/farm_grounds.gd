@@ -50,6 +50,7 @@ var _sheep_tag: Node3D
 var _farmer_baton: Node3D
 var _checkpoint := SPAWN
 var recoveries := 0
+var _speedrun_board_label: Label3D = null
 var _player: Node3D
 var _player_on_pipe := false
 var _pipe_entering := false
@@ -114,6 +115,11 @@ func _ready() -> void:
 		trough_mesh.visible = false
 		trough.add_child(trough_art)
 	_label(trough, "TroughLabel", "食槽 · 按 F / E / K 拱一下", Vector3(0, 1.5, 0), 20)
+
+	# 速通记录数据牌（2026-11-19 速通玩法）：马场纪录牌同款 PROP_06 模型，
+	# 立在猪圈里与食槽关于出生点镜像。档案展示件——reset_world 不动它，
+	# 牌面文字随玩家档案（最佳纪录 / 最近 5 次）刷新。
+	_build_speedrun_board()
 
 	_build_all_gates()
 	_build_road_obstacles()
@@ -373,6 +379,30 @@ func set_npc_completed(id: String) -> void:
 		var tween:=create_tween()
 		tween.tween_property(_npcs[id],"position",L.RESTS[id],.8)
 		_npc_tweens[id]=tween
+
+func _build_speedrun_board() -> void:
+	var board := _interaction("SpeedrunBoard", "speedrun_board", Vector3(-3.6, 32.35, 96.5), Vector3(1.7, 2, .6))
+	board.get_node("CollisionShape3D").position.y = 1
+	board.add_child(ASSETS.make("PROP_06"))
+	_speedrun_board_label = _label(board, "SpeedrunBoardText", "", Vector3(0, 2.5, 0), 22)
+	refresh_speedrun_board()
+
+## 牌面文字随玩家档案刷新：未解锁 / 虚位以待 / 最佳+最近 5 次。
+## 结算（office 的速通收尾）与开局构建都会调它。
+func refresh_speedrun_board() -> void:
+	if _speedrun_board_label == null or not is_instance_valid(_speedrun_board_label):
+		return
+	if GameManager.finished_runs < 1:
+		_speedrun_board_label.text = "速通记录牌 · 未解锁\n（完成一次逃脱后回来开赛）"
+	elif GameManager.speedrun_best < 0.0:
+		_speedrun_board_label.text = "速通挑战 · 虚位以待\n[ F ] 开赛：直奔后山索道！"
+	else:
+		var recent: Array[String] = []
+		for t in GameManager.speedrun_recent:
+			recent.append(GameManager.format_speedrun_time(t))
+		_speedrun_board_label.text = "速通最佳 %s\n近 %d 次：%s\n[ F ] 查看纪录 / 再来一局" % [
+			GameManager.format_speedrun_time(GameManager.speedrun_best),
+			recent.size(), " / ".join(recent)]
 
 func reset_world() -> void:
 	for tween in _npc_tweens.values():

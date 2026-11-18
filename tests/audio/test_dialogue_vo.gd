@@ -28,8 +28,13 @@ func _run() -> void:
 	root.add_child(vo)
 
 	# 1) 每个对话节点一条 VO 文件（FileAccess 兜底，未导入也能查）
+	# 豁免清单：速通记录牌的两个节点（2026-11-19 速通玩法）是数据面板不是
+	# 角色，无配音。日后补 MiniMax TTS（speedrun_board_locked/hub.mp3）即可移出。
+	var vo_exempt: Array[String] = ["speedrun_board_locked", "speedrun_board_hub"]
 	var missing: Array[String] = []
 	for key: String in dialogue.dialogue_tree:
+		if key in vo_exempt:
+			continue
 		if not FileAccess.file_exists("res://assets/audio/vo/%s.mp3" % key):
 			missing.append(key)
 	_check(missing.is_empty(), "Every dialogue node has a VO file (missing: %s)" % ", ".join(missing))
@@ -46,6 +51,8 @@ func _run() -> void:
 	# 3) 导入元数据齐备（--import 之后才为真；缺了真实运行同样播不出声）
 	var unimported: Array[String] = []
 	for key: String in dialogue.dialogue_tree:
+		if key in vo_exempt:
+			continue
 		if not ResourceLoader.exists("res://assets/audio/vo/%s.mp3" % key):
 			unimported.append(key)
 	_check(unimported.is_empty(), "Every VO file is imported & loadable (unimported: %s)" % ", ".join(unimported))

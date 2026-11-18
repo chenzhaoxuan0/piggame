@@ -24,7 +24,12 @@ func _run() -> void:
 	await physics_frame
 	await physics_frame
 	_check(farm.get_spawn_position()==L.SPAWN,"summit spawn contract")
-	_check(get_nodes_in_group("interactable").size()==8,"eight story interaction targets (5 NPCs + record board + cablecar + pigpen trough)")
+	_check(get_nodes_in_group("interactable").size()==9,"nine story interaction targets (5 NPCs + record board + speedrun board + cablecar + pigpen trough)")
+	var speedrun_board: Node3D = farm.get_node_or_null("SpeedrunBoard")
+	_check(speedrun_board != null,"speedrun board exists in the pigpen")
+	_check(speedrun_board != null and str(speedrun_board.get_meta("interaction_id",""))=="speedrun_board","speedrun board carries its interaction id")
+	var board_label: Label3D = speedrun_board.get_node_or_null("SpeedrunBoardText") if speedrun_board != null else null
+	_check(board_label != null and String(board_label.text).contains("速通"),"speedrun board label renders the record text")
 	_check(farm.get_node("PastoralEnvironment").get_meta("layout_version")==11,"mountain bake is current")
 	_check(farm.get_node("PastoralEnvironment").get_script()==null,"runtime uses baked geometry")
 	_check(farm.get_node_or_null("Ground")==null,"old giant flat floor removed")

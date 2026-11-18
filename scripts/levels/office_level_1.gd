@@ -35,6 +35,12 @@ var status: Label
 var prompt: Label
 const DIALOGUE_VO_SCRIPT := preload("res://scripts/core/dialogue_vo.gd")
 var dialogue_vo = null # 对话节点配音：开哪个节点播 assets/audio/vo/{id}.mp3
+# 速通计时器（2026-11-19 速通玩法）复用马场计时赛的时钟件：倒计时 + 顶部
+# TIME 徽章 + stop()/fade_out()。挂在 office 这层而不是 farm——进赛道时
+# farm 会被 remove_child 暂存，计时器必须跨赛道场景存活。
+const RACE_TIMER_SCRIPT := preload("res://scripts/courses/components/race_timer.gd")
+var _speedrun_timer: CanvasLayer = null
+var _speedrun_verdict := "" # 本轮速通成绩行：escape 结局画面追加一行展示后清空
 var dialogue_panel: PanelContainer
 var speaker_label: Label
 var content_label: Label
@@ -151,6 +157,7 @@ func _ready() -> void:
 		farm.playground_event.connect(_on_playground_event)
 		
 	GameManager.state_changed.connect(_refresh_hud)
+	GameManager.state_changed.connect(_on_speedrun_state_changed)
 	if GameManager.has_signal("course_skill_granted"):
 		GameManager.course_skill_granted.connect(_on_course_skill_granted)
 
@@ -1646,6 +1653,11 @@ func _select_option(index: int) -> void:
 			# 2026-11-15 实机反馈 #4/#5：纪录牌对话开赛（马场计时赛）。
 			close_dialogue()
 			ok = farm.begin_race_trial(player)
+		"start_speedrun":
+			# 2026-11-19 速通玩法：猪圈数据牌开赛——重置全新一局，3-2-1-GO
+			# 开表，触发索道逃脱停表。怎么走都算数，不设路线校验。
+			close_dialogue()
+			ok = _begin_speedrun()
 		"complete_showdown":
 			ok = GameManager.complete_showdown()
 			if ok: farm.set_gate_open(true)
@@ -1992,13 +2004,80 @@ func _launch_cablecar() -> void:
 
 func _show_ending() -> void:
 	player.set_control_mode("ending")
+	# 速通成绩行（finish_escape 的 state_changed 在这里之前已把它写好）：
+	# 结局 overlay 全屏覆盖，toast 会被盖住——成绩追加进结局画面才看得见。
+	var speedrun_line := _speedrun_verdict
+	_speedrun_verdict = ""
 	if GameManager.ending == "stay":
 		_show_overlay("安稳的肉馅", "甜料很暖，明早的车还很远。\n\n你选择留在猪圈。也可以再走一次另一条路。", [{"text": "重新选择", "call": _restart}])
 	else:
 		MusicManager.play("ending")
-		_show_overlay("旷野归途", "金牌是农场的，但命是你自己的。\n\n风从麦浪上吹来。前面没有围栏与食槽。", [{"text": "重新出发", "call": _restart}])
+		_show_overlay("旷野归途", "金牌是农场的，但命是你自己的。\n\n风从麦浪上吹来。前面没有围栏与食槽。" + speedrun_line, [{"text": "重新出发", "call": _restart}])
 	ending_art.texture = ART_2D.ENDINGS.get(GameManager.ending)
 	ending_art.visible = ending_art.texture != null
+
+## ===== 速通玩法（2026-11-19）：猪圈数据牌开赛 → 触发索道逃脱停表 =====
+
+func _begin_speedrun() -> bool:
+	if not GameManager.ng_plus or GameManager.speedrun_active:
+		return false
+	if not is_instance_valid(player) or player.control_mode != "explore":
+		return false
+	# 全新一局：局内状态与世界一起重置——圈门重新栓上、NPC/缆车复位、
+	# 红/蓝选择回到未选（重置后的 F 山羊链路自然走到 choice）。
+	GameManager.reset_run()
+	farm.reset_world()
+	player.reset_at(farm.get_spawn_position())
+	player.set_dash_enabled(GameManager.has_dash_skill)
+	player.set_control_mode("cinematic")
+	GameManager.mark_intro_dream_done() # 速通不重演噩梦，待办首项直接划掉
+	GameManager.speedrun_active = true
+	if _speedrun_timer != null and is_instance_valid(_speedrun_timer):
+		_speedrun_timer.queue_free()
+	_speedrun_timer = RACE_TIMER_SCRIPT.new()
+	_speedrun_timer.name = "SpeedrunTimer"
+	add_child(_speedrun_timer)
+	_speedrun_timer.countdown_finished.connect(func():
+		if is_instance_valid(player):
+			player.set_control_mode("explore")
+		_show_toast("速通开始！", "出圈，翻山，穿赛道——乘上后山索道的那一刻计时停止。")
+	)
+	_speedrun_timer.start_countdown()
+	return true
+
+func _on_speedrun_state_changed() -> void:
+	# 唯一停表口径：finish_escape()（ending=="escape"）。蓝线（stay）中止
+	# 且不入档；其余状态变化（选红/伙伴/追逐）与计时无关，直接忽略。
+	if not GameManager.speedrun_active:
+		return
+	if GameManager.ending == "escape" and GameManager.stage == "ending":
+		_finish_speedrun()
+	elif GameManager.ending == "stay":
+		_cancel_speedrun("安稳的结局不在计时赛道上——速通中止，成绩不入档。")
+
+func _finish_speedrun() -> void:
+	GameManager.speedrun_active = false
+	var t := -1.0
+	if _speedrun_timer != null and is_instance_valid(_speedrun_timer):
+		t = _speedrun_timer.stop()
+	if t < 0.0:
+		return
+	var new_best: bool = GameManager.record_speedrun(t)
+	_speedrun_verdict = "\n\n🏃 速通 %s%s" % [GameManager.format_speedrun_time(t), " · 新纪录！" if new_best else ""]
+	if _speedrun_timer != null and is_instance_valid(_speedrun_timer):
+		_speedrun_timer.fade_out(4.0)
+	if is_instance_valid(farm):
+		farm.refresh_speedrun_board()
+
+func _cancel_speedrun(reason: String) -> void:
+	GameManager.speedrun_active = false
+	_speedrun_verdict = ""
+	if _speedrun_timer != null and is_instance_valid(_speedrun_timer):
+		_speedrun_timer.stop()
+		_speedrun_timer.fade_out(1.0)
+	_show_toast("速通中止", reason)
+	if is_instance_valid(farm):
+		farm.refresh_speedrun_board()
 
 func _show_overlay(title: String, body: String, buttons: Array) -> void:
 	ending_art.hide()

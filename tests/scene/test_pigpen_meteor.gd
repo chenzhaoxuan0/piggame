@@ -30,8 +30,8 @@ func _run() -> void:
 	# --- The pen props and the button exist; interactables stay at eight
 	for node_name in ["PenBucket", "PenCabbageBall", "PenHaystack", "MeteorButton"]:
 		_check(farm.get_node_or_null(node_name) != null, "%s is built in the pigpen" % node_name)
-	_check(get_nodes_in_group("interactable").size() == 8,
-		"Pen playthings stay out of the story interactables (still 5 NPCs + board + cablecar + trough)")
+	_check(get_nodes_in_group("interactable").size() == 9,
+		"Pen playthings stay out of the story interactables (still 5 NPCs + boards + cablecar + trough)")
 
 	# --- The pen props wear their Lux3D models (the flat boxes stay as collision
 	# only - the white-box look must not creep back; a null make() fallback fails

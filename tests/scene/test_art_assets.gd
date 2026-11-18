@@ -108,7 +108,7 @@ func _run() -> void:
 	_check(farm.get_node_or_null("CableCarCabin/Deck") == null, "placeholder cabin removed")
 	var ox_art := farm.get_node_or_null("NPC_ox/CHAR_03")
 	_check(ox_art != null and ox_art.visible, "accepted ox model mounted on story body")
-	_check(get_nodes_in_group("interactable").size() == 8, "art keeps interaction roots (incl. the pigpen trough)")
+	_check(get_nodes_in_group("interactable").size() == 9, "art keeps interaction roots (incl. the pigpen trough + speedrun board)")
 	var gate := farm.get_node("Gate")
 	var left := gate.find_child("GateLeft", true, false) as Node3D
 	var right := gate.find_child("GateRight", true, false) as Node3D

@@ -34,7 +34,7 @@ func _run() -> void:
 	_check(farm.get_node_or_null("CabbageBall") != null and farm.get_node_or_null("CabbageGoal") != null,
 		"Cabbage pitch is built (ball + goal)")
 	_check(farm.get_node_or_null("Log_Summit_1") != null, "Summit log obstacle exists")
-	_check(get_nodes_in_group("interactable").size() == 8, "Playground props stay out of the story interactables (5 NPCs + record board + cablecar + pigpen trough)")
+	_check(get_nodes_in_group("interactable").size() == 9, "Playground props stay out of the story interactables (5 NPCs + record board + speedrun board + cablecar + pigpen trough)")
 
 	# --- Apple trees (2026-11-15 playtest #13 + follow-up): the ox field's east
 	# orchard is a baked ENV_09_APPLE batch - EVERY dressing apple tree carries

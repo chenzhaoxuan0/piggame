@@ -129,7 +129,7 @@ func _run() -> void:
 	state.reset_run()
 	_check(not state.has_dash_skill and not state.has_struggle_skill, "Reset clears course loans and earned skills")
 
-	var events: Array[String] = ["choose_red", "choose_blue", "complete_ox", "complete_sheep", "complete_horse", "read_record", "start_race", "complete_showdown", "launch_cablecar"]
+	var events: Array[String] = ["choose_red", "choose_blue", "complete_ox", "complete_sheep", "complete_horse", "read_record", "start_race", "start_speedrun", "complete_showdown", "launch_cablecar"]
 	for key in dialogue.dialogue_tree:
 		var node: Dictionary = dialogue.get_dialogue_node(key)
 		_check(not node.get("options", []).is_empty(), "Dialogue node has a visible exit: " + key)
@@ -140,5 +140,6 @@ func _run() -> void:
 			_check(event == "" or event in events, "Option event is registered: " + key)
 	_check(dialogue.get_dialogue_node("ordeal_aftermath")["options"][0]["next"] == "", "Showdown aftermath must return to exploration")
 	_check(dialogue.get_entry_for("cablecar") == "cablecar_locked", "New game cannot enter ending dialogue from cablecar")
+	_check(dialogue.get_entry_for("speedrun_board") == "speedrun_board_locked", "Fresh profile locks the speedrun board")
 	print("DEMO_STATE_TEST assertions=%d failures=%d" % [assertions, failures])
 	quit(0 if failures == 0 else 1)

@@ -50,6 +50,12 @@ var finished_runs := 0
 var seen_endings := {}
 const DEFAULT_PROGRESS_PATH := "user://run_progress.json"
 var progress_path := DEFAULT_PROGRESS_PATH
+# 速通档案（2026-11-19 速通玩法）：猪圈速通记录牌的最短成绩与最近 5 次。
+# best 为 -1 表示还没有任何纪录；speedrun_active 是"本轮计时进行中"标志，
+# 对话路由（计时中不再给开赛选项）与结局停表都读它。
+var speedrun_best := -1.0
+var speedrun_recent: Array[float] = []
+var speedrun_active := false
 
 func _ready() -> void:
 	# headless（测试进程）不读真实档案：通关型测试写过 run_progress.json 会让
@@ -71,6 +77,12 @@ func _load_persisted_progress() -> void:
 		var endings = parsed.get("seen_endings", {})
 		if endings is Dictionary:
 			seen_endings = endings
+		speedrun_best = float(parsed.get("speedrun_best", -1.0))
+		speedrun_recent.clear()
+		var recent = parsed.get("speedrun_recent", [])
+		if recent is Array:
+			for item in recent:
+				speedrun_recent.append(float(item))
 	ng_plus = finished_runs >= 1
 
 func _persist_progress() -> void:
@@ -80,7 +92,12 @@ func _persist_progress() -> void:
 	var f := FileAccess.open(progress_path, FileAccess.WRITE)
 	if f == null:
 		return
-	f.store_string(JSON.stringify({"finished_runs": finished_runs, "seen_endings": seen_endings}))
+	f.store_string(JSON.stringify({
+		"finished_runs": finished_runs,
+		"seen_endings": seen_endings,
+		"speedrun_best": speedrun_best,
+		"speedrun_recent": speedrun_recent,
+	}))
 	f.close()
 
 ## 结局记档：随档案落盘；两种结局都见过时点亮「两扇门都看过」。
@@ -139,6 +156,10 @@ func reset_profile() -> void:
 	finished_runs = 0
 	seen_endings = {}
 	ng_plus = false
+	# 速通纪录属于玩家档案：重置周目数连它一起清——回到一周目时牌面回到
+	# 「未解锁」，不留悬空在锁定牌面上的旧成绩。
+	speedrun_best = -1.0
+	speedrun_recent.clear()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(progress_path))
 	reset_run()
 
@@ -153,6 +174,7 @@ func reset_run() -> void:
 	ending = ""
 	intro_dream_done = false
 	tutorial_free_roam = false
+	speedrun_active = false
 	clear_course_skills()
 	state_changed.emit()
 
@@ -258,6 +280,25 @@ func finish_escape() -> bool:
 	_note_ending("escape")
 	state_changed.emit()
 	return true
+
+## 速通记档（2026-11-19 速通玩法）：猪圈数据牌开赛 → 触发索道逃脱停表。
+## 用时进最近 5 次（裁掉最旧），更短则刷新最佳，随后落盘。
+## 返回是否刷新了最佳纪录（结局画面与牌面提示用）；负用时直接忽略。
+func record_speedrun(t: float) -> bool:
+	if t < 0.0:
+		return false
+	speedrun_recent.append(t)
+	while speedrun_recent.size() > 5:
+		speedrun_recent.pop_front()
+	var beat := speedrun_best < 0.0 or t < speedrun_best
+	if beat:
+		speedrun_best = t
+	_persist_progress()
+	return beat
+
+## 速通用时格式化（与 race_timer.gd 同款 %02d:%05.2f）：牌面与对话渲染共用。
+func format_speedrun_time(t: float) -> String:
+	return "%02d:%05.2f" % [int(t) / 60, fmod(t, 60.0)]
 
 func select_character(type: CharacterType) -> bool:
 	if not unlocked_characters.get(type, false):
