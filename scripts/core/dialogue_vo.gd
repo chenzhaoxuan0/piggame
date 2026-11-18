@@ -16,6 +16,9 @@ func _ready() -> void:
 	_player = AudioStreamPlayer.new()
 	_player.name = "DialogueVOPlayer"
 	_player.volume_db = VOLUME_DB
+	# 角色对话轨（总线由 MusicManager._ready 统一建线）：录制时可整轨静音，
+	# BGM 与猪叫不受影响。tests/audio/test_audio_tracks.gd 钉住这条接线。
+	_player.bus = "Voice"
 	add_child(_player)
 
 ## 按对话节点 id 播对应配音；换节点时先掐掉上一条。

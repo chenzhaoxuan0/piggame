@@ -472,6 +472,35 @@ static func _build_settings_menu(host: Node) -> void:
 	)
 	content.add_child(toggle_mute)
 
+	# 分轨静音（2026-11-19 录制需求）：对话配音与 BGM 各占一条子总线
+	# （MusicManager._ready 建线），可单独静音——录解说/后期配音时不串音；
+	# 猪叫等操作音效留在 Master，不进这两条轨。
+	var music_node: Node = Engine.get_main_loop().root.get_node_or_null("MusicManager")
+	if music_node != null:
+		var toggle_vo := CheckButton.new()
+		toggle_vo.name = "MuteVoiceToggle"
+		toggle_vo.text = "静音角色对话配音（VO）"
+		toggle_vo.add_theme_font_size_override("font_size", 16)
+		toggle_vo.button_pressed = music_node.track_muted(music_node.VOICE_BUS)
+		toggle_vo.toggled.connect(func(pressed: bool):
+			music_node.set_track_muted(music_node.VOICE_BUS, pressed)
+		)
+		content.add_child(toggle_vo)
+
+		var toggle_bgm := CheckButton.new()
+		toggle_bgm.name = "MuteBGMToggle"
+		toggle_bgm.text = "静音背景音乐（BGM）"
+		toggle_bgm.add_theme_font_size_override("font_size", 16)
+		toggle_bgm.button_pressed = music_node.track_muted(music_node.BGM_BUS)
+		toggle_bgm.toggled.connect(func(pressed: bool):
+			music_node.set_track_muted(music_node.BGM_BUS, pressed)
+		)
+		content.add_child(toggle_bgm)
+
+		var track_hint := UI.label("分轨静音方便录制：两轨互不影响，猪叫等音效始终保留", 12, UI.INK_SOFT)
+		track_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		content.add_child(track_hint)
+
 	# 2026-11-17 实机反馈：周目档案只有通关累加没有出口——加一个彻底重置，
 	# 清掉 finished_runs / seen_endings / NG+ 并回到开场（成就档不受影响）。
 	var btn_reset_week := UI.button("↺  重置周目数（回到一周目，重新开始整个游戏）", func():

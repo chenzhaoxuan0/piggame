@@ -69,13 +69,42 @@ const CREDITS_DATA := [
 	},
 ]
 
+# 分轨静音（2026-11-19 录制需求）：BGM 与角色对话配音各占一条 Master 下的
+# 子总线，设置面板可单独静音某一轨（录解说 / 后期配音时不串音）。总线由
+# autoload 的 _ready 统一创建——全项目最早的接线点，所有播放器接上之前就绪；
+# 不落 .tres 总线布局文件，导出包里也就不存在"新文件没进包"的坑。
+# 猪叫（PigVoice）是跳跃操作音效，留在 Master，不受分轨静音影响。
+const BGM_BUS := "BGM"
+const VOICE_BUS := "Voice"
+
 var _player: AudioStreamPlayer = null
 var _current := ""
 
 func _ready() -> void:
+	_ensure_bus(BGM_BUS)
+	_ensure_bus(VOICE_BUS)
 	_player = AudioStreamPlayer.new()
 	_player.name = "BGMPlayer"
+	_player.bus = BGM_BUS
 	add_child(_player)
+
+func _ensure_bus(bus_name: String) -> void:
+	if AudioServer.get_bus_index(bus_name) == -1:
+		var idx := AudioServer.bus_count
+		AudioServer.add_bus(idx)
+		AudioServer.set_bus_name(idx, bus_name)
+		AudioServer.set_bus_send(idx, "Master")
+
+## 分轨静音开关（设置面板与 tests/audio/test_audio_tracks.gd 共用）。
+## 未知总线静默忽略——缺总线的环境里静音操作不炸。
+func set_track_muted(track: String, muted: bool) -> void:
+	var idx := AudioServer.get_bus_index(track)
+	if idx != -1:
+		AudioServer.set_bus_mute(idx, muted)
+
+func track_muted(track: String) -> bool:
+	var idx := AudioServer.get_bus_index(track)
+	return idx != -1 and AudioServer.is_bus_mute(idx)
 
 func current_id() -> String:
 	return _current
