@@ -219,15 +219,20 @@ func _edge_wall(a: Vector3,b: Vector3,hedge: bool=false,outward: Vector3=Vector3
 	var sides: Array = [outward] if outward != Vector3.ZERO else [side_vector, -side_vector]
 	for s in sides:
 		var sv: Vector3 = s
-		var inner: Vector3 = -sv*0.75
-		var outer: Vector3 = sv*6.25
-		var ta: Vector3 = a+inner-Vector3.UP*0.03
-		var tb: Vector3 = b+inner-Vector3.UP*0.03
-		var tc: Vector3 = b+outer-Vector3.UP*0.03
-		var td: Vector3 = a+outer-Vector3.UP*0.03
-		_convex("RailApron",[ta,tb,tc,td],0.6)
-		_quad(ta,tb,tc,td,GRASS,Vector3.UP)
-		_quad(td,tc,tc-Vector3.UP*0.5,td-Vector3.UP*0.5,GRASS_DARK,sv)
+		# 内侧暗架：顶面低 6cm 埋在地面下（不可见、不 coplanar）。
+		var ia: Vector3 = a-sv*0.75-Vector3.UP*0.06
+		var ib: Vector3 = b-sv*0.75-Vector3.UP*0.06
+		var ic: Vector3 = b-Vector3.UP*0.06
+		var idv: Vector3 = a-Vector3.UP*0.06
+		_convex("RailApron",[ia,ib,ic,idv],0.6)
+		# 外侧草架：顶面与边缘地面齐平——3cm 台阶会把猪困在架子上回不来。
+		var oa: Vector3 = a
+		var ob: Vector3 = b
+		var oc: Vector3 = b+sv*6.25
+		var od: Vector3 = a+sv*6.25
+		_convex("RailApron",[oa,ob,oc,od],0.6)
+		_quad(oa,ob,oc,od,GRASS,Vector3.UP)
+		_quad(od,oc,oc-Vector3.UP*0.5,od-Vector3.UP*0.5,GRASS_DARK,sv)
 
 ## Road-edge wall with the rocky crossings cut out: the span inside a
 ## CROSSINGS zone is skipped entirely (visible fence AND rail convex - the
