@@ -12,7 +12,7 @@ config/name_localized={
 "zh_CN": "一口猪在金牌农场"
 }
 config/description="2.5D 现代田园围城寓言：悬崖边的金牌农场，一口猪的旷野突围！"
-config/version="0.6.0-enriched-farm"
+config/version="0.6.1"
 run/main_scene="res://scenes/ui/boot_farm.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 config/icon="res://icon.svg"
