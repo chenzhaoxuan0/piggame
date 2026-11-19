@@ -201,7 +201,19 @@ func _ready() -> void:
 	reset_world()
 
 func _install_environment() -> void:
+	# Web 规避：烘焙 pastoral_farm.scn 携带 ~1700 个网格实例，超出 Godot 4.3
+	# GLES3/WebGL2 的 per-instance UBO 上限（MAX_UNIFORM_BLOCK_SIZE ~64KB ≈
+	# 1365 实例），溢出后整个场景的 3D 几何绘制静默全灭——创空间页面只剩
+	# 天空没有任何世界（桌面 GL 上限巨大、走 .scn 路径，从未暴露）。
+	# Web 端强制运行时程序化构建，配合 pastoral_environment._tool 的
+	# district 级 batch 合并（~650 实例）安全渲染。
 	var environment: Node3D
+	if OS.has_feature("web"):
+		environment=preload("res://scripts/art/mountain_environment.gd").new()
+		add_child(environment)
+		environment.build(self)
+		preload("res://scripts/art/dressing_batches.gd").restore(environment)
+		return
 	if not "--rebuild-environment" in OS.get_cmdline_user_args() and ResourceLoader.exists("res://assets/environments/pastoral_farm.scn"):
 		environment=load("res://assets/environments/pastoral_farm.scn").instantiate()
 		if environment.get_meta("layout_version",0)!=11:
