@@ -3,9 +3,12 @@ extends SceneTree
 # Run: godot --headless --path . --script tests/scene/test_speedrun_escape.gd
 # 速通直达终点（2026-11-19 实机反馈）回归：
 #   1) 非速通时索道拉杆维持故事门：对话进 cablecar_locked，不发射不改状态；
-#   2) 速通计时中 F 拉杆 = 直接发射逃生，无对决/铁门/铜插销任何前置——
+#   2) 二周目开局猪圈沙盒里，速通牌直接可对话（不需要先找山羊解锁）；
+#      一周目沙盒维持「现在还不能对话」的契约；
+#   3) 从沙盒对话开赛：沙盒解除、标题卡收走、重置为一局全新开始；
+#   4) 速通计时中 F 拉杆 = 直接发射逃生，无对决/铁门/铜插销任何前置——
 #      强制补 stage/has_pin 后 finish_escape 正常记账，停表记档；
-#   3) 倒计时未走完（时钟未开）时 F 不发射——GO 之前不算冲线。
+#   5) 倒计时未走完（时钟未开）时 F 不发射——GO 之前不算冲线。
 var failures: int = 0
 var assertions: int = 0
 
@@ -34,6 +37,7 @@ func _run() -> void:
 	await physics_frame
 	await physics_frame
 	var lever: Node3D = level.farm.get_node("CablecarLever")
+	var board: Node3D = level.farm.get_node("SpeedrunBoard")
 	level.player.set_control_mode("explore")
 
 	# 1) 非速通：拉杆是「尚未就绪」的故事门
@@ -44,18 +48,42 @@ func _run() -> void:
 	_check(state.stage == "prologue" and not state.has_pin, "Locked lever changes no state")
 	level.close_dialogue()
 
-	# 2) 速通：F 拉杆直接发射（无任何前置）
-	level.player.set_control_mode("explore")
-	_check(level._begin_speedrun(), "Speedrun start succeeds on an NG+ profile")
-	_check(state.speedrun_active and state.stage == "prologue",
-		"The speedrun run starts fresh (prologue) with the clock armed")
+	# 2) 开局沙盒：一周目牌子维持「不能对话」契约，二周目直接开对话
+	state.tutorial_free_roam = true
+	state.ng_plus = false
+	level._on_interact(board)
+	await process_frame
+	_check(not level.dialogue_open, "First-run sandbox keeps the no-talk contract on the board")
+	state.ng_plus = true
+	level._on_interact(board)
+	await process_frame
+	_check(level.dialogue_open and level.current_dialogue == "speedrun_board_hub",
+		"NG+ sandbox opens the speedrun hub directly (no goat detour)")
 
-	# 3) 倒计时中 F 不发射（时钟未开）
+	# 3) 对话里选「开始速通」：从沙盒一击开赛
+	var start_index := -1
+	for i in range(level.current_options.size()):
+		if str(level.current_options[i].get("event", "")) == "start_speedrun":
+			start_index = i
+			break
+	_check(start_index >= 0, "The hub offers the start option while the clock is idle")
+	level._select_option(start_index)
+	await process_frame
+	await process_frame
+	_check(state.speedrun_active and state.stage == "prologue",
+		"Starting from the sandbox arms a fresh prologue run")
+	_check(not state.tutorial_free_roam, "Starting the speedrun clears the pen-sandbox flag")
+	_check(level._speedrun_timer != null and is_instance_valid(level._speedrun_timer)
+		and level._speedrun_timer.state == "countdown", "The speedrun clock counts down")
+	_check(not is_instance_valid(level._title_card), "The sandbox title card is dismissed for good")
+
+	# 4) 倒计时中 F 拉杆不发射（时钟未开）
 	level._on_interact(lever)
 	await process_frame
 	_check(not level.cinematic and state.stage == "prologue",
 		"F during the countdown does not launch (clock not started yet)")
 
+	# 5) GO 之后：F 拉杆直接发射（无任何前置）
 	await create_timer(3.6).timeout  # GO 之后（countdown_duration 3.0）
 	level._on_interact(lever)
 	await process_frame

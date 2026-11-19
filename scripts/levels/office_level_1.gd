@@ -1439,6 +1439,14 @@ func _on_interact(target: Node3D) -> void:
 				_skip_prologue_for_ng_plus()
 			else:
 				_begin_dream_from_pigpen()
+		# 2026-11-19 实机反馈：二周目开局沙盒里，速通牌直接可对话——否则要
+		# 「先山羊解锁对话 → 再牌子开赛 → 重置后又得找山羊选红」绕一整圈。
+		# 开赛即重置为一局全新开始（沙盒解除、红蓝回到未选），该和山羊对话
+		# 就和山羊对话，选红出圈跑图一气呵成。一周目维持沙盒契约（提示照旧）。
+		elif id == "speedrun_board" and GameManager.ng_plus:
+			var speedrun_entry: String = DialogueManager.get_entry_for("speedrun_board")
+			if not speedrun_entry.is_empty():
+				open_dialogue(speedrun_entry)
 		else:
 			_show_notice("（现在还不能对话——先在猪圈里把蹄子练开，练累了回窝眯一觉：点左上『开始游戏』，或来找山羊按 [ F ] 入梦。）")
 		return
@@ -2042,6 +2050,12 @@ func _begin_speedrun() -> bool:
 		return false
 	# 全新一局：局内状态与世界一起重置——圈门重新栓上、NPC/缆车复位、
 	# 红/蓝选择回到未选（重置后的 F 山羊链路自然走到 choice）。
+	# 开局沙盒直达（2026-11-19 实机反馈）：从猪圈沙盒直接开赛时，沙盒的
+	# 标题卡/键位条一并收走——否则对话关掉 3 秒后「开始游戏」卡片会淡回，
+	# 挂在速通画面上（_skip_prologue_for_ng_plus 的同款收尾）。
+	if GameManager.tutorial_free_roam:
+		_dismiss_title_card()
+		_hide_key_strip()
 	GameManager.reset_run()
 	farm.reset_world()
 	player.reset_at(farm.get_spawn_position())
