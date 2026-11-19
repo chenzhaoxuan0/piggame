@@ -30,7 +30,14 @@ var _material: ShaderMaterial
 var _farm: Node3D
 
 func _tool(point: Vector3) -> SurfaceTool:
-	var key := "%s_%d_%d" % [_district, floori(point.x / 20), floori(point.z / 20)]
+	# Web（GLES3/WebGL2）实例数上限规避：Compatibility 渲染器的 per-instance
+	# 数据走全局 UBO，WebGL2 的 MAX_UNIFORM_BLOCK_SIZE（典型 64KB）只装得下
+	# ~1300 实例——农场全量 1364+ 网格会触发溢出，之后整个场景的 3D 几何
+	# 绘制静默全灭（只剩天空与 UI；桌面 GL 上限巨大从未暴露）。
+	# 20m cell 分批原为视锥剔除粒度；Web 上合并为 district 级 batch，
+	# 实例数 1364 → ~650，代价是每帧多画视锥外顶点（平涂低模可承受）。
+	# 桌面保持原粒度，culling 行为不变。
+	var key := _district if OS.has_feature("web") else "%s_%d_%d" % [_district, floori(point.x / 20), floori(point.z / 20)]
 	if _district == "PigGateGeometry": key = _district
 	if not _batches.has(key):
 		var surface := SurfaceTool.new()
