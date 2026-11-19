@@ -92,6 +92,16 @@ func play_oneshot(clip: String, rate := 1.15) -> bool:
 
 ## Add a runtime-built clip. loop=true joins the looping set; loop=false makes
 ## it a one-shot usable through play_oneshot().
+## Add a runtime-built clip. loop=true joins the looping set; loop=false makes
+## it a one-shot usable through play_oneshot().
+## 2026-11-19 实机闪退修复：同名片段已在库中时保持既有实例，只补记映射与
+## 循环位——绝不能 remove+re-add。速通开赛会重跑 NPC 生活感（reset_world →
+## _begin_npc_life），此时 plow/mope/guard 正在播放；remove_animation 把播放
+## 中的 Animation 资源释放掉，而 _play 对 clip == _current 早退、不再重新解析
+## 名字，播放器从此踩着悬空指针读轨道数据：BAT（debug 编辑器二进制）在开赛
+## 后 1~2 秒 SIGSEGV（老牛首拍 1 秒空等后开始位移，逼出骨骼求值），导出的
+## release 模板只是恰好没踩坏。幂等跳过对所有调用方语义等价：片段由同一
+## 骨架构建，保留实例与重建实例内容相同。
 func register_clip(clip: String, anim: Animation, loop := true) -> bool:
 	if _player == null or anim == null: return false
 	var key := clip.to_lower()
@@ -99,10 +109,9 @@ func register_clip(clip: String, anim: Animation, loop := true) -> bool:
 	if lib == null:
 		lib = AnimationLibrary.new()
 		_player.add_animation_library("", lib)
-	if lib.has_animation(key):
-		lib.remove_animation(key)
-	anim.loop_mode = Animation.LOOP_LINEAR if loop else Animation.LOOP_NONE
-	lib.add_animation(key, anim)
+	if not lib.has_animation(key):
+		anim.loop_mode = Animation.LOOP_LINEAR if loop else Animation.LOOP_NONE
+		lib.add_animation(key, anim)
 	_clips[key] = key
 	if loop:
 		_loop_clips[key] = true

@@ -1404,6 +1404,23 @@ func _on_interact(target: Node3D) -> void:
 	var target_id := str(target.get_meta("interaction_id", "")) if is_instance_valid(target) else ""
 	var npc_talk_in_chase: bool = GameManager.is_in_chase() and target_id in ["ox", "sheep", "horse", "goat"]
 	if dialogue_open or overlay.visible or cinematic or GameManager.stage == "ending": return
+	# 速通直达终点（2026-11-19 实机反馈）：计时进行中 F 索道拉杆 = 立即发射
+	# 逃生，不需要对决/铁门/铜插销的任何前置——速通的意义就是任意路线抵达
+	# 即冲线（翻墙抄近路也作数）。放在追逐守卫之前：被恶犬追着扑上索道同样
+	# 算到达；追着的狗就地停表同款收场。非速通时维持故事门（cablecar_locked）。
+	if target_id == "cablecar" and GameManager.speedrun_active:
+		# 倒计时未走完（时钟还没开）不算冲线——正常玩法到不了这里，防御
+		# 测试/直调边角：3-2-1 期间 F 直接忽略。
+		if _speedrun_timer != null and is_instance_valid(_speedrun_timer) and _speedrun_timer.state == "countdown":
+			return
+		if GameManager.is_in_chase():
+			chase.stop_chase()
+		if not GameManager.can_launch_cablecar():
+			GameManager.stage = "cablecar_ready"
+			GameManager.has_pin = true
+			GameManager.state_changed.emit()
+		_launch_cablecar()
+		return
 	if GameManager.is_in_chase() and not npc_talk_in_chase: return
 	if not is_instance_valid(target): return
 	var id := str(target.get_meta("interaction_id", ""))

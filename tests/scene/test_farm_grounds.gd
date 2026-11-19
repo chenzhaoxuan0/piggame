@@ -30,6 +30,26 @@ func _run() -> void:
 	_check(speedrun_board != null and str(speedrun_board.get_meta("interaction_id",""))=="speedrun_board","speedrun board carries its interaction id")
 	var board_label: Label3D = speedrun_board.get_node_or_null("SpeedrunBoardText") if speedrun_board != null else null
 	_check(board_label != null and String(board_label.text).contains("速通"),"speedrun board label renders the record text")
+	# 2026-11-19 速通闪退回归：开赛重跑 NPC 生活感（reset_world → _begin_npc_life）
+	# 时，已注册且正在播放的骨骼片段必须保持同一实例——旧实现 remove+re-add
+	# 把播放中的 Animation 释放掉，_play 又对同名片段早退不重新解析，播放器
+	# 踩悬空指针读轨道数据，BAT（debug 二进制）开赛后 1~2 秒 SIGSEGV。
+	var ox_actor: Node = null
+	for found in farm.get_node("NPC_ox").find_children("ActorAnimation", "Node", true, false):
+		ox_actor = found
+		break
+	if ox_actor != null and ox_actor._player != null:
+		var lib: AnimationLibrary = ox_actor._player.get_animation_library("")
+		var plow_before: Animation = lib.get_animation("plow") if lib != null and lib.has_animation("plow") else null
+		await process_frame
+		await process_frame
+		farm.reset_world()
+		await process_frame
+		await process_frame
+		var lib_after: AnimationLibrary = ox_actor._player.get_animation_library("")
+		_check(lib_after != null and lib_after.has_animation("plow"),"NPC bone clip survives a mid-life reset_world")
+		_check(plow_before != null and lib_after != null and lib_after.get_animation("plow") == plow_before,
+			"register_clip keeps the playing Animation instance (speedrun SIGSEGV regression)")
 	_check(farm.get_node("PastoralEnvironment").get_meta("layout_version")==11,"mountain bake is current")
 	_check(farm.get_node("PastoralEnvironment").get_script()==null,"runtime uses baked geometry")
 	_check(farm.get_node_or_null("Ground")==null,"old giant flat floor removed")
