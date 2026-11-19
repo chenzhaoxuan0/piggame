@@ -181,8 +181,12 @@ func _place_lux(id: String, local: Vector3, scale = 1.0, yaw := 0.0) -> void:
 
 func _convex(label: String, top: Array[Vector3], depth: float = .6) -> void:
 	var points := PackedVector3Array()
+	# 顶面四点在前、底面四点在后：交错点序（P0, P0底, P1, P1底…）会让 Godot 4.3
+	# GLES3/WebGL2 路径生成病态凸包，一旦 SteppingStone 进入场景即毒死整个
+	# 场景的几何渲染（桌面 GL 宽容因此从未暴露，Web 端只有天空没有世界）。
 	for p in top:
 		points.append(p)
+	for p in top:
 		points.append(p-Vector3.UP*depth)
 	var body := StaticBody3D.new()
 	body.name = label
