@@ -36,9 +36,22 @@ static func font() -> Font:
 			sys.font_names = PackedStringArray(["Microsoft YaHei", "Noto Sans CJK SC", "Arial"])
 			_font_regular = sys
 		else:
+			var fbs: Array[Font] = []
+			# 桌面优先走系统字体（与历史渲染一致）。Web 端引擎拿不到任何系统字体，
+			# SystemFont 缺字形时 UI 符号/emoji 会渲染成码点豆腐块（如「25B6」），
+			# 因此再挂三个内嵌开源子集字体兜底：文本符号 / emoji / 箭头·数学·带圈数字。
+			# 子集与许可见 assets/fonts/ 与 assets/fonts/licenses/。
 			var fb := SystemFont.new()
 			fb.font_names = PackedStringArray(["Segoe UI Emoji", "Segoe UI Symbol", "Microsoft YaHei", "Noto Sans CJK SC", "Arial"])
-			var fbs: Array[Font] = [fb]
+			fbs.append(fb)
+			for font_path in [
+				"res://assets/fonts/NotoSansSymbols2-GameSubset.ttf",
+				"res://assets/fonts/NotoEmoji-GameSubset.ttf",
+				"res://assets/fonts/DejaVuSans-GameSubset.ttf",
+			]:
+				var extra := load(font_path) as FontFile
+				if extra != null:
+					fbs.append(extra)
 			base.fallbacks = fbs
 			_font_regular = base
 	return _font_regular
