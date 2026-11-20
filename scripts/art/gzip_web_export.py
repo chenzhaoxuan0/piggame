@@ -17,11 +17,25 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 TARGETS = ("index.wasm", "index.pck")
 
 
+def patch_index_js_audio_bus_bug(out_dir: Path) -> None:
+    js_path = out_dir / "index.js"
+    if not js_path.exists():
+        return
+    text = js_path.read_text(encoding="utf-8")
+    bug_target = "if(index!==newBus.getId()){GodotAudio.Bus.move(newBus.getId(),index)}"
+    fixed_target = "if(index!==-1&&index!==newBus.getId()){GodotAudio.Bus.move(newBus.getId(),index)}"
+    if bug_target in text:
+        text = text.replace(bug_target, fixed_target)
+        js_path.write_text(text, encoding="utf-8")
+        print("[patch] index.js: 修复 Godot 4.3 WebAudio SampleBus addAt(-1) 索引环路 Bug")
+
+
 def main() -> int:
     out_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else PROJECT_ROOT / "builds" / "web"
     if not (out_dir / "index.html").exists():
         print(f"未找到 {out_dir / 'index.html'}，先导出 Web Demo 预设")
         return 1
+    patch_index_js_audio_bus_bug(out_dir)
     for name in TARGETS:
         src = out_dir / name
         if not src.exists():

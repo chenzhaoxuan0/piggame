@@ -81,11 +81,16 @@ var _player: AudioStreamPlayer = null
 var _current := ""
 
 func _ready() -> void:
-	_ensure_bus(BGM_BUS)
-	_ensure_bus(VOICE_BUS)
+	# Web 平台规避：单线程 WebAudio 下动态创建 Bus 会因引擎底层把 atPos=-1 传给 JS
+	# 导致 move(id, -1) 反转 Master 索引并形成死循环环路导致整图静音；
+	# 且 WebAudio SampleNode 不响应 Tween 驱动的 volume_db 变化。
+	# 因此 Web 端直接走 Master 单总线并直达 target_db；桌面/测试环境保留分轨以供录制。
+	if not OS.has_feature("web"):
+		_ensure_bus(BGM_BUS)
+		_ensure_bus(VOICE_BUS)
 	_player = AudioStreamPlayer.new()
 	_player.name = "BGMPlayer"
-	_player.bus = BGM_BUS
+	_player.bus = BGM_BUS if AudioServer.get_bus_index(BGM_BUS) != -1 else "Master"
 	add_child(_player)
 
 func _ensure_bus(bus_name: String) -> void:
@@ -138,6 +143,10 @@ func stop() -> void:
 	_current = ""
 	if _player == null or not _player.playing:
 		return
+	if OS.has_feature("web"):
+		_player.stop()
+		_player.volume_db = 0.0
+		return
 	var tween := create_tween()
 	tween.tween_property(_player, "volume_db", SILENT_DB, FADE_OUT)
 	tween.tween_callback(func():
@@ -149,13 +158,22 @@ func stop() -> void:
 func _fade_to(stream: AudioStream, target_db: float) -> void:
 	var apply := func() -> void:
 		_player.stream = stream
-		_player.volume_db = SILENT_DB
-		_player.play()
-		var tween := create_tween()
-		tween.tween_property(_player, "volume_db", target_db, FADE_IN)
+		if OS.has_feature("web"):
+			# Web 平台 WebAudio Samples 模式下，底层 SampleNode 在 play() 瞬间捕获音量，
+			# 且不响应后续由 Tween 驱动的 volume_db 变化。直接以目标音量启播。
+			_player.volume_db = target_db
+			_player.play()
+		else:
+			_player.volume_db = SILENT_DB
+			_player.play()
+			var tween := create_tween()
+			tween.tween_property(_player, "volume_db", target_db, FADE_IN)
 	if _player.playing:
-		var out := create_tween()
-		out.tween_property(_player, "volume_db", SILENT_DB, FADE_OUT)
-		out.tween_callback(apply)
+		if OS.has_feature("web"):
+			apply.call()
+		else:
+			var out := create_tween()
+			out.tween_property(_player, "volume_db", SILENT_DB, FADE_OUT)
+			out.tween_callback(apply)
 	else:
 		apply.call()

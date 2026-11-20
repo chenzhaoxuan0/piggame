@@ -179,17 +179,17 @@ const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
 	try {
 		OrigAC = window.AudioContext || window.webkitAudioContext;
 		if (OrigAC) {
-			window.AudioContext = function (...args) {
-				if (preCtx && !preCtxUsed) {
-					preCtxUsed = true;
-					window.__pigAudioCtx = preCtx;
-					return preCtx;
+			window.AudioContext = class extends OrigAC {
+				constructor(...args) {
+					if (preCtx && !preCtxUsed) {
+						preCtxUsed = true;
+						window.__pigAudioCtx = preCtx;
+						return preCtx;
+					}
+					super(...args);
+					window.__pigAudioCtx = this;
 				}
-				const ctx = new OrigAC(...args);
-				window.__pigAudioCtx = ctx;
-				return ctx;
 			};
-			window.AudioContext.prototype = OrigAC.prototype;
 		}
 	} catch (e) { OrigAC = null; /* 音频兜底失败也不影响游戏 */ }
 
