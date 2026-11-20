@@ -211,18 +211,29 @@ const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
 		} catch (e) {}
 	}, 2000);
 
-	// -- gzip 传输补丁 --
+	// -- gzip 传输补丁 + 构建版本化缓存击穿 --
+	// 静态托管只发 Last-Modified 不发 Cache-Control，浏览器走启发式缓存；
+	// 同名 index.wasm/index.pck 更新后，旧会话可能在新鲜度窗口内一直拿到旧包
+	// （表现为「部署了却还是旧字体/旧逻辑」）。给 fetch URL 挂 ?v=<构建指纹>
+	// （pck+wasm 字节数），构建一变 URL 就变，旧缓存条目自然失效。
 	const CAN_GZIP = typeof DecompressionStream !== 'undefined';
 	window.__pigGz = { on: CAN_GZIP, bytes: 0 };
+	const BUILD_VER = String(
+		(GODOT_CONFIG.fileSizes && GODOT_CONFIG.fileSizes['index.pck'] || 0) + '-' +
+		(GODOT_CONFIG.fileSizes && GODOT_CONFIG.fileSizes['index.wasm'] || 0)
+	);
+	function withVer(url) {
+		return url + (url.indexOf('?') === -1 ? '?' : '&') + 'v=' + BUILD_VER;
+	}
 	if (CAN_GZIP) {
 		const origFetch = window.fetch.bind(window);
 		window.fetch = function (input, init) {
 			const url = typeof input === 'string' ? input : (input && input.url) || '';
 			const target = url.split('/').pop() || '';
 			if ((target === 'index.wasm' || target === 'index.pck')) {
-				return origFetch(url + '.gz').then(function (gzResp) {
+				return origFetch(withVer(url + '.gz')).then(function (gzResp) {
 					if (!gzResp.ok || !gzResp.body) {
-						return origFetch(input, init); // 无 .gz：回退原文件
+						return origFetch(typeof input === 'string' ? withVer(input) : input, init); // 无 .gz：回退原文件
 					}
 					const reportedTotal = Number(GODOT_CONFIG.fileSizes[target] || 0);
 					const mime = target.endsWith('.wasm') ? 'application/wasm' : 'application/octet-stream';
@@ -234,7 +245,7 @@ const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
 					const inflated = gzResp.body.pipeThrough(new DecompressionStream('gzip'));
 					return new Response(inflated, { headers: headers });
 				}).catch(function () {
-					return origFetch(input, init);
+					return origFetch(typeof input === 'string' ? withVer(input) : input, init);
 				});
 			}
 			return origFetch(input, init);
