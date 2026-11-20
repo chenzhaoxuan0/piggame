@@ -152,10 +152,11 @@ const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
 //    index.wasm/index.pck 裸传 480MB。这里把引擎对这两个文件的 fetch
 //    重定向到同名 .gz，用 DecompressionStream 在浏览器端解压；.gz 缺失
 //    或浏览器不支持时自动回退原文件，导出目录两种都带上。
-// 2) 音频：自动播放策略下，引擎启动即创建的 AudioContext 处于挂起态，
-//    表现为「加载完没有声音」。改为点击开始后才 startGame，手势之后
-//    创建的 AudioContext 直接 running（Chrome 按 sticky activation 放行）。
-// 3) window.__pigAudioCtx 暴露引擎的 AudioContext 供线上诊断（无副作用）。
+// 2) 音频：自动播放策略要求 AudioContext 在用户手势里创建。点「开始」时
+//    先把上下文建好（手势内 → running），引擎创建时复用它，并挂 resume
+//    兜底——避免主包加载完才建上下文、被判 suspended 而「游戏在跑却没声音」。
+// 3) window.__pigAudioCtx 暴露引擎的 AudioContext；每 2s 向外层 postMessage
+//    回报音频状态，跨域 iframe（创空间）里也能远程诊断。
 
 (function () {
 	const statusOverlay = document.getElementById('status');
@@ -164,18 +165,51 @@ const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
 	const startBtn = document.getElementById('start-btn');
 	const statusHint = document.getElementById('status-hint');
 
-	// -- 诊断钩子：包一层 AudioContext 构造器 --
+	// ===== 音频上下文：手势内抢先建好，引擎复用同一个 =====
+	// 浏览器的自动播放策略要求 AudioContext 在用户手势里创建，否则会停在
+	// suspended，表现为「游戏在跑、一点声音都没有」。引擎的 AudioContext 是
+	// 在 startGame() 内部、也就是主包加载完之后才建的——那时早已脱离手势，
+	// 跨域 iframe（创空间 Studio）里尤其容易被判成 suspended，音频源建了
+	// 也播不出来。
+	// 所以点「开始」时我们先自己建一个（手势内 → 直接 running），引擎第一次
+	// new AudioContext 时把这个现成的上下文交回去；任何一次交互再 resume 兜底。
+	let preCtx = null;
+	let preCtxUsed = false;
+	let OrigAC = null;
 	try {
-		const OrigAC = window.AudioContext || window.webkitAudioContext;
+		OrigAC = window.AudioContext || window.webkitAudioContext;
 		if (OrigAC) {
-			window.AudioContext = class extends OrigAC {
-				constructor(...args) {
-					super(...args);
-					window.__pigAudioCtx = this;
+			window.AudioContext = function (...args) {
+				if (preCtx && !preCtxUsed) {
+					preCtxUsed = true;
+					window.__pigAudioCtx = preCtx;
+					return preCtx;
 				}
+				const ctx = new OrigAC(...args);
+				window.__pigAudioCtx = ctx;
+				return ctx;
 			};
+			window.AudioContext.prototype = OrigAC.prototype;
 		}
-	} catch (e) { /* 诊断钩子失败不影响游戏 */ }
+	} catch (e) { OrigAC = null; /* 音频兜底失败也不影响游戏 */ }
+
+	function audioState() {
+		const c = window.__pigAudioCtx;
+		return { pig: 'audio', state: c ? c.state : 'none', rate: c ? c.sampleRate : 0 };
+	}
+	function resumeAudio() {
+		const c = window.__pigAudioCtx;
+		if (c && c.state === 'suspended') { c.resume(); }
+	}
+	// 自动播放策略兜底：任何一次交互都尝试解锁
+	window.addEventListener('pointerdown', resumeAudio, true);
+	window.addEventListener('keydown', resumeAudio, true);
+	// 给外层（创空间 iframe / 远程诊断）回报音频上下文状态
+	setInterval(function () {
+		try {
+			if (window.parent !== window) { window.parent.postMessage(audioState(), '*'); }
+		} catch (e) {}
+	}, 2000);
 
 	// -- gzip 传输补丁 --
 	const CAN_GZIP = typeof DecompressionStream !== 'undefined';
@@ -286,6 +320,16 @@ const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
 	}, displayFailureNotice);
 
 	startBtn.addEventListener('click', function () {
+		// 手势内先把 AudioContext 建起来：此刻创建才会直接是 running，
+		// 引擎随后复用它（见上面的 AudioContext 包装）。
+		try {
+			if (!preCtx && OrigAC) {
+				// 采样率对齐引擎的请求（AudioServer 默认混音率 44100），避免引擎拿到
+			// 与预期不同的 rate 后还要回读适配。
+				preCtx = new OrigAC({ sampleRate: 44100 });
+				if (preCtx.state === 'suspended') { preCtx.resume(); }
+			}
+		} catch (e) { preCtx = null; }
 		startBtn.style.display = 'none';
 		statusHint.style.display = 'block';
 		setStatusMode('progress');
@@ -297,6 +341,7 @@ const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
 			setTimeout(function () {
 				const ctx = window.__pigAudioCtx;
 				console.info('[piggame] audio ctx:', ctx ? ctx.state : '未创建');
+				if (ctx && ctx.state === 'suspended') { ctx.resume(); }
 			}, 1000);
 		}, displayFailureNotice);
 	});
