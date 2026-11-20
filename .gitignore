@@ -17,6 +17,8 @@ artifacts/
 *.wasm
 *.html
 *.js
+# ...but the web export shell is source code, not an export artifact
+!scripts/art/*.html
 
 # OS specific ignores
 .DS_Store
