@@ -37,14 +37,19 @@ static func font() -> Font:
 			_font_regular = sys
 		else:
 			var fbs: Array[Font] = []
-			# 桌面优先走系统字体（与历史渲染一致）。Web 端引擎拿不到任何系统字体，
-			# SystemFont 缺字形时 UI 符号/emoji 会渲染成码点豆腐块（如「25B6」），
-			# 因此再挂三个内嵌开源子集字体兜底：文本符号 / emoji / 箭头·数学·带圈数字。
+			# 桌面优先走系统字体（与历史渲染一致，Segoe 的 CBDT 彩色 emoji 照旧）。
+			# Web 端引擎拿不到任何系统字体，SystemFont 缺字形时 UI 符号/emoji 会渲染成
+			# 码点豆腐块（如「25B6」），因此再挂内嵌开源子集字体兜底：
+			# 1) 彩色 emoji（CBDT 位图，与桌面 Segoe 同通道，Web 也能出彩色）；
+			# 2) 文本符号；3) 单色 emoji；4) 箭头/数学/带圈数字。
+			# 注意 Godot 4.3 只支持 CBDT/CBLC 与 SVG 彩色字体，不支持 COLR/CPAL——
+			# 取的是 noto-emoji v2.051 的 CBDT 构建，不是 Google Fonts 现发的 COLRv1 版。
 			# 子集与许可见 assets/fonts/ 与 assets/fonts/licenses/。
 			var fb := SystemFont.new()
 			fb.font_names = PackedStringArray(["Segoe UI Emoji", "Segoe UI Symbol", "Microsoft YaHei", "Noto Sans CJK SC", "Arial"])
 			fbs.append(fb)
 			for font_path in [
+				"res://assets/fonts/NotoColorEmoji-GameSubset.ttf",
 				"res://assets/fonts/NotoSansSymbols2-GameSubset.ttf",
 				"res://assets/fonts/NotoEmoji-GameSubset.ttf",
 				"res://assets/fonts/DejaVuSans-GameSubset.ttf",
