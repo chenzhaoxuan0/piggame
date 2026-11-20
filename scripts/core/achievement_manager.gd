@@ -224,6 +224,11 @@ func _build_popup() -> void:
 	row.add_theme_constant_override("separation", 12)
 	_popup.add_child(row)
 	var medal := UI.label("🏅", 34)
+	# 纯 emoji 文本在回退链上会被 emoji-run 解析跳过位图字体、落到单色轮廓字体
+	# （Web 端弹窗奖牌变线描的根因；混排文本如「🏅 成就」则正常出彩色）。
+	# 奖牌是孤立 emoji，直接挂彩色字体做主字体，桌面/Web 双端稳定金色。
+	medal.add_theme_font_override("font", UI.emoji_font())
+	medal.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(medal)
 	var text := VBoxContainer.new()
 	text.add_theme_constant_override("separation", 2)

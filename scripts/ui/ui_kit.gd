@@ -23,6 +23,7 @@ const SHADOW := Color(0.16, 0.26, 0.24, 0.20)
 
 static var _font_regular: Font
 static var _font_bold: Font
+static var _emoji_font: FontFile
 static var _theme: Theme
 static var _toggle_textures: Dictionary = {}
 
@@ -68,6 +69,14 @@ static func font_bold() -> Font:
 		v.variation_embolden = 0.65
 		_font_bold = v
 	return _font_bold
+
+# 彩色 emoji 字体直引用。孤立纯 emoji 的 Label（前后无其他文字）在回退链上
+# 会被 Godot 的 emoji-run 解析路径跳过位图字体、落到单色轮廓字体（成就弹窗
+# 奖牌变线描的根因），此类场景直接用本字体做主字体即可稳定出彩色。
+static func emoji_font() -> FontFile:
+	if _emoji_font == null:
+		_emoji_font = load("res://assets/fonts/NotoColorEmoji-GameSubset.ttf") as FontFile
+	return _emoji_font
 
 # ------------------------------------------------------------- styleboxes
 
@@ -240,6 +249,12 @@ static func name_tag(text: String, bg: Color = SAGE, text_color: Color = INK, si
 	var p := PanelContainer.new()
 	p.add_theme_stylebox_override("panel", pill(bg, 14, Color.TRANSPARENT, 0, Vector2(14, 3), true))
 	var l := label(text, size, text_color, true)
+	# ZCOOL 的 hhea lineGap 高达 ~0.77em，行高被撑到 1.77 倍字号且空隙全落在
+	# 基线下方——胶囊因此底重顶轻。负 spacing_bottom 按字号比例收紧行尾空隙。
+	var vf := FontVariation.new()
+	vf.base_font = font_bold()
+	vf.spacing_bottom = -int(round(size * 0.55))
+	l.add_theme_font_override("font", vf)
 	p.add_child(l)
 	return p
 

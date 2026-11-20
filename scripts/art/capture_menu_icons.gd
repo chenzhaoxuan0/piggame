@@ -1,5 +1,5 @@
 extends SceneTree
-## 桌面端开始菜单图标渲染对比截图（web/桌面字形一致性诊断，2026-11-20）。
+## 桌面端开始菜单 + 成就弹窗图标渲染对比截图（web/桌面字形一致性诊断）。
 ## 运行（窗口化真机渲染，1280x720，与 capture_ui_refresh_2026 同款纪律）：
 ##   .tools/godot-4.3/Godot_v4.3-stable_win64.exe --path . --script scripts/art/capture_menu_icons.gd
 ## 存档纪律：进度/成就档案先重定向到 throwaway 文件，不写玩家真实 user:// 档案。
@@ -19,11 +19,15 @@ func _run() -> void:
 	game.speedrun_recent.clear()
 	var am: Node = root.get_node("AchievementManager")
 	am.save_path = "user://capture_achievements.json"
+	am.reset_progress(true) # 清掉历史捕获预置的已解锁成就，保证 unlock 能真正弹窗
 
 	# 直连实例（pending_boot 为空）→ 经典开始菜单，与 web 验收同一画面。
 	var node: Node = load("res://scenes/levels/office_level_1.tscn").instantiate()
 	root.add_child(node)
-	await create_timer(2.0).timeout
+	await create_timer(0.5).timeout
+	# 触发真实成就弹窗（弹窗层在菜单之上，2.4s 后淡出，截图窗口内）。
+	am.unlock("nightmare_survivor")
+	await create_timer(1.5).timeout
 	await RenderingServer.frame_post_draw
 	var img := root.get_texture().get_image()
 	var dir := ProjectSettings.globalize_path("res://builds/ui_refresh_2026")
