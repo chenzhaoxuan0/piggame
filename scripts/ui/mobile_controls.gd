@@ -302,7 +302,9 @@ class TouchActionButton extends Control:
 			ev.action = action_name
 			ev.pressed = down
 			ev.strength = 1.0 if down else 0.0
-			Input.parse_input_event(ev)
+			# 不能在 _gui_input 内部同步重入 parse_input_event，否则事件会被
+			# Viewport 吞掉；call_deferred 在当前 GUI 回调退栈后安全派发。
+			Input.parse_input_event.call_deferred(ev)
 		queue_redraw()
 
 	func release_action() -> void:

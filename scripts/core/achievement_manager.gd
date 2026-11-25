@@ -222,6 +222,7 @@ func _build_popup() -> void:
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_popup.add_child(row)
 	var medal := UI.label("🏅", 34)
 	# 纯 emoji 文本在回退链上会被 emoji-run 解析跳过位图字体、落到单色轮廓字体
@@ -229,17 +230,39 @@ func _build_popup() -> void:
 	# 奖牌是孤立 emoji，直接挂彩色字体做主字体，桌面/Web 双端稳定金色。
 	medal.add_theme_font_override("font", UI.emoji_font())
 	medal.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	medal.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(medal)
 	var text := VBoxContainer.new()
-	text.add_theme_constant_override("separation", 2)
+	text.add_theme_constant_override("separation", 6)
+	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(text)
 	var tag := UI.name_tag("成就解锁！", UI.SUNNY, UI.INK, 13)
 	tag.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	text.add_child(tag)
 	_popup_title = UI.label("？", 20, UI.TEAL_DEEP, true)
 	text.add_child(_popup_title)
 	_popup_desc = UI.label("？", 13, UI.INK_SOFT)
 	text.add_child(_popup_desc)
+
+	_sync_popup_position()
+	var mcm := get_node_or_null("/root/MobileControlManager")
+	if mcm != null and mcm.has_signal("touch_controls_changed"):
+		mcm.touch_controls_changed.connect(func(_enabled: bool): _sync_popup_position())
+
+func _sync_popup_position() -> void:
+	if not is_instance_valid(_popup):
+		return
+	var mcm := get_node_or_null("/root/MobileControlManager")
+	var touch_on: bool = mcm != null and mcm.is_touch_controls_active()
+	# 触屏模式避开右下角按键与体力条（~286px）；PC 模式避开右下角体力条（~70px）。
+	var bottom_pad := -298.0 if touch_on else -82.0
+	_popup.reset_size()
+	var min_size := _popup.get_combined_minimum_size()
+	_popup.offset_right = -24.0
+	_popup.offset_left = -24.0 - min_size.x
+	_popup.offset_bottom = bottom_pad
+	_popup.offset_top = bottom_pad - min_size.y
 
 func _pump() -> void:
 	if _showing or _queue.is_empty():
@@ -252,6 +275,7 @@ func _pump() -> void:
 			continue
 		_popup_title.text = str(def["title"])
 		_popup_desc.text = str(def["desc"])
+		_sync_popup_position()
 		var tween := create_tween().set_parallel(true)
 		tween.tween_property(_popup, "modulate:a", 1.0, 0.22)
 		tween.tween_property(_popup, "scale", Vector2.ONE, 0.22).from(Vector2(0.9, 0.9))

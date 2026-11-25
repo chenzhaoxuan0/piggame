@@ -72,18 +72,38 @@ func _run() -> void:
 	_check(level.mobile_controls.btn_dash.visible, "Touch dash button visible in gameplay")
 	_check(level.mobile_controls.btn_pause.visible, "Touch pause/settings button visible in gameplay")
 
-	# 标题卡快捷切换按钮同步
-	var title_touch_btn: Button = level._title_card.find_child("TitleTouchModeButton", true, false)
-	var title_land_btn: Button = level._title_card.find_child("TitleLandscapeModeButton", true, false)
-	_check(title_touch_btn != null and title_land_btn != null, "TitleCard has quick touch & landscape toggle buttons")
-	if title_touch_btn != null:
-		_check(title_touch_btn.text.find("开") >= 0, "TitleTouchModeButton stays synced with MobileControlManager")
+	# 右上角常驻挂件（今日待办 / 键位说明旁）快捷切换按钮同步
+	var hud_touch_btn: Button = level.todo_hub.find_child("HudTouchModeButton", true, false)
+	var hud_land_btn: Button = level.todo_hub.find_child("HudLandscapeModeButton", true, false)
+	_check(hud_touch_btn != null and hud_land_btn != null, "Top-right TodoHub has quick touch & landscape toggle buttons")
+	if hud_touch_btn != null:
+		_check(hud_touch_btn.text.find("开") >= 0, "HudTouchModeButton stays synced with MobileControlManager")
 
-	# 4. 虚拟摇杆驱动 PigController 移动方向
+	# 4. 虚拟摇杆驱动 PigController 移动方向 + 真实点击跳跃按钮触发跳跃而非点击寻路
 	mcm.set_joystick_vector(Vector2(1.0, 0.0))
 	var dir: Vector3 = level.player._keyboard_direction()
 	_check(dir.length() > 0.5, "Virtual joystick vector drives PigController movement direction")
 	mcm.set_joystick_vector(Vector2.ZERO)
+
+	var jump_canvas_pt: Vector2 = level.mobile_controls.btn_jump.get_global_rect().get_center()
+	var jump_win_pt: Vector2 = root.get_final_transform() * jump_canvas_pt
+	var click_down := InputEventMouseButton.new()
+	click_down.button_index = MOUSE_BUTTON_LEFT
+	click_down.pressed = true
+	click_down.position = jump_win_pt
+	click_down.global_position = jump_win_pt
+	Input.parse_input_event(click_down)
+	await process_frame
+	var click_up := InputEventMouseButton.new()
+	click_up.button_index = MOUSE_BUTTON_LEFT
+	click_up.pressed = false
+	click_up.position = jump_win_pt
+	click_up.global_position = jump_win_pt
+	Input.parse_input_event(click_up)
+	await process_frame
+	_check(level.player._jump_buffer > 0.0 or level.player.jumps > 0, "Clicking TouchJumpButton triggers a real jump")
+	_check(not level.player._has_pending_click and not level.player.is_moving,
+		"Clicking TouchJumpButton does NOT fall through to click-to-move")
 
 	# 5. 触屏暂停/设置按钮在猪圈枢纽打开设置菜单
 	level.mobile_controls.btn_pause.pressed.emit()
@@ -110,10 +130,16 @@ func _run() -> void:
 	level._dismiss_qte_for_world_switch()
 	await process_frame
 
-	# 7. 关闭触屏模式后隐藏浮层
+	# 7. 触屏模式下成就弹窗上移避开右下角按键；关闭触屏模式后恢复并隐藏浮层
+	var am = root.get_node_or_null("AchievementManager")
+	if am != null and is_instance_valid(am._popup):
+		_check(am._popup.offset_bottom <= -280, "AchievementPopup shifts above touch buttons when touch mode is ON")
 	mcm.set_touch_controls_enabled(false)
 	mcm.set_landscape_mode("auto")
 	await process_frame
+	if am != null and is_instance_valid(am._popup):
+		_check(am._popup.offset_bottom == -82.0 and am._popup.size.y >= 40.0,
+			"AchievementPopup sits cleanly above DashGauge with non-collapsed height in PC mode")
 	_check(not level.mobile_controls.visible, "MobileControls hides immediately when touch mode toggled OFF")
 
 	level.queue_free()

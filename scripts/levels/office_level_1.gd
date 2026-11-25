@@ -764,34 +764,6 @@ func _build_title_card() -> void:
 	btn_start.name = "TitleStartButton"
 	btn_start.custom_minimum_size.y = 46
 	vbox.add_child(btn_start)
-	var title_buttons: Array[Button] = [btn_start]
-	var mcm_title := get_node_or_null("/root/MobileControlManager")
-	if mcm_title != null:
-		var mobile_row := HBoxContainer.new()
-		mobile_row.name = "QuickMobileRow"
-		mobile_row.add_theme_constant_override("separation", 6)
-		vbox.add_child(mobile_row)
-		var btn_touch := UI.button(mcm_title.touch_mode_label(), mcm_title.toggle_touch_controls)
-		btn_touch.name = "TitleTouchModeButton"
-		btn_touch.custom_minimum_size.y = 34
-		btn_touch.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn_touch.add_theme_font_size_override("font_size", 13)
-		mobile_row.add_child(btn_touch)
-		var btn_land := UI.button(mcm_title.landscape_mode_label(), mcm_title.toggle_landscape_mode)
-		btn_land.name = "TitleLandscapeModeButton"
-		btn_land.custom_minimum_size.y = 34
-		btn_land.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn_land.add_theme_font_size_override("font_size", 13)
-		mobile_row.add_child(btn_land)
-		var sync_title_mobile := func(_unused = null):
-			if is_instance_valid(btn_touch):
-				btn_touch.text = mcm_title.touch_mode_label()
-			if is_instance_valid(btn_land):
-				btn_land.text = mcm_title.landscape_mode_label()
-		mcm_title.touch_controls_changed.connect(sync_title_mobile)
-		mcm_title.landscape_mode_changed.connect(sync_title_mobile)
-		title_buttons.append(btn_touch)
-		title_buttons.append(btn_land)
 	var btn_settings := UI.button("⚙  游戏设置【ESC】", _open_hub_settings)
 	btn_settings.name = "TitleSettingsButton"
 	btn_settings.custom_minimum_size.y = 38
@@ -805,8 +777,7 @@ func _build_title_card() -> void:
 	btn_quit.name = "TitleQuitButton"
 	btn_quit.custom_minimum_size.y = 38
 	vbox.add_child(btn_quit)
-	title_buttons.append_array([btn_settings, btn_achv, btn_quit])
-	for btn in title_buttons:
+	for btn in [btn_start, btn_settings, btn_achv, btn_quit]:
 		btn.focus_mode = Control.FOCUS_NONE # F/Enter/Space belong to the pig, never the card
 	hud.add_child(column)
 	_title_card = column
@@ -1323,6 +1294,13 @@ func _update_mobile_controls() -> void:
 		else:
 			dash_gauge.offset_top = -70
 			dash_gauge.offset_bottom = -25
+	if is_instance_valid(notice_feed):
+		if should_show and not in_qte:
+			notice_feed.offset_top = -600
+			notice_feed.offset_bottom = -310
+		else:
+			notice_feed.offset_top = -540
+			notice_feed.offset_bottom = -210
 
 func _on_mobile_pause_pressed() -> void:
 	if cinematic or GameManager.stage == "ending" or is_instance_valid(_brain_quiz):

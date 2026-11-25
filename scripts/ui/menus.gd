@@ -425,15 +425,9 @@ static func _build_settings_menu(host: Node) -> void:
 	var title := UI.label("游戏设置", 28, UI.TEAL_DEEP, true)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(title)
-	var sub := UI.label("画面 · 声音 · 关卡直达 · 关于", 14, UI.INK_SOFT)
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(sub)
 
 	var sep := HSeparator.new()
 	vbox.add_child(sep)
-	# 2026-11-17 实机反馈：设置项越加越多（画质三档 + 开关组 + 重置周目 +
-	# 关卡直达七连），整卡高度超出屏幕。标题与返回固定，中间内容进滚动区，
-	# 高度封顶为视口的 62%——小屏滚着看，大屏一屏尽收。
 	var scroll := ScrollContainer.new()
 	scroll.name = "SettingsScroll"
 	scroll.custom_minimum_size = Vector2(0, host.get_viewport().get_visible_rect().size.y * 0.72)
@@ -442,16 +436,14 @@ static func _build_settings_menu(host: Node) -> void:
 	vbox.add_child(scroll)
 	var content := VBoxContainer.new()
 	content.name = "SettingsContent"
-	content.add_theme_constant_override("separation", 7)
+	content.add_theme_constant_override("separation", 10)
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(content)
 
-	# 画质档位（2026-11-17 评测新增）：低/中/高三档，即点即生效并持久化。
+	# 画质档位
 	var gm := host.get_node_or_null("/root/GraphicsManager")
 	if gm != null:
-		var quality_tag := UI.name_tag("🎨 画质档位 · QUALITY", UI.SUNNY, UI.INK, 15)
-		quality_tag.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		content.add_child(quality_tag)
+		content.add_child(UI.label("画质档位", 17, UI.TEAL_DEEP, true))
 		var quality_row := HBoxContainer.new()
 		quality_row.name = "QualityRow"
 		quality_row.add_theme_constant_override("separation", 8)
@@ -460,22 +452,30 @@ static func _build_settings_menu(host: Node) -> void:
 		for tier_id in gm.TIERS:
 			var qbtn := UI.button(gm.TIER_NAMES[tier_id], gm.set_tier.bind(tier_id))
 			qbtn.name = "BtnQuality_" + tier_id
-			qbtn.custom_minimum_size = Vector2(160, 34)
+			qbtn.custom_minimum_size = Vector2(160, 36)
 			qbtn.add_theme_font_size_override("font_size", 15)
 			quality_row.add_child(qbtn)
+		var selected_style := UI.pill(UI.SAGE, 24, UI.TEAL, 2, Vector2(16, 6))
+		var unselected_style := UI.pill(Color(UI.PAPER_DEEP, 0.55), 24, UI.PAPER_EDGE, 1, Vector2(16, 6))
+		var hover_unselected := UI.pill(Color(UI.SAGE, 0.45), 24, UI.TEAL, 1, Vector2(16, 6))
 		var refresh_quality := func(_t: String = ""):
 			for tier_id in gm.TIERS:
 				var b: Button = quality_row.get_node("BtnQuality_" + tier_id)
-				b.modulate = Color(1, 1, 1, 1) if gm.tier == tier_id else Color(0.72, 0.72, 0.72, 0.85)
+				var is_active: bool = (gm.tier == tier_id)
+				b.add_theme_stylebox_override("normal", selected_style if is_active else unselected_style)
+				b.add_theme_stylebox_override("hover", selected_style if is_active else hover_unselected)
+				b.add_theme_stylebox_override("focus", selected_style if is_active else hover_unselected)
+				b.add_theme_color_override("font_color", UI.TEAL_DEEP if is_active else UI.INK_SOFT)
+				b.modulate = Color(1, 1, 1, 1)
 		gm.quality_changed.connect(refresh_quality)
 		refresh_quality.call()
-		var quality_hint := UI.label("低：无阴影·降分辨率省电 ／ 中：均衡 ／ 高：4×抗锯齿·远阴影·色彩分级", 12, UI.INK_SOFT)
-		quality_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		content.add_child(quality_hint)
+
+	content.add_child(HSeparator.new())
+	content.add_child(UI.label("画面与操作", 17, UI.TEAL_DEEP, true))
 
 	var toggle_high := CheckButton.new()
 	toggle_high.name = "TestHighCamera"
-	toggle_high.text = "测试用高视角（原高度 / 原视野）"
+	toggle_high.text = "测试用高视角"
 	toggle_high.add_theme_font_size_override("font_size", 16)
 	toggle_high.button_pressed = host.camera.test_high_view
 	toggle_high.toggled.connect(host.camera.set_test_high_view)
@@ -483,7 +483,7 @@ static func _build_settings_menu(host: Node) -> void:
 
 	var toggle_fs := CheckButton.new()
 	toggle_fs.name = "FullscreenToggle"
-	toggle_fs.text = "全屏显示模式"
+	toggle_fs.text = "全屏显示"
 	toggle_fs.add_theme_font_size_override("font_size", 16)
 	toggle_fs.button_pressed = (DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN)
 	toggle_fs.toggled.connect(func(pressed: bool):
@@ -493,13 +493,9 @@ static func _build_settings_menu(host: Node) -> void:
 
 	var mcm_settings := host.get_node_or_null("/root/MobileControlManager")
 	if mcm_settings != null:
-		var mobile_tag := UI.name_tag("📱 移动端与触屏 · MOBILE", UI.SUNNY, UI.INK, 15)
-		mobile_tag.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		content.add_child(mobile_tag)
-
 		var toggle_touch := CheckButton.new()
 		toggle_touch.name = "TouchControlsToggle"
-		toggle_touch.text = "虚拟摇杆与触屏按键（移动端操作模式）"
+		toggle_touch.text = "虚拟摇杆与触屏按键"
 		toggle_touch.add_theme_font_size_override("font_size", 16)
 		toggle_touch.button_pressed = mcm_settings.touch_controls_enabled
 		toggle_touch.toggled.connect(func(pressed: bool):
@@ -513,7 +509,7 @@ static func _build_settings_menu(host: Node) -> void:
 
 		var toggle_land := CheckButton.new()
 		toggle_land.name = "ForceLandscapeToggle"
-		toggle_land.text = "强制横屏显示（竖屏手机 90° 旋转兜底）"
+		toggle_land.text = "强制横屏显示"
 		toggle_land.add_theme_font_size_override("font_size", 16)
 		toggle_land.button_pressed = (mcm_settings.landscape_mode == "force")
 		toggle_land.toggled.connect(func(pressed: bool):
@@ -526,11 +522,14 @@ static func _build_settings_menu(host: Node) -> void:
 		)
 		content.add_child(toggle_land)
 
-		var btn_req_land := UI.button("🔄  尝试进入全屏横屏（Android 浏览器）", mcm_settings.request_native_landscape)
+		var btn_req_land := UI.button("🔄  进入全屏横屏", mcm_settings.request_native_landscape)
 		btn_req_land.name = "RequestLandscapeButton"
 		btn_req_land.custom_minimum_size.y = 36
-		btn_req_land.add_theme_font_size_override("font_size", 14)
+		btn_req_land.add_theme_font_size_override("font_size", 15)
 		content.add_child(btn_req_land)
+
+	content.add_child(HSeparator.new())
+	content.add_child(UI.label("声音", 17, UI.TEAL_DEEP, true))
 
 	var toggle_mute := CheckButton.new()
 	toggle_mute.name = "MuteAudioToggle"
@@ -542,14 +541,11 @@ static func _build_settings_menu(host: Node) -> void:
 	)
 	content.add_child(toggle_mute)
 
-	# 分轨静音（2026-11-19 录制需求）：对话配音与 BGM 各占一条子总线
-	# （MusicManager._ready 建线），可单独静音——录解说/后期配音时不串音；
-	# 猪叫等操作音效留在 Master，不进这两条轨。
 	var music_node: Node = Engine.get_main_loop().root.get_node_or_null("MusicManager")
 	if music_node != null:
 		var toggle_vo := CheckButton.new()
 		toggle_vo.name = "MuteVoiceToggle"
-		toggle_vo.text = "静音角色对话配音（VO）"
+		toggle_vo.text = "静音角色配音"
 		toggle_vo.add_theme_font_size_override("font_size", 16)
 		toggle_vo.button_pressed = music_node.track_muted(music_node.VOICE_BUS)
 		toggle_vo.toggled.connect(func(pressed: bool):
@@ -559,7 +555,7 @@ static func _build_settings_menu(host: Node) -> void:
 
 		var toggle_bgm := CheckButton.new()
 		toggle_bgm.name = "MuteBGMToggle"
-		toggle_bgm.text = "静音背景音乐（BGM）"
+		toggle_bgm.text = "静音背景音乐"
 		toggle_bgm.add_theme_font_size_override("font_size", 16)
 		toggle_bgm.button_pressed = music_node.track_muted(music_node.BGM_BUS)
 		toggle_bgm.toggled.connect(func(pressed: bool):
@@ -567,67 +563,51 @@ static func _build_settings_menu(host: Node) -> void:
 		)
 		content.add_child(toggle_bgm)
 
-		var track_hint := UI.label("分轨静音方便录制：两轨互不影响，猪叫等音效始终保留", 12, UI.INK_SOFT)
-		track_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		content.add_child(track_hint)
+	content.add_child(HSeparator.new())
+	content.add_child(UI.label("关卡直达", 17, UI.TEAL_DEEP, true))
 
-	# 2026-11-17 实机反馈：周目档案只有通关累加没有出口——加一个彻底重置，
-	# 清掉 finished_runs / seen_endings / NG+ 并回到开场（成就档不受影响）。
-	var btn_reset_week := UI.button("↺  重置周目数（回到一周目，重新开始整个游戏）", func():
+	var grid := GridContainer.new()
+	grid.name = "LevelSelectGrid"
+	grid.columns = 1
+	grid.add_theme_constant_override("v_separation", 6)
+	content.add_child(grid)
+
+	var levels: Array[Dictionary] = [
+		{"id": "course_0", "name": "序章：噩梦屠宰场"},
+		{"id": "course_1", "name": "关卡 1：牛耕地"},
+		{"id": "course_2", "name": "关卡 2：溪流"},
+		{"id": "course_3", "name": "关卡 3：林间"},
+		{"id": "course_4", "name": "关卡 4：大院"},
+	]
+
+	for item in levels:
+		var btn := UI.button(item["name"], host._select_level_from_settings.bind(item["id"]))
+		btn.name = "BtnSelect_" + item["id"]
+		btn.custom_minimum_size = Vector2(520, 34)
+		btn.add_theme_font_size_override("font_size", 15)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_child(btn)
+
+	var btn_farm := UI.button("🏡  返回农场主线", host._select_level_from_settings.bind("farm"))
+	btn_farm.name = "BtnSelect_farm"
+	btn_farm.custom_minimum_size.y = 38
+	btn_farm.add_theme_font_size_override("font_size", 15)
+	content.add_child(btn_farm)
+
+	content.add_child(HSeparator.new())
+
+	var btn_reset_week := UI.button("↺  重置周目数", func():
 		var game_reset: Node = Engine.get_main_loop().root.get_node_or_null("GameManager")
 		if game_reset != null and game_reset.has_method("reset_profile"):
 			game_reset.reset_profile()
 		Engine.get_main_loop().change_scene_to_file("res://scenes/ui/boot_farm.tscn")
 	)
 	btn_reset_week.name = "ResetWeekButton"
-	btn_reset_week.custom_minimum_size.y = 40
+	btn_reset_week.custom_minimum_size.y = 38
 	btn_reset_week.add_theme_font_size_override("font_size", 15)
 	content.add_child(btn_reset_week)
 
-	var sep_level := HSeparator.new()
-	content.add_child(sep_level)
-
-	var lvl_tag := UI.name_tag("🚩 关卡直达 · LEVEL SELECT", UI.SUNNY, UI.INK, 15)
-	lvl_tag.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	content.add_child(lvl_tag)
-
-	var lvl_sub := UI.label("点击直接跳转到对应关卡，独立测试玩法与机制", 12, UI.INK_SOFT)
-	lvl_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	content.add_child(lvl_sub)
-
-	var grid := GridContainer.new()
-	grid.name = "LevelSelectGrid"
-	grid.columns = 1
-	grid.add_theme_constant_override("v_separation", 4)
-	content.add_child(grid)
-
-	var levels: Array[Dictionary] = [
-		{"id": "course_0", "name": "序章: 噩梦屠宰场 (困雾逃窜/机关/追逐)"},
-		{"id": "course_1", "name": "关卡 1: 牛耕地 (综艺闯关)"},
-		{"id": "course_2", "name": "关卡 2: 溪流 (体素方块)"},
-		{"id": "course_3", "name": "关卡 3: 林间 (纸箱潜行破幻)"},
-		{"id": "course_4", "name": "关卡 4: 大院 (卡丁冲刺)"},
-	]
-
-	for item in levels:
-		var btn := UI.button(item["name"], host._select_level_from_settings.bind(item["id"]))
-		btn.name = "BtnSelect_" + item["id"]
-		btn.custom_minimum_size = Vector2(520, 32)
-		btn.add_theme_font_size_override("font_size", 15)
-		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		grid.add_child(btn)
-
-	var btn_farm := UI.button("🏡 返回农场主线世界 (自由探索)", host._select_level_from_settings.bind("farm"), true)
-	btn_farm.name = "BtnSelect_farm"
-	btn_farm.custom_minimum_size.y = 36
-	btn_farm.add_theme_font_size_override("font_size", 15)
-	content.add_child(btn_farm)
-
-	var sep2 := HSeparator.new()
-	content.add_child(sep2)
-
-	# 关于游戏：BGM（Kevin MacLeod，CC BY 4.0）等开放素材的署名义务从这里可查。
-	var btn_about := UI.button("📜  关于游戏（BGM 署名与致谢）", host._open_credits_from_settings)
+	var btn_about := UI.button("📜  关于游戏", host._open_credits_from_settings)
 	btn_about.name = "AboutGameButton"
 	btn_about.custom_minimum_size.y = 38
 	btn_about.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -635,5 +615,9 @@ static func _build_settings_menu(host: Node) -> void:
 
 	var btn_back := UI.button("◀  返回", host._close_settings)
 	btn_back.name = "BackButton"
-	btn_back.custom_minimum_size.y = 38
+	btn_back.custom_minimum_size.y = 40
+	btn_back.add_theme_stylebox_override("normal", UI.pill(UI.SAGE, 24, UI.TEAL, 2, Vector2(18, 6), true))
+	btn_back.add_theme_stylebox_override("hover", UI.pill(UI.SAGE_DEEP, 24, UI.TEAL_DEEP, 2, Vector2(18, 6), true))
+	btn_back.add_theme_stylebox_override("pressed", UI.pill(UI.TEAL, 24, UI.TEAL_DEEP, 2, Vector2(18, 6)))
+	btn_back.add_theme_stylebox_override("focus", UI.pill(UI.SAGE, 24, UI.TEAL_DEEP, 2, Vector2(18, 6), true))
 	vbox.add_child(btn_back)

@@ -231,6 +231,30 @@ static func _build_todo_notebook(host: Node) -> void:
 	btn_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hub.add_child(btn_row)
 
+	var mcm := host.get_node_or_null("/root/MobileControlManager")
+	if mcm != null:
+		var touch_btn := UI.button(mcm.touch_mode_label(), mcm.toggle_touch_controls)
+		touch_btn.name = "HudTouchModeButton"
+		touch_btn.custom_minimum_size = Vector2(0, 34)
+		touch_btn.add_theme_font_size_override("font_size", 15)
+		touch_btn.focus_mode = Control.FOCUS_NONE
+		btn_row.add_child(touch_btn)
+
+		var land_btn := UI.button(mcm.landscape_mode_label(), mcm.toggle_landscape_mode)
+		land_btn.name = "HudLandscapeModeButton"
+		land_btn.custom_minimum_size = Vector2(0, 34)
+		land_btn.add_theme_font_size_override("font_size", 15)
+		land_btn.focus_mode = Control.FOCUS_NONE
+		btn_row.add_child(land_btn)
+
+		var sync_hud_mobile := func(_unused = null):
+			if is_instance_valid(touch_btn):
+				touch_btn.text = mcm.touch_mode_label()
+			if is_instance_valid(land_btn):
+				land_btn.text = mcm.landscape_mode_label()
+		mcm.touch_controls_changed.connect(sync_hud_mobile)
+		mcm.landscape_mode_changed.connect(sync_hud_mobile)
+
 	var todo_btn := UI.button("📋 今日待办", host._toggle_todo)
 	todo_btn.name = "TodoToggleButton"
 	todo_btn.custom_minimum_size = Vector2(0, 34)
@@ -341,18 +365,28 @@ static func _build_dash_gauge(host: Node) -> void:
 	host.hud.add_child(host.dash_gauge)
 
 	var capsule := PanelContainer.new()
-	capsule.add_theme_stylebox_override("panel", UI.pill(Color(UI.PAPER, 0.94), 20, UI.PAPER_EDGE, 2, Vector2(14, 8), true))
+	capsule.add_theme_stylebox_override("panel", UI.pill(Color(UI.PAPER, 0.94), 18, UI.PAPER_EDGE, 2, Vector2(14, 6), true))
 	capsule.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	host.dash_gauge.add_child(capsule)
 	var hbox := HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 8)
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	capsule.add_child(hbox)
 
 	var icon := UI.label("⚡", 18, UI.SUNNY, true)
+	# ZCOOL 字体自带较大的底行距，收紧 spacing_bottom 并居中，避免把胶囊往下撑空。
+	var icon_vf := FontVariation.new()
+	icon_vf.base_font = UI.font_bold()
+	icon_vf.spacing_bottom = -10
+	icon.add_theme_font_override("font", icon_vf)
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	hbox.add_child(icon)
 
 	host.dash_bar = UI.progress_bar(3.0, 3.0, UI.SAGE_DEEP, Vector2(130, 14))
+	host.dash_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	host.dash_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hbox.add_child(host.dash_bar)
 
 	host.dash_gauge.visible = false
@@ -371,6 +405,7 @@ static func _build_toast_banner(host: Node) -> void:
 
 	var vbox := VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	host.toast_panel.add_child(vbox)
 
 	host.toast_title = UI.label("", 19, UI.TEAL_DEEP, true)
