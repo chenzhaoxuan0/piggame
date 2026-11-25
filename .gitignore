@@ -47,3 +47,29 @@ assets/models/aholo/_ipc/
 # AI session state
 .zcode/
 .session-export/
+
+# --- Aholo Hackathon 参赛材料（本地留档，不推送 GitHub） ---
+# 报告正文与 20 张交付图提交在本地分支 local/hackathon-report（3 个 commit）；
+# master 只保留本段忽略规则，保证日后 push master 不会把它们带上去。
+/PROJECT_REPORT.md
+/docs/AHOLO_HACKATHON_PROJECT_REPORT.md
+assets/art_references/delivery/*_rendered.png
+assets/art_references/delivery/*_new.png
+assets/art_references/delivery/model_sheet_*.png
+assets/art_references/delivery/farm_shot_*.png
+assets/art_references/delivery/farm_panoramic_overview.png
+assets/art_references/delivery/farm_plan_view.png
+assets/art_references/delivery/farm_summit_to_station.png
+assets/art_references/delivery/protagonist_iteration_combined.png
+scripts/art/build_new_core_sheets.py
+scripts/art/build_report_section4_sheets.py
+scripts/art/stitch_model_sheets.py
+scripts/art/stitch_protagonist_comparison.py
+scripts/art/capture_course_screens.gd
+scripts/art/capture_farm_panoramas.gd
+scripts/art/capture_farm_plan_view.gd
+scripts/art/capture_farm_report_shots.gd
+scripts/art/capture_model_sheets.gd
+scripts/art/capture_ox_reshoot.gd
+scripts/art/capture_ui_refresh_2026.gd
+scripts/art/check_glb_load.gd
