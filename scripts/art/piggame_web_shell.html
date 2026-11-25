@@ -120,6 +120,56 @@ body {
 	color: #b9b3a6;
 	letter-spacing: 0.04em;
 }
+
+/* 移动端竖屏轻提示胶囊（不阻断游戏；可一键切强制横屏或关闭） */
+#rotate-hint {
+	display: none;
+	position: fixed;
+	top: 10px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 20;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 12px;
+	background: rgba(255, 246, 224, 0.94);
+	color: #28525e;
+	border: 2px solid #3e8e9c;
+	border-radius: 999px;
+	box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+	font-family: 'Noto Sans', 'Droid Sans', Arial, sans-serif;
+	font-size: 13px;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+#rotate-hint button {
+	border: none;
+	border-radius: 999px;
+	padding: 4px 10px;
+	font-size: 12px;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+#rotate-force-btn {
+	background: #3e8e9c;
+	color: #fffdf6;
+}
+
+#rotate-dismiss-btn {
+	background: transparent;
+	color: #6e858b;
+	padding: 2px 6px;
+}
+
+body.pig-force-landscape #canvas {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%) rotate(90deg);
+	transform-origin: center center;
+}
 		</style>
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
 <link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
@@ -140,6 +190,12 @@ $GODOT_HEAD_INCLUDE
 			<button id="start-btn" type="button">▶&nbsp; 点击开始</button>
 			<div id="status-hint">正在载入农场，喝口水稍等一下…</div>
 			<div id="status-notice"></div>
+		</div>
+
+		<div id="rotate-hint" role="status" aria-live="polite">
+			<span>📱 横握手机体验更佳</span>
+			<button id="rotate-force-btn" type="button">强制横屏</button>
+			<button id="rotate-dismiss-btn" type="button" aria-label="关闭提示">✕</button>
 		</div>
 
 		<script src="$GODOT_URL"></script>
@@ -164,6 +220,183 @@ const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
 	const statusNotice = document.getElementById('status-notice');
 	const startBtn = document.getElementById('start-btn');
 	const statusHint = document.getElementById('status-hint');
+	const canvas = document.getElementById('canvas');
+	const rotateHint = document.getElementById('rotate-hint');
+	const rotateForceBtn = document.getElementById('rotate-force-btn');
+	const rotateDismissBtn = document.getElementById('rotate-dismiss-btn');
+
+	// ===== 移动端识别 + 三层横屏适配（原生全屏锁横屏 → 竖屏轻提示 → 90° 旋转兜底）=====
+	function detectMobile() {
+		try {
+			const ua = navigator.userAgent || '';
+			const mobileUa = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(ua);
+			const ipadOs = (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+			const coarse = Boolean(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+			return Boolean(mobileUa || ipadOs || (coarse && navigator.maxTouchPoints > 0));
+		} catch (e) {
+			return false;
+		}
+	}
+
+	const IS_MOBILE = detectMobile();
+	const origInnerWidthDesc = Object.getOwnPropertyDescriptor(window, 'innerWidth');
+	const origInnerHeightDesc = Object.getOwnPropertyDescriptor(window, 'innerHeight');
+	const origGetRect = canvas ? canvas.getBoundingClientRect.bind(canvas) : null;
+
+	let landscapeMode = 'auto'; // 'auto' | 'force'
+	let forceRotated = false;
+	let hintDismissed = false;
+	let rawW = window.innerWidth;
+	let rawH = window.innerHeight;
+
+	function readRawSize() {
+		rawW = origInnerWidthDesc && origInnerWidthDesc.get ? origInnerWidthDesc.get.call(window) : document.documentElement.clientWidth;
+		rawH = origInnerHeightDesc && origInnerHeightDesc.get ? origInnerHeightDesc.get.call(window) : document.documentElement.clientHeight;
+	}
+
+	function requestNativeLandscape() {
+		try {
+			const rootEl = document.documentElement;
+			const reqFs = rootEl.requestFullscreen || rootEl.webkitRequestFullscreen;
+			const lockOrientation = function () {
+				try {
+					if (screen.orientation && screen.orientation.lock) {
+						const p = screen.orientation.lock('landscape');
+						if (p && p.catch) { p.catch(function () {}); }
+					}
+				} catch (e) {}
+			};
+			if (reqFs && !document.fullscreenElement && !document.webkitFullscreenElement) {
+				const p = reqFs.call(rootEl);
+				if (p && p.then) {
+					p.then(lockOrientation).catch(lockOrientation);
+				} else {
+					lockOrientation();
+				}
+			} else {
+				lockOrientation();
+			}
+		} catch (e) {}
+	}
+
+	function applyLandscapeLayout() {
+		readRawSize();
+		const isPortrait = rawH > rawW;
+		const wantRotate = (landscapeMode === 'force') && isPortrait;
+		const changed = (wantRotate !== forceRotated);
+		forceRotated = wantRotate;
+
+		if (wantRotate) {
+			document.body.classList.add('pig-force-landscape');
+			try {
+				Object.defineProperty(window, 'innerWidth', { get: function () { return rawH; }, configurable: true });
+				Object.defineProperty(window, 'innerHeight', { get: function () { return rawW; }, configurable: true });
+			} catch (e) {}
+			if (canvas) {
+				canvas.getBoundingClientRect = function () {
+					return { x: 0, y: 0, left: 0, top: 0, width: rawH, height: rawW, right: rawH, bottom: rawW };
+				};
+			}
+		} else {
+			document.body.classList.remove('pig-force-landscape');
+			try {
+				if (origInnerWidthDesc) { Object.defineProperty(window, 'innerWidth', origInnerWidthDesc); }
+				if (origInnerHeightDesc) { Object.defineProperty(window, 'innerHeight', origInnerHeightDesc); }
+			} catch (e) {}
+			if (canvas && origGetRect) {
+				canvas.getBoundingClientRect = origGetRect;
+			}
+		}
+
+		if (rotateHint) {
+			const showHint = IS_MOBILE && isPortrait && !forceRotated && !hintDismissed && !initializing;
+			rotateHint.style.display = showHint ? 'flex' : 'none';
+		}
+
+		if (changed) {
+			window.dispatchEvent(new Event('resize'));
+		}
+	}
+
+	// 90° 顺时针旋转兜底下的触控/指针坐标映射：(px, py) -> (py, rawW - px)
+	function patchCoordObj(obj) {
+		if (!obj || obj.__pigMapped) { return; }
+		const px = obj.clientX;
+		const py = obj.clientY;
+		if (typeof px !== 'number' || typeof py !== 'number') { return; }
+		const lx = py;
+		const ly = rawW - px;
+		try {
+			Object.defineProperty(obj, 'clientX', { value: lx, configurable: true });
+			Object.defineProperty(obj, 'clientY', { value: ly, configurable: true });
+			Object.defineProperty(obj, 'pageX', { value: lx, configurable: true });
+			Object.defineProperty(obj, 'pageY', { value: ly, configurable: true });
+			obj.__pigMapped = true;
+		} catch (e) {}
+	}
+
+	function remapInputForRotation(evt) {
+		if (!forceRotated) { return; }
+		if (evt.touches || evt.changedTouches) {
+			const lists = [evt.touches, evt.changedTouches, evt.targetTouches];
+			for (let i = 0; i < lists.length; i++) {
+				const list = lists[i];
+				if (!list) { continue; }
+				for (let j = 0; j < list.length; j++) {
+					patchCoordObj(list[j]);
+				}
+			}
+		} else {
+			patchCoordObj(evt);
+		}
+	}
+
+	if (canvas) {
+		['touchstart', 'touchmove', 'touchend', 'touchcancel', 'mousedown', 'mousemove', 'mouseup', 'pointerdown', 'pointermove', 'pointerup'].forEach(function (type) {
+			canvas.addEventListener(type, remapInputForRotation, true);
+		});
+	}
+
+	window.addEventListener('resize', function () {
+		const prevW = rawW;
+		const prevH = rawH;
+		readRawSize();
+		if (rawW !== prevW || rawH !== prevH) {
+			applyLandscapeLayout();
+		}
+	});
+	window.addEventListener('orientationchange', function () {
+		setTimeout(applyLandscapeLayout, 120);
+	});
+
+	if (rotateForceBtn) {
+		rotateForceBtn.addEventListener('click', function () {
+			window.__pigMobile.setLandscapeMode('force');
+		});
+	}
+	if (rotateDismissBtn) {
+		rotateDismissBtn.addEventListener('click', function () {
+			hintDismissed = true;
+			if (rotateHint) { rotateHint.style.display = 'none'; }
+		});
+	}
+
+	window.__pigMobile = {
+		isMobile: IS_MOBILE,
+		get landscapeMode() { return landscapeMode; },
+		requestLandscape: requestNativeLandscape,
+		setLandscapeMode: function (mode) {
+			landscapeMode = (mode === 'force') ? 'force' : 'auto';
+			if (landscapeMode === 'force') {
+				requestNativeLandscape();
+			}
+			applyLandscapeLayout();
+		},
+		dismissRotateHint: function () {
+			hintDismissed = true;
+			applyLandscapeLayout();
+		},
+	};
 
 	// ===== 音频上下文：手势内抢先建好，引擎复用同一个 =====
 	// 浏览器的自动播放策略要求 AudioContext 在用户手势里创建，否则会停在
@@ -331,6 +564,10 @@ const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
 	}, displayFailureNotice);
 
 	startBtn.addEventListener('click', function () {
+		// 移动端点击开始手势内顺带尝试全屏锁横屏（浏览器仅允许手势内调用）
+		if (IS_MOBILE) {
+			requestNativeLandscape();
+		}
 		// 手势内先把 AudioContext 建起来：此刻创建才会直接是 running，
 		// 引擎随后复用它（见上面的 AudioContext 包装）。
 		try {
@@ -348,6 +585,7 @@ const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
 			'onProgress': onProgress,
 		}).then(function () {
 			setStatusMode('hidden');
+			applyLandscapeLayout();
 			// 留一条诊断线索：1 秒后音频上下文应处于 running。
 			setTimeout(function () {
 				const ctx = window.__pigAudioCtx;

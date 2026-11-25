@@ -264,6 +264,35 @@ static func _build_start_menu(host: Node) -> void:
 	btn_settings.custom_minimum_size.y = 48
 	vbox.add_child(btn_settings)
 
+	var mcm_start := host.get_node_or_null("/root/MobileControlManager")
+	if mcm_start != null:
+		var mobile_row := HBoxContainer.new()
+		mobile_row.name = "QuickMobileRow"
+		mobile_row.add_theme_constant_override("separation", 8)
+		vbox.add_child(mobile_row)
+
+		var btn_touch := UI.button(mcm_start.touch_mode_label(), mcm_start.toggle_touch_controls)
+		btn_touch.name = "StartTouchModeButton"
+		btn_touch.custom_minimum_size.y = 38
+		btn_touch.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn_touch.add_theme_font_size_override("font_size", 14)
+		mobile_row.add_child(btn_touch)
+
+		var btn_land := UI.button(mcm_start.landscape_mode_label(), mcm_start.toggle_landscape_mode)
+		btn_land.name = "StartLandscapeModeButton"
+		btn_land.custom_minimum_size.y = 38
+		btn_land.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn_land.add_theme_font_size_override("font_size", 14)
+		mobile_row.add_child(btn_land)
+
+		var sync_start_mobile := func(_unused = null):
+			if is_instance_valid(btn_touch):
+				btn_touch.text = mcm_start.touch_mode_label()
+			if is_instance_valid(btn_land):
+				btn_land.text = mcm_start.landscape_mode_label()
+		mcm_start.touch_controls_changed.connect(sync_start_mobile)
+		mcm_start.landscape_mode_changed.connect(sync_start_mobile)
+
 	var btn_achv := UI.button("🏅  成就墙", host._open_achievements.bind(true))
 	btn_achv.name = "AchievementsButton"
 	btn_achv.custom_minimum_size.y = 44
@@ -461,6 +490,47 @@ static func _build_settings_menu(host: Node) -> void:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if pressed else DisplayServer.WINDOW_MODE_WINDOWED)
 	)
 	content.add_child(toggle_fs)
+
+	var mcm_settings := host.get_node_or_null("/root/MobileControlManager")
+	if mcm_settings != null:
+		var mobile_tag := UI.name_tag("📱 移动端与触屏 · MOBILE", UI.SUNNY, UI.INK, 15)
+		mobile_tag.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		content.add_child(mobile_tag)
+
+		var toggle_touch := CheckButton.new()
+		toggle_touch.name = "TouchControlsToggle"
+		toggle_touch.text = "虚拟摇杆与触屏按键（移动端操作模式）"
+		toggle_touch.add_theme_font_size_override("font_size", 16)
+		toggle_touch.button_pressed = mcm_settings.touch_controls_enabled
+		toggle_touch.toggled.connect(func(pressed: bool):
+			mcm_settings.set_touch_controls_enabled(pressed)
+		)
+		mcm_settings.touch_controls_changed.connect(func(enabled: bool):
+			if is_instance_valid(toggle_touch) and toggle_touch.button_pressed != enabled:
+				toggle_touch.set_pressed_no_signal(enabled)
+		)
+		content.add_child(toggle_touch)
+
+		var toggle_land := CheckButton.new()
+		toggle_land.name = "ForceLandscapeToggle"
+		toggle_land.text = "强制横屏显示（竖屏手机 90° 旋转兜底）"
+		toggle_land.add_theme_font_size_override("font_size", 16)
+		toggle_land.button_pressed = (mcm_settings.landscape_mode == "force")
+		toggle_land.toggled.connect(func(pressed: bool):
+			mcm_settings.set_landscape_mode("force" if pressed else "auto")
+		)
+		mcm_settings.landscape_mode_changed.connect(func(mode: String):
+			var want := (mode == "force")
+			if is_instance_valid(toggle_land) and toggle_land.button_pressed != want:
+				toggle_land.set_pressed_no_signal(want)
+		)
+		content.add_child(toggle_land)
+
+		var btn_req_land := UI.button("🔄  尝试进入全屏横屏（Android 浏览器）", mcm_settings.request_native_landscape)
+		btn_req_land.name = "RequestLandscapeButton"
+		btn_req_land.custom_minimum_size.y = 36
+		btn_req_land.add_theme_font_size_override("font_size", 14)
+		content.add_child(btn_req_land)
 
 	var toggle_mute := CheckButton.new()
 	toggle_mute.name = "MuteAudioToggle"

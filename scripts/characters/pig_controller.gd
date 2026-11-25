@@ -437,6 +437,9 @@ func _cancel_destination() -> void:
 
 func _keyboard_direction() -> Vector3:
 	var axis: Vector2 = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	var mcm: Node = get_node_or_null("/root/MobileControlManager")
+	if mcm != null and mcm.joystick_vector.length_squared() > 0.001:
+		axis = mcm.joystick_vector.limit_length(1.0)
 	if axis.length_squared() < 0.001:
 		return Vector3.ZERO
 	if not is_instance_valid(camera):

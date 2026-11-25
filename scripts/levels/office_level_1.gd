@@ -96,6 +96,7 @@ var toast_title: Label
 var toast_desc: Label
 var dash_gauge: Control
 var dash_bar: ProgressBar
+var mobile_controls: Control = null
 
 # 右下角触发通知流（彩蛋台词、技能解锁/借得通知的屏幕端统一出口）
 var notice_feed: VBoxContainer
@@ -763,6 +764,34 @@ func _build_title_card() -> void:
 	btn_start.name = "TitleStartButton"
 	btn_start.custom_minimum_size.y = 46
 	vbox.add_child(btn_start)
+	var title_buttons: Array[Button] = [btn_start]
+	var mcm_title := get_node_or_null("/root/MobileControlManager")
+	if mcm_title != null:
+		var mobile_row := HBoxContainer.new()
+		mobile_row.name = "QuickMobileRow"
+		mobile_row.add_theme_constant_override("separation", 6)
+		vbox.add_child(mobile_row)
+		var btn_touch := UI.button(mcm_title.touch_mode_label(), mcm_title.toggle_touch_controls)
+		btn_touch.name = "TitleTouchModeButton"
+		btn_touch.custom_minimum_size.y = 34
+		btn_touch.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn_touch.add_theme_font_size_override("font_size", 13)
+		mobile_row.add_child(btn_touch)
+		var btn_land := UI.button(mcm_title.landscape_mode_label(), mcm_title.toggle_landscape_mode)
+		btn_land.name = "TitleLandscapeModeButton"
+		btn_land.custom_minimum_size.y = 34
+		btn_land.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn_land.add_theme_font_size_override("font_size", 13)
+		mobile_row.add_child(btn_land)
+		var sync_title_mobile := func(_unused = null):
+			if is_instance_valid(btn_touch):
+				btn_touch.text = mcm_title.touch_mode_label()
+			if is_instance_valid(btn_land):
+				btn_land.text = mcm_title.landscape_mode_label()
+		mcm_title.touch_controls_changed.connect(sync_title_mobile)
+		mcm_title.landscape_mode_changed.connect(sync_title_mobile)
+		title_buttons.append(btn_touch)
+		title_buttons.append(btn_land)
 	var btn_settings := UI.button("⚙  游戏设置【ESC】", _open_hub_settings)
 	btn_settings.name = "TitleSettingsButton"
 	btn_settings.custom_minimum_size.y = 38
@@ -776,7 +805,8 @@ func _build_title_card() -> void:
 	btn_quit.name = "TitleQuitButton"
 	btn_quit.custom_minimum_size.y = 38
 	vbox.add_child(btn_quit)
-	for btn in [btn_start, btn_settings, btn_achv, btn_quit]:
+	title_buttons.append_array([btn_settings, btn_achv, btn_quit])
+	for btn in title_buttons:
 		btn.focus_mode = Control.FOCUS_NONE # F/Enter/Space belong to the pig, never the card
 	hud.add_child(column)
 	_title_card = column
@@ -1261,8 +1291,66 @@ func _hide_key_strip() -> void:
 	if is_instance_valid(key_strip):
 		key_strip.visible = false
 
+func _update_mobile_controls() -> void:
+	if not is_instance_valid(mobile_controls):
+		return
+	var mcm := get_node_or_null("/root/MobileControlManager")
+	var touch_on: bool = mcm != null and mcm.is_touch_controls_active()
+	var battle_on: bool = is_instance_valid(pokemon_battle) and pokemon_battle.battle_active
+	var achv_on: bool = is_instance_valid(achievements_menu) and achievements_menu.visible
+	var credits_on: bool = is_instance_valid(credits_panel) and credits_panel.visible
+	var quiz_on: bool = is_instance_valid(_brain_quiz)
+	var blocked: bool = in_start_menu or paused or in_settings or dialogue_open \
+		or (is_instance_valid(overlay) and overlay.visible and not paused) \
+		or cinematic or battle_on or achv_on or credits_on or quiz_on
+	var should_show: bool = touch_on and (in_qte or not blocked)
+	var interact_name := ""
+	if should_show and not in_qte and is_instance_valid(player):
+		var target := player.get_nearest_interactable()
+		if is_instance_valid(target):
+			var id: String = str(target.get_meta("interaction_id", ""))
+			var names := {
+				"goat": "老岩羊", "ox": "老牛", "sheep": "小羊", "horse": "追风",
+				"farmer": "农场主", "record_board": "纪录牌", "cablecar": "索道",
+				"trough": "食槽", "speedrun_board": "速通牌"
+			}
+			interact_name = str(names.get(id, "交互"))
+	mobile_controls.set_gameplay_state(should_show, in_qte, interact_name, is_instance_valid(_title_card))
+	if is_instance_valid(dash_gauge):
+		if should_show and not in_qte:
+			dash_gauge.offset_top = -286
+			dash_gauge.offset_bottom = -241
+		else:
+			dash_gauge.offset_top = -70
+			dash_gauge.offset_bottom = -25
+
+func _on_mobile_pause_pressed() -> void:
+	if cinematic or GameManager.stage == "ending" or is_instance_valid(_brain_quiz):
+		return
+	if achievements_menu != null and is_instance_valid(achievements_menu) and achievements_menu.visible:
+		_close_achievements()
+		return
+	if in_settings:
+		_close_settings()
+		return
+	if is_instance_valid(_title_card):
+		_open_hub_settings()
+		return
+	if in_start_menu or in_qte or (is_instance_valid(overlay) and overlay.visible and not paused):
+		return
+	paused = not paused
+	if paused:
+		player.set_control_mode("paused")
+		chase.set_active(false)
+		if is_instance_valid(active_course):
+			active_course.runner.set_dogs_active(false)
+		_show_pause_menu()
+	else:
+		_resume()
+
 func _process(delta: float) -> void:
 	_update_ui_auto_hide(delta)
+	_update_mobile_controls()
 	# 键位说明的 10 秒展示窗（QTE 提前返回也要继续倒数，所以放在最前）。
 	if _key_strip_time_left > 0.0:
 		_key_strip_time_left -= delta
@@ -1310,10 +1398,11 @@ func _process(delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if sleep_playing and _sleep_skip_allowed:
-		# 睡着演出的后半段（趴下之后）可快进：F/空格/回车/点击任一即跳。
+		# 睡着演出的后半段（趴下之后）可快进：F/空格/回车/点击/触屏任一即跳。
 		var fast_forward: bool = event.is_action_pressed("action_interact") or event.is_action_pressed("action_jump") \
 			or event.is_action_pressed("ui_accept") \
-			or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed)
+			or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed) \
+			or (event is InputEventScreenTouch and event.pressed)
 		if fast_forward:
 			_sleep_skip = true
 			get_viewport().set_input_as_handled()

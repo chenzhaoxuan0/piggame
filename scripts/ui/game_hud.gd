@@ -7,6 +7,7 @@ extends RefCounted
 # 视觉：UiKit 卡通缝线补丁风（奶油纸 / 圆体字 / 鼠尾草绿 / 湖青 / 珊瑚橙）。
 
 const UI = preload("res://scripts/ui/ui_kit.gd")
+const MOBILE_CONTROLS = preload("res://scripts/ui/mobile_controls.gd")
 
 static func build_all(host: Node) -> void:
 	var layer := CanvasLayer.new()
@@ -26,6 +27,13 @@ static func build_all(host: Node) -> void:
 	_build_toast_banner(host)
 	_build_notice_feed(host)
 	_build_key_strip(host)
+	_build_mobile_controls(host)
+
+static func _build_mobile_controls(host: Node) -> void:
+	var mc: Control = MOBILE_CONTROLS.new()
+	mc.pause_requested.connect(host._on_mobile_pause_pressed)
+	host.hud.add_child(mc)
+	host.mobile_controls = mc
 
 static func _build_key_strip(host: Node) -> void:
 	# Key-test strip, ported from the old opening pen: keycap per bound key,
